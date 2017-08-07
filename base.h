@@ -1,5 +1,5 @@
 //
-// Created by Jacob on 07.08.2017.
+// Created by rozliv on 07.08.2017.
 //
 
 #ifndef PURSUIT_BASE_H
@@ -10,8 +10,6 @@
 
 
 class Action {
-    int id;
-    std::string s;
 public:
     explicit Action(int t_id);
 
@@ -24,11 +22,13 @@ public:
     inline int getID() const{
         return id;
     }
+
+private:
+    int id;
+    std::string s;
 };
 
 class Observation {
-    int id;
-    std::string s;
 public:
     explicit Observation(int t_id);
 
@@ -41,12 +41,15 @@ public:
     inline int getID() const{
         return id;
     }
+
+private:
+    int id;
+    std::string s;
 };
 
 
 class State {
 public:
-
     explicit State();
 
     void getActions(std::vector<Action>&list ,int player);
@@ -54,8 +57,6 @@ public:
 
 
 class Outcome{
-    std::vector<Observation> ob;
-    std::vector<int> rew;
 public:
     Outcome(const std::vector<Observation> &t_ob, const std::vector<int> &t_rew);
 
@@ -66,12 +67,13 @@ public:
     inline const std::vector<int>& getReward() const {
         return rew;
     }
+
+private:
+    std::vector<Observation> ob;
+    std::vector<int> rew;
 };
 
 class Domain {
-    int width;
-    int height;
-    State root;
 public:
     explicit Domain(int h,int w,  State &r);
 
@@ -82,9 +84,11 @@ public:
     inline int getWidth() const{
         return  width;
     }
+
+private:
+    int width;
+    int height;
+    State root;
 };
-
-
-
 
 #endif //PURSUIT_BASE_H

@@ -13,10 +13,10 @@ namespace {
     class FTest : public testing::Test {
 
     public:
-        std::vector<Pos> loc = {{0, 0},{5, 5}};
+        std::vector<Pos> loc = {{0, 0},{2, 2}};
         std::vector<int> rewards = std::vector<int>(loc.size());
         PursuitState s = PursuitState(loc);
-        PursuitDomain d = PursuitDomain(6,6,5,s);
+        PursuitDomain d = PursuitDomain(3,3,2,s);
 
         void pursuit(PursuitDomain& domain,const PursuitState& state, int depth)
         {

@@ -220,32 +220,32 @@ gtest_main/fast:
 	$(MAKE) -f lib\googletest\googlemock\gtest\CMakeFiles\gtest_main.dir\build.make lib/googletest/googlemock/gtest/CMakeFiles/gtest_main.dir/build
 .PHONY : gtest_main/fast
 
-action.obj: action.cpp.obj
+base.obj: base.cpp.obj
 
-.PHONY : action.obj
+.PHONY : base.obj
 
 # target to build an object file
-action.cpp.obj:
-	$(MAKE) -f CMakeFiles\pursuit.dir\build.make CMakeFiles/pursuit.dir/action.cpp.obj
-.PHONY : action.cpp.obj
+base.cpp.obj:
+	$(MAKE) -f CMakeFiles\pursuit.dir\build.make CMakeFiles/pursuit.dir/base.cpp.obj
+.PHONY : base.cpp.obj
 
-action.i: action.cpp.i
+base.i: base.cpp.i
 
-.PHONY : action.i
+.PHONY : base.i
 
 # target to preprocess a source file
-action.cpp.i:
-	$(MAKE) -f CMakeFiles\pursuit.dir\build.make CMakeFiles/pursuit.dir/action.cpp.i
-.PHONY : action.cpp.i
+base.cpp.i:
+	$(MAKE) -f CMakeFiles\pursuit.dir\build.make CMakeFiles/pursuit.dir/base.cpp.i
+.PHONY : base.cpp.i
 
-action.s: action.cpp.s
+base.s: base.cpp.s
 
-.PHONY : action.s
+.PHONY : base.s
 
 # target to generate assembly for a file
-action.cpp.s:
-	$(MAKE) -f CMakeFiles\pursuit.dir\build.make CMakeFiles/pursuit.dir/action.cpp.s
-.PHONY : action.cpp.s
+base.cpp.s:
+	$(MAKE) -f CMakeFiles\pursuit.dir\build.make CMakeFiles/pursuit.dir/base.cpp.s
+.PHONY : base.cpp.s
 
 main.obj: main.cpp.obj
 
@@ -345,9 +345,9 @@ help:
 	@echo ... gmock
 	@echo ... gtest
 	@echo ... gtest_main
-	@echo ... action.obj
-	@echo ... action.i
-	@echo ... action.s
+	@echo ... base.obj
+	@echo ... base.i
+	@echo ... base.s
 	@echo ... main.obj
 	@echo ... main.i
 	@echo ... main.s
