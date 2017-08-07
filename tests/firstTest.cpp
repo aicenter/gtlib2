@@ -6,7 +6,7 @@
 #include <gmock/gmock.h>
 
 #include "../pursuit.h"
-using std::vector;
+
 using testing::Eq;
 
 namespace {
@@ -18,7 +18,7 @@ namespace {
         PursuitState s = PursuitState(loc);
         PursuitDomain d = PursuitDomain(6,6,5,s);
 
-        void pursuit(PursuitDomain& domain,PursuitState state, int depth)
+        void pursuit(PursuitDomain& domain,const PursuitState& state, int depth)
         {
             std::vector<Pos> m = {{0,0}, {1,0}, {0,1}, {-1,0}, {0,-1}};
             vector<int> array = vector<int>();

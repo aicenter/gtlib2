@@ -462,6 +462,16 @@ cxxabi.h
 acxx_demangle.h
 -
 
+C:/Users/Jacob/CLionProjects/pursuit/action.cpp
+action.h
+C:/Users/Jacob/CLionProjects/pursuit/action.h
+
+C:/Users/Jacob/CLionProjects/pursuit/action.h
+iostream
+-
+vector
+-
+
 C:/Users/Jacob/CLionProjects/pursuit/main.cpp
 pursuit.h
 C:/Users/Jacob/CLionProjects/pursuit/pursuit.h
@@ -475,16 +485,8 @@ pursuit.h
 C:/Users/Jacob/CLionProjects/pursuit/pursuit.h
 
 C:/Users/Jacob/CLionProjects/pursuit/pursuit.h
-iostream
--
-vector
--
-random
--
-cstdlib
--
-ctime
--
+action.h
+C:/Users/Jacob/CLionProjects/pursuit/action.h
 
 C:/Users/Jacob/CLionProjects/pursuit/tests/firstTest.cpp
 gtest/gtest.h

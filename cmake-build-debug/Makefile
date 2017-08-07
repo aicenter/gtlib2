@@ -220,6 +220,33 @@ gtest_main/fast:
 	$(MAKE) -f lib\googletest\googlemock\gtest\CMakeFiles\gtest_main.dir\build.make lib/googletest/googlemock/gtest/CMakeFiles/gtest_main.dir/build
 .PHONY : gtest_main/fast
 
+action.obj: action.cpp.obj
+
+.PHONY : action.obj
+
+# target to build an object file
+action.cpp.obj:
+	$(MAKE) -f CMakeFiles\pursuit.dir\build.make CMakeFiles/pursuit.dir/action.cpp.obj
+.PHONY : action.cpp.obj
+
+action.i: action.cpp.i
+
+.PHONY : action.i
+
+# target to preprocess a source file
+action.cpp.i:
+	$(MAKE) -f CMakeFiles\pursuit.dir\build.make CMakeFiles/pursuit.dir/action.cpp.i
+.PHONY : action.cpp.i
+
+action.s: action.cpp.s
+
+.PHONY : action.s
+
+# target to generate assembly for a file
+action.cpp.s:
+	$(MAKE) -f CMakeFiles\pursuit.dir\build.make CMakeFiles/pursuit.dir/action.cpp.s
+.PHONY : action.cpp.s
+
 main.obj: main.cpp.obj
 
 .PHONY : main.obj
@@ -318,6 +345,9 @@ help:
 	@echo ... gmock
 	@echo ... gtest
 	@echo ... gtest_main
+	@echo ... action.obj
+	@echo ... action.i
+	@echo ... action.s
 	@echo ... main.obj
 	@echo ... main.i
 	@echo ... main.s

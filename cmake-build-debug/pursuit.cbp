@@ -326,6 +326,12 @@
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="C:/Users/Jacob/CLionProjects/pursuit/action.cpp">
+			<Option target="pursuit"/>
+		</Unit>
+		<Unit filename="C:/Users/Jacob/CLionProjects/pursuit/action.h">
+			<Option target="pursuit"/>
+		</Unit>
 		<Unit filename="C:/Users/Jacob/CLionProjects/pursuit/lib/googletest/googlemock/src/gmock-all.cc">
 			<Option target="gmock_main"/>
 			<Option target="gmock"/>
