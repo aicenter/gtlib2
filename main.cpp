@@ -10,16 +10,16 @@
 
 int main(int argc,char* argv[])
 {
-    int width = 3;
+    PursuitDomain::width = 3;
     count = 0;
-    int height = 3;
-    vector<Pos> loc = {{0, 0},{height-1, width-1}};
-    rewards = std::vector<int>(loc.size());
+    PursuitDomain::height = 3;
+    vector<Pos> loc = {{0, 0},{PursuitDomain::height-1, PursuitDomain::width-1}};
+    rewards = std::vector<double>(loc.size());
     PursuitState s = PursuitState(loc);
-    PursuitDomain d = PursuitDomain(height,width,2,s);
+    PursuitDomain d = PursuitDomain(2,s);
     pursuit(d,s, d.getMaxDepth());
 
-    for (int i : rewards) {
+    for (double i : rewards) {
         cout << i << " ";
     }
     cout << count << '\n';

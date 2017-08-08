@@ -4,22 +4,33 @@
 
 #include "base.h"
 
-Action::Action(int t_id): id(t_id) {}
+Action::Action(int id): id_(id) {}
 
-Action::Action(int t_id,  const std::string& t_s): id(t_id), s(t_s){}
+std::string Action::ToString() {
+    return std::string();
+}
+
+//Action::Action(int t_id,  const std::string& t_s): id(t_id), s(t_s){}
 
 
-Observation::Observation(int t_id): id(t_id){}
+Observation::Observation(int id): id_(id){}
 
-Observation::Observation(int t_id,  const std::string& t_s):id(t_id), s(t_s){}
+Observation::Observation(int id,  const std::string& s):id_(id), s_(s){}
 
 
 State::State() = default;
 
-void State::getActions(std::vector<Action> &list, int player) {};
+std::vector<Action> State::getActions(int player) {
+    return std::vector<Action>();
+};
+
+void State::getActions(std::vector<Action> &list, int player) const {}
 
 
-Outcome::Outcome( const std::vector<Observation> &t_ob, const std::vector<int> &t_rew):  ob(t_ob), rew(t_rew){}
+
+Outcome::Outcome( const std::vector<Observation> &ob, const std::vector<double> &rew):  ob_(ob), rew_(rew){}
 
 
-Domain::Domain(int h, int w, State &r): width(w), height(h), root(r) {}
+Domain::Domain(State &r): root_(r) {}
+
+std::string Domain::GetInfo() {}

@@ -771,7 +771,7 @@ memory reclaimed. To solve this problem, you can
   1. free the memory again in the parent process; or
   1. do not use the heap checker in your program.
 
-Due to an implementation detail, you cannot place multiple death test
+Due to an implementation detail, you cannot place_ multiple death test
 assertions on the same line; otherwise, compilation will fail with an unobvious
 error message.
 
@@ -1986,7 +1986,7 @@ to make it apply to Google Test tests, as shown here:
 </testsuites>
 ```
 
-  * The root `<testsuites>` element corresponds to the entire test program.
+  * The root_ `<testsuites>` element corresponds to the entire test program.
   * `<testsuite>` elements correspond to Google Test test cases.
   * `<testcase>` elements correspond to Google Test test functions.
 

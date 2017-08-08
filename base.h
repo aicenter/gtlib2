@@ -11,84 +11,83 @@
 
 class Action {
 public:
-    explicit Action(int t_id);
+    explicit Action(int id);
 
-    Action(int t_id, const std::string& t_s);
+//    Action(int t_id, const std::string& t_s);
+//
+//    inline const std::string& getDesc() const{
+//        return s;
+//    }
 
-    inline const std::string& getDesc() const{
-        return s;
-    }
+    virtual std::string ToString();
 
     inline int getID() const{
-        return id;
+        return id_;
     }
 
 private:
-    int id;
-    std::string s;
+    int id_;
 };
 
 class Observation {
 public:
-    explicit Observation(int t_id);
+    explicit Observation(int id);
 
-    Observation(int t_id, const std::string& t_s);
+    Observation(int id, const std::string& s);
 
     inline const std::string& getDesc() const{
-        return s;
+        return s_;
     }
 
     inline int getID() const{
-        return id;
+        return id_;
     }
 
 private:
-    int id;
-    std::string s;
+    int id_;
+    std::string s_;
 };
 
 
 class State {
 public:
-    explicit State();
+    State();
 
-    void getActions(std::vector<Action>&list ,int player);
+    virtual std::vector<Action> getActions (int player);
+
+    virtual void getActions(std::vector<Action>&list ,int player) const; //TODO: problem v pristupu na getPlace stavu
 };
 
 
 class Outcome{
 public:
-    Outcome(const std::vector<Observation> &t_ob, const std::vector<int> &t_rew);
+    Outcome(const std::vector<Observation> &ob, const std::vector<double> &rew);
 
     inline const std::vector<Observation>& getObs() const {
-        return ob;
+        return ob_;
     }
 
-    inline const std::vector<int>& getReward() const {
-        return rew;
+    inline const std::vector<double>& getReward() const {
+        return rew_;
     }
 
 private:
-    std::vector<Observation> ob;
-    std::vector<int> rew;
+    std::vector<Observation> ob_;
+    std::vector<double> rew_;
 };
 
 class Domain {
 public:
-    explicit Domain(int h,int w,  State &r);
+    explicit Domain(State &r);
 
-    inline int getHeight() const{
-        return height;
+    inline const State& getRoot() const {
+        return root_;
     }
 
-    inline int getWidth() const{
-        return  width;
-    }
+    virtual std::string GetInfo();
 
 private:
-    int width;
-    int height;
-    State root;
+    State root_;
 };
 
 #endif //PURSUIT_BASE_H

@@ -40,8 +40,8 @@ endif()
 
 # Name of the project.
 #
-# CMake files in this project can refer to the root source directory
-# as ${gtest_SOURCE_DIR} and to the root binary directory as
+# CMake files in this project can refer to the root_ source directory
+# as ${gtest_SOURCE_DIR} and to the root_ binary directory as
 # ${gtest_BINARY_DIR}.
 # Language "C" is required for find_package(Threads).
 project(gtest CXX C)
@@ -140,7 +140,7 @@ endif()
 # or specifying the -Dgtest_build_tests=ON flag when running cmake.
 
 if (gtest_build_tests)
-  # This must be set in the root directory for the tests to be run by
+  # This must be set in the root_ directory for the tests to be run by
   # 'make test' or ctest.
   enable_testing()
 

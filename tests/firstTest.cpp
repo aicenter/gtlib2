@@ -13,10 +13,12 @@ namespace {
     class FTest : public testing::Test {
 
     public:
-        std::vector<Pos> loc = {{0, 0},{2, 2}};
-        std::vector<int> rewards = std::vector<int>(loc.size());
+      //  PursuitDomain::width = 3;
+      //  PursuitDomain::height = 3;
+        vector<Pos> loc = {{0, 0},{PursuitDomain::height-1, PursuitDomain::width-1}};
+        std::vector<double> rewards = std::vector<double>(loc.size());
         PursuitState s = PursuitState(loc);
-        PursuitDomain d = PursuitDomain(3,3,2,s);
+        PursuitDomain d = PursuitDomain(2,s);
 
         void pursuit(PursuitDomain& domain,const PursuitState& state, int depth)
         {
@@ -26,8 +28,8 @@ namespace {
             vector<Action> actions2 = vector<Action>();
             if(depth == 0){return;}
 
-            state.getActions(actions,1, domain.getHeight(), domain.getWidth());
-            state.getActions(actions2,2, domain.getHeight(), domain.getWidth());
+            state.getActions(actions,1);
+            state.getActions(actions2,2);
 
             for (Action &action : actions) {
                 for (Action &j : actions2) {

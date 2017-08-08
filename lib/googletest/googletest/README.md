@@ -99,7 +99,7 @@ libraries (eg debug/release), etc. are avoided. This is particularly
 useful on Windows. Making GoogleTest's source code available to the
 main build can be done a few different ways:
 
-* Download the GoogleTest source code manually and place it at a
+* Download the GoogleTest source code manually and place_ it at a
   known location. This is the least flexible approach and can make
   it more difficult to use with continuous integration systems, etc.
 * Embed the GoogleTest source code as a direct copy in the main

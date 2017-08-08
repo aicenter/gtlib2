@@ -1,6 +1,6 @@
 # A sample Makefile for building Google Test and using it in user
 # tests.  Please tweak it to suit your environment and project.  You
-# may want to move it to your project's root directory.
+# may want to move it to your project's root_ directory.
 #
 # SYNOPSIS:
 #
@@ -12,7 +12,7 @@
 # project, except GTEST_HEADERS, which you can use in your own targets
 # but shouldn't modify.
 
-# Points to the root of Google Test, relative to where this file is.
+# Points to the root_ of Google Test, relative to where this file is.
 # Remember to tweak this if you move this file.
 GTEST_DIR = ..
 

@@ -55,7 +55,7 @@ Next, you'll want to add gtest.framework in two different ways, depending upon w
 
 # Set Up the Executable Run Environment #
 
-Since the unit test executable is a shell tool, it doesn't have a bundle with a `Contents/Frameworks` directory, in which to place gtest.framework. Instead, the dynamic linker must be told at runtime to search for the framework in another location. This can be accomplished by setting the "DYLD\_FRAMEWORK\_PATH" environment variable in the "Edit Active Executable ..." Arguments tab, under "Variables to be set in the environment:". The path for this value is the path (relative or absolute) of the directory containing the gtest.framework.
+Since the unit test executable is a shell tool, it doesn't have a bundle with a `Contents/Frameworks` directory, in which to place_ gtest.framework. Instead, the dynamic linker must be told at runtime to search for the framework in another location. This can be accomplished by setting the "DYLD\_FRAMEWORK\_PATH" environment variable in the "Edit Active Executable ..." Arguments tab, under "Variables to be set in the environment:". The path for this value is the path (relative or absolute) of the directory containing the gtest.framework.
 
 If you haven't set up the DYLD\_FRAMEWORK\_PATH, correctly, you might get a message like this:
 

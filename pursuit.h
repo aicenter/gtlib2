@@ -18,6 +18,22 @@ struct Pos{
     int x;
 };
 
+class PursuitAction {
+public:
+    explicit PursuitAction(int id);
+
+//    Action(int t_id, const std::string& t_s);
+//
+//    inline const std::string& getDesc() const{
+//        return s;
+//    }
+
+    virtual std::string ToString() final;
+
+private:
+};
+
+
 
 class PursuitOutcome;
 
@@ -25,59 +41,66 @@ class PursuitState: public State {
 public:
     explicit PursuitState(std::vector<Pos> &p);
 
-    PursuitState(std::vector<Pos> &p, double t_prob);
+    PursuitState(std::vector<Pos> &p, double prob);
 
-    void getActions(std::vector<Action>&list ,int player, int t_i, int t_j)const;
+    std::vector<Action> getActions (int player) final;
 
-    PursuitOutcome PerformAction(std::vector<Action>& actions)const;
+    void getActions(std::vector<Action>&list ,int player) const final;
+
+    PursuitOutcome PerformAction(std::vector<Action>& actions) const;
 
     inline const std::vector<Pos>& getPlace() const{
-        return place;
+        return place_;
     }
 
     inline const std::vector<double>& getProb() const{
-        return probDis;
+        return probdis_;
     }
 
     inline double getPro() const{
-        return prob;
+        return prob_;
     }
 
 private:
-    double prob = 1;
-    std::vector<Pos> place;
-    std::vector<Pos> m = {{0,0}, {1,0}, {0,1}, {-1,0}, {0,-1}};
-    std::vector<std::string> des = {"stay", "right", "down", "left", "up"};
-    std::vector<double> probDis = {0.1, 0.9}; //TODO: docasne
+    double prob_ = 1;
+    std::vector<Pos> place_;
+    std::vector<Pos> m_ = {{0,0}, {1,0}, {0,1}, {-1,0}, {0,-1}};
+    std::vector<std::string> des_ = {"stay", "right", "down", "left", "up"};
+    std::vector<double> probdis_ = {0.1, 0.9}; //TODO: docasne
 };
 
 class PursuitOutcome: public Outcome{
 public:
-    PursuitOutcome(const PursuitState &s, const std::vector<Observation> &t_ob, const std::vector<int> &t_rew);
+    PursuitOutcome(const PursuitState &s, const std::vector<Observation> &ob, const std::vector<double> &rew);
 
     inline const PursuitState & getState() const {
-        return st;
+        return st_;
     }
 
 private:
-    PursuitState st;
+    PursuitState st_;
 };
 
 
 class PursuitDomain: public Domain{
 public:
-    PursuitDomain(int w, int h,int max, State &r);
+    PursuitDomain(int max, State &r);
 
-    inline int getMaxDepth() const{
-        return maxdepth;
+    inline int getMaxDepth() {
+        return maxdepth_;
     }
 
+    std::string GetInfo() final;
+
+    static int height_;
+    static int width_;
+
 private:
-    int maxdepth;
+    int maxdepth_;
 };
 
 extern int count;
-extern std::vector<int> rewards;
+extern std::vector<double> rewards;
 
 void pursuit(PursuitDomain& domain, const PursuitState &state, int depth);
 

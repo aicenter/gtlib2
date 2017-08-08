@@ -30,11 +30,11 @@ Test into a library and link your test with it.  We provide build
 files for some popular build systems (`msvc/` for Visual Studio,
 `xcode/` for Mac Xcode, `make/` for GNU make, `codegear/` for Borland
 C++ Builder, and the autotools script in the
-Google Test root directory).  If your build system is not on this
+Google Test root_ directory).  If your build system is not on this
 list, you can take a look at `make/Makefile` to learn how Google Test
 should be compiled (basically you want to compile `src/gtest-all.cc`
 with `GTEST_ROOT` and `GTEST_ROOT/include` in the header search path,
-where `GTEST_ROOT` is the Google Test root directory).
+where `GTEST_ROOT` is the Google Test root_ directory).
 
 Once you are able to compile the Google Test library, you should
 create a project or build target for your test program.  Make sure you

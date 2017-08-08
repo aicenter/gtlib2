@@ -2,7 +2,7 @@
 # using them in user tests.  This file is self-contained, so you don't
 # need to use the Makefile in Google Test's source tree.  Please tweak
 # it to suit your environment and project.  You may want to move it to
-# your project's root directory.
+# your project's root_ directory.
 #
 # SYNOPSIS:
 #
@@ -14,12 +14,12 @@
 # project, except GMOCK_HEADERS and GTEST_HEADERS, which you can use
 # in your own targets but shouldn't modify.
 
-# Points to the root of Google Test, relative to where this file is.
+# Points to the root_ of Google Test, relative to where this file is.
 # Remember to tweak this if you move this file, or if you want to use
 # a copy of Google Test at a different location.
 GTEST_DIR = ../../googletest
 
-# Points to the root of Google Mock, relative to where this file is.
+# Points to the root_ of Google Mock, relative to where this file is.
 # Remember to tweak this if you move this file.
 GMOCK_DIR = ..
 

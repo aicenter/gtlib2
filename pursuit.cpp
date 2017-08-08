@@ -4,37 +4,59 @@
 
 #include "pursuit.h"
 
-PursuitState::PursuitState(std::vector<Pos> &p):place(p){
-    probDis = {0.1,0.9};
+
+std::string PursuitAction::ToString() {
+    return std::string();
 }
 
-PursuitState::PursuitState(std::vector<Pos> &p, double t_prob):place(p), prob(t_prob){
-    probDis = {0.1,0.9};
+PursuitAction::PursuitAction(int id) {
+
 }
 
-void PursuitState::getActions(std::vector<Action> &list,int player, int t_i, int t_j)const {
+
+PursuitState::PursuitState(std::vector<Pos> &p):place_(p){
+    probdis_ = {0.1,0.9};
+}
+
+PursuitState::PursuitState(std::vector<Pos> &p, double prob):place_(p), prob_(prob){
+    probdis_ = {0.1,0.9};
+}
+
+std::vector<Action> PursuitState::getActions(int player) {
+    std::vector<Action> list = std::vector<Action>();
     for (int i = 0; i < 5; ++i) {
-        if((place[player].x + m[i].x) >= 0 && (place[player].x + m[i].x) < t_j
-           &&(place[player].y + m[i].y) >= 0 && (place[player].y + m[i].y) < t_i){
-            list.emplace_back(i, des[i]);
+        if((place_[player].x + m_[i].x) >= 0 && (place_[player].x + m_[i].x) < PursuitDomain::width_
+           &&(place_[player].y + m_[i].y) >= 0 && (place_[player].y + m_[i].y) < PursuitDomain::height_){
+            list.emplace_back(i, des_[i]);
         }
     }
+    return list;
 }
 
-PursuitOutcome PursuitState::PerformAction(std::vector<Action>& t_actions)const {
-    std::vector<Pos> moves = std::vector<Pos>(t_actions.size());
-    double probability = prob;
-    for(int i = 0; i < t_actions.size();  ++i) {
-        moves[i].x = m[t_actions[i].getID()].x + place[i].x;
-        moves[i].y = m[t_actions[i].getID()].y + place[i].y;
-        probability *= t_actions[i].getID() == 0 ? probDis[0]: probDis[1];
+void PursuitState::getActions(std::vector<Action> &list,int player)const {
+    for (int i = 0; i < 5; ++i) {
+        if((place_[player].x + m_[i].x) >= 0 && (place_[player].x + m_[i].x) < PursuitDomain::width_
+           &&(place_[player].y + m_[i].y) >= 0 && (place_[player].y + m_[i].y) < PursuitDomain::height_){
+            list.emplace_back(i, des_[i]);
+        }
+    }
+
+}
+
+PursuitOutcome PursuitState::PerformAction(std::vector<Action>& actions)const {
+    std::vector<Pos> moves = std::vector<Pos>(actions.size());
+    double probability = prob_;
+    for(int i = 0; i < actions.size();  ++i) {
+        moves[i].x = m_[actions[i].getID()].x + place_[i].x;
+        moves[i].y = m_[actions[i].getID()].y + place_[i].y;
+        probability *= actions[i].getID() == 0 ? probdis_[0]: probdis_[1];
     }
     PursuitState s = PursuitState(moves, probability);
-    std::vector<int> rew = std::vector<int>(s.place.size());
+    std::vector<double> rew = std::vector<double>(s.place_.size());
 
     for (int i = 1; i < s.getPlace().size(); ++i) {
-        if((s.place[0].x == place[i].x && s.place[0].y == place[i].y && s.place[i].x == place[0].x && s.place[i].y == place[0].y) ||
-           (s.place[0].x == s.place[i].x && s.place[0].y == s.place[i].y)){
+        if((s.place_[0].x == place_[i].x && s.place_[0].y == place_[i].y && s.place_[i].x == place_[0].x &&
+            s.place_[i].y == place_[0].y) || (s.place_[0].x == s.place_[i].x && s.place_[0].y == s.place_[i].y)){
             ++rew[0];
             --rew[i];
         }
@@ -45,10 +67,10 @@ PursuitOutcome PursuitState::PerformAction(std::vector<Action>& t_actions)const 
     std::vector<Observation> obs = std::vector<Observation>();
     int index;
     obs.emplace_back(0);
-    for(int i = 1; i < s.place.size(); ++i) {
+    for(int i = 1; i < s.place_.size(); ++i) {
         index = 0;
         for (int j = 1; j < eight.size(); ++j) {
-            if(s.place[0].x + eight[j].x == s.place[i].x && s.place[0].y + eight[j].y == s.place[i].y) {
+            if(s.place_[0].x + eight[j].x == s.place_[i].x && s.place_[0].y + eight[j].y == s.place_[i].y) {
                 index = j;
             }
         }
@@ -62,16 +84,24 @@ PursuitOutcome PursuitState::PerformAction(std::vector<Action>& t_actions)const 
 
 
 
-PursuitOutcome::PursuitOutcome(const PursuitState &s, const std::vector<Observation> &t_ob,
-                               const std::vector<int> &t_rew): st(s), Outcome(t_ob, t_rew){}
+PursuitOutcome::PursuitOutcome(const PursuitState &s, const std::vector<Observation> &ob,
+                               const std::vector<double> &rew): st_(s), Outcome(ob, rew){}
 
 
 
-PursuitDomain::PursuitDomain(int w, int h,int max, State &r): Domain(w,h,r), maxdepth(max){}
+PursuitDomain::PursuitDomain(int max, State &r): Domain(r),maxdepth_(max){}
 
+int PursuitDomain::height_ = 0;
+int PursuitDomain::width_ = 0;
+
+std::string PursuitDomain::GetInfo() {
+    return "Rozmery pole jsou: " + std::to_string(PursuitDomain::height_) + " x " +
+            std::to_string(PursuitDomain::height_) + " maximalni hloubka grafu je: " +  std::to_string(maxdepth_) +
+            " a pocatecni stav je: ...";
+}
 
 int count = 0;
-std::vector<int> rewards;
+std::vector<double> rewards;
 
 void pursuit(PursuitDomain& domain, const PursuitState &state, int depth)
 {
@@ -82,17 +112,19 @@ void pursuit(PursuitDomain& domain, const PursuitState &state, int depth)
     string s = std::to_string(state.getPlace()[0].x) + " " + std::to_string(state.getPlace()[0].y) + "    " +
                std::to_string(state.getPlace()[1].x) + " " + std::to_string(state.getPlace()[1].y) + "   " +
             std::to_string(state.getPro());
-    cout << s<< '\n';
+    cout << s<<"   "<< domain.GetInfo() << '\n';
     vector<Action> actions = vector<Action>();
     vector<Action> actions2 = vector<Action>();
 //    cout << "hloubka je: " << depth << "   ";
 //    cout<< "1. " << state.getPlace()[0].x << " " << state.getPlace()[0].y;
 //    cout<< "    2. " << state.getPlace()[1].x << " " << state.getPlace()[1].y << '\n';
     ++count;
-    if(depth == 0){return;}
+    if(depth == 0){
+        return;
+    }
 
-    state.getActions(actions,0, domain.getHeight(), domain.getWidth());
-    state.getActions(actions2,1, domain.getHeight(), domain.getWidth());
+    state.getActions(actions,0);
+    state.getActions(actions2,1);
 
     for (Action &action : actions) {
         for (Action &j : actions2) {

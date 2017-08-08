@@ -490,7 +490,7 @@ TEST(AbcTest, Xyz) {
 
   * If you want, you can still override the default action by providing your own `ON_CALL()` or using `.WillOnce()` / `.WillRepeatedly()` in `EXPECT_CALL()`.
   * In `DelegateToFake()`, you only need to delegate the methods whose fake implementation you intend to use.
-  * The general technique discussed here works for overloaded methods, but you'll need to tell the compiler which version you mean. To disambiguate a mock function (the one you specify inside the parentheses of `ON_CALL()`), see the "Selecting Between Overloaded Functions" section on this page; to disambiguate a fake function (the one you place inside `Invoke()`), use a `static_cast` to specify the function's type.
+  * The general technique discussed here works for overloaded methods, but you'll need to tell the compiler which version you mean. To disambiguate a mock function (the one you specify inside the parentheses of `ON_CALL()`), see the "Selecting Between Overloaded Functions" section on this page; to disambiguate a fake function (the one you place_ inside `Invoke()`), use a `static_cast` to specify the function's type.
   * Having to mix a mock and a fake is often a sign of something gone wrong. Perhaps you haven't got used to the interaction-based way of testing yet. Or perhaps your interface is taking on too many roles and should be split up. Therefore, **don't abuse this**. We would only recommend to do it as an intermediate step when you are refactoring your code.
 
 Regarding the tip on mixing a mock and a fake, here's an example on
@@ -1175,7 +1175,7 @@ The above matcher says that the container must have 4 elements, which
 must be 1, greater than 0, anything, and 5 respectively.
 
 `ElementsAre()` is overloaded to take 0 to 10 arguments. If more are
-needed, you can place them in a C-style array and use
+needed, you can place_ them in a C-style array and use
 `ElementsAreArray()` instead:
 
 ```
