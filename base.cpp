@@ -26,6 +26,9 @@ std::vector<Action> State::getActions(int player) {
 
 void State::getActions(std::vector<Action> &list, int player) const {}
 
+//ProbDistribution State::PerformAction(std::vector<Action> &actions) const {
+//    return ProbDistribution(std::vector<DOut>());
+//}
 
 
 Outcome::Outcome( const std::vector<Observation> &ob, const std::vector<double> &rew):  ob_(ob), rew_(rew){}
@@ -34,3 +37,4 @@ Outcome::Outcome( const std::vector<Observation> &ob, const std::vector<double> 
 Domain::Domain(State &r): root_(r) {}
 
 std::string Domain::GetInfo() {}
+

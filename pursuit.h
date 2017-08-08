@@ -18,27 +18,28 @@ struct Pos{
     int x;
 };
 
-class PursuitAction {
+class PursuitAction: public Action {
 public:
     explicit PursuitAction(int id);
 
-//    Action(int t_id, const std::string& t_s);
+    //    Action(int t_id, const std::string& t_s);
 //
 //    inline const std::string& getDesc() const{
 //        return s;
 //    }
-
-    virtual std::string ToString() final;
+    int getInfo(){return 2; }
+    std::string ToString() final;
 
 private:
 };
 
 
 
-class PursuitOutcome;
+class ProbDistribution;
 
 class PursuitState: public State {
 public:
+    PursuitState();
     explicit PursuitState(std::vector<Pos> &p);
 
     PursuitState(std::vector<Pos> &p, double prob);
@@ -47,7 +48,7 @@ public:
 
     void getActions(std::vector<Action>&list ,int player) const final;
 
-    PursuitOutcome PerformAction(std::vector<Action>& actions) const;
+    ProbDistribution PerformAction(std::vector<Action>& actions) const;// final;
 
     inline const std::vector<Pos>& getPlace() const{
         return place_;
@@ -64,12 +65,15 @@ public:
 private:
     double prob_ = 1;
     std::vector<Pos> place_;
+    std::vector<Pos> eight = {{-2,-2},{-1,-1}, {-1,0}, {-1,1}, {0,-1}, {0,1}, {1,-1}, {1,0}, {1,1}, {0,0}};
+    std::vector<std::string> desc = {"nowhere","top left", "top", "top right", "left", "right",
+                                     "bottom left", "bottom", "bottom right", "same"};
     std::vector<Pos> m_ = {{0,0}, {1,0}, {0,1}, {-1,0}, {0,-1}};
     std::vector<std::string> des_ = {"stay", "right", "down", "left", "up"};
     std::vector<double> probdis_ = {0.1, 0.9}; //TODO: docasne
 };
 
-class PursuitOutcome: public Outcome{
+class PursuitOutcome: public Outcome{ //TODO: nesmi bejt pursuit
 public:
     PursuitOutcome(const PursuitState &s, const std::vector<Observation> &ob, const std::vector<double> &rew);
 
@@ -86,7 +90,7 @@ class PursuitDomain: public Domain{
 public:
     PursuitDomain(int max, State &r);
 
-    inline int getMaxDepth() {
+    inline int getMaxDepth() const {
         return maxdepth_;
     }
 
@@ -97,6 +101,19 @@ public:
 
 private:
     int maxdepth_;
+};
+
+
+
+class ProbDistribution {
+public:
+    explicit ProbDistribution(const std::vector<std::pair<PursuitOutcome,double>>& pairs);
+
+    PursuitOutcome GetRandom();
+
+    std::vector<PursuitOutcome> GetOutcomes();
+
+    std::vector<std::pair<PursuitOutcome, double>> pairs_;
 };
 
 extern int count;

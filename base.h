@@ -7,6 +7,8 @@
 
 #include <iostream>
 #include <vector>
+#include <cmath>
+
 
 
 class Action {
@@ -56,6 +58,8 @@ public:
     virtual std::vector<Action> getActions (int player);
 
     virtual void getActions(std::vector<Action>&list ,int player) const; //TODO: problem v pristupu na getPlace stavu
+
+  //  virtual ProbDistribution PerformAction(std::vector<Action>& actions) const;
 };
 
 
@@ -89,5 +93,7 @@ public:
 private:
     State root_;
 };
+
+
 
 #endif //PURSUIT_BASE_H
