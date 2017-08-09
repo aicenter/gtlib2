@@ -5,10 +5,16 @@
 #ifndef PURSUIT_BASE_H
 #define PURSUIT_BASE_H
 
+#include <memory>
 #include <iostream>
 #include <vector>
 #include <cmath>
 
+
+struct Pos{ //TODO: To tady byt nemuze
+    int y;
+    int x;
+};
 
 
 class Action {
@@ -20,6 +26,7 @@ public:
 //    inline const std::string& getDesc() const{
 //        return s;
 //    }
+    virtual int getInfo(){return 0; }
 
     virtual std::string ToString();
 
@@ -51,22 +58,44 @@ private:
 };
 
 
+class ProbDistribution;
+
 class State {
 public:
-    State();
+    explicit State();
+
+    State(const State&) = delete;
+
+    State& operator=(const State&) = delete;
+
+    virtual ~State() = default;
 
     virtual std::vector<Action> getActions (int player);
 
     virtual void getActions(std::vector<Action>&list ,int player) const; //TODO: problem v pristupu na getPlace stavu
 
-  //  virtual ProbDistribution PerformAction(std::vector<Action>& actions) const;
-};
+    virtual ProbDistribution PerformAction(std::vector<Action>& actions) const;// final;
 
+    virtual const std::vector<Pos>& getPlace() const = 0;
+
+    virtual const std::vector<double>& getProb() const = 0;
+
+
+    virtual double getPro() const = 0;
+
+};
 
 class Outcome{
 public:
-    Outcome(const std::vector<Observation> &ob, const std::vector<double> &rew);
+    explicit Outcome() = default;
 
+    //Outcome(const Outcome&) = delete;
+
+  //  Outcome& operator=(const Outcome&) = delete;
+
+    virtual ~Outcome() = default;
+     //Outcome(const std::vector<Observation> &ob, const std::vector<double> &rew);
+    Outcome(std::unique_ptr<State>& st, const std::vector<Observation> &ob, const std::vector<double> &rew);
     inline const std::vector<Observation>& getObs() const {
         return ob_;
     }
@@ -75,25 +104,39 @@ public:
         return rew_;
     }
 
+    inline const std::unique_ptr<State> & getState() const {
+        return st_;
+    }
+
 private:
     std::vector<Observation> ob_;
     std::vector<double> rew_;
+    std::unique_ptr<State> st_;
 };
 
 class Domain {
 public:
-    explicit Domain(State &r);
+    explicit Domain(std::unique_ptr<State>& r);
 
-    inline const State& getRoot() const {
+    inline const std::unique_ptr<State>& getRoot() const {
         return root_;
     }
 
     virtual std::string GetInfo();
 
 private:
-    State root_;
+    std::unique_ptr<State> root_;
 };
 
+class ProbDistribution {
+public:
+    explicit ProbDistribution(const std::vector<std::pair<Outcome&,double>>& pairs);
 
+    const Outcome& GetRandom();
+
+    std::vector<Outcome> GetOutcomes();
+
+    std::vector<std::pair<Outcome&, double>> pairs_;
+};
 
 #endif //PURSUIT_BASE_H

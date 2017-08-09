@@ -13,10 +13,6 @@ using std::cout;
 using std::vector;
 
 
-struct Pos{
-    int y;
-    int x;
-};
 
 class PursuitAction: public Action {
 public:
@@ -27,7 +23,7 @@ public:
 //    inline const std::string& getDesc() const{
 //        return s;
 //    }
-    int getInfo(){return 2; }
+    int getInfo()final {return 2; }
     std::string ToString() final;
 
 private:
@@ -39,7 +35,14 @@ class ProbDistribution;
 
 class PursuitState: public State {
 public:
-    PursuitState();
+    explicit PursuitState();
+
+    PursuitState(const PursuitState&) = delete;
+
+    PursuitState& operator=(const PursuitState&) = delete;
+
+    ~PursuitState() final  = default;
+
     explicit PursuitState(std::vector<Pos> &p);
 
     PursuitState(std::vector<Pos> &p, double prob);
@@ -48,13 +51,13 @@ public:
 
     void getActions(std::vector<Action>&list ,int player) const final;
 
-    ProbDistribution PerformAction(std::vector<Action>& actions) const;// final;
+    ProbDistribution PerformAction(std::vector<Action>& actions) const final;
 
-    inline const std::vector<Pos>& getPlace() const{
+    inline const std::vector<Pos>& getPlace() const final{
         return place_;
     }
 
-    inline const std::vector<double>& getProb() const{
+    inline const std::vector<double>& getProb() const final {
         return probdis_;
     }
 
@@ -73,22 +76,22 @@ private:
     std::vector<double> probdis_ = {0.1, 0.9}; //TODO: docasne
 };
 
-class PursuitOutcome: public Outcome{ //TODO: nesmi bejt pursuit
-public:
-    PursuitOutcome(const PursuitState &s, const std::vector<Observation> &ob, const std::vector<double> &rew);
-
-    inline const PursuitState & getState() const {
-        return st_;
-    }
-
-private:
-    PursuitState st_;
-};
+//class PursuitOutcome: public Outcome{ //TODO: nesmi bejt pursuit
+//public:
+//    PursuitOutcome(std::unique_ptr<State> st, const std::vector<Observation> &ob, const std::vector<double> &rew);
+//
+//    inline std::unique_ptr<State> getState() const {
+//        return st_;
+//    }
+//
+//private:
+//    std::unique_ptr<State> st_;
+//};
 
 
 class PursuitDomain: public Domain{
 public:
-    PursuitDomain(int max, State &r);
+    PursuitDomain(int max, std::unique_ptr<State> &r);
 
     inline int getMaxDepth() const {
         return maxdepth_;
@@ -105,20 +108,9 @@ private:
 
 
 
-class ProbDistribution {
-public:
-    explicit ProbDistribution(const std::vector<std::pair<PursuitOutcome,double>>& pairs);
-
-    PursuitOutcome GetRandom();
-
-    std::vector<PursuitOutcome> GetOutcomes();
-
-    std::vector<std::pair<PursuitOutcome, double>> pairs_;
-};
-
 extern int count;
 extern std::vector<double> rewards;
 
-void pursuit(PursuitDomain& domain, const PursuitState &state, int depth);
+void pursuit(PursuitDomain& domain,const std::unique_ptr<State> &state, int depth);
 
 #endif //PURSUIT_PURSUIT_H

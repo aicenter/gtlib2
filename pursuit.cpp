@@ -39,11 +39,11 @@ ProbDistribution PursuitState::PerformAction(std::vector<Action>& actions)const 
     std::vector<Pos> moves = std::vector<Pos>();
     moves.reserve(actions.size());
     auto count = static_cast<unsigned int>(pow(2, actions.size()));
-    std::vector<PursuitState> st;// = std::vector<PursuitState>(count);
+    std::vector<std::unique_ptr<State>> st;// = std::vector<PursuitState>(count);
     std::vector<double> rew = std::vector<double>();
     std::vector<std::vector<double> > vec;
     std::vector<std::vector<Observation> > obsvec;
-    std::vector<std::pair<PursuitOutcome, double>> pairs;
+    std::vector<std::pair<Outcome&, double>> pairs;
     for (int k = 0; k < count; ++k) {
         double probability = prob_;
         for (int i = 0; i < actions.size(); ++i) {
@@ -55,15 +55,15 @@ ProbDistribution PursuitState::PerformAction(std::vector<Action>& actions)const 
                 probability *= probdis_[0];
             }
         }
-        st.emplace_back(moves, probability);
+        st.emplace_back(new PursuitState(moves, probability));
         moves.clear();
         rew.push_back(0);
-        for (int i = 1; i < st[k].getPlace().size(); ++i) {
+        for (int i = 1; i < st[k]->getPlace().size(); ++i) {
             rew.push_back(0);
-            if ((st[k].place_[0].x == place_[i].x && st[k].place_[0].y == place_[i].y &&
-                 st[k].place_[i].x == place_[0].x &&
-                 st[k].place_[i].y == place_[0].y) ||
-                (st[k].place_[0].x == st[k].place_[i].x && st[k].place_[0].y == st[k].place_[i].y)) {
+            if ((st[k]->getPlace()[0].x == place_[i].x && st[k]->getPlace()[0].y == place_[i].y &&
+                 st[k]->getPlace()[i].x == place_[0].x &&
+                 st[k]->getPlace()[i].y == place_[0].y) ||
+                (st[k]->getPlace()[0].x == st[k]->getPlace()[i].x && st[k]->getPlace()[0].y == st[k]->getPlace()[i].y)) {
                 ++rew[0];
                 --rew[i];
             }
@@ -73,10 +73,11 @@ ProbDistribution PursuitState::PerformAction(std::vector<Action>& actions)const 
         int index;
         std::vector<Observation> obs = std::vector<Observation>();
         obs.emplace_back(0);
-        for(int i = 1; i < st[k].place_.size(); ++i) {
+        for(int i = 1; i < st[k]->getPlace().size(); ++i) {
             index = 0;
             for (int l = 1; l < eight.size(); ++l) {
-                if (st[k].place_[0].x + eight[l].x == st[k].place_[i].x && st[k].place_[0].y + eight[l].y == st[k].place_[i].y) {
+                if (st[k]->getPlace()[0].x + eight[l].x == st[k]->getPlace()[i].x &&
+                        st[k]->getPlace()[0].y + eight[l].y == st[k]->getPlace()[i].y) {
                     index = l;
                 }
             }
@@ -85,30 +86,24 @@ ProbDistribution PursuitState::PerformAction(std::vector<Action>& actions)const 
         }
         obsvec.push_back(obs);
         obs.clear();
-        PursuitOutcome p = PursuitOutcome(st.back(), obsvec.back(), vec.back());
-        pairs.emplace_back(p, st.back().prob_/prob_);
+        Outcome p {st.back(), obsvec.back(), vec.back()};
+        pairs.emplace_back(p, st.back()->getPro()/prob_);
     }
     ProbDistribution prob(pairs);
     return prob;
-//
-
-//
-
-
-
-
-
 }
 
 PursuitState::PursuitState() = default;
 
 
-PursuitOutcome::PursuitOutcome(const PursuitState &s, const std::vector<Observation> &ob,
-                               const std::vector<double> &rew): st_(s), Outcome(ob, rew){}
+//PursuitOutcome::PursuitOutcome(std::unique_ptr<State> st, const std::vector<Observation> &ob,
+//                               const std::vector<double> &rew):Outcome(ob, rew){
+//
+//}
 
 
 
-PursuitDomain::PursuitDomain(int max, State &r): Domain(r),maxdepth_(max){}
+PursuitDomain::PursuitDomain(int max, std::unique_ptr<State> &r): Domain(r),maxdepth_(max){}
 
 int PursuitDomain::height_ = 0;
 int PursuitDomain::width_ = 0;
@@ -120,36 +115,19 @@ std::string PursuitDomain::GetInfo() {
 }
 
 
-PursuitOutcome ProbDistribution::GetRandom() { //TODO
-  //std::vector<Pos> p = {{1,1}};
-    return pairs_[3].first;
-}
-
-
-std::vector<PursuitOutcome> ProbDistribution::GetOutcomes() {
-    std::vector<PursuitOutcome> list;// = std::vector<PursuitOutcome>(pairs_.size());
-    for (auto &pair : pairs_) {
-        list.push_back(pair.first);
-    }
-    return list;
-}
-
-ProbDistribution::ProbDistribution(const std::vector<std::pair<PursuitOutcome, double>> &pairs): pairs_(pairs) {
-}
-
 
 int count = 0;
 std::vector<double> rewards;
 
-void pursuit(PursuitDomain& domain, const PursuitState &state, int depth)
+void pursuit(PursuitDomain& domain,const std::unique_ptr<State> &state, int depth)
 {
     for (int i = 0; i < domain.getMaxDepth()-depth; ++i) {
         cout << "    ";
     }
 
-    string s = std::to_string(state.getPlace()[0].x) + " " + std::to_string(state.getPlace()[0].y) + "    " +
-               std::to_string(state.getPlace()[1].x) + " " + std::to_string(state.getPlace()[1].y) + "   " +
-            std::to_string(state.getPro());
+    string s = std::to_string(state->getPlace()[0].x) + " " + std::to_string(state->getPlace()[0].y) + "    " +
+               std::to_string(state->getPlace()[1].x) + " " + std::to_string(state->getPlace()[1].y) + "   " +
+            std::to_string(state->getPro());
     cout << s<< '\n';
     vector<Action> actions = vector<Action>();
     vector<Action> actions2 = vector<Action>();
@@ -157,13 +135,13 @@ void pursuit(PursuitDomain& domain, const PursuitState &state, int depth)
     if(depth == 0){
         return;
     }
-    state.getActions(actions,0);
-    state.getActions(actions2,1);
+    state->getActions(actions,0);
+    state->getActions(actions2,1);
     for (Action &action : actions) {
         for (Action &j : actions2) {
             vector<Action> base = {action, j};
-            ProbDistribution prob = state.PerformAction(base);
-            for(PursuitOutcome &o : prob.GetOutcomes()) {
+            ProbDistribution prob = state->PerformAction(base);
+            for(Outcome &o : prob.GetOutcomes()) {
                 for (int i = 0; i < rewards.size(); ++i) {
                     rewards[i] += o.getReward()[i];
                 }
