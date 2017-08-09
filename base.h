@@ -5,16 +5,10 @@
 #ifndef PURSUIT_BASE_H
 #define PURSUIT_BASE_H
 
-#include <memory>
 #include <iostream>
 #include <vector>
 #include <cmath>
-
-
-struct Pos{ //TODO: To tady byt nemuze
-    int y;
-    int x;
-};
+#include <memory>
 
 
 class Action {
@@ -26,9 +20,10 @@ public:
 //    inline const std::string& getDesc() const{
 //        return s;
 //    }
-    virtual int getInfo(){return 0; }
 
     virtual std::string ToString();
+
+    virtual int getInfo(){return 0; }
 
     inline int getID() const{
         return id_;
@@ -57,45 +52,22 @@ private:
     std::string s_;
 };
 
-
-class ProbDistribution;
-
-class State {
-public:
-    explicit State();
-
-    State(const State&) = delete;
-
-    State& operator=(const State&) = delete;
-
-    virtual ~State() = default;
-
-    virtual std::vector<Action> getActions (int player);
-
-    virtual void getActions(std::vector<Action>&list ,int player) const; //TODO: problem v pristupu na getPlace stavu
-
-    virtual ProbDistribution PerformAction(std::vector<Action>& actions) const;// final;
-
-    virtual const std::vector<Pos>& getPlace() const = 0;
-
-    virtual const std::vector<double>& getProb() const = 0;
-
-
-    virtual double getPro() const = 0;
-
+struct Pos{
+    int y;
+    int x;
 };
+
+class State;
 
 class Outcome{
 public:
-    explicit Outcome() = default;
+    //Outcome(const std::vector<Observation> &ob, const std::vector<double> &rew);
+    Outcome(const std::shared_ptr<State> &s, const std::vector<Observation> &ob, const std::vector<double> &rew);
 
-    //Outcome(const Outcome&) = delete;
+    inline std::shared_ptr<State> getState() {
+        return st_;
+    }
 
-  //  Outcome& operator=(const Outcome&) = delete;
-
-    virtual ~Outcome() = default;
-     //Outcome(const std::vector<Observation> &ob, const std::vector<double> &rew);
-    Outcome(std::unique_ptr<State>& st, const std::vector<Observation> &ob, const std::vector<double> &rew);
     inline const std::vector<Observation>& getObs() const {
         return ob_;
     }
@@ -104,39 +76,61 @@ public:
         return rew_;
     }
 
-    inline const std::unique_ptr<State> & getState() const {
-        return st_;
-    }
-
 private:
     std::vector<Observation> ob_;
     std::vector<double> rew_;
-    std::unique_ptr<State> st_;
+    std::shared_ptr<State> st_;
 };
+
+
+class ProbDistribution {
+public:
+    explicit ProbDistribution(const std::vector<std::pair<Outcome,double>>& pairs);
+    Outcome GetRandom();
+
+    std::vector<Outcome> GetOutcomes();
+
+private:
+    std::vector<std::pair<Outcome, double>> pairs_;
+};
+
+
+class State {
+public:
+    State();
+
+    virtual std::vector<Action> getActions (int player) = 0;
+
+    virtual void getActions(std::vector<Action>&list ,int player) const = 0; //TODO: problem v pristupu na getPlace stavu
+
+    virtual ProbDistribution PerformAction(std::vector<Action>& actions) const = 0;
+
+    virtual const std::vector<Pos>& getPlace() const = 0;
+
+    virtual const std::vector<double>& getProb() const = 0;
+
+    virtual double getPro() const = 0;
+};
+
 
 class Domain {
 public:
-    explicit Domain(std::unique_ptr<State>& r);
+    explicit Domain(const std::shared_ptr<State> &r);
 
-    inline const std::unique_ptr<State>& getRoot() const {
+    inline std::shared_ptr<State> getRoot(){
         return root_;
     }
+
+    virtual int getMaxDepth() const = 0;
 
     virtual std::string GetInfo();
 
 private:
-    std::unique_ptr<State> root_;
+    std::shared_ptr<State> root_;
 };
 
-class ProbDistribution {
-public:
-    explicit ProbDistribution(const std::vector<std::pair<Outcome&,double>>& pairs);
 
-    const Outcome& GetRandom();
 
-    std::vector<Outcome> GetOutcomes();
 
-    std::vector<std::pair<Outcome&, double>> pairs_;
-};
 
 #endif //PURSUIT_BASE_H

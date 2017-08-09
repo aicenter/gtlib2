@@ -81,35 +81,10 @@ CMakeFiles/pursuit.dir/main.cpp.obj.provides: CMakeFiles/pursuit.dir/main.cpp.ob
 CMakeFiles/pursuit.dir/main.cpp.obj.provides.build: CMakeFiles/pursuit.dir/main.cpp.obj
 
 
-CMakeFiles/pursuit.dir/pursuit.cpp.obj: CMakeFiles/pursuit.dir/flags.make
-CMakeFiles/pursuit.dir/pursuit.cpp.obj: CMakeFiles/pursuit.dir/includes_CXX.rsp
-CMakeFiles/pursuit.dir/pursuit.cpp.obj: ../pursuit.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\Jacob\CLionProjects\pursuit\cmake-build-debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/pursuit.dir/pursuit.cpp.obj"
-	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\pursuit.dir\pursuit.cpp.obj -c C:\Users\Jacob\CLionProjects\pursuit\pursuit.cpp
-
-CMakeFiles/pursuit.dir/pursuit.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/pursuit.dir/pursuit.cpp.i"
-	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\Jacob\CLionProjects\pursuit\pursuit.cpp > CMakeFiles\pursuit.dir\pursuit.cpp.i
-
-CMakeFiles/pursuit.dir/pursuit.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/pursuit.dir/pursuit.cpp.s"
-	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\Jacob\CLionProjects\pursuit\pursuit.cpp -o CMakeFiles\pursuit.dir\pursuit.cpp.s
-
-CMakeFiles/pursuit.dir/pursuit.cpp.obj.requires:
-
-.PHONY : CMakeFiles/pursuit.dir/pursuit.cpp.obj.requires
-
-CMakeFiles/pursuit.dir/pursuit.cpp.obj.provides: CMakeFiles/pursuit.dir/pursuit.cpp.obj.requires
-	$(MAKE) -f CMakeFiles\pursuit.dir\build.make CMakeFiles/pursuit.dir/pursuit.cpp.obj.provides.build
-.PHONY : CMakeFiles/pursuit.dir/pursuit.cpp.obj.provides
-
-CMakeFiles/pursuit.dir/pursuit.cpp.obj.provides.build: CMakeFiles/pursuit.dir/pursuit.cpp.obj
-
-
 CMakeFiles/pursuit.dir/tests/firstTest.cpp.obj: CMakeFiles/pursuit.dir/flags.make
 CMakeFiles/pursuit.dir/tests/firstTest.cpp.obj: CMakeFiles/pursuit.dir/includes_CXX.rsp
 CMakeFiles/pursuit.dir/tests/firstTest.cpp.obj: ../tests/firstTest.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\Jacob\CLionProjects\pursuit\cmake-build-debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/pursuit.dir/tests/firstTest.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\Jacob\CLionProjects\pursuit\cmake-build-debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/pursuit.dir/tests/firstTest.cpp.obj"
 	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\pursuit.dir\tests\firstTest.cpp.obj -c C:\Users\Jacob\CLionProjects\pursuit\tests\firstTest.cpp
 
 CMakeFiles/pursuit.dir/tests/firstTest.cpp.i: cmake_force
@@ -134,7 +109,7 @@ CMakeFiles/pursuit.dir/tests/firstTest.cpp.obj.provides.build: CMakeFiles/pursui
 CMakeFiles/pursuit.dir/base.cpp.obj: CMakeFiles/pursuit.dir/flags.make
 CMakeFiles/pursuit.dir/base.cpp.obj: CMakeFiles/pursuit.dir/includes_CXX.rsp
 CMakeFiles/pursuit.dir/base.cpp.obj: ../base.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\Jacob\CLionProjects\pursuit\cmake-build-debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/pursuit.dir/base.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\Jacob\CLionProjects\pursuit\cmake-build-debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/pursuit.dir/base.cpp.obj"
 	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\pursuit.dir\base.cpp.obj -c C:\Users\Jacob\CLionProjects\pursuit\base.cpp
 
 CMakeFiles/pursuit.dir/base.cpp.i: cmake_force
@@ -156,20 +131,45 @@ CMakeFiles/pursuit.dir/base.cpp.obj.provides: CMakeFiles/pursuit.dir/base.cpp.ob
 CMakeFiles/pursuit.dir/base.cpp.obj.provides.build: CMakeFiles/pursuit.dir/base.cpp.obj
 
 
+CMakeFiles/pursuit.dir/pursuit.cpp.obj: CMakeFiles/pursuit.dir/flags.make
+CMakeFiles/pursuit.dir/pursuit.cpp.obj: CMakeFiles/pursuit.dir/includes_CXX.rsp
+CMakeFiles/pursuit.dir/pursuit.cpp.obj: ../pursuit.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\Jacob\CLionProjects\pursuit\cmake-build-debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/pursuit.dir/pursuit.cpp.obj"
+	C:\MinGW\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\pursuit.dir\pursuit.cpp.obj -c C:\Users\Jacob\CLionProjects\pursuit\pursuit.cpp
+
+CMakeFiles/pursuit.dir/pursuit.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/pursuit.dir/pursuit.cpp.i"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\Jacob\CLionProjects\pursuit\pursuit.cpp > CMakeFiles\pursuit.dir\pursuit.cpp.i
+
+CMakeFiles/pursuit.dir/pursuit.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/pursuit.dir/pursuit.cpp.s"
+	C:\MinGW\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\Jacob\CLionProjects\pursuit\pursuit.cpp -o CMakeFiles\pursuit.dir\pursuit.cpp.s
+
+CMakeFiles/pursuit.dir/pursuit.cpp.obj.requires:
+
+.PHONY : CMakeFiles/pursuit.dir/pursuit.cpp.obj.requires
+
+CMakeFiles/pursuit.dir/pursuit.cpp.obj.provides: CMakeFiles/pursuit.dir/pursuit.cpp.obj.requires
+	$(MAKE) -f CMakeFiles\pursuit.dir\build.make CMakeFiles/pursuit.dir/pursuit.cpp.obj.provides.build
+.PHONY : CMakeFiles/pursuit.dir/pursuit.cpp.obj.provides
+
+CMakeFiles/pursuit.dir/pursuit.cpp.obj.provides.build: CMakeFiles/pursuit.dir/pursuit.cpp.obj
+
+
 # Object files for target pursuit
 pursuit_OBJECTS = \
 "CMakeFiles/pursuit.dir/main.cpp.obj" \
-"CMakeFiles/pursuit.dir/pursuit.cpp.obj" \
 "CMakeFiles/pursuit.dir/tests/firstTest.cpp.obj" \
-"CMakeFiles/pursuit.dir/base.cpp.obj"
+"CMakeFiles/pursuit.dir/base.cpp.obj" \
+"CMakeFiles/pursuit.dir/pursuit.cpp.obj"
 
 # External object files for target pursuit
 pursuit_EXTERNAL_OBJECTS =
 
 pursuit.exe: CMakeFiles/pursuit.dir/main.cpp.obj
-pursuit.exe: CMakeFiles/pursuit.dir/pursuit.cpp.obj
 pursuit.exe: CMakeFiles/pursuit.dir/tests/firstTest.cpp.obj
 pursuit.exe: CMakeFiles/pursuit.dir/base.cpp.obj
+pursuit.exe: CMakeFiles/pursuit.dir/pursuit.cpp.obj
 pursuit.exe: CMakeFiles/pursuit.dir/build.make
 pursuit.exe: lib/googletest/googlemock/gtest/libgtest.a
 pursuit.exe: lib/googletest/googlemock/gtest/libgtest_main.a
@@ -186,9 +186,9 @@ CMakeFiles/pursuit.dir/build: pursuit.exe
 .PHONY : CMakeFiles/pursuit.dir/build
 
 CMakeFiles/pursuit.dir/requires: CMakeFiles/pursuit.dir/main.cpp.obj.requires
-CMakeFiles/pursuit.dir/requires: CMakeFiles/pursuit.dir/pursuit.cpp.obj.requires
 CMakeFiles/pursuit.dir/requires: CMakeFiles/pursuit.dir/tests/firstTest.cpp.obj.requires
 CMakeFiles/pursuit.dir/requires: CMakeFiles/pursuit.dir/base.cpp.obj.requires
+CMakeFiles/pursuit.dir/requires: CMakeFiles/pursuit.dir/pursuit.cpp.obj.requires
 
 .PHONY : CMakeFiles/pursuit.dir/requires
 

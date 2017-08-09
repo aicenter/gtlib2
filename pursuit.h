@@ -13,36 +13,19 @@ using std::cout;
 using std::vector;
 
 
-
 class PursuitAction: public Action {
 public:
     explicit PursuitAction(int id);
 
-    //    Action(int t_id, const std::string& t_s);
-//
-//    inline const std::string& getDesc() const{
-//        return s;
-//    }
-    int getInfo()final {return 2; }
+    int getInfo() final {return 2; }
     std::string ToString() final;
 
-private:
 };
 
 
-
-class ProbDistribution;
-
 class PursuitState: public State {
 public:
-    explicit PursuitState();
-
-    PursuitState(const PursuitState&) = delete;
-
-    PursuitState& operator=(const PursuitState&) = delete;
-
-    ~PursuitState() final  = default;
-
+    PursuitState();
     explicit PursuitState(std::vector<Pos> &p);
 
     PursuitState(std::vector<Pos> &p, double prob);
@@ -51,23 +34,23 @@ public:
 
     void getActions(std::vector<Action>&list ,int player) const final;
 
-    ProbDistribution PerformAction(std::vector<Action>& actions) const final;
+    ProbDistribution PerformAction(std::vector<Action>& actions) const final;// final; TODO: problem - musi byt v base
 
-    inline const std::vector<Pos>& getPlace() const final{
+    const std::vector<Pos>& getPlace() const final {
         return place_;
     }
 
-    inline const std::vector<double>& getProb() const final {
+    const std::vector<double>& getProb() const final{
         return probdis_;
     }
 
-    inline double getPro() const{
+    inline double getPro() const final{
         return prob_;
     }
 
 private:
-    double prob_ = 1;
     std::vector<Pos> place_;
+    double prob_ = 1;
     std::vector<Pos> eight = {{-2,-2},{-1,-1}, {-1,0}, {-1,1}, {0,-1}, {0,1}, {1,-1}, {1,0}, {1,1}, {0,0}};
     std::vector<std::string> desc = {"nowhere","top left", "top", "top right", "left", "right",
                                      "bottom left", "bottom", "bottom right", "same"};
@@ -76,24 +59,12 @@ private:
     std::vector<double> probdis_ = {0.1, 0.9}; //TODO: docasne
 };
 
-//class PursuitOutcome: public Outcome{ //TODO: nesmi bejt pursuit
-//public:
-//    PursuitOutcome(std::unique_ptr<State> st, const std::vector<Observation> &ob, const std::vector<double> &rew);
-//
-//    inline std::unique_ptr<State> getState() const {
-//        return st_;
-//    }
-//
-//private:
-//    std::unique_ptr<State> st_;
-//};
-
 
 class PursuitDomain: public Domain{
 public:
-    PursuitDomain(int max, std::unique_ptr<State> &r);
+    PursuitDomain(int max,const std::shared_ptr<State> &r);
 
-    inline int getMaxDepth() const {
+    int getMaxDepth() const final {
         return maxdepth_;
     }
 
@@ -107,10 +78,9 @@ private:
 };
 
 
-
 extern int count;
 extern std::vector<double> rewards;
 
-void pursuit(PursuitDomain& domain,const std::unique_ptr<State> &state, int depth);
+void pursuit(const Domain& domain,std::shared_ptr<State>state, int depth);
 
 #endif //PURSUIT_PURSUIT_H

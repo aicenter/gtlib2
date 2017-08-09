@@ -7,6 +7,6 @@ include_directories(lib/googletest/googletest/include)
 include_directories(lib/googletest/googlemock/include)
 
 
-set(SOURCE_FILES main.cpp pursuit.h pursuit.cpp tests/firstTest.cpp base.cpp base.h)
+set(SOURCE_FILES main.cpp pursuit.h tests/firstTest.cpp base.cpp base.h pursuit.cpp)
 add_executable(pursuit ${SOURCE_FILES} tests/firstTest.cpp)
 target_link_libraries(pursuit gtest gtest_main)
