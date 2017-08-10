@@ -9,27 +9,28 @@
 #include <vector>
 #include <cmath>
 #include <memory>
+#include <ctime>
 
+
+template<typename T, typename ...Args>
+std::unique_ptr<T> make_unique(Args&&... args)
+{
+    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
 
 class Action {
 public:
     explicit Action(int id);
 
-//    Action(int t_id, const std::string& t_s);
-//
-//    inline const std::string& getDesc() const{
-//        return s;
-//    }
-
     virtual std::string ToString();
-
-    virtual int getInfo(){return 0; }
 
     inline int getID() const{
         return id_;
     }
 
-private:
+    virtual int getMove() const = 0;
+
+protected:
     int id_;
 };
 
@@ -37,19 +38,17 @@ class Observation {
 public:
     explicit Observation(int id);
 
-    Observation(int id, const std::string& s);
+   // Observation(Observation const &) = delete;
+   // Observation &operator=(Observation const &) = delete;
 
-    inline const std::string& getDesc() const{
-        return s_;
-    }
+    virtual std::string ToString();
 
     inline int getID() const{
         return id_;
     }
 
-private:
+protected:
     int id_;
-    std::string s_;
 };
 
 struct Pos{
@@ -62,14 +61,21 @@ class State;
 class Outcome{
 public:
     //Outcome(const std::vector<Observation> &ob, const std::vector<double> &rew);
-    Outcome(const std::shared_ptr<State> &s, const std::vector<Observation> &ob, const std::vector<double> &rew);
+    Outcome(std::unique_ptr<State> s, std::vector<std::unique_ptr<Observation>> ob, const std::vector<double> &rew);
 
-    inline std::shared_ptr<State> getState() {
-        return st_;
+//    Outcome(const Outcome& foo) :
+//    st_(std::move(foo.st_)), ob_(std::move(foo.ob_)), rew_(std::move(foo.rew_)) {
+//
+//    };
+
+    //Outcome &operator=(Outcome const &) = delete;
+
+    inline std::unique_ptr<State> getState() {
+        return std::move(st_);
     }
 
-    inline const std::vector<Observation>& getObs() const {
-        return ob_;
+    inline std::vector<std::unique_ptr<Observation>> getObs() {
+        return std::move(ob_);
     }
 
     inline const std::vector<double>& getReward() const {
@@ -77,15 +83,16 @@ public:
     }
 
 private:
-    std::vector<Observation> ob_;
+    std::vector<std::unique_ptr<Observation>> ob_;
     std::vector<double> rew_;
-    std::shared_ptr<State> st_;
+    std::unique_ptr<State> st_;
 };
 
 
 class ProbDistribution {
 public:
-    explicit ProbDistribution(const std::vector<std::pair<Outcome,double>>& pairs);
+    explicit ProbDistribution(std::vector<std::pair<Outcome,double>> pairs);
+
     Outcome GetRandom();
 
     std::vector<Outcome> GetOutcomes();
@@ -99,25 +106,21 @@ class State {
 public:
     State();
 
-    virtual std::vector<Action> getActions (int player) = 0;
+    virtual std::vector<std::shared_ptr<Action>> getActions (int player) = 0;
 
-    virtual void getActions(std::vector<Action>&list ,int player) const = 0; //TODO: problem v pristupu na getPlace stavu
+    virtual void getActions(std::vector<std::shared_ptr<Action>>&list ,int player) const = 0; //TODO: problem v pristupu na getPlace stavu
 
-    virtual ProbDistribution PerformAction(std::vector<Action>& actions) const = 0;
+    virtual ProbDistribution PerformAction(std::vector<std::shared_ptr<Action>> actions) = 0;
 
     virtual const std::vector<Pos>& getPlace() const = 0;
-
-    virtual const std::vector<double>& getProb() const = 0;
-
-    virtual double getPro() const = 0;
 };
 
 
 class Domain {
 public:
-    explicit Domain(const std::shared_ptr<State> &r);
+    explicit Domain(const std::unique_ptr<State> &r);
 
-    inline std::shared_ptr<State> getRoot(){
+    inline const std::unique_ptr<State> &getRoot()const {
         return root_;
     }
 
@@ -126,11 +129,8 @@ public:
     virtual std::string GetInfo();
 
 private:
-    std::shared_ptr<State> root_;
+    const std::unique_ptr<State> &root_;
 };
-
-
-
 
 
 #endif //PURSUIT_BASE_H

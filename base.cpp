@@ -12,29 +12,30 @@ std::string Action::ToString() {
 
 Observation::Observation(int id): id_(id){}
 
-Observation::Observation(int id,  const std::string& s):id_(id), s_(s){}
+std::string Observation::ToString() {
+    return std::string();
+}
 
 State::State() = default;
 
-Domain::Domain(const std::shared_ptr<State> &r):root_(r) {}
+Domain::Domain(const std::unique_ptr<State> &r):root_(r) {}
 
 std::string Domain::GetInfo() {}
 
-Outcome::Outcome(const std::shared_ptr<State> &s, const std::vector<Observation> &ob, const std::vector<double> &rew):st_(s), ob_(ob), rew_(rew){}
+Outcome::Outcome(std::unique_ptr<State> s, std::vector<std::unique_ptr<Observation>> ob, const std::vector<double> &rew):
+        st_(std::move(s)), ob_(std::move(ob)), rew_(rew){}
 
-ProbDistribution::ProbDistribution(const std::vector<std::pair<Outcome,double>>& pairs): pairs_(pairs){}
+ProbDistribution::ProbDistribution(std::vector<std::pair<Outcome,double>> pairs): pairs_(std::move(pairs)){}
 
-Outcome ProbDistribution::GetRandom(){ //TODO
-    return pairs_[3].first;
-}
+//Outcome ProbDistribution::GetRandom(){ //TODO
+//    return std::move(pairs_[3].first);
+//}
 
 std::vector<Outcome>  ProbDistribution::GetOutcomes() {
     std::vector<Outcome> list;// = std::vector<PursuitOutcome>(pairs_.size());
     for (auto &pair : pairs_) {
-        list.push_back(pair.first);
+        Outcome o (pair.first.getState(), pair.first.getObs(), pair.first.getReward());
+        list.push_back(std::move(o));
     }
     return list;
 }
-
-
-

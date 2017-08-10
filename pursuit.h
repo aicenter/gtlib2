@@ -15,11 +15,31 @@ using std::vector;
 
 class PursuitAction: public Action {
 public:
-    explicit PursuitAction(int id);
+    explicit PursuitAction(int id): Action(id){move_ = 0;}
 
-    int getInfo() final {return 2; }
+    PursuitAction(int id, int move);
+
     std::string ToString() final;
 
+    inline int getMove() const {
+        return move_;
+    }
+private:
+    int move_;
+};
+
+class PursuitObservation: public Observation {
+public:
+    explicit PursuitObservation(int id, int move);
+
+    std::string ToString() final;
+
+    inline int getMove() const{
+        return move_;
+    }
+
+private:
+    int move_;
 };
 
 
@@ -30,21 +50,21 @@ public:
 
     PursuitState(std::vector<Pos> &p, double prob);
 
-    std::vector<Action> getActions (int player) final;
+    std::vector<std::shared_ptr<Action>> getActions (int player) final;
 
-    void getActions(std::vector<Action>&list ,int player) const final;
+    void getActions(std::vector<std::shared_ptr<Action>>&list ,int player) const final;
 
-    ProbDistribution PerformAction(std::vector<Action>& actions) const final;// final; TODO: problem - musi byt v base
+    ProbDistribution PerformAction(std::vector<std::shared_ptr<Action>> actions)  final;// final; TODO: problem - musi byt v base
 
-    const std::vector<Pos>& getPlace() const final {
+    const std::vector<Pos>& getPlace() const  {
         return place_;
     }
 
-    const std::vector<double>& getProb() const final{
+    const std::vector<double>& getProb() const {
         return probdis_;
     }
 
-    inline double getPro() const final{
+    inline double getPro() const {
         return prob_;
     }
 
@@ -62,7 +82,7 @@ private:
 
 class PursuitDomain: public Domain{
 public:
-    PursuitDomain(int max,const std::shared_ptr<State> &r);
+    PursuitDomain(int max,const std::unique_ptr<State> &r);
 
     int getMaxDepth() const final {
         return maxdepth_;
@@ -81,6 +101,6 @@ private:
 extern int count;
 extern std::vector<double> rewards;
 
-void pursuit(const Domain& domain,std::shared_ptr<State>state, int depth);
+void pursuit(const Domain& domain,const std::unique_ptr<State> &state, int depth);
 
 #endif //PURSUIT_PURSUIT_H
