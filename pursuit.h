@@ -3,64 +3,60 @@
 //
 
 
-#ifndef PURSUIT_PURSUIT_H
-#define PURSUIT_PURSUIT_H
+#ifndef PURSUIT_H_
+#define PURSUIT_H_
 
 #include "base.h"
 
-using std::string;
-using std::cout;
-using std::vector;
+
 
 
 class PursuitAction: public Action {
-public:
-    explicit PursuitAction(int id): Action(id){move_ = 0;}
-
+ public:
     PursuitAction(int id, int move);
 
-    std::string ToString() final;
+    string ToString() final;
 
     inline int getMove() const {
         return move_;
     }
-private:
+ private:
     int move_;
 };
 
 class PursuitObservation: public Observation {
-public:
+ public:
     explicit PursuitObservation(int id, int move);
 
-    std::string ToString() final;
+    string ToString() final;
 
-    inline int getMove() const{
+    inline int getMove() const {
         return move_;
     }
 
-private:
+ private:
     int move_;
 };
 
 
 class PursuitState: public State {
-public:
+ public:
     PursuitState();
-    explicit PursuitState(std::vector<Pos> &p);
+    explicit PursuitState(const vector<Pos> &p);
 
-    PursuitState(std::vector<Pos> &p, double prob);
+    PursuitState(const vector<Pos> &p, double prob);
 
-    std::vector<std::shared_ptr<Action>> getActions (int player) final;
+    vector<shared_ptr<Action>> getActions(int player) final;
 
-    void getActions(std::vector<std::shared_ptr<Action>>&list ,int player) const final;
+    void getActions(vector<shared_ptr<Action>>& list, int player) const final;
 
-    ProbDistribution PerformAction(std::vector<std::shared_ptr<Action>> actions)  final;// final; TODO: problem - musi byt v base
+    ProbDistribution PerformAction(vector<shared_ptr<Action>> actions) final;
 
-    const std::vector<Pos>& getPlace() const  {
+    const vector<Pos>& getPlace() const final {
         return place_;
     }
 
-    const std::vector<double>& getProb() const {
+    const vector<double>& getProb() const {
         return probdis_;
     }
 
@@ -68,39 +64,40 @@ public:
         return prob_;
     }
 
-private:
-    std::vector<Pos> place_;
+ private:
+    vector<Pos> place_;
     double prob_ = 1;
-    std::vector<Pos> eight = {{-2,-2},{-1,-1}, {-1,0}, {-1,1}, {0,-1}, {0,1}, {1,-1}, {1,0}, {1,1}, {0,0}};
-    std::vector<std::string> desc = {"nowhere","top left", "top", "top right", "left", "right",
-                                     "bottom left", "bottom", "bottom right", "same"};
-    std::vector<Pos> m_ = {{0,0}, {1,0}, {0,1}, {-1,0}, {0,-1}};
-    std::vector<std::string> des_ = {"stay", "right", "down", "left", "up"};
-    std::vector<double> probdis_ = {0.1, 0.9}; //TODO: docasne
+    vector<Pos> eight = {{-2, -2}, {-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
+                         {0, 1}, {1, -1}, {1, 0}, {1, 1}, {0, 0}};
+    vector<string> desc = {"nowhere", "top left", "top", "top right", "left",
+                           "right", "bottom left", "bottom", "bottom right", "same"};
+    vector<Pos> m_ = {{0, 0}, {1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+    vector<string> des_ = {"stay", "right", "down", "left", "up"};
+    vector<double> probdis_ = {0.1, 0.9};  // TODO(rozlijak): docasne
 };
 
 
 class PursuitDomain: public Domain{
-public:
-    PursuitDomain(int max,const std::unique_ptr<State> &r);
+ public:
+    PursuitDomain(int max, const unique_ptr<State> &r, int maxPlayers);
 
-    int getMaxDepth() const final {
+    int getMaxDepth() const {
         return maxdepth_;
     }
 
-    std::string GetInfo() final;
+    string GetInfo() final;
 
     static int height_;
     static int width_;
 
-private:
+ private:
     int maxdepth_;
 };
 
 
 extern int count;
-extern std::vector<double> rewards;
+extern vector<double> rewards;
 
-void pursuit(const Domain& domain,const std::unique_ptr<State> &state, int depth);
+void pursuit(const PursuitDomain& domain, const unique_ptr<State> &state, int depth);
 
-#endif //PURSUIT_PURSUIT_H
+#endif  // PURSUIT_H_
