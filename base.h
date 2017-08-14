@@ -22,114 +22,137 @@ using std::to_string;
 
 template<typename T, typename ...Args>
 unique_ptr<T> make_unique(Args&&... args) {
-    return unique_ptr<T>(new T(std::forward<Args>(args)...));
+  return unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
+
+template <typename T, typename U>
+vector<shared_ptr<U>> Cast(const vector<shared_ptr<T>>& actions2) {
+  vector<shared_ptr<U>> actions = vector<shared_ptr<U>>();
+  for (const auto &j : actions2) {
+    actions.push_back(std::dynamic_pointer_cast<U>(j));
+  }
+  return actions;
+}
+
+
 
 class Action {
  public:
-    explicit Action(int id);
+  explicit Action(int id);
 
-    virtual string ToString();
+  virtual ~Action() = default;
 
-    inline int getID() const {
-        return id_;
-    }
+  virtual string ToString();
+
+  inline int getID() const {
+    return id_;
+  }
 
  protected:
-    int id_;
+  int id_;
 };
+
 
 class Observation {
  public:
-    explicit Observation(int id);
+  explicit Observation(int id);
 
-    virtual string ToString();
+  virtual ~Observation() = default;
 
-    inline int getID() const {
-        return id_;
-    }
+  virtual string ToString();
+
+  inline int getID() const {
+    return id_;
+  }
 
  protected:
-    int id_;
+  int id_;
 };
 
 struct Pos{
-    int y;
-    int x;
+  int y;
+  int x;
 };
 
 class State;
 
 class Outcome{
  public:
-    Outcome(unique_ptr<State> s, vector<unique_ptr<Observation>> ob,
-            const vector<double> &rew);
+  Outcome(unique_ptr<State> s, vector<unique_ptr<Observation>> ob,
+          const vector<double> &rew);
 
-    inline unique_ptr<State> getState() {
-        return move(st_);
-    }
+  inline unique_ptr<State> getState() {
+    return move(st_);
+  }
 
-    inline vector<unique_ptr<Observation>> getObs() {
-        return move(ob_);
-    }
+  inline vector<unique_ptr<Observation>> getObs() {
+    return move(ob_);
+  }
 
-    inline const vector<double>& getReward() const {
-        return rew_;
-    }
+  inline const vector<double>& getReward() const {
+    return rew_;
+  }
 
  private:
-    vector<unique_ptr<Observation>> ob_;
-    vector<double> rew_;
-    unique_ptr<State> st_;
+  vector<unique_ptr<Observation>> ob_;
+  vector<double> rew_;
+  unique_ptr<State> st_;
 };
 
 
 class ProbDistribution {
  public:
-    explicit ProbDistribution(vector<std::pair<Outcome, double>> pairs);
+  explicit ProbDistribution(vector<std::pair<Outcome, double>> pairs);
 
-    Outcome GetRandom();
+  Outcome GetRandom();
 
-    vector<Outcome> GetOutcomes();
+  vector<Outcome> GetOutcomes();
 
  private:
-    vector<std::pair<Outcome, double>> pairs_;
+  vector<std::pair<Outcome, double>> pairs_;
 };
 
 
 class State {
  public:
-    State();
+  State();
 
-    virtual ~State() = default;
+  virtual ~State() = default;
 
-    virtual vector<shared_ptr<Action>> getActions(int player) = 0;
+  virtual vector<shared_ptr<Action>> getActions(int player) = 0;
 
-    virtual void getActions(vector<shared_ptr<Action>>& list, int player) const = 0;
+  virtual void getActions(vector<shared_ptr<Action>>& list, int player) const = 0;
 
-    virtual ProbDistribution PerformAction(vector<shared_ptr<Action>> actions) = 0;
+  virtual ProbDistribution PerformAction(const vector<shared_ptr<Action>> &actions) = 0;
 
-    virtual const vector<Pos>& getPlace() const = 0;
+  virtual const vector<Pos>& getPlace() const = 0;
 };
 
 
 class Domain {
  public:
-    explicit Domain(const unique_ptr<State> &r, int maxPlayers);
+  Domain(const unique_ptr<State> &r, int maxPlayers);
 
-    inline const unique_ptr<State> &getRoot()const {
-        return root_;
-    }
+  virtual ~Domain() = default;
 
-    inline int getMaxPlayers() const {
-        // TODO(rozlijak): pro kolik to je nebo kolik jich muze
-        return maxPlayers_;
-    }
+  inline const unique_ptr<State> &getRoot()const {
+    return root_;
+  }
 
-    virtual string GetInfo();
+  inline int getMaxPlayers() const {
+    // TODO(rozlijak): pro kolik to je nebo kolik jich muze
+    return maxPlayers_;
+  }
+
+  virtual int getMaxDepth() const = 0;
+
+  virtual string GetInfo();
 
  private:
-    const unique_ptr<State> &root_;
-    int maxPlayers_;
+  const unique_ptr<State> &root_;
+  int maxPlayers_;
 };
+
+void Treewalk(const unique_ptr<Domain>& domain, const unique_ptr<State> &state, int depth);
+
 #endif  // BASE_H_
