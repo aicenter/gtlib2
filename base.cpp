@@ -3,6 +3,7 @@
 //
 
 #include "base.h"
+#include <algorithm>
 
 Action::Action(int id): id_(id) {}
 
@@ -18,8 +19,8 @@ string Observation::ToString() {
 
 State::State() = default;
 
-Domain::Domain(const unique_ptr<State> &r, int maxPlayers):
-        root_(r), maxPlayers_(maxPlayers) {}
+Domain::Domain(int maxplayers, int max):
+    maxplayers_(maxplayers), maxdepth_(max) {}
 
 string Domain::GetInfo() {}
 
@@ -38,23 +39,30 @@ Outcome ProbDistribution::GetRandom() {
 vector<Outcome>  ProbDistribution::GetOutcomes() {
   vector<Outcome> list;
   for (auto &pair : pairs_) {
-    Outcome o(pair.first.getState(), pair.first.getObs(), pair.first.getReward());
+    Outcome o(pair.first.GetState(), pair.first.GetObs(), pair.first.GetReward());
     list.push_back(move(o));
   }
   return list;
 }
 
-void Treewalk(const unique_ptr<Domain>& domain, const unique_ptr<State> &state, int depth) {
-  vector<shared_ptr<Action>> actions = state->getActions(0);
-  vector<shared_ptr<Action>> actions2 = state->getActions(1);
+int Domain::depth_ = 0; // TODO(rozlijak)
+
+
+
+void Treewalk(const unique_ptr<Domain>& domain, const unique_ptr<State> &state, int depth, int players) {
+  vector<vector<shared_ptr<Action>>> v = vector<vector<shared_ptr<Action>>>();
+  for (int i = 0; i < players; ++i) {
+    v.emplace_back(state->GetActions(i));
+  }
+
   if (depth == 0)
     return;
-  for (auto &action : actions) {
-    for (auto &j : actions2) {
-      ProbDistribution prob = state->PerformAction({action, j});
-      for (Outcome &o : prob.GetOutcomes()) {
-        Treewalk(domain, o.getState(), depth - 1);
-      }
+
+  vector<vector<shared_ptr<Action>>> action = cart_product<Action>(v);
+  for (const auto &k : action) {
+    ProbDistribution prob = state->PerformAction(k);
+    for (Outcome &o : prob.GetOutcomes()) {
+      Treewalk(domain, o.GetState(), depth - 1,players);
     }
   }
 }

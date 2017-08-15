@@ -9,16 +9,15 @@
 int main(int argc, char* argv[]) {
   srand(static_cast<unsigned int>(time(nullptr)));
   clock_t begin = clock();
-  PursuitDomain::width_ = 4;
+  PursuitDomain::width_ = 3;
   count = 0;
-  PursuitDomain::height_ = 4;
-  vector<Pos> loc = {{0, 0}, {PursuitDomain::height_-1, PursuitDomain::width_-1}};
-  rewards = vector<double>(loc.size());
-  unique_ptr<State>s = make_unique<PursuitState>(loc);
-  unique_ptr<Domain>d = make_unique<PursuitDomain>(3, s, s->getPlace().size());
-  Treewalk(d, d->getRoot(), d->getMaxDepth());
-  Pursuit(d, d->getRoot(),d->getMaxDepth());
-  for (double i : rewards) {
+  PursuitDomain::height_ = 3;
+  vector<Pos> loc = {{0, 0}, {PursuitDomain::height_-1, PursuitDomain::width_-1}, {1, 1}};
+  rew = vector<double>(loc.size());
+  unique_ptr<Domain>d = make_unique<PursuitDomain>(loc, loc.size(), 2);
+//  Treewalk(d, d->GetRoot(), d->GetMaxDepth(), d->GetMaxPlayers());
+  Pursuit(d, d->GetRoot(), d->GetMaxDepth(), d->GetMaxPlayers());
+  for (double i : rew) {
     cout << i << " ";
   }
   cout << count << '\n';

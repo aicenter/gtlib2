@@ -13,7 +13,7 @@ class PursuitAction: public Action {
 
   string ToString() final;
 
-  inline int getMove() const {
+  inline int GetMove() const {
       return move_;
   }
  private:
@@ -22,42 +22,40 @@ class PursuitAction: public Action {
 
 class PursuitObservation: public Observation {
  public:
-  PursuitObservation(int id, int value);
+  PursuitObservation(int id, vector<int> values);
 
   string ToString() final;
 
-  inline int getValue() const {
-      return value_;
+  inline const vector<int>& GetValues() const {
+      return values_;
   }
 
  private:
-  int value_;
+  vector<int> values_;
 };
 
 
 class PursuitState: public State {
  public:
-  PursuitState();
-
   explicit PursuitState(const vector<Pos> &p);
 
   PursuitState(const vector<Pos> &p, double prob);
 
-  vector<shared_ptr<Action>> getActions(int player) final;
+  vector<shared_ptr<Action>> GetActions(int player) override;
 
-  void getActions(vector<shared_ptr<Action>>& list, int player) const final;
+  void GetActions(vector<shared_ptr<Action>>& list, int player) const override;
 
-  ProbDistribution PerformAction(const vector<shared_ptr<Action>>& actions) final;
+  ProbDistribution PerformAction(const vector<shared_ptr<Action>>& actions) override;
 
-  const vector<Pos>& getPlace() const final {
+  inline const vector<Pos>& GetPlace() const final {
     return place_;
   }
 
-  const vector<double>& getProb() const {
+  inline const vector<double>& GetProb() const {
     return probdis_;
   }
 
-  inline double getPro() const {
+  inline double GetPro() const {
     return prob_;
   }
 
@@ -66,35 +64,25 @@ class PursuitState: public State {
   double prob_ = 1;
   vector<Pos> eight = {{-2, -2}, {-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
                        {0, 1}, {1, -1}, {1, 0}, {1, 1}, {0, 0}};
-  vector<string> desc = {"nowhere", "top left", "top", "top right", "left",
-                         "right", "bottom left", "bottom", "bottom right", "same"};
   vector<Pos> m_ = {{0, 0}, {1, 0}, {0, 1}, {-1, 0}, {0, -1}};
-  vector<string> des_ = {"stay", "right", "down", "left", "up"};
   vector<double> probdis_ = {0.1, 0.9};  // TODO(rozlijak): docasne
 };
 
 
 class PursuitDomain: public Domain{
  public:
-  PursuitDomain(int max, const unique_ptr<State> &r, int maxPlayers);
-
-  int getMaxDepth() const final {
-    return maxdepth_;
-  }
+  PursuitDomain(const vector<Pos> &loc, int maxPlayers, int max);
 
   string GetInfo() final;
 
   static int height_;
   static int width_;
-
- private:
-    int maxdepth_;
 };
 
 
 extern int count;
-extern vector<double> rewards;
+extern vector<double> rew;
 
-void Pursuit(const unique_ptr<Domain>& domain, const unique_ptr<State> &state, int depth);
+void Pursuit(const unique_ptr<Domain>& domain, const unique_ptr<State> &state, int depth, int players);
 
 #endif  // PURSUIT_H_

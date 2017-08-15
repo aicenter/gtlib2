@@ -11,6 +11,7 @@
 #include <memory>
 #include <ctime>
 #include <string>
+#include "utils.h"
 
 using std::string;
 using std::cout;
@@ -19,20 +20,6 @@ using std::move;
 using std::unique_ptr;
 using std::shared_ptr;
 using std::to_string;
-
-template<typename T, typename ...Args>
-unique_ptr<T> make_unique(Args&&... args) {
-  return unique_ptr<T>(new T(std::forward<Args>(args)...));
-}
-
-template <typename T, typename U>
-vector<shared_ptr<U>> Cast(const vector<shared_ptr<T>>& actions2) {
-  vector<shared_ptr<U>> actions = vector<shared_ptr<U>>();
-  for (const auto &j : actions2) {
-    actions.push_back(std::dynamic_pointer_cast<U>(j));
-  }
-  return actions;
-}
 
 
 
@@ -44,7 +31,7 @@ class Action {
 
   virtual string ToString();
 
-  inline int getID() const {
+  inline int GetID() const {
     return id_;
   }
 
@@ -61,7 +48,7 @@ class Observation {
 
   virtual string ToString();
 
-  inline int getID() const {
+  inline int GetID() const {
     return id_;
   }
 
@@ -81,15 +68,15 @@ class Outcome{
   Outcome(unique_ptr<State> s, vector<unique_ptr<Observation>> ob,
           const vector<double> &rew);
 
-  inline unique_ptr<State> getState() {
+  inline unique_ptr<State> GetState() {
     return move(st_);
   }
 
-  inline vector<unique_ptr<Observation>> getObs() {
+  inline vector<unique_ptr<Observation>> GetObs() {
     return move(ob_);
   }
 
-  inline const vector<double>& getReward() const {
+  inline const vector<double>& GetReward() const {
     return rew_;
   }
 
@@ -119,40 +106,44 @@ class State {
 
   virtual ~State() = default;
 
-  virtual vector<shared_ptr<Action>> getActions(int player) = 0;
+  virtual vector<shared_ptr<Action>> GetActions(int player) = 0;
 
-  virtual void getActions(vector<shared_ptr<Action>>& list, int player) const = 0;
+  virtual void GetActions(vector<shared_ptr<Action>>& list, int player) const = 0;
 
   virtual ProbDistribution PerformAction(const vector<shared_ptr<Action>> &actions) = 0;
 
-  virtual const vector<Pos>& getPlace() const = 0;
+  virtual const vector<Pos>& GetPlace() const = 0;
 };
 
 
 class Domain {
  public:
-  Domain(const unique_ptr<State> &r, int maxPlayers);
+  Domain(int maxplayers, int max);
 
   virtual ~Domain() = default;
 
-  inline const unique_ptr<State> &getRoot()const {
+  const unique_ptr<State> &GetRoot() {
     return root_;
   }
 
-  inline int getMaxPlayers() const {
-    // TODO(rozlijak): pro kolik to je nebo kolik jich muze
-    return maxPlayers_;
+  inline int GetMaxPlayers() const {
+    return maxplayers_;
   }
 
-  virtual int getMaxDepth() const = 0;
+  int GetMaxDepth() const {
+    return maxdepth_;
+  }
 
   virtual string GetInfo();
 
- private:
-  const unique_ptr<State> &root_;
-  int maxPlayers_;
+  static int depth_;
+
+ protected:
+  int maxplayers_;
+  int maxdepth_;
+  unique_ptr<State> root_;
 };
 
-void Treewalk(const unique_ptr<Domain>& domain, const unique_ptr<State> &state, int depth);
+void Treewalk(const unique_ptr<Domain>& domain, const unique_ptr<State> &state, int depth, int players);
 
 #endif  // BASE_H_

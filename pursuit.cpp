@@ -11,8 +11,8 @@ string PursuitAction::ToString() {
 }
 
 
-PursuitObservation::PursuitObservation(int id, int value):
-    Observation(id), value_(value) {}
+PursuitObservation::PursuitObservation(int id, vector<int> values):
+    Observation(id), values_(move(values)) {}
 
 string PursuitObservation::ToString() {
   return to_string(id_);
@@ -28,13 +28,13 @@ PursuitState::PursuitState(const vector<Pos> &p, double prob):
   probdis_ = {0.1, 0.9};
 }
 
-vector<shared_ptr<Action>> PursuitState::getActions(int player) {
+vector<shared_ptr<Action>> PursuitState::GetActions(int player) {
   vector<shared_ptr<Action>> list = vector<shared_ptr<Action>>();
-  getActions(list, player);
+  GetActions(list, player);
   return list;
 }
 
-void PursuitState::getActions(vector<shared_ptr<Action>> &list, int player) const {
+void PursuitState::GetActions(vector<shared_ptr<Action>> &list, int player) const {
   int count = 0;
   for (int i = 1; i < 5; ++i) {
     if ((place_[player].x + m_[i].x) >= 0 && (place_[player].x + m_[i].x)
@@ -48,7 +48,6 @@ void PursuitState::getActions(vector<shared_ptr<Action>> &list, int player) cons
 }
 
 ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& actions2) {
-  // TODO(rozlijak): one-line - casting to PursuitAction
   vector<shared_ptr<PursuitAction>> actions = Cast<Action, PursuitAction>(actions2);
   vector<Pos> moves = vector<Pos>();
   moves.reserve(actions.size());
@@ -59,8 +58,8 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
     double probability = prob_;
     for (int i = 0; i < actions.size(); ++i) {
       if (((k >> i) & 1) == 1) {
-        moves.push_back({m_[actions[i]->getMove()].y + place_[i].y,
-                         m_[actions[i]->getMove()].x + place_[i].x});
+        moves.push_back({m_[actions[i]->GetMove()].y + place_[i].y,
+                         m_[actions[i]->GetMove()].x + place_[i].x});
         probability *= probdis_[1];
       } else {
         moves.push_back({place_[i].y, place_[i].x});
@@ -69,7 +68,7 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
     }
     unique_ptr<PursuitState>s = make_unique<PursuitState>(moves, probability);
     moves.clear();
-    for (int i = 1; i < s->getPlace().size(); ++i) {
+    for (int i = 1; i < s->GetPlace().size(); ++i) {
       if ((s->place_[0].x == place_[i].x && s->place_[0].y == place_[i].y &&
            s->place_[i].x == place_[0].x &&
            s->place_[i].y == place_[0].y) ||
@@ -78,22 +77,26 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
         --rew[i];
       }
     }
-
     int index;
     vector<unique_ptr<Observation>> obs = vector<unique_ptr<Observation>>();
-    obs.push_back(make_unique<PursuitObservation>(0, 2));
-    for (int i = 1; i < s->place_.size(); ++i) {
-      index = 0;
-      for (int l = 1; l < eight.size(); ++l) {
-        if (s->place_[0].x + eight[l].x == s->place_[i].x &&
-            s->place_[0].y + eight[l].y == s->place_[i].y) {
-          index = l;
+    vector<int> ob = vector<int>();
+    for(int m = 0; m < s->place_.size(); ++m) {
+      ob.push_back(0);
+      for (int i = 0; i < s->place_.size(); ++i) {
+        index = 0;
+        for (int l = 1; l < eight.size(); ++l) {
+          if (s->place_[0].x + eight[l].x == s->place_[i].x &&
+              s->place_[0].y + eight[l].y == s->place_[i].y) {
+            index = l;
+          }
         }
+        ob[0] = index;
+        ob.push_back(eight.size() - 1 - index);
       }
-//       obs[0] = PursuitObservation(0,index);
-      // TODO(rozlijak): zeptat se jak je to s tim vektorem observaci
-      obs.push_back(make_unique<PursuitObservation>(k, eight.size()-1-index));
+      obs.push_back(make_unique<PursuitObservation>(m,ob)); // TODO(rozlijak): make correct id
+      ob.clear();
     }
+
     double p2 = s->prob_/prob_;
     Outcome p(move(s), move(obs), rew);
     pairs.emplace_back(move(p), p2);
@@ -102,40 +105,44 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
   return prob;
 }
 
-PursuitState::PursuitState() = default;
-
-PursuitDomain::PursuitDomain(int max, const unique_ptr<State> &r, int maxPlayers):
-    Domain(r, maxPlayers), maxdepth_(max) {}
+PursuitDomain::PursuitDomain(const vector<Pos> &loc, int maxPlayers, int max):
+    Domain(maxPlayers, max) {
+  root_ = make_unique<PursuitState>(loc);
+}
 
 int PursuitDomain::height_ = 0;
 int PursuitDomain::width_ = 0;
 
+
 string PursuitDomain::GetInfo() {
   return "Rozmery pole jsou: " + to_string(PursuitDomain::height_) + " x " +
-         to_string(PursuitDomain::width_) + " maximalni hloubka grafu je: " +
-         to_string(maxdepth_) + " a pocatecni stav je: ...";
+      to_string(PursuitDomain::width_) + " maximalni hloubka grafu je: " +
+      to_string(maxdepth_) + " a pocatecni stav je: " +
+      to_string(root_->GetPlace()[0].x) +" "+ to_string(root_->GetPlace()[0].y) +
+      "    " + to_string(root_->GetPlace()[1].x) +" "+
+      to_string(root_->GetPlace()[1].y) + "\n";
 }
 
 int count = 0;
-vector<double> rewards;
+vector<double> rew;
 
-void Pursuit(const unique_ptr<Domain>& domain, const unique_ptr<State> &state, int depth) {
-  vector<shared_ptr<Action>> actions = state->getActions(0);
-  vector<shared_ptr<Action>> actions2 = state->getActions(1);
+void Pursuit(const unique_ptr<Domain>& domain, const unique_ptr<State> &state, int depth, int players) {
+  vector<vector<shared_ptr<Action>>> v = vector<vector<shared_ptr<Action>>>();
+  for (int i = 0; i < players; ++i) {
+    v.emplace_back(state->GetActions(i));
+  }
   ++count;
   if (depth == 0) {
     return;
   }
-  for (auto &action : actions) {
-    for (auto &j : actions2) {
-      // TODO(rozlijak): change Actions to unique pointers
-      ProbDistribution prob = state->PerformAction({action, j});
-      for (Outcome &o : prob.GetOutcomes()) {
-        for (int i = 0; i < rewards.size(); ++i) {
-           rewards[i] += o.getReward()[i];
-        }
-        Pursuit(domain, o.getState(), depth - 1);
+  vector<vector<shared_ptr<Action>>> action = cart_product<Action>(v);
+  for (const auto &k : action) {
+    ProbDistribution prob = state->PerformAction(k);
+    for (Outcome &o : prob.GetOutcomes()) {
+      for (int i = 0; i < rew.size(); ++i) {
+        rew[i] += o.GetReward()[i];
       }
+      Pursuit(domain, o.GetState(), depth - 1,players);
     }
   }
 }
