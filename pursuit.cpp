@@ -66,7 +66,7 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
         probability *= probdis_[0];
       }
     }
-    unique_ptr<PursuitState>s = make_unique<PursuitState>(moves, probability);
+    unique_ptr<PursuitState>s = make_uniq<PursuitState>(moves, probability);
     moves.clear();
     for (int i = 1; i < s->GetPlace().size(); ++i) {
       if ((s->place_[0].x == place_[i].x && s->place_[0].y == place_[i].y &&
@@ -78,22 +78,36 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
       }
     }
     int index;
+  //  int id;
     vector<unique_ptr<Observation>> obs = vector<unique_ptr<Observation>>();
     vector<int> ob = vector<int>();
-    for(int m = 0; m < s->place_.size(); ++m) {
+    for (int m = 0; m < s->place_.size(); ++m) {
       ob.push_back(0);
       for (int i = 0; i < s->place_.size(); ++i) {
+        if (m == i)
+          continue;
         index = 0;
+        int id2 = 0;
         for (int l = 1; l < eight.size(); ++l) {
-          if (s->place_[0].x + eight[l].x == s->place_[i].x &&
-              s->place_[0].y + eight[l].y == s->place_[i].y) {
+          if ((s->place_[m].x + eight[l].x) >= 0 && (s->place_[m].x + eight[l].x)
+                                                    < PursuitDomain::width_ &&
+              (s->place_[m].y + eight[l].y) >= 0 && (s->place_[m].y + eight[l].y)
+                                                    < PursuitDomain::height_) {
+            id2++;
+          }
+
+          if (s->place_[m].x + eight[l].x == s->place_[i].x &&
+              s->place_[m].y + eight[l].y == s->place_[i].y) {
             index = l;
+       //     id = id2;
           }
         }
         ob[0] = index;
         ob.push_back(eight.size() - 1 - index);
       }
-      obs.push_back(make_unique<PursuitObservation>(m,ob)); // TODO(rozlijak): make correct id
+      obs.push_back(make_uniq<PursuitObservation>(m, ob));  // TODO(rozlijak): make correct id -
+      // TODO: jak poznam ktere vsechny stavy jsou mozne, kdyz to musim posuzovat komplexne,
+      // TODO: mozna prohodit cykly, kdy nejdrive budu testovat posun a az potom v nem porovnani s dalsim hracem
       ob.clear();
     }
 
@@ -107,7 +121,7 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
 
 PursuitDomain::PursuitDomain(const vector<Pos> &loc, int maxPlayers, int max):
     Domain(maxPlayers, max) {
-  root_ = make_unique<PursuitState>(loc);
+  root_ = make_uniq<PursuitState>(loc);
 }
 
 int PursuitDomain::height_ = 0;
@@ -126,7 +140,8 @@ string PursuitDomain::GetInfo() {
 int count = 0;
 vector<double> rew;
 
-void Pursuit(const unique_ptr<Domain>& domain, const unique_ptr<State> &state, int depth, int players) {
+void Pursuit(const unique_ptr<Domain>& domain, const unique_ptr<State> &state,
+             int depth, int players) {
   vector<vector<shared_ptr<Action>>> v = vector<vector<shared_ptr<Action>>>();
   for (int i = 0; i < players; ++i) {
     v.emplace_back(state->GetActions(i));
@@ -142,7 +157,7 @@ void Pursuit(const unique_ptr<Domain>& domain, const unique_ptr<State> &state, i
       for (int i = 0; i < rew.size(); ++i) {
         rew[i] += o.GetReward()[i];
       }
-      Pursuit(domain, o.GetState(), depth - 1,players);
+      Pursuit(domain, o.GetState(), depth - 1, players);
     }
   }
 }

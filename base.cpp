@@ -45,11 +45,16 @@ vector<Outcome>  ProbDistribution::GetOutcomes() {
   return list;
 }
 
-int Domain::depth_ = 0; // TODO(rozlijak)
+int Domain::depth_ = 0;  // TODO(rozlijak)
 
 
 
-void Treewalk(const unique_ptr<Domain>& domain, const unique_ptr<State> &state, int depth, int players) {
+void Treewalk(const unique_ptr<Domain>& domain, const unique_ptr<State> &state,
+              int depth, int players) {
+  if (state == nullptr) {
+    cout << "state is NULL\n";
+    return;
+  }
   vector<vector<shared_ptr<Action>>> v = vector<vector<shared_ptr<Action>>>();
   for (int i = 0; i < players; ++i) {
     v.emplace_back(state->GetActions(i));
@@ -62,7 +67,7 @@ void Treewalk(const unique_ptr<Domain>& domain, const unique_ptr<State> &state, 
   for (const auto &k : action) {
     ProbDistribution prob = state->PerformAction(k);
     for (Outcome &o : prob.GetOutcomes()) {
-      Treewalk(domain, o.GetState(), depth - 1,players);
+      Treewalk(domain, o.GetState(), depth - 1, players);
     }
   }
 }

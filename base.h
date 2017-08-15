@@ -144,6 +144,7 @@ class Domain {
   unique_ptr<State> root_;
 };
 
-void Treewalk(const unique_ptr<Domain>& domain, const unique_ptr<State> &state, int depth, int players);
+void Treewalk(const unique_ptr<Domain>& domain, const unique_ptr<State> &state,
+              int depth, int players);
 
 #endif  // BASE_H_

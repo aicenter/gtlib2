@@ -43,9 +43,9 @@ class PursuitState: public State {
 
   vector<shared_ptr<Action>> GetActions(int player) override;
 
-  void GetActions(vector<shared_ptr<Action>>& list, int player) const override;
+  void GetActions(vector<shared_ptr<Action>>& list, int player) const final;
 
-  ProbDistribution PerformAction(const vector<shared_ptr<Action>>& actions) override;
+  ProbDistribution PerformAction(const vector<shared_ptr<Action>>& actions) final;
 
   inline const vector<Pos>& GetPlace() const final {
     return place_;
@@ -83,6 +83,7 @@ class PursuitDomain: public Domain{
 extern int count;
 extern vector<double> rew;
 
-void Pursuit(const unique_ptr<Domain>& domain, const unique_ptr<State> &state, int depth, int players);
+void Pursuit(const unique_ptr<Domain>& domain, const unique_ptr<State> &state,
+             int depth, int players);
 
 #endif  // PURSUIT_H_
