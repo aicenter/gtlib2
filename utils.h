@@ -16,7 +16,7 @@ using std::unique_ptr;
 using std::shared_ptr;
 
 template<typename T>
-vector<vector<shared_ptr<T>>> cart_product(const vector<vector<shared_ptr<T>>>& v) {
+vector<vector<shared_ptr<T>>> CartProduct(const vector<vector<shared_ptr<T>>> &v) {
   vector<vector<shared_ptr<T>>> s = {{}};
   for (const auto& u : v) {
     vector<vector<shared_ptr<T>>> r;
@@ -32,7 +32,7 @@ vector<vector<shared_ptr<T>>> cart_product(const vector<vector<shared_ptr<T>>>& 
 }
 
 template<typename T, typename ...Args>
-unique_ptr<T> make_uniq(Args&&... args) {
+unique_ptr<T> MakeUnique(Args &&... args) {
   return unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 

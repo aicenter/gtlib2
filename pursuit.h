@@ -51,6 +51,14 @@ class PursuitState: public State {
     return place_;
   }
 
+  inline const vector<Pos>& GetEight() const {
+    return eight_;
+  }
+
+  inline const vector<Pos>& GetMoves() const {
+    return m_;
+  }
+
   inline const vector<double>& GetProb() const {
     return probdis_;
   }
@@ -62,7 +70,7 @@ class PursuitState: public State {
  private:
   vector<Pos> place_;
   double prob_ = 1;
-  vector<Pos> eight = {{-2, -2}, {-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
+  vector<Pos> eight_ = {{-2, -2}, {-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
                        {0, 1}, {1, -1}, {1, 0}, {1, 1}, {0, 0}};
   vector<Pos> m_ = {{0, 0}, {1, 0}, {0, 1}, {-1, 0}, {0, -1}};
   vector<double> probdis_ = {0.1, 0.9};  // TODO(rozlijak): docasne
@@ -81,7 +89,7 @@ class PursuitDomain: public Domain{
 
 
 extern int count;
-extern vector<double> rew;
+extern vector<double> reward;
 
 void Pursuit(const unique_ptr<Domain>& domain, const unique_ptr<State> &state,
              int depth, int players);

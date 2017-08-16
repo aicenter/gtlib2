@@ -13,15 +13,18 @@ int main(int argc, char* argv[]) {
   count = 0;
   PursuitDomain::height_ = 3;
   vector<Pos> loc = {{0, 0},
-                     {PursuitDomain::height_-1, PursuitDomain::width_-1},
-                     {1, 1}};
-  rew = vector<double>(loc.size());
-  unique_ptr<Domain>d = make_uniq<PursuitDomain>(loc, loc.size(), 2);
-//  Treewalk(d, d->GetRoot(), d->GetMaxDepth(), d->GetMaxPlayers());
-  Pursuit(d, d->GetRoot(), d->GetMaxDepth(), d->GetMaxPlayers());
-  for (double i : rew) {
-    cout << i << " ";
-  }
+                     {PursuitDomain::height_-1, PursuitDomain::width_-1}};
+  reward = vector<double>(loc.size());
+  unique_ptr<Domain>d = MakeUnique<PursuitDomain>(loc, loc.size(), 2);
+  vector<InfSet> aohistories = vector<InfSet>({{},{}});
+  unique_ptr<PursuitState>s = MakeUnique<PursuitState>(loc);
+  unique_ptr<EFGNode> node = MakeUnique<EFGNode>(0,move(s),aohistories);
+  EFGTreewalk(d, node, d->GetMaxDepth()*2, d->GetMaxPlayers());
+ // Treewalk(d, d->GetRoot(), d->GetMaxDepth(), d->GetMaxPlayers());
+ // Pursuit(d, d->GetRoot(), d->GetMaxDepth(), d->GetMaxPlayers());
+//  for (double i : reward) {
+//    cout << i << " ";
+//  }
   cout << count << '\n';
   clock_t end = clock();
   double elapsed_secs = static_cast<double>(end - begin) / CLOCKS_PER_SEC;
