@@ -3,7 +3,7 @@
 //
 
 #include "base.h"
-#include <algorithm>
+
 
 Action::Action(int id): id_(id) {}
 
@@ -48,7 +48,7 @@ int Domain::depth_ = 0;  // TODO(rozlijak)
 
 
 
-void Treewalk(const unique_ptr<Domain>& domain, const unique_ptr<State> &state,
+void Treewalk(const unique_ptr<Domain>& domain, State *state,
               int depth, int players) {
   if (state == nullptr) {
     cout << "state is NULL\n";
@@ -66,7 +66,7 @@ void Treewalk(const unique_ptr<Domain>& domain, const unique_ptr<State> &state,
   for (const auto &k : action) {
     ProbDistribution prob = state->PerformAction(k);
     for (Outcome &o : prob.GetOutcomes()) {
-      Treewalk(domain, o.GetState(), depth - 1, players);
+      Treewalk(domain, o.GetState().get(), depth - 1, players);
     }
   }
 }

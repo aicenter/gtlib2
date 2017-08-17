@@ -7,21 +7,23 @@
 
 #include "base.h"
 
+//pokus o comment
 class PursuitAction: public Action {
-public:
+ public:
   PursuitAction(int id, int move);
 
   string ToString() final;
 
+
   inline int GetMove() const {
     return move_;
   }
-private:
+ private:
   int move_;
 };
 
 class PursuitObservation: public Observation {
-public:
+ public:
   PursuitObservation(int id, vector<int> values);
 
   string ToString() final;
@@ -30,13 +32,13 @@ public:
     return values_;
   }
 
-private:
+ private:
   vector<int> values_;
 };
 
 
 class PursuitState: public State {
-public:
+ public:
   explicit PursuitState(const vector<Pos> &p);
 
   PursuitState(const vector<Pos> &p, double prob);
@@ -67,7 +69,7 @@ public:
     return prob_;
   }
 
-private:
+ private:
   vector<Pos> place_;
   double prob_ = 1;
   vector<Pos> eight_ = {{-2, -2}, {-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
@@ -78,20 +80,20 @@ private:
 
 
 class PursuitDomain: public Domain{
-public:
+ public:
   PursuitDomain(const vector<Pos> &loc, int maxPlayers, int max);
 
-  string GetInfo() final;
+  string GetInfo() final; //pokus o comment
 
   static int height_;
   static int width_;
 };
 
-
 extern int count;
+
 extern vector<double> reward;
 
-void Pursuit(const unique_ptr<Domain>& domain, const unique_ptr<State> &state,
+void Pursuit(const unique_ptr<Domain>& domain, State *state,
              int depth, int players);
 
 #endif  // PURSUIT_H_

@@ -3,7 +3,6 @@
 //
 
 #include "pursuit.h"
-#include "base.h"
 
 PursuitAction::PursuitAction(int id, int move): Action(id), move_(move) {}
 
@@ -84,9 +83,11 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
     vector<int> ob = vector<int>();
     for (int m = 0; m < s->place_.size(); ++m) {
       id = 0;
-      for (int i = 0; i < s->place_.size(); ++i) {
-        if (m == i)
+      for (int i = 0, p = 0; i < s->place_.size(); ++i, ++p) {
+        if (m == i) {
+          --p;
           continue;
+        }
         index = 0;
         int id2 = 1;
         for (int l = 1; l < eight_.size(); ++l) {
@@ -103,7 +104,7 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
           }
         }
         ob.push_back(index);
-        id += index * pow(id2,i);
+        id += index * pow(id2, p);
       }
       obs.push_back(MakeUnique<PursuitObservation>(id, ob));  // TODO(rozlijak): make correct id -
       // TODO: jak poznam ktere vsechny stavy jsou mozne, kdyz to musim posuzovat komplexne,
@@ -141,7 +142,7 @@ string PursuitDomain::GetInfo() {
 int count = 0;
 vector<double> reward;
 
-void Pursuit(const unique_ptr<Domain>& domain, const unique_ptr<State> &state,
+void Pursuit(const unique_ptr<Domain>& domain, State *state,
              int depth, int players) {
   ++count;
   if (depth == 0) {
@@ -154,18 +155,12 @@ void Pursuit(const unique_ptr<Domain>& domain, const unique_ptr<State> &state,
   vector<vector<shared_ptr<Action>>> action = CartProduct<Action>(v);
   for (const auto &k : action) {
     ProbDistribution prob = state->PerformAction(k);
-//    if(!prob.GetOutcomes().empty()) {
-//     // if(prob.GetOutcomes()[0].GetState() == nullptr)
-//        cout << "blabla  ";
-//    }
-
     for (Outcome &o : prob.GetOutcomes()) {
       unique_ptr<State> st = o.GetState();
       for (int i = 0; i < reward.size(); ++i) {
         reward[i] += o.GetReward()[i];
       }
-      if(st->GetActions(0).empty()) cout << "bla";
-      Pursuit(domain, st, depth - 1, players);
+      Pursuit(domain, st.get(), depth - 1, players);
     }
   }
 }
