@@ -3,6 +3,7 @@
 //
 
 #include "pursuit.h"
+#include "base.h"
 
 PursuitAction::PursuitAction(int id, int move): Action(id), move_(move) {}
 
@@ -38,9 +39,9 @@ void PursuitState::GetActions(vector<shared_ptr<Action>> &list, int player) cons
   int count = 0;
   for (int i = 1; i < 5; ++i) {
     if ((place_[player].x + m_[i].x) >= 0 && (place_[player].x + m_[i].x)
-                                            < PursuitDomain::width_ &&
+                                             < PursuitDomain::width_ &&
         (place_[player].y + m_[i].y) >= 0 && (place_[player].y + m_[i].y)
-                                            < PursuitDomain::height_) {
+                                             < PursuitDomain::height_) {
       list.push_back(std::make_shared<PursuitAction>(count, i));
       count++;
     }
@@ -90,9 +91,9 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
         int id2 = 1;
         for (int l = 1; l < eight_.size(); ++l) {
           if ((s->place_[m].x + eight_[l].x) >= 0 && (s->place_[m].x + eight_[l].x)
-                                                    < PursuitDomain::width_ &&
+                                                     < PursuitDomain::width_ &&
               (s->place_[m].y + eight_[l].y) >= 0 && (s->place_[m].y + eight_[l].y)
-                                                    < PursuitDomain::height_) {
+                                                     < PursuitDomain::height_) {
             id2++;
           }
 
@@ -130,11 +131,11 @@ int PursuitDomain::width_ = 0;
 
 string PursuitDomain::GetInfo() {
   return "Rozmery pole jsou: " + to_string(PursuitDomain::height_) + " x " +
-      to_string(PursuitDomain::width_) + " maximalni hloubka grafu je: " +
-      to_string(maxdepth_) + " a pocatecni stav je: " +
-      to_string(root_->GetPlace()[0].x) +" "+ to_string(root_->GetPlace()[0].y) +
-      "    " + to_string(root_->GetPlace()[1].x) +" "+
-      to_string(root_->GetPlace()[1].y) + "\n";
+         to_string(PursuitDomain::width_) + " maximalni hloubka grafu je: " +
+         to_string(maxdepth_) + " a pocatecni stav je: " +
+         to_string(root_->GetPlace()[0].x) +" "+ to_string(root_->GetPlace()[0].y) +
+         "    " + to_string(root_->GetPlace()[1].x) +" "+
+         to_string(root_->GetPlace()[1].y) + "\n";
 }
 
 int count = 0;
@@ -153,11 +154,18 @@ void Pursuit(const unique_ptr<Domain>& domain, const unique_ptr<State> &state,
   vector<vector<shared_ptr<Action>>> action = CartProduct<Action>(v);
   for (const auto &k : action) {
     ProbDistribution prob = state->PerformAction(k);
+//    if(!prob.GetOutcomes().empty()) {
+//     // if(prob.GetOutcomes()[0].GetState() == nullptr)
+//        cout << "blabla  ";
+//    }
+
     for (Outcome &o : prob.GetOutcomes()) {
+      unique_ptr<State> st = o.GetState();
       for (int i = 0; i < reward.size(); ++i) {
         reward[i] += o.GetReward()[i];
       }
-      Pursuit(domain, o.GetState(), depth - 1, players);
+      if(st->GetActions(0).empty()) cout << "bla";
+      Pursuit(domain, st, depth - 1, players);
     }
   }
 }

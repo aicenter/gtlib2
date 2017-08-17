@@ -8,35 +8,35 @@
 #include "base.h"
 
 class PursuitAction: public Action {
- public:
+public:
   PursuitAction(int id, int move);
 
   string ToString() final;
 
   inline int GetMove() const {
-      return move_;
+    return move_;
   }
- private:
+private:
   int move_;
 };
 
 class PursuitObservation: public Observation {
- public:
+public:
   PursuitObservation(int id, vector<int> values);
 
   string ToString() final;
 
   inline const vector<int>& GetValues() const {
-      return values_;
+    return values_;
   }
 
- private:
+private:
   vector<int> values_;
 };
 
 
 class PursuitState: public State {
- public:
+public:
   explicit PursuitState(const vector<Pos> &p);
 
   PursuitState(const vector<Pos> &p, double prob);
@@ -67,18 +67,18 @@ class PursuitState: public State {
     return prob_;
   }
 
- private:
+private:
   vector<Pos> place_;
   double prob_ = 1;
   vector<Pos> eight_ = {{-2, -2}, {-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
-                       {0, 1}, {1, -1}, {1, 0}, {1, 1}, {0, 0}};
+                        {0, 1}, {1, -1}, {1, 0}, {1, 1}, {0, 0}};
   vector<Pos> m_ = {{0, 0}, {1, 0}, {0, 1}, {-1, 0}, {0, -1}};
   vector<double> probdis_ = {0.1, 0.9};  // TODO(rozlijak): docasne
 };
 
 
 class PursuitDomain: public Domain{
- public:
+public:
   PursuitDomain(const vector<Pos> &loc, int maxPlayers, int max);
 
   string GetInfo() final;

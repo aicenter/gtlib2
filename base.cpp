@@ -26,10 +26,10 @@ string Domain::GetInfo() {}
 
 Outcome::Outcome(unique_ptr<State> s, vector<unique_ptr<Observation>> ob,
                  const vector<double> &rew):
-        st_(move(s)), ob_(move(ob)), rew_(rew) {}
+    st_(move(s)), ob_(move(ob)), rew_(rew) {}
 
 ProbDistribution::ProbDistribution(vector<std::pair<Outcome, double>> pairs):
-        pairs_(move(pairs)) {}
+    pairs_(move(pairs)) {}
 
 Outcome ProbDistribution::GetRandom() {
   int r = rand() % pairs_.size();
@@ -39,8 +39,7 @@ Outcome ProbDistribution::GetRandom() {
 vector<Outcome>  ProbDistribution::GetOutcomes() {
   vector<Outcome> list;
   for (auto &pair : pairs_) {
-    Outcome o(pair.first.GetState(), pair.first.GetObs(), pair.first.GetReward());
-    list.push_back(move(o));
+    list.push_back(move(pair.first));
   }
   return list;
 }

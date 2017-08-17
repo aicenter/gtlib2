@@ -22,9 +22,8 @@ using std::shared_ptr;
 using std::to_string;
 
 
-
 class Action {
- public:
+public:
   explicit Action(int id);
 
   virtual ~Action() = default;
@@ -35,13 +34,13 @@ class Action {
     return id_;
   }
 
- protected:
+protected:
   int id_;
 };
 
 
 class Observation {
- public:
+public:
   explicit Observation(int id);
 
   virtual ~Observation() = default;
@@ -52,7 +51,7 @@ class Observation {
     return id_;
   }
 
- protected:
+protected:
   int id_;
 };
 
@@ -64,7 +63,7 @@ struct Pos{
 class State;
 
 class Outcome{
- public:
+public:
   Outcome(unique_ptr<State> s, vector<unique_ptr<Observation>> ob,
           const vector<double> &rew);
 
@@ -80,7 +79,7 @@ class Outcome{
     return rew_;
   }
 
- private:
+private:
   vector<unique_ptr<Observation>> ob_;
   vector<double> rew_;
   unique_ptr<State> st_;
@@ -88,20 +87,20 @@ class Outcome{
 
 
 class ProbDistribution {
- public:
+public:
   explicit ProbDistribution(vector<std::pair<Outcome, double>> pairs);
 
   Outcome GetRandom();
 
-  vector<Outcome> GetOutcomes();
+  vector<Outcome> GetOutcomes();  // TODO: padalo to, protoze jsem se na to podival driv nez jsem mel a tim padem se to potom smazalo
 
- private:
+private:
   vector<std::pair<Outcome, double>> pairs_;
 };
 
 
 class State {
- public:
+public:
   State();
 
   virtual ~State() = default;
@@ -113,11 +112,20 @@ class State {
   virtual ProbDistribution PerformAction(const vector<shared_ptr<Action>> &actions) = 0;
 
   virtual const vector<Pos>& GetPlace() const = 0;
+
+  virtual const vector<Pos>& GetEight() const = 0;
+
+  virtual const vector<Pos>& GetMoves() const = 0;
+
+  virtual const vector<double>& GetProb() const = 0;
+
+  virtual double GetPro() const = 0;
+
 };
 
 
 class Domain {
- public:
+public:
   Domain(int maxplayers, int max);
 
   virtual ~Domain() = default;
@@ -138,7 +146,7 @@ class Domain {
 
   static int depth_;
 
- protected:
+protected:
   int maxplayers_;
   int maxdepth_;
   unique_ptr<State> root_;
@@ -146,7 +154,6 @@ class Domain {
 
 void Treewalk(const unique_ptr<Domain>& domain, const unique_ptr<State> &state,
               int depth, int players);
-
 
 
 #endif  // BASE_H_

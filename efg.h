@@ -7,30 +7,31 @@
 
 #include "pursuit.h"
 
-
 class InfSet {
- public:
+public:
   vector<int> aohistory_;
 };
 
+class ChanceNode;
+
 class EFGNode {
- public:
-  EFGNode(int player, unique_ptr<PursuitState> state, const vector<InfSet>& aohistories);
+public:
+  EFGNode(int player, unique_ptr<State> state, const vector<double>& rewards, const vector<InfSet>& aohistories);
 
   virtual vector<shared_ptr<Action>>  GetActions();
 
   template<typename T>
-  unique_ptr<EFGNode> PerformAction(const shared_ptr<Action>& action2) {
+  unique_ptr<ChanceNode> PerformAction(const shared_ptr<Action>& action2) {
     shared_ptr<T> action = std::dynamic_pointer_cast<T>(action2); // TODO: musi to bejt obecny
 
     vector<Pos> moves = state_->GetPlace();
-    moves[player_].x += state_->GetMoves()[action->GetMove()].x;// TODO: dostat se nejak do PursuitState pro posuny - zatim beru rovnou PursuitState
+    moves[player_].x += state_->GetMoves()[action->GetMove()].x;// TODO: dostat se nejak do PursuitState pro posuny - zatim beru State a v GetDistribution ho menim na PursuitState
     moves[player_].y += state_->GetMoves()[action->GetMove()].y;
     unique_ptr<PursuitState>s = MakeUnique<PursuitState>(moves);
 
     vector<InfSet> aoh = aohistories_;
     aoh[player_].aohistory_.push_back(action->GetID());
-    unique_ptr<EFGNode> node = MakeUnique<EFGNode>(1-player_,move(s),aoh);
+    unique_ptr<ChanceNode> node = MakeUnique<ChanceNode>(player_,move(s),rewards_,aoh);
     return node;
   }
 
@@ -42,7 +43,11 @@ class EFGNode {
     return rewards_;
   }
 
-  inline const unique_ptr<PursuitState>& GetState() const {
+  inline const vector<InfSet>& GetAOH() const {
+    return aohistories_;
+  }
+
+  inline const unique_ptr<State>& GetState() const {
     return state_;
   }
 
@@ -50,20 +55,21 @@ class EFGNode {
     return aohistories_[player_];
   }
 
- protected:
+protected:
   vector<double> rewards_;
   int player_;
-  unique_ptr<PursuitState> state_;
-
- private:
-
-
+  unique_ptr<State> state_;
   vector<InfSet> aohistories_;
+
+private:
+
 };
 
 class ChanceNode: public EFGNode {
 public:
-  ChanceNode(int player, unique_ptr<PursuitState> state, const vector<InfSet>& aohistories);
+  ChanceNode(int player, unique_ptr<State> state, const vector<double>& rewards, const vector<InfSet>& aohistories);
+
+  ProbDistribution GetDistribution();
 
 };
 
