@@ -106,10 +106,7 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
         ob.push_back(index);
         id += index * pow(id2, p);
       }
-      obs.push_back(MakeUnique<PursuitObservation>(id, ob));  // TODO(rozlijak): make correct id -
-      // TODO: jak poznam ktere vsechny stavy jsou mozne, kdyz to musim posuzovat komplexne,
-      // TODO: mozna prohodit cykly, kdy nejdrive budu testovat posun a az potom v nem porovnani s dalsim hracem
-      // TODO: zatim reseno divne - id se dostava jako suma pozic souperu nasobenych poctem moznosti na cislo soupere
+      obs.push_back(MakeUnique<PursuitObservation>(id, ob));
       ob.clear();
     }
 
@@ -144,7 +141,10 @@ vector<double> reward;
 
 void Pursuit(const unique_ptr<Domain>& domain, State *state,
              int depth, int players) {
-  ++count;
+  if (state == nullptr) {
+    throw("State is NULL");
+  }
+
   if (depth == 0) {
     return;
   }
@@ -160,6 +160,7 @@ void Pursuit(const unique_ptr<Domain>& domain, State *state,
       for (int i = 0; i < reward.size(); ++i) {
         reward[i] += o.GetReward()[i];
       }
+      ++count;
       Pursuit(domain, st.get(), depth - 1, players);
     }
   }

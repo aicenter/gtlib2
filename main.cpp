@@ -15,14 +15,14 @@ int main(int argc, char* argv[]) {
   vector<Pos> loc = {{0, 0},
                      {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}};
   reward = vector<double>(loc.size());
-  unique_ptr<Domain> d = MakeUnique<PursuitDomain>(loc, loc.size(), 5);
+  unique_ptr<Domain> d = MakeUnique<PursuitDomain>(loc, loc.size(), 2);
   unique_ptr<EFGNode> node = MakeUnique<EFGNode>(0,
                                                  MakeUnique<PursuitState>(loc),
                                                  vector<double>(loc.size()),
                                                  vector<InfSet>({{}, {}}));
-  EFGTreewalk(d, node.get(), d->GetMaxDepth() * 2, d->GetMaxPlayers());
+  EFGTreewalk(d, node.get(), d->GetMaxDepth(), 1, {});
 //  Treewalk(d, d->GetRoot().get(), d->GetMaxDepth(), d->GetMaxPlayers());
-  Pursuit(d, d->GetRoot().get(), d->GetMaxDepth(), d->GetMaxPlayers());
+//  Pursuit(d, d->GetRoot().get(), d->GetMaxDepth(), d->GetMaxPlayers());
   for (double i : reward) {
     cout << i << " ";
   }

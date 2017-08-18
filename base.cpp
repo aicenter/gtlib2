@@ -51,8 +51,7 @@ int Domain::depth_ = 0;  // TODO(rozlijak)
 void Treewalk(const unique_ptr<Domain>& domain, State *state,
               int depth, int players, void (*FunctionForState) (State*)) {
   if (state == nullptr) {
-    cout << "state is NULL\n";
-    return;
+    throw("State is NULL");
   }
 
   (*FunctionForState)(state);
@@ -68,15 +67,21 @@ void Treewalk(const unique_ptr<Domain>& domain, State *state,
   vector<vector<shared_ptr<Action>>> action = CartProduct<Action>(v);
   for (const auto &k : action) {
     ProbDistribution prob = state->PerformAction(k);
-    for (Outcome &o : prob.GetOutcomes()) {
-      Treewalk(domain, o.GetState().get(), depth - 1, players,FunctionForState);
+    vector<Outcome> outcomes = prob.GetOutcomes();
+    cout << outcomes.size() << "\n";
+    for (Outcome &o : outcomes) {
+      Treewalk(domain, o.GetState().get(), depth - 1, players, FunctionForState);
     }
   }
+
 }
+
 
 void Treewalk(const unique_ptr<Domain>& domain, State *state,
               int depth, int players) {
   Treewalk(domain, state, depth, players, [](State* s){});
 }
 
-
+const int State::GetPlayers() const {
+  return 2;  //TODO(rozlijak) [bb] -- I assume that this is temporary
+}

@@ -113,6 +113,8 @@ class State {
   virtual ProbDistribution PerformAction(const vector<shared_ptr<Action>> &actions) = 0;
 
   virtual const vector<Pos>& GetPlace() const = 0;
+
+  virtual const int GetPlayers() const;
 };
 
 
