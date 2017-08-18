@@ -145,6 +145,8 @@ class Domain {
 };
 
 void Treewalk(const unique_ptr<Domain>& domain, State *state,
+              int depth, int players, void (*FunctionForState) (State*));
+void Treewalk(const unique_ptr<Domain>& domain, State *state,
               int depth, int players);
 
 
