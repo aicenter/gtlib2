@@ -7,7 +7,6 @@
 
 #include "base.h"
 
-//pokus o comment
 class PursuitAction: public Action {
  public:
   PursuitAction(int id, int move);
@@ -53,29 +52,13 @@ class PursuitState: public State {
     return place_;
   }
 
-  inline const vector<Pos>& GetEight() const {
-    return eight_;
-  }
-
-  inline const vector<Pos>& GetMoves() const {
-    return m_;
-  }
-
-  inline const vector<double>& GetProb() const {
-    return probdis_;
-  }
-
-  inline double GetPro() const {
-    return prob_;
-  }
-
  private:
   vector<Pos> place_;
   double prob_ = 1;
   vector<Pos> eight_ = {{-2, -2}, {-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
                         {0, 1}, {1, -1}, {1, 0}, {1, 1}, {0, 0}};
   vector<Pos> m_ = {{0, 0}, {1, 0}, {0, 1}, {-1, 0}, {0, -1}};
-  vector<double> probdis_ = {0.1, 0.9};  // TODO(rozlijak): docasne
+  vector<double> probdis_ = {0.1, 0.9};  // TODO(rozlijak): temporary
 };
 
 
@@ -83,7 +66,7 @@ class PursuitDomain: public Domain{
  public:
   PursuitDomain(const vector<Pos> &loc, int maxPlayers, int max);
 
-  string GetInfo() final; //pokus o comment
+  string GetInfo() final;
 
   static int height_;
   static int width_;
