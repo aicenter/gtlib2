@@ -19,9 +19,7 @@ string PursuitObservation::ToString() {
 }
 
 
-PursuitState::PursuitState(const vector<Pos> &p):place_(p) {
-  probdis_ = {0.1, 0.9};
-}
+PursuitState::PursuitState(const vector<Pos> &p):PursuitState(p,1) {}
 
 PursuitState::PursuitState(const vector<Pos> &p, double prob):
     place_(p), prob_(prob) {
@@ -36,7 +34,7 @@ vector<shared_ptr<Action>> PursuitState::GetActions(int player) {
 
 void PursuitState::GetActions(vector<shared_ptr<Action>> &list, int player) const {
   int count = 0;
-  for (int i = 1; i < 5; ++i) {
+  for (int i = 1; i < 5; ++i) { // verifies whether moves are correct
     if ((place_[player].x + m_[i].x) >= 0 && (place_[player].x + m_[i].x)
                                              < PursuitDomain::width_ &&
         (place_[player].y + m_[i].y) >= 0 && (place_[player].y + m_[i].y)
@@ -51,12 +49,12 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
   vector<shared_ptr<PursuitAction>> actions = Cast<Action, PursuitAction>(actions2);
   vector<Pos> moves = vector<Pos>();
   moves.reserve(actions.size());
-  auto count = static_cast<unsigned int>(pow(2, actions.size()));
+  auto count = static_cast<unsigned int>(pow(2, actions.size()));  // number of all combinations
   vector<std::pair<Outcome, double>> pairs;
   for (int k = 0; k < count; ++k) {
     vector<double> rew = vector<double>(actions.size());
     double probability = prob_;
-    for (int i = 0; i < actions.size(); ++i) {
+    for (int i = 0; i < actions.size(); ++i) {  // making moves and assigning probability
       if (((k >> i) & 1) == 1) {
         moves.push_back({m_[actions[i]->GetMove()].y + place_[i].y,
                          m_[actions[i]->GetMove()].x + place_[i].x});
@@ -68,7 +66,7 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
     }
     unique_ptr<PursuitState>s = MakeUnique<PursuitState>(moves, probability);
     moves.clear();
-    for (int i = 1; i < s->GetPlace().size(); ++i) {
+    for (int i = 1; i < s->GetPlace().size(); ++i) { // detection if first has caught others
       if ((s->place_[0].x == place_[i].x && s->place_[0].y == place_[i].y &&
            s->place_[i].x == place_[0].x &&
            s->place_[i].y == place_[0].y) ||
@@ -81,7 +79,7 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
     int id;
     vector<unique_ptr<Observation>> obs = vector<unique_ptr<Observation>>();
     vector<int> ob = vector<int>();
-    for (int m = 0; m < s->place_.size(); ++m) {
+    for (int m = 0; m < s->place_.size(); ++m) {  // making observations
       id = 0;
       for (int i = 0, p = 0; i < s->place_.size(); ++i, ++p) {
         if (m == i) {
@@ -104,7 +102,7 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
           }
         }
         ob.push_back(index);
-        id += index * pow(id2, p);
+        id += index * pow(id2, p);  // counting observation id
       }
       obs.push_back(MakeUnique<PursuitObservation>(id, ob));
       ob.clear();
@@ -112,14 +110,14 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
 
     double p2 = s->prob_/prob_;
     Outcome p(move(s), move(obs), rew);
-    pairs.emplace_back(move(p), p2);
+    pairs.emplace_back(move(p), p2);  // pair of an outcome and its probability
   }
   ProbDistribution prob(move(pairs));
   return prob;
 }
 
-PursuitDomain::PursuitDomain(const vector<Pos> &loc, int maxPlayers, int max):
-    Domain(maxPlayers, max) {
+PursuitDomain::PursuitDomain(const vector<Pos> &loc, int maxplayers, int max):
+    Domain(maxplayers, max) {
   root_ = MakeUnique<PursuitState>(loc);
 }
 
@@ -128,12 +126,13 @@ int PursuitDomain::width_ = 0;
 
 
 string PursuitDomain::GetInfo() {
+  shared_ptr<PursuitState> root = std::dynamic_pointer_cast<PursuitState>(root_);
   return "Rozmery pole jsou: " + to_string(PursuitDomain::height_) + " x " +
          to_string(PursuitDomain::width_) + " maximalni hloubka grafu je: " +
          to_string(maxdepth_) + " a pocatecni stav je: " +
-         to_string(root_->GetPlace()[0].x) +" "+ to_string(root_->GetPlace()[0].y) +
-         "    " + to_string(root_->GetPlace()[1].x) +" "+
-         to_string(root_->GetPlace()[1].y) + "\n";
+         to_string(root->GetPlace()[0].x) +" "+ to_string(root->GetPlace()[0].y) +
+         "    " + to_string(root->GetPlace()[1].x) +" "+
+         to_string(root->GetPlace()[1].y) + "\n";
 }
 
 int count = 0;

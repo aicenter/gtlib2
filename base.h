@@ -12,7 +12,7 @@
 #include <utility>
 #include <ctime>
 #include <string>
-#include "utils.h"
+#include "utils/utils.h"
 
 using std::string;
 using std::cout;
@@ -23,14 +23,21 @@ using std::shared_ptr;
 using std::to_string;
 
 
+
+/**
+ * Action is an abstract class that represents actions,
+ * which are identified by their id.  */
 class Action {
  public:
+  // constructor
   explicit Action(int id);
 
+  // destructor
   virtual ~Action() = default;
 
   virtual string ToString();
 
+  // GetID returns action id
   inline int GetID() const {
     return id_;
   }
@@ -39,15 +46,20 @@ class Action {
   int id_;
 };
 
-
+/**
+ * Observation is an abstract class that represents observations,
+ * which are identified by their id.  */
 class Observation {
  public:
+  // constructor
   explicit Observation(int id);
 
+  // destructor
   virtual ~Observation() = default;
 
   virtual string ToString();
 
+  // GetID returns observation id
   inline int GetID() const {
     return id_;
   }
@@ -61,8 +73,11 @@ struct Pos{
   int x;
 };
 
-class State;
+class State; //Forward declaration
 
+/**
+ * Outcome is a class that represents outcomes,
+ * which contain rewards, observations and new state.  */
 class Outcome{
  public:
   Outcome(unique_ptr<State> s, vector<unique_ptr<Observation>> ob,
@@ -86,13 +101,18 @@ class Outcome{
   unique_ptr<State> st_;
 };
 
-
+/**
+ * ProbDistribution is a class that represent
+ * pairs of outcomes and their probability.  */
 class ProbDistribution {
  public:
+  // constructor
   explicit ProbDistribution(vector<std::pair<Outcome, double>> pairs);
 
+  // GetRandom returns a random Outcome from vector.
   Outcome GetRandom();
 
+  // GetOutcomes returns a vector of all outcomes.
   vector<Outcome> GetOutcomes();
 
  private:
@@ -100,52 +120,91 @@ class ProbDistribution {
 };
 
 
-class State {
+/**
+ * InfSet is a class that represent information sets,
+ *  which are identified by their hash code.  */
+class InfSet {  // TODO(rozlijak): make it abstract
  public:
-  State();
-
-  virtual ~State() = default;
-
-  virtual vector<shared_ptr<Action>> GetActions(int player) = 0;
-
-  virtual void GetActions(vector<shared_ptr<Action>>& list, int player) const = 0;
-
-  virtual ProbDistribution PerformAction(const vector<shared_ptr<Action>> &actions) = 0;
-
-  virtual const vector<Pos>& GetPlace() const = 0;
-
-  virtual const int GetPlayers() const;
+  inline const vector<int>& GetIS()const {
+    return aohistory_;
+  }
+  void PushToHistory(int id) {
+    aohistory_.push_back(id);
+  }
+ private:
+  vector<int> aohistory_;
 };
 
 
+/**
+ * State is an abstract class that represent states  */
+class State {
+ public:
+  // constructor
+  State();
+
+  // destructor
+  virtual ~State() = default;
+
+  // GetActions returns possible actions for a player in the state. It is a pure virtual method.
+  virtual vector<shared_ptr<Action>> GetActions(int player) = 0;
+
+  // GetActions returns possible actions for a player in the state. It is a pure virtual method.
+  virtual void GetActions(vector<shared_ptr<Action>>& list, int player) const = 0;
+
+  // PerformAction performs actions for all players who can play in the state. It is a pure virtual method.
+  virtual ProbDistribution PerformAction(const vector<shared_ptr<Action>> &actions) = 0;
+
+  // GetPlayers returns number of players who can play in this state. It is a pure virtual method.
+  virtual const int GetPlayers() const = 0;
+
+  // SetPlayers sets number of players who can play in this state. It is a pure virtual method.
+  virtual void SetPlayers(unsigned int number) = 0;
+
+ protected:
+  unsigned int numplayers_ = 0;
+};
+
+
+/**
+ * Domain is an abstract class that represent domain,
+ * contains a root state.  */
 class Domain {
  public:
+  // constructor
   Domain(int maxplayers, int max);
 
+  // destructor
   virtual ~Domain() = default;
 
-  const unique_ptr<State> &GetRoot() {
+  const shared_ptr<State> &GetRoot() {
     return root_;
   }
 
+  // GetMaxPlayers returns max players in a game.
   inline int GetMaxPlayers() const {
     return maxplayers_;
   }
 
+  // GetMaxDepth returns maximal depth of algorithm
   int GetMaxDepth() const {
     return maxdepth_;
   }
 
-  virtual string GetInfo();
+  // TODO(rozlijak): virtual vector<Strategy*> ComputeUtility() = 0;
+
+  // GetInfo returns string containing domain information. It is a pure virtual method.
+  virtual string GetInfo() = 0;
 
   static int depth_;
 
  protected:
   int maxplayers_;
   int maxdepth_;
-  unique_ptr<State> root_;
+  shared_ptr<State> root_;
 };
 
+// Domain independent treewalk algorithm
 void Treewalk(const unique_ptr<Domain>& domain, State *state,
               int depth, int players);
 

@@ -8,13 +8,13 @@
 Action::Action(int id): id_(id) {}
 
 string Action::ToString() {
-  return string();
+  return to_string(id_);
 }
 
 Observation::Observation(int id): id_(id) {}
 
 string Observation::ToString() {
-  return string();
+  return to_string(id_);
 }
 
 State::State() = default;
@@ -70,8 +70,4 @@ void Treewalk(const unique_ptr<Domain>& domain, State *state,
       Treewalk(domain, o.GetState().get(), depth - 1, players);
     }
   }
-}
-
-const int State::GetPlayers() const {
-  return 2;
 }
