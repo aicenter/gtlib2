@@ -146,20 +146,26 @@ class State {
   // destructor
   virtual ~State() = default;
 
-  // GetActions returns possible actions for a player in the state. It is a pure virtual method.
+  // GetActions returns possible actions for a player in the state.
   virtual vector<shared_ptr<Action>> GetActions(int player) = 0;
 
-  // GetActions returns possible actions for a player in the state. It is a pure virtual method.
+  // GetActions returns possible actions for a player in the state.
   virtual void GetActions(vector<shared_ptr<Action>>& list, int player) const = 0;
 
-  // PerformAction performs actions for all players who can play in the state. It is a pure virtual method.
+  // PerformAction performs actions for all players who can play in the state.
   virtual ProbDistribution PerformAction(const vector<shared_ptr<Action>> &actions) = 0;
 
-  // GetPlayers returns number of players who can play in this state. It is a pure virtual method.
+  // GetPlayers returns number of players who can play in this state.
   virtual const int GetPlayers() const = 0;
 
-  // SetPlayers sets number of players who can play in this state. It is a pure virtual method.
+  // SetPlayers sets number of players who can play in this state.
   virtual void SetPlayers(unsigned int number) = 0;
+
+  // GetAOH returns action-observation histories of all players.
+  virtual const vector<vector<int>>& GetAOH() const = 0;
+
+  // SetAOH sets action-observation histories of all players.
+  virtual void SetAOH(const vector<vector<int>>& list) = 0;
 
  protected:
   unsigned int numplayers_ = 0;
@@ -193,7 +199,7 @@ class Domain {
 
   // TODO(rozlijak): virtual vector<Strategy*> ComputeUtility() = 0;
 
-  // GetInfo returns string containing domain information. It is a pure virtual method.
+  // GetInfo returns string containing domain information.
   virtual string GetInfo() = 0;
 
   static int depth_;

@@ -82,12 +82,23 @@ class PursuitState: public State {
     return numplayers_ == 0? place_.size() : numplayers_;
   }
 
+  // GetAOH returns action-observation histories of all players.
+  inline const vector<vector<int>>& GetAOH() const final {
+    return aoh_;
+  };
+
+  // SetAOH sets action-observation histories of all players.
+  inline void SetAOH(const vector<vector<int>>& list) final {
+    aoh_ = list;
+  }
+
  private:
+  vector<vector<int>> aoh_;  // all players' action-observation histories
   vector<Pos> place_;  // locations of all players
   double prob_ = 1;  // state probability
   vector<Pos> eight_ = {{-2, -2}, {-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
-                        {0, 1}, {1, -1}, {1, 0}, {1, 1}, {0, 0}};  // vector of eight surrounding
-  vector<Pos> m_ = {{0, 0}, {1, 0}, {0, 1}, {-1, 0}, {0, -1}};  // vector of moves
+                        {0, 1}, {1, -1}, {1, 0}, {1, 1}, {0, 0}};  // eight surrounding
+  vector<Pos> m_ = {{0, 0}, {1, 0}, {0, 1}, {-1, 0}, {0, -1}};  // moves
   vector<double> probdis_ = {0.1, 0.9};  // TODO(rozlijak): temporary
 };
 

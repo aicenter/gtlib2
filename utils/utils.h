@@ -2,8 +2,8 @@
 // Created by rozliv on 15.08.2017.
 //
 
-#ifndef UTILS_H_
-#define UTILS_H_
+#ifndef UTILS_UTILS_H_
+#define UTILS_UTILS_H_
 
 #include <iostream>
 #include <vector>
@@ -50,4 +50,4 @@ vector<shared_ptr<U>> Cast(const vector<shared_ptr<T>>& list2) {
 }
 
 
-#endif  // UTILS_H_
+#endif  // UTILS_UTILS_H_
