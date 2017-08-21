@@ -39,12 +39,24 @@ unique_ptr<T> MakeUnique(Args &&... args) {
   return unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
-// Cast casts vector of type T to vector of type U - works only with shared_ptr
+/* CastDynamic dynamically casts vector of type T to vector of type U,
+ * works only with shared_ptr, it has no problem with virtual inheritence. */
+template <typename T, typename U>
+vector<shared_ptr<U>> CastDynamic(const vector<shared_ptr<T>>& list2) {
+  vector<shared_ptr<U>> list = vector<shared_ptr<U>>();
+  for (const auto &j : list2) {
+    list.push_back(std::dynamic_pointer_cast<U>(j));
+  }
+  return list;
+}
+
+/* Cast statically casts vector of type T to vector of type U,
+ * works only with shared_ptr, it should be a default choice. */
 template <typename T, typename U>
 vector<shared_ptr<U>> Cast(const vector<shared_ptr<T>>& list2) {
   vector<shared_ptr<U>> list = vector<shared_ptr<U>>();
   for (const auto &j : list2) {
-    list.push_back(std::dynamic_pointer_cast<U>(j));
+    list.push_back(std::static_pointer_cast<U>(j));
   }
   return list;
 }

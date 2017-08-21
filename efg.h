@@ -40,9 +40,11 @@ class EFGNode {
 
   // GetIS returns the player's information set
   inline std::size_t GetIS() const {
-    InfSet i(state_->GetAOH()[player_]);
+    AOH i(player_, 2, state_->GetAOH()[player_]);
     return i.GetIS();
   }
+
+  int IS;
 
  protected:
   vector<double> rewards_;
@@ -59,50 +61,13 @@ class ChanceNode {
   // constructor
   explicit ChanceNode(ProbDistribution* prob,
                       const vector<shared_ptr<Action>>& list,
-                      const unique_ptr<EFGNode>& node):
-      prob_(prob), list_(list), node_(node) {}
+                      const unique_ptr<EFGNode>& node);
 
   // GetRandom returns a random new EFGNode.
-  unique_ptr<EFGNode> GetRandom() {
-    Outcome o = prob_->GetRandom();
-    unique_ptr<State> st = o.GetState();
-    vector<vector<int>> aoh = node_->GetState()->GetAOH();
-    vector<unique_ptr<Observation>> obs = o.GetObs();
-    for (int j = 0; j < list_.size(); ++j) {
-      aoh[j].push_back(list_[j]->GetID());
-    }
-    for (int j = 0; j < obs.size(); ++j) {
-      aoh[j].push_back(obs[j]->GetID());
-    }
-    st->SetAOH(aoh);
-    vector<double> rews = vector<double>({node_->GetRewards()[0] + o.GetReward()[0],
-                                          node_->GetRewards()[1] + o.GetReward()[1]});
-    unique_ptr<EFGNode> cn = MakeUnique<EFGNode>(0, move(st), rews);
-    return cn;
-  }
+  unique_ptr<EFGNode> GetRandom();
 
   // GetALL returns a vector of all new EFGNodes.
-  vector<unique_ptr<EFGNode>> GetAll() {
-    vector<Outcome> outcomes =  prob_->GetOutcomes();
-    vector<unique_ptr<EFGNode>> vec;
-    vec.reserve(outcomes.size());
-    for (Outcome &o : outcomes) {
-      unique_ptr<State> st = o.GetState();
-      vector<vector<int>> aoh = node_->GetState()->GetAOH();
-      vector<unique_ptr<Observation>> obs = o.GetObs();
-      for (int j = 0; j < list_.size(); ++j) {
-        aoh[j].push_back(list_[j]->GetID());
-      }
-      for (int j = 0; j < obs.size(); ++j) {
-        aoh[j].push_back(obs[j]->GetID());
-      }
-      st->SetAOH(aoh);
-      vector<double> rews = vector<double>({node_->GetRewards()[0] + o.GetReward()[0],
-                                            node_->GetRewards()[1] + o.GetReward()[1]});
-      vec.push_back(MakeUnique<EFGNode>(0, move(st), rews));
-    }
-    return vec;
-  }
+  vector<unique_ptr<EFGNode>> GetAll();
 
  private:
   ProbDistribution* prob_;  // probability distribution over the new state
@@ -110,6 +75,8 @@ class ChanceNode {
   const unique_ptr<EFGNode>& node_;  // a present node
 };
 
+
+extern vector<shared_ptr<AOH>> arrIS;
 
 // Domain independent extensive form game treewalk algorithm
 void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,

@@ -46,6 +46,8 @@ class Action {
   int id_;
 };
 
+static Action NoA(-1);
+
 /**
  * Observation is an abstract class that represents observations,
  * which are identified by their id.  */
@@ -67,6 +69,8 @@ class Observation {
  protected:
   int id_;
 };
+
+static Observation NoOb(-1);
 
 struct Pos{
   int y;
@@ -123,19 +127,27 @@ class ProbDistribution {
 /**
  * InfSet is a class that represent information sets,
  *  which are identified by their hash code.  */
-class InfSet {  // TODO(rozlijak): make it abstract
+class InfSet {
  public:
-  explicit InfSet(const vector<int>& hist):aohistory_(hist) {}
-  inline std::size_t GetIS()const {
-      std::size_t seed = aohistory_.size();
+  InfSet() = default;
+};
+
+class AOH: public InfSet {  // TODO(rozlijak): make it working - problem with constructor
+ public:
+  AOH(int player,size_t num, const vector<int>& hist):
+      aohistory_(hist), player_(player), num_(num) {}
+
+  size_t GetIS()const {
+      size_t seed = aohistory_.size();
       for (int i : aohistory_) {
         seed ^= i + 0x9e3779b9 + (seed << 6) + (seed >> 2);
       }
       return seed;
   }
 
- private:
-  const vector<int>& aohistory_;
+  int player_;
+  size_t num_;
+  vector<int> aohistory_;
 };
 
 

@@ -22,6 +22,10 @@ class PursuitAction: public Action {
   inline int GetMove() const {
     return move_;
   }
+
+  inline int GetID() const {
+    return id_;
+  }
  private:
   int move_;
 };

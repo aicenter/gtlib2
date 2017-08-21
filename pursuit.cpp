@@ -48,25 +48,26 @@ void PursuitState::GetActions(vector<shared_ptr<Action>> &list, int player) cons
 
 ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& actions2) {
   vector<shared_ptr<PursuitAction>> actions = Cast<Action, PursuitAction>(actions2);
-  vector<Pos> moves = vector<Pos>();
-  moves.reserve(actions.size());
   // number of all combinations
   auto count = static_cast<unsigned int>(pow(2, actions.size()));
   vector<std::pair<Outcome, double>> pairs;
   for (int k = 0; k < count; ++k) {
-    vector<double> rew = vector<double>(actions.size());
+    vector<double> rew = vector<double>(place_.size());
     double probability = prob_;
     // making moves and assigning probability
+    vector<Pos> moves = place_;
     for (int i = 0; i < actions.size(); ++i) {
       if (((k >> i) & 1) == 1) {
-        moves.push_back({m_[actions[i]->GetMove()].y + place_[i].y,
-                         m_[actions[i]->GetMove()].x + place_[i].x});
+        if(actions[i]->GetID() > -1) {
+          moves[i].x = m_[actions[i]->GetMove()].x + place_[i].x;
+          moves[i].y = m_[actions[i]->GetMove()].y + place_[i].y;
+        }
         probability *= probdis_[1];
       } else {
-        moves.push_back({place_[i].y, place_[i].x});
         probability *= probdis_[0];
       }
     }
+
     unique_ptr<PursuitState>s = MakeUnique<PursuitState>(moves, probability);
     moves.clear();
     // detection if first has caught others
@@ -85,7 +86,7 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
     vector<int> ob = vector<int>();
     for (int m = 0; m < s->place_.size(); ++m) {  // making observations
       id = 0;
-      for (int i = 0, p = 0; i < s->place_.size(); ++i, ++p) {
+      for (int i = 0, p = 1; i < s->place_.size(); ++i, ++p) {
         if (m == i) {
           --p;
           continue;
@@ -108,6 +109,8 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
         ob.push_back(index);
         id += index * pow(id2, p);  // counting observation id
       }
+        ob.push_back(((k >> m) & 1));
+        id += ((k >> m) & 1);
       obs.push_back(MakeUnique<PursuitObservation>(id, ob));
       ob.clear();
     }
