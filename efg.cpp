@@ -23,11 +23,6 @@ unique_ptr<EFGNode> EFGNode::PerformAction(const shared_ptr<Action> &action2) {
 }
 
 
-ChanceNode::ChanceNode(int player, const shared_ptr<State>& state,
-                       const vector<double>& rewards) :
-    EFGNode(player, state, rewards) {}
-
-
 void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,
                  int depth, int players,
                  const vector<shared_ptr<Action>>& list) {
@@ -45,26 +40,14 @@ void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,
     if (players == node->GetState()->GetPlayers()) {
       // if all players play in this turn, returns a ProbDistribution
       ProbDistribution prob = n->GetState()->PerformAction(locallist);
-      vector<Outcome> outcomes = prob.GetOutcomes();
-      for (Outcome &o : outcomes) {
-        unique_ptr<State> st = o.GetState();
-        vector<vector<int>> aoh = node->GetState()->GetAOH();
-        vector<unique_ptr<Observation>> obs = o.GetObs();
-        for (int j = 0; j < locallist.size(); ++j) {
-          aoh[j].push_back(locallist[j]->GetID());
-        }
-        for (int j = 0; j < obs.size(); ++j) {
-          aoh[j].push_back(obs[j]->GetID());
-        }
-        st->SetAOH(aoh);
-        vector<double> rews = vector<double>({n->GetRewards()[0] + o.GetReward()[0],
-                                              n->GetRewards()[1] + o.GetReward()[1]});
-        unique_ptr<EFGNode> cn = MakeUnique<EFGNode>(0, move(st), rews);
+      ChanceNode chan(&prob, locallist, n);
+      vector<unique_ptr<EFGNode>> vec = chan.GetAll();
+      for (auto &j : vec) {
         count++;
         for (int k = 0; k < reward.size(); ++k) {
-          reward[k] += o.GetReward()[k];
+          reward[k] += j->GetRewards()[k];
         }
-        EFGTreewalk(domain, cn.get(), depth - 1, 1, {});
+        EFGTreewalk(domain, j.get(), depth - 1, 1, {});
       }
     } else {
       EFGTreewalk(domain, n.get(), depth, players + 1, locallist);

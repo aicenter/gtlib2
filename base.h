@@ -73,7 +73,7 @@ struct Pos{
   int x;
 };
 
-class State; //Forward declaration
+class State;  // Forward declaration
 
 /**
  * Outcome is a class that represents outcomes,
@@ -125,14 +125,17 @@ class ProbDistribution {
  *  which are identified by their hash code.  */
 class InfSet {  // TODO(rozlijak): make it abstract
  public:
-  inline const vector<int>& GetIS()const {
-    return aohistory_;
+  explicit InfSet(const vector<int>& hist):aohistory_(hist) {}
+  inline std::size_t GetIS()const {
+      std::size_t seed = aohistory_.size();
+      for (int i : aohistory_) {
+        seed ^= i + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+      }
+      return seed;
   }
-  void PushToHistory(int id) {
-    aohistory_.push_back(id);
-  }
+
  private:
-  vector<int> aohistory_;
+  const vector<int>& aohistory_;
 };
 
 
