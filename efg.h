@@ -39,18 +39,20 @@ class EFGNode {
   }
 
   // GetIS returns the player's information set
-  inline std::size_t GetIS() const {
-    AOH i(player_, 2, state_->GetAOH()[player_]);
-    return i.GetIS();
+  inline shared_ptr<InfSet> GetIS() {
+    if (aoh_ == nullptr)
+      aoh_ = std::make_shared<AOH>(player_, state_->GetAOH()[player_]);
+
+    return aoh_;
   }
 
-  int IS;
+  int IS = -1;  // information set id
 
  protected:
-  vector<double> rewards_;
   int player_;
   shared_ptr<State> state_;
-  // vector<InfSet> aohistories_;
+  vector<double> rewards_;
+  shared_ptr<AOH> aoh_;
 };
 
 /**
@@ -76,7 +78,7 @@ class ChanceNode {
 };
 
 
-extern vector<shared_ptr<AOH>> arrIS;
+extern vector<shared_ptr<AOH>> arrIS;  // temporary for testing information sets
 
 // Domain independent extensive form game treewalk algorithm
 void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,

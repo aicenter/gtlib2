@@ -7,22 +7,7 @@
 
 Action::Action(int id): id_(id) {}
 
-string Action::ToString() {
-  return to_string(id_);
-}
-
 Observation::Observation(int id): id_(id) {}
-
-string Observation::ToString() {
-  return to_string(id_);
-}
-
-State::State() = default;
-
-Domain::Domain(int maxplayers, int max):
-    maxplayers_(maxplayers), maxdepth_(max) {}
-
-string Domain::GetInfo() {}
 
 Outcome::Outcome(unique_ptr<State> s, vector<unique_ptr<Observation>> ob,
                  const vector<double> &rew):
@@ -44,8 +29,25 @@ vector<Outcome>  ProbDistribution::GetOutcomes() {
   return list;
 }
 
-int Domain::depth_ = 0;  // TODO(rozlijak)
+AOH::AOH(int player, const vector<int> &hist):
+    player_(player), aohistory_(hist) {}
 
+size_t AOH::GetIS() {
+  if (seed_ == 0) {
+    for (int i : aohistory_) {
+      seed_ ^= i + 0x9e3779b9 + (seed_ << 6) + (seed_ >> 2);
+    }
+  }
+  return seed_;
+}
+
+State::State() = default;
+
+Domain::Domain(int maxplayers, int max):
+    maxplayers_(maxplayers), maxdepth_(max) {}
+
+
+int Domain::depth_ = 0;  // TODO(rozlijak)
 
 
 void Treewalk(const unique_ptr<Domain>& domain, State *state,
@@ -71,3 +73,5 @@ void Treewalk(const unique_ptr<Domain>& domain, State *state,
     }
   }
 }
+
+

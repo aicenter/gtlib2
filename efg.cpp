@@ -6,7 +6,7 @@
 
 EFGNode::EFGNode(int player, const shared_ptr<State>& state,
                  const vector<double>& rewards):
-    player_(player), state_(state), rewards_(rewards)  {}
+    player_(player), state_(state), rewards_(rewards), aoh_(nullptr)  {}
 
 vector<shared_ptr<Action>> EFGNode::GetAction() {
   if (player_ == -1)
@@ -16,8 +16,7 @@ vector<shared_ptr<Action>> EFGNode::GetAction() {
 }
 
 unique_ptr<EFGNode> EFGNode::PerformAction(const shared_ptr<Action> &action2) {
-  unique_ptr<EFGNode> node = MakeUnique<EFGNode>(
-      player_+1, state_, rewards_);
+  unique_ptr<EFGNode> node = MakeUnique<EFGNode>(player_+1, state_, rewards_);
   return node;
 }
 
@@ -32,10 +31,10 @@ unique_ptr<EFGNode> ChanceNode::GetRandom() {
   unique_ptr<State> st = o.GetState();
   vector<vector<int>> aoh = node_->GetState()->GetAOH();
   vector<unique_ptr<Observation>> obs = o.GetObs();
-  for (int j = 0; j < list_.size(); ++j) {
+  for (unsigned int j = 0; j < list_.size(); ++j) {
     aoh[j].push_back(list_[j]->GetID());
   }
-  for (int j = 0; j < obs.size(); ++j) {
+  for (unsigned int j = 0; j < obs.size(); ++j) {
     aoh[j].push_back(obs[j]->GetID());
   }
   st->SetAOH(aoh);
@@ -54,12 +53,14 @@ vector<unique_ptr<EFGNode>> ChanceNode::GetAll() {
     unique_ptr<State> st = o.GetState();
     vector<vector<int>> aoh = node_->GetState()->GetAOH();
     vector<unique_ptr<Observation>> obs = o.GetObs();
-    for (int j = 0; j < list_.size(); ++j) {
+    for (unsigned int j = 0; j < list_.size(); ++j) {
       aoh[j].push_back(list_[j]->GetID());
     }
-    if(list_.size() < obs.size()) aoh[1].push_back(-1);
-    for (int j = 0; j < obs.size(); ++j) {
+    if (list_.size() < obs.size()) aoh[1].push_back(-1);
+    for (unsigned int j = 0; j < obs.size(); ++j) {
       aoh[j].push_back(obs[j]->GetID());
+      st->AddString(node_->GetState()->GetString(j) + "  ||  ACTION: " +
+                    list_[j]->ToString() + "  | OBS: " + obs[j]->ToString(), j);
     }
     st->SetAOH(aoh);
     vector<double> rews = vector<double>({node_->GetRewards()[0] + o.GetReward()[0],
@@ -77,23 +78,35 @@ void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,
   if (node == nullptr) {
     throw("Node is NULL");
   }
+
+
+//  pole.push_back(depth);  // temporary for python graphs
+//  playarr.push_back(node->GetPlayer());  // temporary for python graphs
+
   if (depth == 0) {
+//    arrid.push_back(node->IS);  // temporary for python graphs
+//    graph.emplace_back("leaf");  // temporary for python graphs
     return;
   }
-  int l = 0;
+  unsigned int l = 0;
   vector<shared_ptr<Action>> actions = node->GetAction();
+  auto aoh = std::static_pointer_cast<AOH>(node->GetIS());
   for (l = 0; l < arrIS.size(); ++l) {
-    if(arrIS[l]->player_ == node->GetPlayer() &&
-        arrIS[l]->GetIS() == node->GetIS() &&
-        arrIS[l]->aohistory_ == node->GetState()->GetAOH()[node->GetPlayer()]) {
+    if (*arrIS[l] == *aoh) {
       node->IS = l;
       break;
     }
   }
-  if(arrIS.empty() || l == arrIS.size()) {
-    arrIS.push_back(std::make_shared<AOH>(node->GetPlayer(),actions.size(), node->GetState()->GetAOH()[node->GetPlayer()]));
+  if (arrIS.empty() || l == arrIS.size()) {
+    arrIS.push_back(std::make_shared<AOH>(node->GetPlayer(),
+                                          node->GetState()->GetAOH()[node->GetPlayer()]));
     node->IS = arrIS.size() - 1;
   }
+
+//  arrid.push_back(node->IS);  // temporary for python graphs
+//    // temporary for python graphs
+//  graph.push_back("InfSet id: " + to_string(node->IS)+
+//                  "  " +node->GetState()->toString(node->GetPlayer()));
 
   for (auto &i : actions) {
     unique_ptr<EFGNode> n = node->PerformAction(i);
@@ -108,7 +121,7 @@ void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,
       vector<unique_ptr<EFGNode>> vec = chan.GetAll();
       for (auto &j : vec) {
         count++;
-        for (int k = 0; k < reward.size(); ++k) {
+        for (unsigned int k = 0; k < reward.size(); ++k) {
           reward[k] += j->GetRewards()[k];
         }
         EFGTreewalk(domain, j.get(), depth - 1, 1, {});

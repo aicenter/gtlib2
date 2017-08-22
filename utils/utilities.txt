@@ -5,17 +5,5 @@ You can install it via pip - pip install cpplint
 
 pybind11 - pybind11 is a lightweight header-only library that exposes C++ types in Python and vice versa,
 mainly to create Python bindings of existing C++ code. Documentation is here: http://pybind11.readthedocs.io/en/master/index.html
-Example of code in c++ file:
-PYBIND11_PLUGIN(example) {
-     py::module m("example", "pybind11 example plugin");
-     m.def("initialization", &initialization, py::return_value_policy::copy);  // function initialization()
-     m.def("iii", &iii, py::return_value_policy::copy);  // function iii();
-     py::object world = py::cast(4);
-     m.attr("what") = world;  // variable what
-     return m.ptr();
-}
-
-Example of code in python file:
-import example
-q = example.initialization()
-b = example.iii()
+Example files are example.cpp and draw.py; example.cpp is compiled like this: c++ -O3 -shared -std=c++11 -fPIC -I <path>/pybind11/include `python-config --cflags --ldflags`  utils/example.cpp base.cpp efg.cpp pursuit.cpp -o utils/example.so
+Then you can run the python script.

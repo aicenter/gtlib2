@@ -17,9 +17,8 @@ int main(int argc, char* argv[]) {
   reward = vector<double>(loc.size());
   arrIS = vector<shared_ptr<AOH>>();
   unique_ptr<Domain> d = MakeUnique<PursuitDomain>(loc, loc.size(), 2);
-  unique_ptr<EFGNode> node = MakeUnique<EFGNode>(0,
-                                                 std::make_shared<PursuitState>(loc),
-                                                 vector<double>(loc.size()));
+  auto node = MakeUnique<EFGNode>(0, std::make_shared<PursuitState>(loc),
+                                  vector<double>(loc.size()));
   EFGTreewalk(d, node.get(), d->GetMaxDepth(), 1, {});
 //  Treewalk(d, d->GetRoot().get(), d->GetMaxDepth(), d->GetMaxPlayers());
 //  Pursuit(d, d->GetRoot().get(), d->GetMaxDepth(), d->GetMaxPlayers());

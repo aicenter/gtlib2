@@ -5,8 +5,17 @@
 #ifndef PURSUIT_H_
 #define PURSUIT_H_
 
+#include <utility>
+
 #include "base.h"
 
+// moves description
+const vector<string> movedes_ = {"stay", "right", "down", "left", "up"};
+
+// eight surrounding description
+const vector<string> eightdes_ = {"nowhere", "top left", "top", "top right",
+                                  "left", "right", "bottom left", "bottom",
+                                  "bottom right", "same"};
 
 /**
  * PursuitAction is a class that represents pursuit actions,
@@ -16,15 +25,14 @@ class PursuitAction: public Action {
   // constructor
   PursuitAction(int id, int move);
 
-  string ToString() final;
+  // Returns move description.
+  inline string ToString() final {
+    return movedes_[move_];
+  }
 
   // Returns index to array, which describes where to move.
   inline int GetMove() const {
     return move_;
-  }
-
-  inline int GetID() const {
-    return id_;
   }
  private:
   int move_;
@@ -39,6 +47,7 @@ class PursuitObservation: public Observation {
   // constructor
   PursuitObservation(int id, vector<int> values);
 
+  // Returns description.
   string ToString() final;
 
   // Returns vector of mini-observations to others.
@@ -96,14 +105,33 @@ class PursuitState: public State {
     aoh_ = list;
   }
 
+  // AddString adds string s to a string in vector of strings.
+  inline void AddString(const string& s, int player) final {
+    strings_[player].append(s);
+  }
+
+  // GetString returns a string from vector.
+  inline const string& GetString(int player) const final {
+    return strings_[player];
+  }
+
+  // toString returns state description
+  inline string toString(int player) final {
+    return  "player: " + to_string(player) +  ", location: " +
+        to_string(place_[player].x) + " " + to_string(place_[player].y) +
+        strings_[player] + "\n";
+  }
+
  private:
   vector<vector<int>> aoh_;  // all players' action-observation histories
   vector<Pos> place_;  // locations of all players
   double prob_ = 1;  // state probability
+  // eight surrounding
   vector<Pos> eight_ = {{-2, -2}, {-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
-                        {0, 1}, {1, -1}, {1, 0}, {1, 1}, {0, 0}};  // eight surrounding
+                        {0, 1}, {1, -1}, {1, 0}, {1, 1}, {0, 0}};
   vector<Pos> m_ = {{0, 0}, {1, 0}, {0, 1}, {-1, 0}, {0, -1}};  // moves
   vector<double> probdis_ = {0.1, 0.9};  // TODO(rozlijak): temporary
+  vector<string> strings_;
 };
 
 
@@ -125,6 +153,11 @@ class PursuitDomain: public Domain{
 extern int count;  // temporary for testing treewalk
 
 extern vector<double> reward;  // temporary for testing treewalk
+
+extern std::vector<string> graph;  // temporary for python graphs
+extern std::vector<int> pole;  // temporary for python graphs
+extern std::vector<int> playarr;  // temporary for python graphs
+extern std::vector<int> arrid;  // temporary for python graphs
 
 // Domain independent treewalk algorithm
 void Pursuit(const unique_ptr<Domain>& domain, State *state,

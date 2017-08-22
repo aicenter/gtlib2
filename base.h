@@ -35,7 +35,10 @@ class Action {
   // destructor
   virtual ~Action() = default;
 
-  virtual string ToString();
+  // Returns description
+  inline virtual string ToString() {
+    return to_string(id_);
+  }
 
   // GetID returns action id
   inline int GetID() const {
@@ -46,7 +49,7 @@ class Action {
   int id_;
 };
 
-static Action NoA(-1);
+static Action NoA(-1);  // No Action
 
 /**
  * Observation is an abstract class that represents observations,
@@ -59,7 +62,10 @@ class Observation {
   // destructor
   virtual ~Observation() = default;
 
-  virtual string ToString();
+  // Returns description
+  inline virtual string ToString() {
+    return to_string(id_);
+  }
 
   // GetID returns observation id
   inline int GetID() const {
@@ -70,7 +76,7 @@ class Observation {
   int id_;
 };
 
-static Observation NoOb(-1);
+static Observation NoOb(-1);  // No Observation
 
 struct Pos{
   int y;
@@ -100,9 +106,9 @@ class Outcome{
   }
 
  private:
+  unique_ptr<State> st_;
   vector<unique_ptr<Observation>> ob_;
   vector<double> rew_;
-  unique_ptr<State> st_;
 };
 
 /**
@@ -125,29 +131,39 @@ class ProbDistribution {
 
 
 /**
- * InfSet is a class that represent information sets,
+ * InfSet is an abstract class that represent information sets,
  *  which are identified by their hash code.  */
 class InfSet {
  public:
   InfSet() = default;
+
+  // GetIS returns hash code.
+  virtual size_t GetIS() = 0;
 };
 
-class AOH: public InfSet {  // TODO(rozlijak): make it working - problem with constructor
- public:
-  AOH(int player,size_t num, const vector<int>& hist):
-      aohistory_(hist), player_(player), num_(num) {}
 
-  size_t GetIS()const {
-      size_t seed = aohistory_.size();
-      for (int i : aohistory_) {
-        seed ^= i + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-      }
-      return seed;
+/**
+ * AOH is a class that represents action-observation history,
+ * which contains player id and vector of action-observation history,
+ * hash code for faster comparing and has overloaded operator '=='  */
+class AOH: public InfSet {
+ public:
+  // constructor
+  AOH(int player, const vector<int>& hist);
+
+  // GetIS returns hash code.
+  size_t GetIS() final;
+
+  // Overloaded for comparing two AOHs
+  bool operator==(AOH& other) {
+    return player_ == other.player_ && GetIS() == other.GetIS() &&
+        aohistory_ == other.aohistory_;
   }
 
+ private:
   int player_;
-  size_t num_;
   vector<int> aohistory_;
+  size_t seed_ = 0;
 };
 
 
@@ -181,6 +197,16 @@ class State {
 
   // SetAOH sets action-observation histories of all players.
   virtual void SetAOH(const vector<vector<int>>& list) = 0;
+
+  // AddString adds string s to a string in vector of strings.
+  virtual void AddString(const string &s, int player) = 0;
+
+  // GetString returns a string from vector.
+  virtual const string& GetString(int player) const = 0;
+
+  // toString returns state description
+  virtual string toString(int player) = 0;
+
 
  protected:
   unsigned int numplayers_ = 0;
