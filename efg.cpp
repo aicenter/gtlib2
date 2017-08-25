@@ -118,9 +118,11 @@ void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,
     if (players == n->GetState()->GetNumPlayers()) {
       while (node->GetPlayer() >= actionssize) {
         locallist.insert(locallist.begin(), std::make_shared<Action>(NoA));
+        ++actionssize;
       }
       while (domain->GetMaxPlayers() > actionssize) {
         locallist.push_back(std::make_shared<Action>(NoA));
+        ++actionssize;
       }
       // if all players play in this turn, returns a ProbDistribution
       ProbDistribution prob = n->GetState()->PerformAction(locallist);
