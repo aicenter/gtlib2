@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
   reward = vector<double>(loc.size());
   arrIS = vector<shared_ptr<AOH>>();
   unique_ptr<Domain> d = MakeUnique<PursuitDomain>(loc, loc.size(), 2);
-  auto node = MakeUnique<EFGNode>(0, std::make_shared<PursuitState>(loc),
+  auto node = MakeUnique<EFGNode>(0, std::make_shared<MMPursuitState>(loc, vector<int>({1, 0})),
                                   vector<double>(loc.size()));
   EFGTreewalk(d, node.get(), d->GetMaxDepth(), 1, {});
 //  Treewalk(d, d->GetRoot().get(), d->GetMaxDepth(), d->GetMaxPlayers());
@@ -30,6 +30,7 @@ int main(int argc, char* argv[]) {
   clock_t end = clock();
   double elapsed_secs = static_cast<double>(end - begin) / CLOCKS_PER_SEC;
   cout << "hotovo: time " << elapsed_secs << "s" << '\n';
+
 
   // testing::InitGoogleTest(&argc, argv);
   // RUN_ALL_TESTS();

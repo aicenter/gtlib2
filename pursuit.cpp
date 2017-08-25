@@ -4,6 +4,8 @@
 
 #include "pursuit.h"
 
+#include <utility>
+
 PursuitAction::PursuitAction(int id, int move): Action(id), move_(move) {}
 
 
@@ -12,6 +14,9 @@ PursuitObservation::PursuitObservation(int id, vector<int> values):
 
 string PursuitObservation::ToString() {
   string string1;
+  if (values_.empty()) {
+    return "NoOb;";
+  }
   for (unsigned int i = 0; i < values_.size()-1; ++i) {
     string1 += eightdes_[values_[i]];
     string1 += "; ";
@@ -29,6 +34,8 @@ PursuitState::PursuitState(const vector<Pos> &p, double prob):
   probdis_ = {0.1, 0.9};
   aoh_ = vector<vector<int>>(p.size());
   strings_ = vector<string>(p.size());
+  numplayers_ = p.size();
+  players_ = vector<int>(p.size(), 1);
 }
 
 vector<shared_ptr<Action>> PursuitState::GetActions(int player) {
@@ -54,7 +61,12 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
   vector<shared_ptr<PursuitAction>> actions = Cast<Action, PursuitAction>(actions2);
   // number of all combinations
   int actionssize = actions.size();
-  auto count = pow(2, actionssize);
+  int powsize = actions.size();
+  for (auto &i : actions) {
+    if (i->GetID() == -1)
+      powsize--;
+  }
+  auto count = pow(2, powsize);
   vector<std::pair<Outcome, double>> pairs;
   for (int k = 0; k < count; ++k) {
     auto rew = vector<double>(place_.size());
@@ -73,7 +85,7 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
       }
     }
 
-    unique_ptr<PursuitState> s = MakeUnique<PursuitState>(moves, probability);
+    shared_ptr<PursuitState> s = std::make_shared<PursuitState>(moves, probability);
     int size = s->place_.size();
     moves.clear();
     // detection if first has caught others
@@ -115,8 +127,8 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
         ob.push_back(index);
         id += index * pow(id2, p);  // counting observation id
       }
-      ob.push_back(((k >> m) & 1));
-      id += ((k >> m) & 1);
+        ob.push_back(((k >> m) & 1));
+        id += ((k >> m) & 1);
       obs.push_back(MakeUnique<PursuitObservation>(id, ob));
       ob.clear();
     }
@@ -128,6 +140,124 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
   ProbDistribution prob(move(pairs));
   return prob;
 }
+
+
+MMPursuitState::MMPursuitState(const vector<Pos> &p,
+                               const vector<int>& players):
+    PursuitState(p), players_(players) {}
+
+MMPursuitState::MMPursuitState(const vector<Pos> &p, double prob,
+                               const vector<int>& players):
+    PursuitState(p, prob), players_(players) {}
+
+ProbDistribution MMPursuitState::PerformAction(const vector<shared_ptr<Action>> &actions2) {
+  vector<shared_ptr<PursuitAction>> actions = Cast<Action, PursuitAction>(actions2);
+
+  int actionssize = actions.size();
+  int powsize = actions.size();
+  for (auto &i : actions) {
+    if (i->GetID() == -1)
+      powsize--;
+  }
+  // number of all combinations
+  auto count = pow(2, powsize);
+  vector<std::pair<Outcome, double>> pairs;
+  for (int k = 0; k < count; ++k) {
+    auto rew = vector<double>(place_.size());
+    double probability = prob_;
+    // making moves and assigning probability
+    vector<Pos> moves = place_;
+    for (int i = 0, p = 0; i < actionssize; ++i) {
+      if (((k >> p) & 1) == 1) {
+        if (actions[i]->GetID() > -1) {
+          moves[i].x = m_[actions[i]->GetMove()].x + place_[i].x;
+          moves[i].y = m_[actions[i]->GetMove()].y + place_[i].y;
+          ++p;
+        }
+        probability *= probdis_[1];
+      } else {
+        probability *= probdis_[0];
+      }
+    }
+
+    vector<int> pla2 = players_;
+    for (int j = 0; j < actionssize; ++j) {
+      if (actions[j]->GetID() > -1) {
+        --pla2[j];
+      }
+    }
+    unique_ptr<MMPursuitState> s = MakeUnique<MMPursuitState>(moves, probability, pla2);
+    int size = s->place_.size();
+    moves.clear();
+    // detection if first has caught the others
+    for (int i = 1; i < size; ++i) {
+      if ((s->place_[0].x == place_[i].x && s->place_[0].y == place_[i].y &&
+           s->place_[i].x == place_[0].x &&
+           s->place_[i].y == place_[0].y) ||
+          (s->place_[0].x == s->place_[i].x && s->place_[0].y == s->place_[i].y)) {
+        ++rew[0];
+        --rew[i];
+      }
+    }
+    int index;
+    int id;
+    auto obs = vector<unique_ptr<Observation>>();
+    vector<int> ob = vector<int>();
+    for (int m = 0, pom = 0; m < size; ++m, ++pom) {  // making observations
+      if (actions[m]->GetID() == -1) {
+        obs.push_back(MakeUnique<Observation>(NoOb));
+        --pom;
+        continue;
+      }
+
+      id = 0;
+      for (int i = 0, p = 1; i < size; ++i, ++p) {
+        if (m == i) {
+          --p;
+          continue;
+        }
+        index = 0;
+        int id2 = 1;
+        for (unsigned int l = 1; l < eight_.size(); ++l) {
+          if ((s->place_[m].x + eight_[l].x) >= 0 && (s->place_[m].x + eight_[l].x)
+                                                     < PursuitDomain::width_ &&
+              (s->place_[m].y + eight_[l].y) >= 0 && (s->place_[m].y + eight_[l].y)
+                                                     < PursuitDomain::height_) {
+            id2++;
+          }
+
+          if (s->place_[m].x + eight_[l].x == s->place_[i].x &&
+              s->place_[m].y + eight_[l].y == s->place_[i].y) {
+            index = l;
+          }
+        }
+        ob.push_back(index);
+        id += index * pow(id2, p);  // counting observation id
+      }
+      ob.push_back(((k >> pom) & 1));
+      id += ((k >> pom) & 1);
+      obs.push_back(MakeUnique<PursuitObservation>(id, ob));
+      ob.clear();
+    }
+
+    double p2 = s->prob_/prob_;
+    Outcome p(move(s), move(obs), rew);
+    pairs.emplace_back(move(p), p2);  // pair of an outcome and its probability
+  }
+  ProbDistribution prob(move(pairs));
+  return prob;
+}
+
+const int MMPursuitState::GetNumPlayers() const {
+  int sum = 0;
+  for (int i : players_) {
+    if (i > 0) {
+      ++sum;
+    }
+  }
+  return sum;
+}
+
 
 PursuitDomain::PursuitDomain(const vector<Pos> &loc, int maxplayers, int max):
     Domain(maxplayers, max) {
@@ -172,12 +302,11 @@ void Pursuit(const unique_ptr<Domain>& domain, State *state,
   for (const auto &k : action) {
     ProbDistribution prob = state->PerformAction(k);
     for (Outcome &o : prob.GetOutcomes()) {
-      unique_ptr<State> st = o.GetState();
       for (unsigned int i = 0; i < reward.size(); ++i) {
         reward[i] += o.GetReward()[i];
       }
       ++count;
-      Pursuit(domain, st.get(), depth - 1, players);
+      Pursuit(domain, o.GetState().get(), depth - 1, players);
     }
   }
 }

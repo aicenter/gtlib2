@@ -9,9 +9,9 @@ Action::Action(int id): id_(id) {}
 
 Observation::Observation(int id): id_(id) {}
 
-Outcome::Outcome(unique_ptr<State> s, vector<unique_ptr<Observation>> ob,
+Outcome::Outcome(const shared_ptr<State>& s, vector<unique_ptr<Observation>> ob,
                  const vector<double> &rew):
-    st_(move(s)), ob_(move(ob)), rew_(rew) {}
+    st_(s), ob_(move(ob)), rew_(rew) {}
 
 ProbDistribution::ProbDistribution(vector<std::pair<Outcome, double>> pairs):
     pairs_(move(pairs)) {}
@@ -73,5 +73,3 @@ void Treewalk(const unique_ptr<Domain>& domain, State *state,
     }
   }
 }
-
-

@@ -59,6 +59,7 @@ class PursuitObservation: public Observation {
   vector<int> values_;
 };
 
+
 /**
  * PursuitState is a class that represents pursuit states,
  * which contains eight surrounding, moves,
@@ -71,58 +72,67 @@ class PursuitState: public State {
   // Constructor
   PursuitState(const vector<Pos> &p, double prob);
 
-  // GetActions returns possible actions for a player in the state.
-  vector<shared_ptr<Action>> GetActions(int player) final;
+  // Destructor
+  ~PursuitState() override = default;
 
   // GetActions returns possible actions for a player in the state.
-  void GetActions(vector<shared_ptr<Action>>& list, int player) const final;
+  vector<shared_ptr<Action>> GetActions(int player) override;
+
+  // GetActions returns possible actions for a player in the state.
+  void GetActions(vector<shared_ptr<Action>>& list, int player) const override;
 
   // PerformAction performs actions for all players who can play in the state.
-  ProbDistribution PerformAction(const vector<shared_ptr<Action>>& actions) final;
+  ProbDistribution PerformAction(const vector<shared_ptr<Action>>& actions) override;
 
-  // SetPlayers sets number of players who can play in this state.
-  inline void SetPlayers(unsigned int number) final {
-    numplayers_ = number;
-  }
 
   // GetPlace returns locations of all players.
   inline const vector<Pos>& GetPlace() const {
     return place_;
   }
 
-  // GetPlayers returns number of players who can play in this state.
-  inline const int GetPlayers() const final {
+  // GetNumPlayers returns number of players who can play in this state.
+  inline const int GetNumPlayers() const override {
     return numplayers_ == 0? place_.size() : numplayers_;
   }
 
+  // GetPlayers returns number of moves of each player who can play in this state.
+  const vector<int> GetPlayers() const override {
+    return players_;
+  }
+
+  // SetPlayers sets number of players who can play in this state.
+  void SetPlayers(vector<int> players) override {
+    players_ = players;
+  }
+
   // GetAOH returns action-observation histories of all players.
-  inline const vector<vector<int>>& GetAOH() const final {
+  inline const vector<vector<int>>& GetAOH() const override {
     return aoh_;
   };
 
   // SetAOH sets action-observation histories of all players.
-  inline void SetAOH(const vector<vector<int>>& list) final {
+  inline void SetAOH(const vector<vector<int>>& list) override {
     aoh_ = list;
   }
 
   // AddString adds string s to a string in vector of strings.
-  inline void AddString(const string& s, int player) final {
+  inline void AddString(const string& s, int player) override {
     strings_[player].append(s);
   }
 
   // GetString returns a string from vector.
-  inline const string& GetString(int player) const final {
+  inline const string& GetString(int player) const override {
     return strings_[player];
   }
 
   // toString returns state description
-  inline string toString(int player) final {
+  inline string toString(int player) override {
     return  "player: " + to_string(player) +  ", location: " +
         to_string(place_[player].x) + " " + to_string(place_[player].y) +
         strings_[player] + "\n";
   }
 
- private:
+ protected:
   vector<vector<int>> aoh_;  // all players' action-observation histories
   vector<Pos> place_;  // locations of all players
   double prob_ = 1;  // state probability
@@ -132,8 +142,37 @@ class PursuitState: public State {
   vector<Pos> m_ = {{0, 0}, {1, 0}, {0, 1}, {-1, 0}, {0, -1}};  // moves
   vector<double> probdis_ = {0.1, 0.9};  // TODO(rozlijak): temporary
   vector<string> strings_;
+  vector<int> players_;
 };
 
+
+class MMPursuitState: public PursuitState {
+ public:
+  // Constructor
+  explicit MMPursuitState(const vector<Pos> &p, const vector<int>& players);
+
+  // Constructor
+  MMPursuitState(const vector<Pos> &p, double prob, const vector<int>& players);
+
+  // PerformAction performs actions for all players who can play in the state.
+  ProbDistribution PerformAction(const vector<shared_ptr<Action>>& actions) override;
+
+  // GetNumPlayers returns number of players who can play in this state.
+  inline const int GetNumPlayers() const override;
+
+  // GetPlayers returns number of moves of each player who can play in this state.
+  const vector<int> GetPlayers() const override {
+    return players_;
+  }
+
+  // SetPlayers sets number of players who can play in this state.
+  void SetPlayers(vector<int> players) override {
+    players_ = players;
+  }
+
+ private:
+  vector<int> players_;
+};
 
 /**
  * PursuitDomain is a class that represents pursuit domain,

@@ -12,6 +12,91 @@ using std::vector;
 using std::move;
 
 
+/* Domain independent extensive form game treewalk algorithm,
+ * adjusted to graphs made by python script. */
+void EFGTreewalkG(const unique_ptr<Domain>& domain, EFGNode *node,
+                  int depth, int players,
+                  const vector<shared_ptr<Action>>& list) {
+  if (node == nullptr) {
+    throw("Node is NULL");
+  }
+
+
+  pole.push_back(depth);  // temporary for python graphs
+  playarr.push_back(node->GetPlayer());  // temporary for python graphs
+
+  if (depth == 0) {
+    node->IS = -1;
+    arrid.push_back(node->IS);  // temporary for python graphs
+    graph.emplace_back("leaf");  // temporary for python graphs
+    return;
+  }
+  unsigned int l = 0;
+  vector<shared_ptr<Action>> actions = node->GetAction();
+  auto aoh = std::static_pointer_cast<AOH>(node->GetIS());
+  for (l = 0; l < arrIS.size(); ++l) {
+    if (*arrIS[l] == *aoh) {
+      node->IS = l;
+      break;
+    }
+  }
+  if (arrIS.empty() || l == arrIS.size()) {
+    arrIS.push_back(std::make_shared<AOH>(node->GetPlayer(),
+                                          node->GetState()->GetAOH()[node->GetPlayer()]));
+    node->IS = arrIS.size() - 1;
+  }
+
+  arrid.push_back(node->IS);  // temporary for python graphs
+  // temporary for python graphs
+  graph.push_back("InfSet id: " + to_string(node->IS)+
+                  "  " +node->GetState()->toString(node->GetPlayer()));
+
+  for (auto &i : actions) {
+    unique_ptr<EFGNode> n = node->PerformAction(i);
+    vector<shared_ptr<Action>> locallist = list;
+    locallist.push_back(i);
+    int actionssize = locallist.size();
+    if (players == node->GetState()->GetPlayer()) {
+      while (node->GetPlayer() >= actionssize) {
+        locallist.insert(locallist.begin(), std::make_shared<Action>(NoA));
+//        pole.insert(pole.end()-1,depth);  // temporary for python graphs
+//        playarr.insert(playarr.end()-1,n->GetPlayer() & 1);  // temporary for python graphs
+//        //n->IS = -2;
+//        arrid.insert(arrid.end()-1,-3);  // temporary for python graphs
+//        graph.insert(graph.end()-1,"InfSet id: " + to_string(-3)+
+//                        "  " +n->GetState()->toString(n->GetPlayer() & 1));
+      }
+      //    cout << "konec\n";
+      while (domain->GetMaxPlayers() > actionssize) {
+        locallist.push_back(std::make_shared<Action>(NoA));
+        pole.push_back(depth);  // temporary for python graphs
+        playarr.push_back(n->GetPlayer());  // temporary for python graphs
+        n->IS = -2;
+        arrid.push_back(n->IS);  // temporary for python graphs
+        graph.push_back("InfSet id: " + to_string(n->IS)+
+                        "  " +n->GetState()->toString(n->GetPlayer()));
+      }
+      // if all players play in this turn, returns a ProbDistribution
+      ProbDistribution prob = n->GetState()->PerformAction(locallist);
+      ChanceNode chan(&prob, locallist, n);
+      pole.push_back(depth);  // temporary for python graphs
+      playarr.push_back(2);  // temporary for python graphs
+      arrid.push_back(-1);  // temporary for python graphs
+      graph.emplace_back("ChanceNode");  // temporary for python graphs
+      vector<unique_ptr<EFGNode>> vec = chan.GetAll();
+      for (auto &j : vec) {
+        count++;
+        for (unsigned int k = 0; k < reward.size(); ++k) {
+          reward[k] += j->GetRewards()[k];
+        }
+        EFGTreewalkG(domain, j.get(), depth - 1, 1, {});
+      }
+    } else {
+      EFGTreewalkG(domain, n.get(), depth, players + 1, locallist);
+    }
+  }
+}
+
 std::vector<int> initialization() {
   srand(static_cast<unsigned int>(time(nullptr)));
   graph = std::vector<string>();
@@ -26,9 +111,9 @@ std::vector<int> initialization() {
   reward = vector<double>(loc.size());
   arrIS = vector<shared_ptr<AOH>>();
   unique_ptr<Domain> d = MakeUnique<PursuitDomain>(loc, loc.size(), 2);
-  auto node = MakeUnique<EFGNode>(0, std::make_shared<PursuitState>(loc),
+  auto node = MakeUnique<EFGNode>(0, std::make_shared<MMPursuitState>(loc, vector<int>({2, 0})),
                                   vector<double>(loc.size()));
-  EFGTreewalk(d, node.get(), d->GetMaxDepth(), 1, {});
+  EFGTreewalkG(d, node.get(), d->GetMaxDepth(), 1, {});
 //  Treewalk(d, d->GetRoot().get(), d->GetMaxDepth(), d->GetMaxPlayers());
 //  Pursuit(d, d->GetRoot().get(), d->GetMaxDepth(), d->GetMaxPlayers());
   for (double i : reward) {

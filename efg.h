@@ -23,7 +23,7 @@ class EFGNode {
   // PerformAction performs the player's action.
   unique_ptr<EFGNode> PerformAction(const shared_ptr<Action>& action2);
 
-  // GetPlayer returns player on the turn (player in this node).
+  // GetNumPlayers returns player on the turn (player in this node).
   inline int GetPlayer() const {
     return player_;
   }
@@ -42,7 +42,6 @@ class EFGNode {
   inline shared_ptr<InfSet> GetIS() {
     if (aoh_ == nullptr)
       aoh_ = std::make_shared<AOH>(player_, state_->GetAOH()[player_]);
-
     return aoh_;
   }
 
@@ -84,5 +83,6 @@ extern vector<shared_ptr<AOH>> arrIS;  // temporary for testing information sets
 void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,
                  int depth, int players,
                  const vector<shared_ptr<Action>>& list);
+
 
 #endif  // EFG_H_
