@@ -59,6 +59,7 @@ void EFGTreewalkG(const unique_ptr<Domain>& domain, EFGNode *node,
     if (players == node->GetState()->GetPlayer()) {
       while (node->GetPlayer() >= actionssize) {
         locallist.insert(locallist.begin(), std::make_shared<Action>(NoA));
+        ++actionssize;
 //        pole.insert(pole.end()-1,depth);  // temporary for python graphs
 //        playarr.insert(playarr.end()-1,n->GetPlayer() & 1);  // temporary for python graphs
 //        //n->IS = -2;
@@ -69,6 +70,7 @@ void EFGTreewalkG(const unique_ptr<Domain>& domain, EFGNode *node,
       //    cout << "konec\n";
       while (domain->GetMaxPlayers() > actionssize) {
         locallist.push_back(std::make_shared<Action>(NoA));
+        ++actionssize;
         pole.push_back(depth);  // temporary for python graphs
         playarr.push_back(n->GetPlayer());  // temporary for python graphs
         n->IS = -2;
