@@ -2,8 +2,8 @@
 // Created by rozliv on 15.08.2017.
 //
 
-#ifndef UTILS_H_
-#define UTILS_H_
+#ifndef UTILS_UTILS_H_
+#define UTILS_UTILS_H_
 
 #include <iostream>
 #include <vector>
@@ -15,6 +15,8 @@ using std::move;
 using std::unique_ptr;
 using std::shared_ptr;
 
+
+// CartProduct returns cartesian product of all items in a vector
 template<typename T>
 vector<vector<shared_ptr<T>>> CartProduct(const vector<vector<shared_ptr<T>>> &v) {
   vector<vector<shared_ptr<T>>> s = {{}};
@@ -31,13 +33,16 @@ vector<vector<shared_ptr<T>>> CartProduct(const vector<vector<shared_ptr<T>>> &v
   return s;
 }
 
+// MakeUnique makes a new unique_ptr, in c++14 exists function std::make_unique
 template<typename T, typename ...Args>
 unique_ptr<T> MakeUnique(Args &&... args) {
   return unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
+/* CastDynamic dynamically casts vector of type T to vector of type U,
+ * works only with shared_ptr, it has no problem with virtual inheritence. */
 template <typename T, typename U>
-vector<shared_ptr<U>> Cast(const vector<shared_ptr<T>>& list2) {
+vector<shared_ptr<U>> CastDynamic(const vector<shared_ptr<T>>& list2) {
   vector<shared_ptr<U>> list = vector<shared_ptr<U>>();
   for (const auto &j : list2) {
     list.push_back(std::dynamic_pointer_cast<U>(j));
@@ -45,5 +50,16 @@ vector<shared_ptr<U>> Cast(const vector<shared_ptr<T>>& list2) {
   return list;
 }
 
+/* Cast statically casts vector of type T to vector of type U,
+ * works only with shared_ptr, it should be a default choice. */
+template <typename T, typename U>
+vector<shared_ptr<U>> Cast(const vector<shared_ptr<T>>& list2) {
+  vector<shared_ptr<U>> list = vector<shared_ptr<U>>();
+  for (const auto &j : list2) {
+    list.push_back(std::static_pointer_cast<U>(j));
+  }
+  return list;
+}
 
-#endif  // UTILS_H_
+
+#endif  // UTILS_UTILS_H_

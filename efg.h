@@ -7,55 +7,82 @@
 
 #include "pursuit.h"
 
-class InfSet {  // TODO(rozlijak): make it abstract
- public:
-  vector<int> aohistory_;
-};
-
+/**
+ * EFGNode is a class that represents node in an extensive form game,
+ * which contains action-observation history, state,
+ * rewards (utility) and Information set.  */
 class EFGNode {
  public:
-  EFGNode(int player, unique_ptr<State> state, const vector<double>& rewards,
-          const vector<InfSet>& aohistories);
+  // constructor
+  EFGNode(int player, const shared_ptr<State>& state,
+          const vector<double>& rewards);
 
-  virtual vector<shared_ptr<Action>>  GetActions();
+  // GetAction returns a possible actions for the player in the node.
+  virtual vector<shared_ptr<Action>>  GetAction();
 
+  // PerformAction performs the player's action.
   unique_ptr<EFGNode> PerformAction(const shared_ptr<Action>& action2);
 
+  // GetNumPlayers returns player on the turn (player in this node).
   inline int GetPlayer() const {
     return player_;
   }
 
+  // GetRewards returns rewards for all players in this node.
   inline const vector<double>& GetRewards() const {
     return rewards_;
   }
 
-  inline const vector<InfSet>& GetAOH() const {
-    return aohistories_;
-  }
-
-  inline const unique_ptr<State>& GetState() const {
+  // GetState returns a game state
+  inline const shared_ptr<State>& GetState() const {
     return state_;
   }
 
-  inline const InfSet& GetIS() const {
-    return aohistories_[player_];
+  // GetIS returns the player's information set
+  inline shared_ptr<InfSet> GetIS() {
+    if (aoh_ == nullptr)
+      aoh_ = std::make_shared<AOH>(player_, state_->GetAOH()[player_]);
+    return aoh_;
   }
 
+  int IS = -1;  // information set id
+
  protected:
-  vector<double> rewards_;
   int player_;
-  unique_ptr<State> state_;
-  vector<InfSet> aohistories_;
+  shared_ptr<State> state_;
+  vector<double> rewards_;
+  shared_ptr<AOH> aoh_;
 };
 
-
-class ChanceNode: public EFGNode {
+/**
+ * ChanceNode is a class which encapsulates probability distribution,
+ * making new EFGNodes from outcomes */
+class ChanceNode {
  public:
-  ChanceNode(int player, unique_ptr<State> state,
-             const vector<double>& rewards, const vector<InfSet>& aohistories);
+  // constructor
+  explicit ChanceNode(ProbDistribution* prob,
+                      const vector<shared_ptr<Action>>& list,
+                      const unique_ptr<EFGNode>& node);
+
+  // GetRandom returns a random new EFGNode.
+  unique_ptr<EFGNode> GetRandom();
+
+  // GetALL returns a vector of all new EFGNodes.
+  vector<unique_ptr<EFGNode>> GetAll();
+
+ private:
+  ProbDistribution* prob_;  // probability distribution over the new state
+  const vector<shared_ptr<Action>>& list_;  // actions made in the last state
+  const unique_ptr<EFGNode>& node_;  // a present node
 };
 
+
+extern vector<shared_ptr<AOH>> arrIS;  // temporary for testing information sets
+
+// Domain independent extensive form game treewalk algorithm
 void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,
-                 int depth, int players, const vector<shared_ptr<Action>>& list);
+                 int depth, int players,
+                 const vector<shared_ptr<Action>>& list);
+
 
 #endif  // EFG_H_
