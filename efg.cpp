@@ -26,6 +26,10 @@ ChanceNode::ChanceNode(ProbDistribution* prob,
     prob_(prob), list_(list), node_(node) {}
 
 
+ChanceNode::ChanceNode(ProbDistribution* prob, const unique_ptr<EFGNode> &node):
+    ChanceNode(prob, {}, node) {}
+
+
 unique_ptr<EFGNode> ChanceNode::GetRandom() {
   Outcome o = prob_->GetRandom();
   shared_ptr<State> st = o.GetState();
@@ -46,6 +50,9 @@ unique_ptr<EFGNode> ChanceNode::GetRandom() {
 
 
 vector<unique_ptr<EFGNode>> ChanceNode::GetAll() {
+  if (list_.empty()) {  // or preparing first player;
+    return {};
+  }
   vector<Outcome> outcomes =  prob_->GetOutcomes();
   vector<unique_ptr<EFGNode>> vec;
   vec.reserve(outcomes.size());
@@ -67,23 +74,19 @@ vector<unique_ptr<EFGNode>> ChanceNode::GetAll() {
     o.GetState()->SetAOH(aoh);
     vector<double> rews = vector<double>({node_->GetRewards()[0] + o.GetReward()[0],
                                           node_->GetRewards()[1] + o.GetReward()[1]});
-    int sum = 0;
-    for (auto &i : o.GetState()->GetPlayers()) {
-      sum += i;
+
+    for (unsigned int i = 0; i < o.GetState()->GetPlayers().size(); ++i) {
+      if (o.GetState()->GetPlayers()[i]) {
+        vec.push_back(MakeUnique<EFGNode>(i, o.GetState(), rews));
+        break;
+      }
     }
-    int player = 1- (node_->GetPlayer() & 1);
-    if (sum == 0 && node_->GetState()->GetNumPlayers()== 1) {
-      player = node_->GetPlayer() &1;
-      vector<int> vector1 = vector<int>(node_->GetRewards().size(), 1);
-      vector1[1-player] = 0;
-      o.GetState()->SetPlayers(vector1);
-    }
-    vec.push_back(MakeUnique<EFGNode>(player, o.GetState(), rews));
   }
   return vec;
 }
 
-vector<shared_ptr<AOH>> arrIS;
+
+vector<shared_ptr<InfSet>> arrIS;
 
 void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,
                  int depth, int players,
@@ -93,20 +96,21 @@ void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,
   }
 
   if (depth == 0) {
+//    cout << arrIS.size() <<" ";
     return;
   }
   unsigned int l = 0;
   vector<shared_ptr<Action>> actions = node->GetAction();
-  auto aoh = std::static_pointer_cast<AOH>(node->GetIS());
   for (l = 0; l < arrIS.size(); ++l) {
-    if (*arrIS[l] == *aoh) {
+    if (*arrIS[l] == *node->GetIS()) {
       node->IS = l;
       break;
     }
   }
   if (arrIS.empty() || l == arrIS.size()) {
-    arrIS.push_back(std::make_shared<AOH>(node->GetPlayer(),
-                                          node->GetState()->GetAOH()[node->GetPlayer()]));
+    int player = node->GetPlayer();
+    arrIS.push_back(std::make_shared<AOH>(player,
+                                          node->GetState()->GetAOH()[player]));
     node->IS = arrIS.size() - 1;
   }
 

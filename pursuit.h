@@ -84,7 +84,6 @@ class PursuitState: public State {
   // PerformAction performs actions for all players who can play in the state.
   ProbDistribution PerformAction(const vector<shared_ptr<Action>>& actions) override;
 
-
   // GetPlace returns locations of all players.
   inline const vector<Pos>& GetPlace() const {
     return place_;
@@ -96,13 +95,8 @@ class PursuitState: public State {
   }
 
   // GetPlayers returns number of moves of each player who can play in this state.
-  const vector<int> GetPlayers() const override {
+  const vector<bool> GetPlayers() const override {
     return players_;
-  }
-
-  // SetPlayers sets number of players who can play in this state.
-  void SetPlayers(vector<int> players) override {
-    players_ = players;
   }
 
   // GetAOH returns action-observation histories of all players.
@@ -125,14 +119,15 @@ class PursuitState: public State {
     return strings_[player];
   }
 
-  // toString returns state description
-  inline string toString(int player) override {
+  // ToString returns state description
+  inline string ToString(int player) override {
     return  "player: " + to_string(player) +  ", location: " +
         to_string(place_[player].x) + " " + to_string(place_[player].y) +
         strings_[player] + "\n";
   }
 
  protected:
+  unsigned int numplayers_ = 0;
   vector<vector<int>> aoh_;  // all players' action-observation histories
   vector<Pos> place_;  // locations of all players
   double prob_ = 1;  // state probability
@@ -142,17 +137,19 @@ class PursuitState: public State {
   vector<Pos> m_ = {{0, 0}, {1, 0}, {0, 1}, {-1, 0}, {0, -1}};  // moves
   vector<double> probdis_ = {0.1, 0.9};  // TODO(rozlijak): temporary
   vector<string> strings_;
-  vector<int> players_;
+  vector<bool> players_;
 };
 
 
 class MMPursuitState: public PursuitState {
  public:
   // Constructor
-  explicit MMPursuitState(const vector<Pos> &p, const vector<int>& players);
+  MMPursuitState(const vector<Pos> &p, const vector<bool>& players,
+                 int movecount);
 
   // Constructor
-  MMPursuitState(const vector<Pos> &p, double prob, const vector<int>& players);
+  MMPursuitState(const vector<Pos> &p, double prob,
+                 const vector<bool>& players, int movecount);
 
   // PerformAction performs actions for all players who can play in the state.
   ProbDistribution PerformAction(const vector<shared_ptr<Action>>& actions) override;
@@ -161,17 +158,14 @@ class MMPursuitState: public PursuitState {
   inline const int GetNumPlayers() const override;
 
   // GetPlayers returns number of moves of each player who can play in this state.
-  const vector<int> GetPlayers() const override {
+  const vector<bool> GetPlayers() const override {
     return players_;
   }
 
-  // SetPlayers sets number of players who can play in this state.
-  void SetPlayers(vector<int> players) override {
-    players_ = players;
-  }
 
  private:
-  vector<int> players_;
+  vector<bool> players_;
+  int movecount_;
 };
 
 /**

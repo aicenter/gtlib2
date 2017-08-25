@@ -58,16 +58,15 @@ void Treewalk(const unique_ptr<Domain>& domain, State *state,
   if (depth == 0)
     return;
 
-  vector<vector<shared_ptr<Action>>> v = vector<vector<shared_ptr<Action>>>();
+  auto v = vector<vector<shared_ptr<Action>>>();
   for (int i = 0; i < players; ++i) {
     v.emplace_back(state->GetActions(i));
   }
 
-  vector<vector<shared_ptr<Action>>> action = CartProduct<Action>(v);
+  auto action = CartProduct<shared_ptr<Action>>(v);
   for (const auto &k : action) {
     ProbDistribution prob = state->PerformAction(k);
     vector<Outcome> outcomes = prob.GetOutcomes();
-    cout << outcomes.size() << "\n";
     for (Outcome &o : outcomes) {
       Treewalk(domain, o.GetState().get(), depth - 1, players);
     }

@@ -2,9 +2,10 @@
 // Created by rozliv on 02.08.2017.
 //
 
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
 #include "efg.h"
-// #include <gtest/gtest.h>
-// #include <gmock/gmock.h>
+
 
 int main(int argc, char* argv[]) {
   srand(static_cast<unsigned int>(time(nullptr)));
@@ -15,10 +16,10 @@ int main(int argc, char* argv[]) {
   vector<Pos> loc = {{0, 0},
                      {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}};
   reward = vector<double>(loc.size());
-  arrIS = vector<shared_ptr<AOH>>();
+  arrIS = vector<shared_ptr<InfSet>>();
   unique_ptr<Domain> d = MakeUnique<PursuitDomain>(loc, loc.size(), 2);
-  auto node = MakeUnique<EFGNode>(0, std::make_shared<MMPursuitState>(loc, vector<int>({1, 0})),
-                                  vector<double>(loc.size()));
+  unique_ptr<EFGNode> node = MakeUnique<EFGNode>(0, std::make_shared<PursuitState>(loc, 1),
+                                                 vector<double>(loc.size()));
   EFGTreewalk(d, node.get(), d->GetMaxDepth(), 1, {});
 //  Treewalk(d, d->GetRoot().get(), d->GetMaxDepth(), d->GetMaxPlayers());
 //  Pursuit(d, d->GetRoot().get(), d->GetMaxDepth(), d->GetMaxPlayers());
@@ -31,8 +32,7 @@ int main(int argc, char* argv[]) {
   double elapsed_secs = static_cast<double>(end - begin) / CLOCKS_PER_SEC;
   cout << "hotovo: time " << elapsed_secs << "s" << '\n';
 
-
-  // testing::InitGoogleTest(&argc, argv);
-  // RUN_ALL_TESTS();
+//  testing::InitGoogleTest(&argc, argv);
+//  RUN_ALL_TESTS();
   return 0;
 }

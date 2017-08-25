@@ -41,7 +41,7 @@ class EFGNode {
   // GetIS returns the player's information set
   inline shared_ptr<InfSet> GetIS() {
     if (aoh_ == nullptr)
-      aoh_ = std::make_shared<AOH>(player_, state_->GetAOH()[player_]);
+      aoh_ = std::make_shared<AOH>(player_ & 1, state_->GetAOH()[player_ & 1]);
     return aoh_;
   }
 
@@ -60,9 +60,11 @@ class EFGNode {
 class ChanceNode {
  public:
   // constructor
-  explicit ChanceNode(ProbDistribution* prob,
-                      const vector<shared_ptr<Action>>& list,
-                      const unique_ptr<EFGNode>& node);
+  ChanceNode(ProbDistribution* prob,
+             const vector<shared_ptr<Action>>& list,
+             const unique_ptr<EFGNode>& node);
+
+  explicit ChanceNode(ProbDistribution* prob, const unique_ptr<EFGNode>& node);
 
   // GetRandom returns a random new EFGNode.
   unique_ptr<EFGNode> GetRandom();
@@ -73,11 +75,11 @@ class ChanceNode {
  private:
   ProbDistribution* prob_;  // probability distribution over the new state
   const vector<shared_ptr<Action>>& list_;  // actions made in the last state
-  const unique_ptr<EFGNode>& node_;  // a present node
+  const unique_ptr<EFGNode>& node_;  // a current node
 };
 
 
-extern vector<shared_ptr<AOH>> arrIS;  // temporary for testing information sets
+extern vector<shared_ptr<InfSet>> arrIS;  // temporary for testing information sets
 
 // Domain independent extensive form game treewalk algorithm
 void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,
