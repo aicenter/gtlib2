@@ -64,7 +64,8 @@ class ChanceNode {
              const vector<shared_ptr<Action>>& list,
              const unique_ptr<EFGNode>& node);
 
-  explicit ChanceNode(ProbDistribution* prob, const unique_ptr<EFGNode>& node);
+  // constructor
+  explicit ChanceNode(ProbDistribution* prob);
 
   // GetRandom returns a random new EFGNode.
   unique_ptr<EFGNode> GetRandom();
@@ -74,17 +75,16 @@ class ChanceNode {
 
  private:
   ProbDistribution* prob_;  // probability distribution over the new state
-  const vector<shared_ptr<Action>>& list_;  // actions made in the last state
+  vector<shared_ptr<Action>> list_;  // actions made in the last state
   const unique_ptr<EFGNode>& node_;  // a current node
 };
 
-
-extern vector<shared_ptr<InfSet>> arrIS;  // temporary for testing information sets
+// temporary for testing information sets
+extern vector<shared_ptr<InfSet>> arrIS;
 
 // Domain independent extensive form game treewalk algorithm
 void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,
                  int depth, int players,
                  const vector<shared_ptr<Action>>& list);
-
 
 #endif  // EFG_H_

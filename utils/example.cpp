@@ -59,23 +59,10 @@ void EFGTreewalkG(const unique_ptr<Domain>& domain, EFGNode *node,
       while (node->GetPlayer() >= actionssize) {
         locallist.insert(locallist.begin(), std::make_shared<Action>(NoA));
         ++actionssize;
-//        pole.insert(pole.end()-1,depth);  // temporary for python graphs
-//        playarr.insert(playarr.end()-1,n->GetPlayer() & 1);  // temporary for python graphs
-//        //n->IS = -2;
-//        arrid.insert(arrid.end()-1,-3);  // temporary for python graphs
-//        graph.insert(graph.end()-1,"InfSet id: " + to_string(-3)+
-//                        "  " +n->GetState()->ToString(n->GetPlayer() & 1));
       }
-      //    cout << "konec\n";
       while (domain->GetMaxPlayers() > actionssize) {
         locallist.push_back(std::make_shared<Action>(NoA));
         ++actionssize;
-        pole.push_back(depth);  // temporary for python graphs
-        playarr.push_back(n->GetPlayer());  // temporary for python graphs
-        n->IS = -2;
-        arrid.push_back(n->IS);  // temporary for python graphs
-        graph.push_back("InfSet id: " + to_string(n->IS)+
-                        "  " +n->GetState()->ToString(n->GetPlayer()));
       }
       // if all players play in this turn, returns a ProbDistribution
       ProbDistribution prob = n->GetState()->PerformAction(locallist);

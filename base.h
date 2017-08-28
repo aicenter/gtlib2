@@ -200,7 +200,7 @@ class State {
   // GetNumPlayers returns number of players who can play in this state.
   virtual const int GetNumPlayers() const = 0;
 
-  // GetPlayers returns number of moves of each player who can play in this state.
+  // GetPlayers returns who can play in this state.
   virtual const vector<bool> GetPlayers() const = 0;
 
   // GetAOH returns action-observation histories of all players.
@@ -240,10 +240,13 @@ class Domain {
     return maxplayers_;
   }
 
-  // GetMaxDepth returns maximal depth of algorithm
+  // GetMaxDepth returns maximal depth of algorithm.
   int GetMaxDepth() const {
     return maxdepth_;
   }
+
+  // GetProb returns pointer to ProbDistribution.
+  virtual ProbDistribution * GetProb() = 0;
 
   // GetInfo returns string containing domain information.
   virtual string GetInfo() = 0;

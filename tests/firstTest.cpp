@@ -76,8 +76,8 @@ TEST_F(FTest, MMDepth2PROP33) {
   EFGTreewalk(d, node.get(), d->GetMaxDepth(), 1, {});
   ASSERT_EQ(reward[0], 0);
   ASSERT_EQ(reward[1], 0);
-  ASSERT_EQ(count, 68);
-//  ASSERT_EQ(arrIS.size(),4);
+  ASSERT_EQ(count, 24);  //  MMPursuitState::PerformAction: count = 2; each player has one move, then plays the second one
+  ASSERT_EQ(arrIS.size(),4);
 }
 
 
@@ -92,8 +92,8 @@ TEST_F(FTest, MMDepth3PROP44) {
   EFGTreewalk(d, node.get(), d->GetMaxDepth(), 1, {});
   ASSERT_EQ(reward[0], 0);
   ASSERT_EQ(reward[1], 0);
-  ASSERT_EQ(count, 632);
-//  ASSERT_EQ(arrIS.size(),15);
+  ASSERT_EQ(count, 132);  //  MMPursuitState::PerformAction: count = 2; each player has one move, then plays the second one
+  ASSERT_EQ(arrIS.size(),15);
 }
 
 TEST_F(FTest, MMDepth4PROP44) {
@@ -105,8 +105,8 @@ TEST_F(FTest, MMDepth4PROP44) {
   unique_ptr<EFGNode> node = MakeUnique<EFGNode>(0, std::make_shared<MMPursuitState>(loc, vector<bool>({true, false}), 1),
                                                  vector<double>(loc.size()));
   EFGTreewalk(d, node.get(), d->GetMaxDepth(), 1, {});
-  ASSERT_EQ(reward[0], 768);
-  ASSERT_EQ(reward[1], -768);
-  ASSERT_EQ(count, 5268);
-//  ASSERT_EQ(arrIS.size(),74);
+  ASSERT_EQ(reward[0], 96);
+  ASSERT_EQ(reward[1], -96);
+  ASSERT_EQ(count, 696);  //  MMPursuitState::PerformAction: count = 2; each player has one move, then plays the second one
+  ASSERT_EQ(arrIS.size(),74);
 }

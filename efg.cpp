@@ -26,8 +26,8 @@ ChanceNode::ChanceNode(ProbDistribution* prob,
     prob_(prob), list_(list), node_(node) {}
 
 
-ChanceNode::ChanceNode(ProbDistribution* prob, const unique_ptr<EFGNode> &node):
-    ChanceNode(prob, {}, node) {}
+ChanceNode::ChanceNode(ProbDistribution* prob):
+    ChanceNode(prob, {}, nullptr) {}
 
 
 unique_ptr<EFGNode> ChanceNode::GetRandom() {
@@ -50,14 +50,16 @@ unique_ptr<EFGNode> ChanceNode::GetRandom() {
 
 
 vector<unique_ptr<EFGNode>> ChanceNode::GetAll() {
-  if (list_.empty()) {  // or preparing first player;
-    return {};
-  }
   vector<Outcome> outcomes =  prob_->GetOutcomes();
   vector<unique_ptr<EFGNode>> vec;
   vec.reserve(outcomes.size());
+  if (list_.empty()) {  // preparing first states
+    for (Outcome &o : outcomes) {
+      vec.push_back(MakeUnique<EFGNode>(0, o.GetState(), vector<double>(2)));
+    }
+    return vec;
+  }
   for (Outcome &o : outcomes) {
-    // shared_ptr<State> st = o.GetState();
     vector<vector<int>> aoh = node_->GetState()->GetAOH();
     vector<unique_ptr<Observation>> obs = o.GetObs();
     for (unsigned int j = 0; j < list_.size(); ++j) {
@@ -91,6 +93,19 @@ vector<shared_ptr<InfSet>> arrIS;
 void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,
                  int depth, int players,
                  const vector<shared_ptr<Action>>& list) {
+  ProbDistribution* prob2 = domain->GetProb();
+  if (depth == domain->GetMaxDepth() && prob2 != nullptr) {
+    ChanceNode chan(prob2);
+    vector<unique_ptr<EFGNode>> vec = chan.GetAll();
+    for (auto &j : vec) {
+      count++;
+      for (unsigned int k = 0; k < reward.size(); ++k) {
+        reward[k] += j->GetRewards()[k];
+      }
+      EFGTreewalk(domain, j.get(), depth - 1, 1, {});
+    }
+    return;
+  }
   if (node == nullptr) {
     throw("Node is NULL");
   }
@@ -118,6 +133,7 @@ void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,
     unique_ptr<EFGNode> n = node->PerformAction(i);
     vector<shared_ptr<Action>> locallist = list;
     locallist.push_back(i);
+    unique_ptr<EFGNode> n2;
     int actionssize = locallist.size();
     if (players == n->GetState()->GetNumPlayers()) {
       while (node->GetPlayer() >= actionssize) {
@@ -128,6 +144,7 @@ void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,
         locallist.push_back(std::make_shared<Action>(NoA));
         ++actionssize;
       }
+
       // if all players play in this turn, returns a ProbDistribution
       ProbDistribution prob = n->GetState()->PerformAction(locallist);
       ChanceNode chan(&prob, locallist, n);

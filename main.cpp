@@ -2,8 +2,8 @@
 // Created by rozliv on 02.08.2017.
 //
 
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
+//  #include <gtest/gtest.h>
+//  #include <gmock/gmock.h>
 #include "efg.h"
 
 
@@ -18,6 +18,7 @@ int main(int argc, char* argv[]) {
   reward = vector<double>(loc.size());
   arrIS = vector<shared_ptr<InfSet>>();
   unique_ptr<Domain> d = MakeUnique<PursuitDomain>(loc, loc.size(), 2);
+  unique_ptr<Domain> d2 = MakeUnique<PursuitDomainChance>(loc, loc.size(), 2);
   unique_ptr<EFGNode> node = MakeUnique<EFGNode>(0, std::make_shared<PursuitState>(loc, 1),
                                                  vector<double>(loc.size()));
   EFGTreewalk(d, node.get(), d->GetMaxDepth(), 1, {});
