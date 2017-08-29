@@ -33,9 +33,8 @@ void EFGTreewalkG(const unique_ptr<Domain>& domain, EFGNode *node,
   }
   unsigned int l = 0;
   vector<shared_ptr<Action>> actions = node->GetAction();
-  auto aoh = std::static_pointer_cast<AOH>(node->GetIS());
   for (l = 0; l < arrIS.size(); ++l) {
-    if (*arrIS[l] == *aoh) {
+    if (*arrIS[l] == *node->GetIS()) {
       node->IS = l;
       break;
     }
@@ -49,34 +48,21 @@ void EFGTreewalkG(const unique_ptr<Domain>& domain, EFGNode *node,
   arrid.push_back(node->IS);  // temporary for python graphs
   // temporary for python graphs
   graph.push_back("InfSet id: " + to_string(node->IS)+
-                  "  " +node->GetState()->toString(node->GetPlayer()));
+                  "  " +node->GetState()->ToString(node->GetPlayer()));
 
   for (auto &i : actions) {
     unique_ptr<EFGNode> n = node->PerformAction(i);
     vector<shared_ptr<Action>> locallist = list;
     locallist.push_back(i);
     int actionssize = locallist.size();
-    if (players == node->GetState()->GetPlayer()) {
+    if (players == node->GetState()->GetNumPlayers()) {
       while (node->GetPlayer() >= actionssize) {
         locallist.insert(locallist.begin(), std::make_shared<Action>(NoA));
         ++actionssize;
-//        pole.insert(pole.end()-1,depth);  // temporary for python graphs
-//        playarr.insert(playarr.end()-1,n->GetPlayer() & 1);  // temporary for python graphs
-//        //n->IS = -2;
-//        arrid.insert(arrid.end()-1,-3);  // temporary for python graphs
-//        graph.insert(graph.end()-1,"InfSet id: " + to_string(-3)+
-//                        "  " +n->GetState()->toString(n->GetPlayer() & 1));
       }
-      //    cout << "konec\n";
       while (domain->GetMaxPlayers() > actionssize) {
         locallist.push_back(std::make_shared<Action>(NoA));
         ++actionssize;
-        pole.push_back(depth);  // temporary for python graphs
-        playarr.push_back(n->GetPlayer());  // temporary for python graphs
-        n->IS = -2;
-        arrid.push_back(n->IS);  // temporary for python graphs
-        graph.push_back("InfSet id: " + to_string(n->IS)+
-                        "  " +n->GetState()->toString(n->GetPlayer()));
       }
       // if all players play in this turn, returns a ProbDistribution
       ProbDistribution prob = n->GetState()->PerformAction(locallist);
@@ -111,9 +97,9 @@ std::vector<int> initialization() {
   vector<Pos> loc = {{0, 0},
                      {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}};
   reward = vector<double>(loc.size());
-  arrIS = vector<shared_ptr<AOH>>();
+  arrIS = vector<shared_ptr<InfSet>>();
   unique_ptr<Domain> d = MakeUnique<PursuitDomain>(loc, loc.size(), 2);
-  auto node = MakeUnique<EFGNode>(0, std::make_shared<MMPursuitState>(loc, vector<int>({2, 0})),
+  auto node = MakeUnique<EFGNode>(0, std::make_shared<MMPursuitState>(loc, vector<bool>({true, false}), 1),
                                   vector<double>(loc.size()));
   EFGTreewalkG(d, node.get(), d->GetMaxDepth(), 1, {});
 //  Treewalk(d, d->GetRoot().get(), d->GetMaxDepth(), d->GetMaxPlayers());

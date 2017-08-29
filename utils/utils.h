@@ -18,10 +18,10 @@ using std::shared_ptr;
 
 // CartProduct returns cartesian product of all items in a vector
 template<typename T>
-vector<vector<shared_ptr<T>>> CartProduct(const vector<vector<shared_ptr<T>>> &v) {
-  vector<vector<shared_ptr<T>>> s = {{}};
+vector<vector<T>> CartProduct(const vector<vector<T>> &v) {
+  vector<vector<T>> s = {{}};
   for (const auto& u : v) {
-    vector<vector<shared_ptr<T>>> r;
+    vector<vector<T>> r;
     for (const auto& x : s) {
       for (const auto& y : u) {
         r.push_back(x);

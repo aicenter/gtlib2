@@ -56,12 +56,15 @@ for i in range(len(q)):
     dot.node(str(i),b[i])
 
 for i in range(len(q)-1,-1,-1):
+    pom = 0
     #if(IS[i] == -1 or (players[i] == 1 and q[i] == 1)):
     if(IS[i] == -1 and players[i] != 2):
         continue
     for j in range(i, -1,-1):
         if(players[i] == 2):
+            pom = 2
             if(players[j] == 1 and q[j] == q[i]):
+                pom = 1
                 if(q[j] == 1):
                     dot.edge(str(j), str(i), minlen = str((i-j-1)*0.2 + 1))
                 else:
@@ -77,4 +80,15 @@ for i in range(len(q)-1,-1,-1):
         elif(q[j] > q[i]):
             dot.edge(str(j), str(i))
             break
+
+
+    if(pom == 2):
+        for j in range(i, -1,-1):
+            if(players[i] == 2):
+                if(players[j] == 0 and q[j] == q[i]):
+                    if(q[j] == 1):
+                        dot.edge(str(j), str(i), minlen = str((i-j-1)*0.2 + 1))
+                    else:
+                        dot.edge(str(j), str(i))
+                    break
 dot.render('tree-oneplayer2.gv', view=True)

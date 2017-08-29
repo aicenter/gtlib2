@@ -142,6 +142,8 @@ class InfSet {
  public:
   InfSet() = default;
 
+  virtual bool operator==(InfSet& other) = 0;
+
   // GetIS returns hash code.
   virtual size_t GetIS() = 0;
 };
@@ -160,9 +162,13 @@ class AOH: public InfSet {
   size_t GetIS() final;
 
   // Overloaded for comparing two AOHs
-  bool operator==(AOH& other) {
-    return player_ == other.player_ && GetIS() == other.GetIS() &&
-        aohistory_ == other.aohistory_;
+  bool operator==(InfSet& other2) override {
+    auto * other = dynamic_cast<AOH*>(&other2);
+    if (other != nullptr) {
+      return player_ == other->player_ && GetIS() == other->GetIS() &&
+             aohistory_ == other->aohistory_;
+    }
+    return false;
   }
 
  private:
@@ -194,11 +200,8 @@ class State {
   // GetNumPlayers returns number of players who can play in this state.
   virtual const int GetNumPlayers() const = 0;
 
-  // GetPlayers returns number of moves of each player who can play in this state.
-  virtual const vector<int> GetPlayers() const = 0;
-
-  // SetPlayers sets number of players who can play in this state.
-  virtual void SetPlayers(vector<int> players) = 0;
+  // GetPlayers returns who can play in this state.
+  virtual const vector<bool> GetPlayers() const = 0;
 
   // GetAOH returns action-observation histories of all players.
   virtual const vector<vector<int>> GetAOH() const = 0;
@@ -212,12 +215,8 @@ class State {
   // GetString returns a string from vector.
   virtual const string& GetString(int player) const = 0;
 
-  // toString returns state description
-  virtual string toString(int player) = 0;
-
-
- protected:
-  unsigned int numplayers_ = 0;
+  // ToString returns state description
+  virtual string ToString(int player) = 0;
 };
 
 
@@ -241,10 +240,13 @@ class Domain {
     return maxplayers_;
   }
 
-  // GetMaxDepth returns maximal depth of algorithm
+  // GetMaxDepth returns maximal depth of algorithm.
   int GetMaxDepth() const {
     return maxdepth_;
   }
+
+  // GetProb returns pointer to ProbDistribution.
+  virtual ProbDistribution * GetProb() = 0;
 
   // GetInfo returns string containing domain information.
   virtual string GetInfo() = 0;

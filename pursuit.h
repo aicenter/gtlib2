@@ -19,7 +19,7 @@ const vector<string> eightdes_ = {"nowhere", "top left", "top", "top right",
 
 /**
  * PursuitAction is a class that represents pursuit actions,
- * which are identified by their id and contain where to move  */
+ * which are identified by their id and contain where to move.  */
 class PursuitAction: public Action {
  public:
   // constructor
@@ -41,7 +41,7 @@ class PursuitAction: public Action {
 
 /**
  * PursuitObservation is a class that represents pursuit observation,
- * which are identified by their id and contain vector of mini-observations to others  */
+ * which are identified by their id and contain vector of mini-observations to others.  */
 class PursuitObservation: public Observation {
  public:
   // constructor
@@ -57,6 +57,26 @@ class PursuitObservation: public Observation {
 
  private:
   vector<int> values_;
+};
+
+/**
+ * PursuitObservationLoc is a class that represents pursuit observation,
+ * which are identified by their id and contain vector of others' locations.  */
+class PursuitObservationLoc: public Observation {
+ public:
+  // constructor
+  PursuitObservationLoc(int id, vector<Pos> values);
+
+  // Returns description.
+  string ToString() final;
+
+  // Returns vector of mini-observations to others (others' locations).
+  inline const vector<Pos>& GetValues() const {
+    return values_;
+  }
+
+ private:
+  vector<Pos> values_;
 };
 
 
@@ -84,7 +104,6 @@ class PursuitState: public State {
   // PerformAction performs actions for all players who can play in the state.
   ProbDistribution PerformAction(const vector<shared_ptr<Action>>& actions) override;
 
-
   // GetPlace returns locations of all players.
   inline const vector<Pos>& GetPlace() const {
     return place_;
@@ -95,14 +114,9 @@ class PursuitState: public State {
     return numplayers_ == 0? place_.size() : numplayers_;
   }
 
-  // GetPlayers returns number of moves of each player who can play in this state.
-  const vector<int> GetPlayers() const override {
+  // GetPlayers returns who can play in this state.
+  const vector<bool> GetPlayers() const override {
     return players_;
-  }
-
-  // SetPlayers sets number of players who can play in this state.
-  void SetPlayers(vector<int> players) override {
-    players_ = players;
   }
 
   // GetAOH returns action-observation histories of all players.
@@ -125,14 +139,15 @@ class PursuitState: public State {
     return strings_[player];
   }
 
-  // toString returns state description
-  inline string toString(int player) override {
+  // ToString returns state description.
+  inline string ToString(int player) override {
     return  "player: " + to_string(player) +  ", location: " +
         to_string(place_[player].x) + " " + to_string(place_[player].y) +
         strings_[player] + "\n";
   }
 
  protected:
+  unsigned int numplayers_ = 0;
   vector<vector<int>> aoh_;  // all players' action-observation histories
   vector<Pos> place_;  // locations of all players
   double prob_ = 1;  // state probability
@@ -142,17 +157,22 @@ class PursuitState: public State {
   vector<Pos> m_ = {{0, 0}, {1, 0}, {0, 1}, {-1, 0}, {0, -1}};  // moves
   vector<double> probdis_ = {0.1, 0.9};  // TODO(rozlijak): temporary
   vector<string> strings_;
-  vector<int> players_;
+  vector<bool> players_;
 };
 
 
+/**
+ * MMPursuitState is a class that represents multiple-move pursuit states,
+ * which contains vector of all players and a move count of player on turn. */
 class MMPursuitState: public PursuitState {
  public:
   // Constructor
-  explicit MMPursuitState(const vector<Pos> &p, const vector<int>& players);
+  MMPursuitState(const vector<Pos> &p, const vector<bool>& players,
+                 int movecount);
 
   // Constructor
-  MMPursuitState(const vector<Pos> &p, double prob, const vector<int>& players);
+  MMPursuitState(const vector<Pos> &p, double prob,
+                 const vector<bool>& players, int movecount);
 
   // PerformAction performs actions for all players who can play in the state.
   ProbDistribution PerformAction(const vector<shared_ptr<Action>>& actions) override;
@@ -160,18 +180,32 @@ class MMPursuitState: public PursuitState {
   // GetNumPlayers returns number of players who can play in this state.
   inline const int GetNumPlayers() const override;
 
-  // GetPlayers returns number of moves of each player who can play in this state.
-  const vector<int> GetPlayers() const override {
+  /// GetPlayers returns who can play in this state.
+  const vector<bool> GetPlayers() const override {
     return players_;
   }
 
-  // SetPlayers sets number of players who can play in this state.
-  void SetPlayers(vector<int> players) override {
-    players_ = players;
-  }
-
  private:
-  vector<int> players_;
+  vector<bool> players_;
+  int movecount_;
+};
+
+
+/**
+ * ObsPursuitState is a class that represents pursuit states,
+ * which contains eight surrounding, moves,
+ * vector of locations of all players and state probability.
+ * A difference is that it uses PursuitObservationLoc. */
+class ObsPursuitState: public PursuitState {
+ public:
+  // Constructor
+  explicit ObsPursuitState(const vector<Pos> &p);
+
+  // Constructor
+  ObsPursuitState(const vector<Pos> &p, double prob);
+
+  // PerformAction performs actions for all players who can play in the state.
+  ProbDistribution PerformAction(const vector<shared_ptr<Action>>& actions) override;
 };
 
 /**
@@ -182,12 +216,43 @@ class PursuitDomain: public Domain{
   // constructor
   PursuitDomain(const vector<Pos> &loc, int maxplayers, int max);
 
+  // destructor
+  ~PursuitDomain() override = default;
+
+  // GetProb returns pointer to ProbDistribution.
+  ProbDistribution* GetProb() override {
+    return nullptr;
+  }
+
   // GetInfo returns string containing domain information.
   string GetInfo() final;
 
   static int height_;
   static int width_;
 };
+
+/**
+ * PursuitDomainChance is a class that represents pursuit domain,
+ * it starts with a ChanceNode, so it has a pointer to ProbDistribution. */
+class PursuitDomainChance: public PursuitDomain{
+ public:
+  // constructor
+  PursuitDomainChance(const vector<Pos> &loc, int maxplayers, int max);
+
+  // destructor
+  ~PursuitDomainChance() override {
+    delete prob_;
+  }
+
+  // GetProb returns pointer to ProbDistribution.
+  ProbDistribution* GetProb() override {
+    return prob_;
+  }
+
+ private:
+  ProbDistribution *prob_;
+};
+
 
 extern int count;  // temporary for testing treewalk
 

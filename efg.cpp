@@ -26,6 +26,10 @@ ChanceNode::ChanceNode(ProbDistribution* prob,
     prob_(prob), list_(list), node_(node) {}
 
 
+ChanceNode::ChanceNode(ProbDistribution* prob):
+    ChanceNode(prob, {}, nullptr) {}
+
+
 unique_ptr<EFGNode> ChanceNode::GetRandom() {
   Outcome o = prob_->GetRandom();
   shared_ptr<State> st = o.GetState();
@@ -49,8 +53,13 @@ vector<unique_ptr<EFGNode>> ChanceNode::GetAll() {
   vector<Outcome> outcomes =  prob_->GetOutcomes();
   vector<unique_ptr<EFGNode>> vec;
   vec.reserve(outcomes.size());
+  if (list_.empty()) {  // preparing first states
+    for (Outcome &o : outcomes) {
+      vec.push_back(MakeUnique<EFGNode>(0, o.GetState(), vector<double>(2)));
+    }
+    return vec;
+  }
   for (Outcome &o : outcomes) {
-    // shared_ptr<State> st = o.GetState();
     vector<vector<int>> aoh = node_->GetState()->GetAOH();
     vector<unique_ptr<Observation>> obs = o.GetObs();
     for (unsigned int j = 0; j < list_.size(); ++j) {
@@ -67,46 +76,56 @@ vector<unique_ptr<EFGNode>> ChanceNode::GetAll() {
     o.GetState()->SetAOH(aoh);
     vector<double> rews = vector<double>({node_->GetRewards()[0] + o.GetReward()[0],
                                           node_->GetRewards()[1] + o.GetReward()[1]});
-    int sum = 0;
-    for (auto &i : o.GetState()->GetPlayers()) {
-      sum += i;
+
+    for (unsigned int i = 0; i < o.GetState()->GetPlayers().size(); ++i) {
+      if (o.GetState()->GetPlayers()[i]) {
+        vec.push_back(MakeUnique<EFGNode>(i, o.GetState(), rews));
+        break;
+      }
     }
-    int player = 1- (node_->GetPlayer() & 1);
-    if (sum == 0 && node_->GetState()->GetNumPlayers()== 1) {
-      player = node_->GetPlayer() &1;
-      vector<int> vector1 = vector<int>(node_->GetRewards().size(), 1);
-      vector1[1-player] = 0;
-      o.GetState()->SetPlayers(vector1);
-    }
-    vec.push_back(MakeUnique<EFGNode>(player, o.GetState(), rews));
   }
   return vec;
 }
 
-vector<shared_ptr<AOH>> arrIS;
+
+vector<shared_ptr<InfSet>> arrIS;
 
 void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,
                  int depth, int players,
                  const vector<shared_ptr<Action>>& list) {
+  ProbDistribution* prob2 = domain->GetProb();
+  if (depth == domain->GetMaxDepth() && prob2 != nullptr) {
+    ChanceNode chan(prob2);
+    vector<unique_ptr<EFGNode>> vec = chan.GetAll();
+    for (auto &j : vec) {
+      count++;
+      for (unsigned int k = 0; k < reward.size(); ++k) {
+        reward[k] += j->GetRewards()[k];
+      }
+      EFGTreewalk(domain, j.get(), depth - 1, 1, {});
+    }
+    return;
+  }
   if (node == nullptr) {
     throw("Node is NULL");
   }
 
   if (depth == 0) {
+//    cout << arrIS.size() <<" ";
     return;
   }
   unsigned int l = 0;
   vector<shared_ptr<Action>> actions = node->GetAction();
-  auto aoh = std::static_pointer_cast<AOH>(node->GetIS());
   for (l = 0; l < arrIS.size(); ++l) {
-    if (*arrIS[l] == *aoh) {
+    if (*arrIS[l] == *node->GetIS()) {
       node->IS = l;
       break;
     }
   }
   if (arrIS.empty() || l == arrIS.size()) {
-    arrIS.push_back(std::make_shared<AOH>(node->GetPlayer(),
-                                          node->GetState()->GetAOH()[node->GetPlayer()]));
+    int player = node->GetPlayer();
+    arrIS.push_back(std::make_shared<AOH>(player,
+                                          node->GetState()->GetAOH()[player]));
     node->IS = arrIS.size() - 1;
   }
 
@@ -114,6 +133,7 @@ void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,
     unique_ptr<EFGNode> n = node->PerformAction(i);
     vector<shared_ptr<Action>> locallist = list;
     locallist.push_back(i);
+    unique_ptr<EFGNode> n2;
     int actionssize = locallist.size();
     if (players == n->GetState()->GetNumPlayers()) {
       while (node->GetPlayer() >= actionssize) {
@@ -124,6 +144,7 @@ void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,
         locallist.push_back(std::make_shared<Action>(NoA));
         ++actionssize;
       }
+
       // if all players play in this turn, returns a ProbDistribution
       ProbDistribution prob = n->GetState()->PerformAction(locallist);
       ChanceNode chan(&prob, locallist, n);
