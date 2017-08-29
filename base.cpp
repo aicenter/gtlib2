@@ -50,13 +50,13 @@ Domain::Domain(int maxplayers, int max):
 int Domain::depth_ = 0;  // TODO(rozlijak)
 
 
-void Treewalk(const unique_ptr<Domain>& domain, State *state,
-              int depth, int players, void (*FunctionForState) (State*)) {
+void Treewalk(const shared_ptr<Domain> domain, State *state,
+              int depth, int players, std::function<void(State*)> FunctionForState) {
   if (state == nullptr) {
     throw("State is NULL");
   }
 
-  (*FunctionForState)(state);
+  FunctionForState(state);
 
   if (depth == 0)
     return;
@@ -70,7 +70,7 @@ void Treewalk(const unique_ptr<Domain>& domain, State *state,
   for (const auto &k : action) {
     ProbDistribution prob = state->PerformAction(k);
     vector<Outcome> outcomes = prob.GetOutcomes();
-    cout << outcomes.size() << "\n";
+//    cout << outcomes.size() << "\n";
     for (Outcome &o : outcomes) {
       Treewalk(domain, o.GetState().get(), depth - 1, players, FunctionForState);
     }
@@ -79,7 +79,7 @@ void Treewalk(const unique_ptr<Domain>& domain, State *state,
 }
 
 
-void Treewalk(const unique_ptr<Domain>& domain, State *state,
+void Treewalk(const shared_ptr<Domain> domain, State *state,
               int depth, int players) {
   Treewalk(domain, state, depth, players, [](State* s){});
 }

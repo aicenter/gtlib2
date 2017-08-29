@@ -106,7 +106,7 @@ class PursuitState: public State {
   }
 
   // GetAOH returns action-observation histories of all players.
-  inline const vector<vector<int>>& GetAOH() const override {
+  inline const vector<vector<int>> GetAOH() const override {
     return aoh_;
   };
 

@@ -32,9 +32,20 @@ NormalFormLP::NormalFormLP(const int _p1_actions, const int _p2_actions, const v
     BuildModel(&tmp);
 }
 
-NormalFormLP::NormalFormLP(shared_ptr<Domain> _game) {
-    vector<vector<int>> aohistories = {{}};
-    throw(-1);  //TODO(bbosansky) implement, once State has an AO History
+NormalFormLP::NormalFormLP(const shared_ptr<Domain> _game) {
+    auto aohistories = std::make_shared<vector<vector<int>>>(vector<vector<int>>());
+
+    std::function<void(State*, shared_ptr<vector<vector<int>>> _aohistories)> funkce = ([](State* s, shared_ptr<vector<vector<int>>> _aohistories) {
+//        cout << _aohistories->size() << " ";
+        _aohistories->push_back(s->GetAOH().at(0));
+//        cout << _aohistories->size() << "\n";
+    });
+
+    Treewalk(_game, _game->GetRoot().get(), _game->GetMaxDepth(), _game->GetMaxPlayers(), std::bind(funkce, std::placeholders::_1, aohistories));
+
+
+
+    cout << aohistories->size() << "\n";
 }
 
 NormalFormLP::~NormalFormLP() {

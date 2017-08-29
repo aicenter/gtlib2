@@ -201,7 +201,7 @@ class State {
   virtual void SetPlayers(vector<int> players) = 0;
 
   // GetAOH returns action-observation histories of all players.
-  virtual const vector<vector<int>>& GetAOH() const = 0;
+  virtual const vector<vector<int>> GetAOH() const = 0;
 
   // SetAOH sets action-observation histories of all players.
   virtual void SetAOH(const vector<vector<int>>& list) = 0;
@@ -258,9 +258,9 @@ class Domain {
 };
 
 // Domain independent treewalk algorithm
-void Treewalk(const unique_ptr<Domain>& domain, State *state,
-              int depth, int players, void (*FunctionForState) (State*));
-void Treewalk(const unique_ptr<Domain>& domain, State *state,
+void Treewalk(const shared_ptr<Domain> domain, State *state,
+              int depth, int players, std::function<void(State*)> FunctionForState);
+void Treewalk(const shared_ptr<Domain> domain, State *state,
               int depth, int players);
 
 
