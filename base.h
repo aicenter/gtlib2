@@ -21,6 +21,7 @@ using std::move;
 using std::unique_ptr;
 using std::shared_ptr;
 using std::to_string;
+using std::make_shared;
 
 
 
@@ -92,27 +93,30 @@ class State;  // Forward declaration
 
 /**
  * Outcome is a class that represents outcomes,
- * which contain rewards, observations and new state.  */
+ * which contain rewards, observations and a new state.  */
 class Outcome{
  public:
-  Outcome(const shared_ptr<State>& s, vector<unique_ptr<Observation>> ob,
-          const vector<double> &rew);
+  Outcome(shared_ptr<State> s, vector<shared_ptr<Observation>> ob,
+          vector<double> rew);
 
+  // GetState returns a new state
   inline const shared_ptr<State>& GetState() const {
     return st_;
   }
 
-  inline vector<unique_ptr<Observation>> GetObs() {
-    return move(ob_);
+  // GetObs returns vector of observations
+  inline const vector<shared_ptr<Observation>>& GetObs() {
+    return ob_;
   }
 
+  // GetReward returns vector of rewards for each player.
   inline const vector<double>& GetReward() const {
     return rew_;
   }
 
  private:
   shared_ptr<State> st_;
-  vector<unique_ptr<Observation>> ob_;
+  vector<shared_ptr<Observation>> ob_;
   vector<double> rew_;
 };
 
@@ -144,8 +148,8 @@ class InfSet {
 
   virtual bool operator==(InfSet& other) = 0;
 
-  // GetIS returns hash code.
-  virtual size_t GetIS() = 0;
+  // GetHash returns hash code.
+  virtual size_t GetHash() = 0;
 };
 
 
@@ -158,14 +162,14 @@ class AOH: public InfSet {
   // constructor
   AOH(int player, const vector<int>& hist);
 
-  // GetIS returns hash code.
-  size_t GetIS() final;
+  // GetHash returns hash code.
+  size_t GetHash() final;
 
   // Overloaded for comparing two AOHs
   bool operator==(InfSet& other2) override {
     auto * other = dynamic_cast<AOH*>(&other2);
     if (other != nullptr) {
-      return player_ == other->player_ && GetIS() == other->GetIS() &&
+      return player_ == other->player_ && GetHash() == other->GetHash() &&
              aohistory_ == other->aohistory_;
     }
     return false;
@@ -222,31 +226,29 @@ class State {
 
 /**
  * Domain is an abstract class that represent domain,
- * contains a root state.  */
+ * contains a probability distribution over root states.  */
 class Domain {
  public:
   // constructor
-  Domain(int maxplayers, int max);
+  Domain(unsigned int max, unsigned int maxplayers);
 
   // destructor
   virtual ~Domain() = default;
 
-  const shared_ptr<State> &GetRoot() {
+  // GetRoot returns ProbDistribution over first state.
+  const shared_ptr<ProbDistribution>& GetRoot() {
     return root_;
   }
 
   // GetMaxPlayers returns max players in a game.
-  inline int GetMaxPlayers() const {
+  inline unsigned int GetMaxPlayers() const {
     return maxplayers_;
   }
 
   // GetMaxDepth returns maximal depth of algorithm.
-  int GetMaxDepth() const {
+  unsigned int GetMaxDepth() const {
     return maxdepth_;
   }
-
-  // GetProb returns pointer to ProbDistribution.
-  virtual ProbDistribution * GetProb() = 0;
 
   // GetInfo returns string containing domain information.
   virtual string GetInfo() = 0;
@@ -254,14 +256,16 @@ class Domain {
   static int depth_;
 
  protected:
-  int maxplayers_;
-  int maxdepth_;
-  shared_ptr<State> root_;
+  unsigned int maxdepth_;
+  unsigned int maxplayers_;
+  shared_ptr<ProbDistribution> root_;
 };
 
 // Domain independent treewalk algorithm
 void Treewalk(const unique_ptr<Domain>& domain, State *state,
               int depth, int players);
 
+// Start method for domain independent treewalk algorithm
+void TreewalkStart(const unique_ptr<Domain>& domain, int depth = 0);
 
 #endif  // BASE_H_

@@ -5,7 +5,10 @@
 #ifndef EFG_H_
 #define EFG_H_
 
+#include <unordered_map>
 #include "pursuit.h"
+
+using std::unordered_map;
 
 /**
  * EFGNode is a class that represents node in an extensive form game,
@@ -38,10 +41,10 @@ class EFGNode {
     return state_;
   }
 
-  // GetIS returns the player's information set
+  // GetHash returns the player's information set
   inline shared_ptr<InfSet> GetIS() {
     if (aoh_ == nullptr)
-      aoh_ = std::make_shared<AOH>(player_ & 1, state_->GetAOH()[player_ & 1]);
+      aoh_ = make_shared<AOH>(player_ & 1, state_->GetAOH()[player_ & 1]);
     return aoh_;
   }
 
@@ -67,9 +70,6 @@ class ChanceNode {
   // constructor
   explicit ChanceNode(ProbDistribution* prob);
 
-  // GetRandom returns a random new EFGNode.
-  unique_ptr<EFGNode> GetRandom();
-
   // GetALL returns a vector of all new EFGNodes.
   vector<unique_ptr<EFGNode>> GetAll();
 
@@ -79,12 +79,16 @@ class ChanceNode {
   const unique_ptr<EFGNode>& node_;  // a current node
 };
 
-// temporary for testing information sets
-extern vector<shared_ptr<InfSet>> arrIS;
+
+extern unordered_map<size_t, vector<EFGNode>> mapa;
 
 // Domain independent extensive form game treewalk algorithm
 void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,
                  int depth, int players,
                  const vector<shared_ptr<Action>>& list);
+
+// Start method for domain independent extensive form game treewalk algorithm
+void EFGTreewalkStart(const unique_ptr<Domain>& domain,
+                       int depth = 0);
 
 #endif  // EFG_H_

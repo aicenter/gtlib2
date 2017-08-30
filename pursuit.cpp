@@ -69,7 +69,7 @@ void PursuitState::GetActions(vector<shared_ptr<Action>> &list, int player) cons
                                              < PursuitDomain::width_ &&
         (place_[player].y + m_[i].y) >= 0 && (place_[player].y + m_[i].y)
                                              < PursuitDomain::height_) {
-      list.push_back(std::make_shared<PursuitAction>(count, i));
+      list.push_back(make_shared<PursuitAction>(count, i));
       count++;
     }
   }
@@ -103,7 +103,7 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
       }
     }
 
-    shared_ptr<PursuitState> s = std::make_shared<PursuitState>(moves, probability);
+    shared_ptr<PursuitState> s = make_shared<PursuitState>(moves, probability);
     int size = s->place_.size();
     moves.clear();
     // detection if first has caught others
@@ -118,7 +118,7 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
     }
     int index;
     int id;
-    auto obs = vector<unique_ptr<Observation>>();
+    auto obs = vector<shared_ptr<Observation>>();
     vector<int> ob = vector<int>();
     for (int m = 0; m < size; ++m) {  // making observations
       id = 0;
@@ -177,7 +177,7 @@ ProbDistribution MMPursuitState::PerformAction(const vector<shared_ptr<Action>> 
   int actionssize = actions.size();
   // number of all combinations
   vector<std::pair<Outcome, double>> pairs;
-  for (int k = 0; k < count; ++k) {  // TODO(rozlijak): prepocitat
+  for (int k = 0; k < count; ++k) {
     auto rew = vector<double>(place_.size());
     double probability = prob_;
     // making moves and assigning probability
@@ -189,13 +189,13 @@ ProbDistribution MMPursuitState::PerformAction(const vector<shared_ptr<Action>> 
       }
       probability *= probdis_[1];
     }
-    unique_ptr<MMPursuitState> s;
+    shared_ptr<MMPursuitState> s;
     if (movecount_ == 1) {
       vector<bool> pla2(place_.size(), true);
       pla2[k & 1] = false;
-      s = MakeUnique<MMPursuitState>(moves, probability, pla2, (k >> 1) + 1);
+      s = make_shared<MMPursuitState>(moves, probability, pla2, (k >> 1) + 1);
     } else {
-      s = MakeUnique<MMPursuitState>(moves, probability, players_, movecount_ - 1);
+      s = make_shared<MMPursuitState>(moves, probability, players_, movecount_ - 1);
     }
     int size = s->place_.size();
     moves.clear();
@@ -211,7 +211,7 @@ ProbDistribution MMPursuitState::PerformAction(const vector<shared_ptr<Action>> 
     }
     int index;
     int id;
-    auto obs = vector<unique_ptr<Observation>>();
+    auto obs = vector<shared_ptr<Observation>>();
     vector<int> ob = vector<int>();
     for (int m = 0, pom = 0; m < size; ++m, ++pom) {  // making observations
       if (actions[m]->GetID() == -1 && movecount_ > 1) {
@@ -301,7 +301,7 @@ ProbDistribution ObsPursuitState::PerformAction(const vector<shared_ptr<Action>>
       }
     }
 
-    shared_ptr<ObsPursuitState> s = std::make_shared<ObsPursuitState>(moves, probability);
+    shared_ptr<ObsPursuitState> s = make_shared<ObsPursuitState>(moves, probability);
     int size = s->place_.size();
     moves.clear();
     // detection if first has caught others
@@ -315,7 +315,7 @@ ProbDistribution ObsPursuitState::PerformAction(const vector<shared_ptr<Action>>
       }
     }
     int id;
-    auto obs = vector<unique_ptr<Observation>>();
+    auto obs = vector<shared_ptr<Observation>>();
     vector<Pos> ob = vector<Pos>();
     for (int m = 0; m < size; ++m) {  // making observations
       id = 0;
@@ -345,9 +345,14 @@ ProbDistribution ObsPursuitState::PerformAction(const vector<shared_ptr<Action>>
 }
 
 
-PursuitDomain::PursuitDomain(const vector<Pos> &loc, int maxplayers, int max):
-    Domain(maxplayers, max) {
-  root_ = MakeUnique<PursuitState>(loc);
+PursuitDomain::PursuitDomain(unsigned int max, unsigned int maxplayers, const vector<Pos> &loc):
+    Domain(max, maxplayers) {
+  vector<std::pair<Outcome, double>> pairs;
+  Outcome o(make_shared<PursuitState>(loc),
+            move(vector<shared_ptr<Observation>>(loc.size())),
+            vector<double>(loc.size()));
+  pairs.emplace_back(move(o), 1);
+  root_ = make_shared<ProbDistribution>(move(pairs));
 }
 
 int PursuitDomain::height_ = 0;
@@ -355,7 +360,8 @@ int PursuitDomain::width_ = 0;
 
 
 string PursuitDomain::GetInfo() {
-  shared_ptr<PursuitState> root = std::dynamic_pointer_cast<PursuitState>(root_);
+  shared_ptr<PursuitState> root =
+      std::dynamic_pointer_cast<PursuitState>(root_->GetOutcomes()[0].GetState());
   return "Rozmery pole jsou: " + to_string(PursuitDomain::height_) + " x " +
          to_string(PursuitDomain::width_) + " maximalni hloubka grafu je: " +
          to_string(maxdepth_) + " a pocatecni stav je: " +
@@ -364,28 +370,47 @@ string PursuitDomain::GetInfo() {
          to_string(root->GetPlace()[1].y) + "\n";
 }
 
-PursuitDomainChance::PursuitDomainChance(const vector<Pos> &loc,
-                                         int maxplayers, int max):
-    PursuitDomain(loc, maxplayers, max) {
+PursuitDomain::PursuitDomain(unsigned int max) :
+    PursuitDomain(max, 2,
+                  vector<Pos>{{0, 0}, {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}}) {
+}
+
+PursuitDomainChance::PursuitDomainChance(unsigned int max, unsigned int maxplayers,
+                                         const vector<Pos> &loc):
+    PursuitDomain(max, maxplayers, loc) {
   vector<Pos> start1 = {{0, 0}, {0, 1}, {1, 0}};
   vector<Pos> start2 = {{1, 2}, {2, 1}, {2, 2}};
   vector<std::pair<Outcome, double>> pairs;
   for (int i = 0; i < 3; ++i) {
-    Outcome o(std::make_shared<PursuitState>(vector<Pos>{start1[i], start2[i]}),
-              move(vector<unique_ptr<Observation>>(loc.size())),
+    Outcome o(make_shared<PursuitState>(vector<Pos>{start1[i], start2[2]}),
+              move(vector<shared_ptr<Observation>>(loc.size())),
               vector<double>(loc.size()));
     pairs.emplace_back(move(o), 1);
   }
-  prob_ = new ProbDistribution(move(pairs));
+  root_ = make_shared<ProbDistribution>(move(pairs));
 }
 
+PursuitDomainChance::PursuitDomainChance(unsigned int max) :
+    PursuitDomainChance(max, 2,
+vector<Pos>{{0, 0}, {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}}) {}
 
-int count = 0;
+
+int countStates = 0;
 vector<double> reward;
-std::vector<string> graph;
-std::vector<int> pole;
-std::vector<int> playarr;
-std::vector<int> arrid;
+
+
+void PursuitStart(const unique_ptr<Domain>& domain, int depth) {
+  if (depth == 0)
+    depth = domain->GetMaxDepth();
+  vector<Outcome> outcomes = domain->GetRoot()->GetOutcomes();
+  for (Outcome &o : outcomes) {
+    for (unsigned int i = 0; i < reward.size(); ++i) {
+      reward[i] += o.GetReward()[i];
+    }
+    ++countStates;
+    Pursuit(domain, o.GetState().get(), depth, domain->GetMaxDepth());
+  }
+}
 
 void Pursuit(const unique_ptr<Domain>& domain, State *state,
              int depth, int players) {
@@ -407,7 +432,7 @@ void Pursuit(const unique_ptr<Domain>& domain, State *state,
       for (unsigned int i = 0; i < reward.size(); ++i) {
         reward[i] += o.GetReward()[i];
       }
-      ++count;
+      ++countStates;
       Pursuit(domain, o.GetState().get(), depth - 1, players);
     }
   }

@@ -214,15 +214,13 @@ class ObsPursuitState: public PursuitState {
 class PursuitDomain: public Domain{
  public:
   // constructor
-  PursuitDomain(const vector<Pos> &loc, int maxplayers, int max);
+  PursuitDomain(unsigned int max, unsigned int maxplayers, const vector<Pos> &loc);
+
+  // constructor
+  explicit PursuitDomain(unsigned int max);
 
   // destructor
   ~PursuitDomain() override = default;
-
-  // GetProb returns pointer to ProbDistribution.
-  ProbDistribution* GetProb() override {
-    return nullptr;
-  }
 
   // GetInfo returns string containing domain information.
   string GetInfo() final;
@@ -233,38 +231,26 @@ class PursuitDomain: public Domain{
 
 /**
  * PursuitDomainChance is a class that represents pursuit domain,
- * it starts with a ChanceNode, so it has a pointer to ProbDistribution. */
+ * it starts with a ChanceNode, so it can have more first states. */
 class PursuitDomainChance: public PursuitDomain{
  public:
   // constructor
-  PursuitDomainChance(const vector<Pos> &loc, int maxplayers, int max);
+  PursuitDomainChance(unsigned int max, unsigned int maxplayers, const vector<Pos> &loc);
 
-  // destructor
-  ~PursuitDomainChance() override {
-    delete prob_;
-  }
-
-  // GetProb returns pointer to ProbDistribution.
-  ProbDistribution* GetProb() override {
-    return prob_;
-  }
-
- private:
-  ProbDistribution *prob_;
+  // constructor
+  explicit PursuitDomainChance(unsigned int max);
 };
 
 
-extern int count;  // temporary for testing treewalk
+extern int countStates;  // temporary for testing treewalk
 
 extern vector<double> reward;  // temporary for testing treewalk
-
-extern std::vector<string> graph;  // temporary for python graphs
-extern std::vector<int> pole;  // temporary for python graphs
-extern std::vector<int> playarr;  // temporary for python graphs
-extern std::vector<int> arrid;  // temporary for python graphs
 
 // Domain independent treewalk algorithm
 void Pursuit(const unique_ptr<Domain>& domain, State *state,
              int depth, int players);
+
+// Start method for domain independent treewalk algorithm
+void PursuitStart(const unique_ptr<Domain>& domain, int depth = 0);
 
 #endif  // PURSUIT_H_
