@@ -4,7 +4,12 @@
 
 #include <vector>
 #include <memory>
+#include <map>
+#include <unordered_map>
 #include "normalFormLP.h"
+#include "utils/utils.h"
+#include "efg.h"
+
 
 NormalFormLP::NormalFormLP(const int _p1_actions, const int _p2_actions, const vector<double>& _utilities) {
     ValidateInput(_p1_actions, _p2_actions, _utilities);
@@ -33,19 +38,45 @@ NormalFormLP::NormalFormLP(const int _p1_actions, const int _p2_actions, const v
 }
 
 NormalFormLP::NormalFormLP(const shared_ptr<Domain> _game) {
-    auto aohistories = std::make_shared<vector<vector<int>>>(vector<vector<int>>());
+    auto aohistories = std::make_shared<std::unordered_map<vector<int>, vector<shared_ptr<Action>>>>();
 
-    std::function<void(State*, shared_ptr<vector<vector<int>>> _aohistories)> funkce = ([](State* s, shared_ptr<vector<vector<int>>> _aohistories) {
+
+    std::function<void(EFGNode*, shared_ptr<std::unordered_map<vector<int>, vector<shared_ptr<Action>>>> _aohistories)> funkce = ([](EFGNode* n, shared_ptr<std::unordered_map<vector<int>, vector<shared_ptr<Action>>>> _aohistories) {
 //        cout << _aohistories->size() << " ";
-        _aohistories->push_back(s->GetAOH().at(0));
+
+        _aohistories->operator[](n->GetState()->GetAOH().at(0)) = n->GetState()->GetActions(0);
+//        for (int i=0; i<n->GetState()->GetAOH().at(0).size(); i++)
+//            cout << n->GetState()->GetAOH().at(0).at(i);
+//        cout << "\n";
 //        cout << _aohistories->size() << "\n";
     });
 
-    Treewalk(_game, _game->GetRoot().get(), _game->GetMaxDepth(), _game->GetMaxPlayers(), std::bind(funkce, std::placeholders::_1, aohistories));
+
+    vector<Pos> loc = {{0, 0}, {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}};
+    unique_ptr<EFGNode> node = MakeUnique<EFGNode>(0, std::make_shared<PursuitState>(loc, 1),
+                                                   vector<double>(loc.size()));
+
+    EFGTreewalk(_game, node.get(), _game->GetMaxDepth(), _game->GetMaxPlayers(), {}, std::bind(funkce, std::placeholders::_1, aohistories));
+
+//    cout << aohistories->size() << "\n";
+    vector<vector<shared_ptr<Action>>> actions;
+    for (auto it = aohistories->begin(); it != aohistories->end(); ++it) {
+        actions.push_back(it->second);
+        for (auto x : it->first) {
+            cout << x;
+        }
+        cout << "\n";
+    }
+
+    vector<vector<shared_ptr<Action>>> result = CartProduct(actions);
+    for (auto& x : result) {
+        for (auto& y : x) {
+            cout << y->ToString() << "-";
+        }
+        cout << "\n";
+    }
 
 
-
-    cout << aohistories->size() << "\n";
 }
 
 NormalFormLP::~NormalFormLP() {

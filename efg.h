@@ -83,8 +83,13 @@ class ChanceNode {
 extern vector<shared_ptr<InfSet>> arrIS;
 
 // Domain independent extensive form game treewalk algorithm
-void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,
+void EFGTreewalk(const shared_ptr<Domain>& domain, EFGNode *node,
                  int depth, int players,
                  const vector<shared_ptr<Action>>& list);
+
+void EFGTreewalk(const shared_ptr<Domain>& domain, EFGNode *node,
+                 int depth, int players,
+                 const vector<shared_ptr<Action>>& list,
+                 std::function<void(EFGNode*)> FunctionForState);
 
 #endif  // EFG_H_

@@ -90,9 +90,10 @@ vector<unique_ptr<EFGNode>> ChanceNode::GetAll() {
 
 vector<shared_ptr<InfSet>> arrIS;
 
-void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,
+void EFGTreewalk(const shared_ptr<Domain>& domain, EFGNode *node,
                  int depth, int players,
-                 const vector<shared_ptr<Action>>& list) {
+                 const vector<shared_ptr<Action>>& list,
+                 std::function<void(EFGNode*)> FunctionForState) {
   ProbDistribution* prob2 = domain->GetProb();
   if (depth == domain->GetMaxDepth() && prob2 != nullptr) {
     ChanceNode chan(prob2);
@@ -114,6 +115,9 @@ void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,
 //    cout << arrIS.size() <<" ";
     return;
   }
+
+  FunctionForState(node);
+
   unsigned int l = 0;
   vector<shared_ptr<Action>> actions = node->GetAction();
   for (l = 0; l < arrIS.size(); ++l) {
@@ -154,10 +158,16 @@ void EFGTreewalk(const unique_ptr<Domain>& domain, EFGNode *node,
         for (unsigned int k = 0; k < reward.size(); ++k) {
           reward[k] += j->GetRewards()[k];
         }
-        EFGTreewalk(domain, j.get(), depth - 1, 1, {});
+        EFGTreewalk(domain, j.get(), depth - 1, 1, {}, FunctionForState);
       }
     } else {
-      EFGTreewalk(domain, n.get(), depth, players + 1, locallist);
+      EFGTreewalk(domain, n.get(), depth, players + 1, locallist, FunctionForState);
     }
   }
+}
+
+void EFGTreewalk(const shared_ptr<Domain>& domain, EFGNode *node,
+                 int depth, int players,
+                 const vector<shared_ptr<Action>>& list) {
+  EFGTreewalk(domain, node, depth, players, list, [](EFGNode* s){});
 }
