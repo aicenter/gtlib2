@@ -14,8 +14,8 @@ int main(int argc, char* argv[]) {
   countStates = 0;
   PursuitDomain::height_ = 3;
   mapa = unordered_map<size_t, vector<EFGNode>>();
-  unique_ptr<Domain> d = MakeUnique<PursuitDomain>(2);
-  // TODO: dostat tam MMPursuitState
+  unique_ptr<Domain> d = MakeUnique<PursuitDomain>(5);
+  // TODO(rozlijak): dostat tam MMPursuitState
 //  unique_ptr<Domain> d2 = MakeUnique<PursuitDomainChance>(1);
   reward = vector<double>(d->GetMaxPlayers());
   EFGTreewalkStart(d);
@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
   double elapsed_secs = static_cast<double>(end - begin) / CLOCKS_PER_SEC;
   cout << "hotovo: time " << elapsed_secs << "s" << '\n';
 
-//  getchar();
+  getchar();
 //  testing::InitGoogleTest(&argc, argv);
 //  RUN_ALL_TESTS();
   return 0;

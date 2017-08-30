@@ -128,9 +128,6 @@ class ProbDistribution {
   // constructor
   explicit ProbDistribution(vector<std::pair<Outcome, double>> pairs);
 
-  // GetRandom returns a random Outcome from vector.
-  Outcome GetRandom();
-
   // GetOutcomes returns a vector of all outcomes.
   vector<Outcome> GetOutcomes();
 
@@ -207,20 +204,14 @@ class State {
   // GetPlayers returns who can play in this state.
   virtual const vector<bool> GetPlayers() const = 0;
 
-  // GetAOH returns action-observation histories of all players.
-  virtual const vector<vector<int>>& GetAOH() const = 0;
-
-  // SetAOH sets action-observation histories of all players.
-  virtual void SetAOH(const vector<vector<int>>& list) = 0;
-
   // AddString adds string s to a string in vector of strings.
   virtual void AddString(const string &s, int player) = 0;
 
-  // GetString returns a string from vector.
-  virtual const string& GetString(int player) const = 0;
-
   // ToString returns state description
   virtual string ToString(int player) = 0;
+
+  // GetLast returns vector of actions' and observations' id from last state.
+  virtual const vector<int>& GetLast() const = 0;
 };
 
 
@@ -236,7 +227,7 @@ class Domain {
   virtual ~Domain() = default;
 
   // GetRoot returns ProbDistribution over first state.
-  const shared_ptr<ProbDistribution>& GetRoot() {
+  inline const shared_ptr<ProbDistribution>& GetRoot() {
     return root_;
   }
 
@@ -246,7 +237,7 @@ class Domain {
   }
 
   // GetMaxDepth returns maximal depth of algorithm.
-  unsigned int GetMaxDepth() const {
+  inline unsigned int GetMaxDepth() const {
     return maxdepth_;
   }
 
@@ -263,9 +254,9 @@ class Domain {
 
 // Domain independent treewalk algorithm
 void Treewalk(const unique_ptr<Domain>& domain, State *state,
-              int depth, int players);
+              unsigned int depth, int players);
 
 // Start method for domain independent treewalk algorithm
-void TreewalkStart(const unique_ptr<Domain>& domain, int depth = 0);
+void TreewalkStart(const unique_ptr<Domain>& domain, unsigned int depth = 0);
 
 #endif  // BASE_H_

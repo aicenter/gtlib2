@@ -17,11 +17,6 @@ Outcome::Outcome(shared_ptr<State> s, vector<shared_ptr<Observation>> ob,
 ProbDistribution::ProbDistribution(vector<std::pair<Outcome, double>> pairs):
     pairs_(move(pairs)) {}
 
-Outcome ProbDistribution::GetRandom() {
-  int r = rand() % pairs_.size();
-  return move(pairs_[r].first);
-}
-
 vector<Outcome>  ProbDistribution::GetOutcomes() {
   vector<Outcome> list;
   for (auto &pair : pairs_) {
@@ -52,7 +47,7 @@ Domain::Domain(unsigned int max, unsigned int maxplayers):
 int Domain::depth_ = 0;  // TODO(rozlijak)
 
 
-void TreewalkStart(const unique_ptr<Domain>& domain, int depth) {
+void TreewalkStart(const unique_ptr<Domain>& domain, unsigned int depth) {
   if (depth == 0)
     depth = domain->GetMaxDepth();
   vector<Outcome> outcomes = domain->GetRoot()->GetOutcomes();
@@ -62,7 +57,7 @@ void TreewalkStart(const unique_ptr<Domain>& domain, int depth) {
 }
 
 void Treewalk(const unique_ptr<Domain>& domain, State *state,
-              int depth, int players) {
+              unsigned int depth, int players) {
   if (state == nullptr) {
     throw("State is NULL");
   }
