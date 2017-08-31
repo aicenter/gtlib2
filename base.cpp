@@ -82,3 +82,7 @@ void Treewalk(const shared_ptr<Domain> domain, State *state,
               int depth, int players) {
   Treewalk(domain, state, depth, players, [](State* s){});
 }
+
+double Domain::CalculateUtility(vector<unordered_map<vector<int>,int>>& pure_strategy_profile) {
+
+}

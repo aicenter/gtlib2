@@ -12,6 +12,7 @@
 #include <utility>
 #include <ctime>
 #include <string>
+#include <unordered_map>
 #include "utils/utils.h"
 
 using std::string;
@@ -21,6 +22,7 @@ using std::move;
 using std::unique_ptr;
 using std::shared_ptr;
 using std::to_string;
+using std::unordered_map;
 
 
 
@@ -253,7 +255,10 @@ class Domain {
 
   static int depth_;
 
- protected:
+  // Calculate an expected value for a strategy profile
+  double CalculateUtility(vector<unordered_map<vector<int>,int>>& pure_strategy_profile);
+
+protected:
   int maxplayers_;
   int maxdepth_;
   shared_ptr<State> root_;
