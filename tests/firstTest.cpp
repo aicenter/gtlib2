@@ -13,8 +13,8 @@ class FTest : public testing::Test {
  public:
   FTest() {
     reward = std::vector<double>(2);
-    count = 0;
-    arrIS = vector<shared_ptr<InfSet>>();
+    countStates = 0;
+    mapa = unordered_map<size_t, vector<EFGNode>>();
   }
 };
 
@@ -23,15 +23,15 @@ TEST_F(FTest, Depth2PROP33) {
   PursuitDomain::height_ = 3;
   vector<Pos> loc = {{0, 0},
                      {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}};
-  unique_ptr<Domain> d = MakeUnique<PursuitDomain>(loc, loc.size(), 2);
+  unique_ptr<Domain> d = MakeUnique<PursuitDomain>(2, loc.size(), loc);
   unique_ptr<EFGNode> node = MakeUnique<EFGNode>(0, std::make_shared<PursuitState>(loc, 1),
-                                                 vector<double>(loc.size()));
+                                                 vector<double>(loc.size()), nullptr);
 
   EFGTreewalk(d, node.get(), d->GetMaxDepth(), 1, {});
   ASSERT_EQ(reward[0], 6);
   ASSERT_EQ(reward[1], -6);
-  ASSERT_EQ(count, 416);
-  ASSERT_EQ(arrIS.size(), 14);
+  ASSERT_EQ(countStates, 416);
+  ASSERT_EQ(mapa.size(), 14);
 }
 
 TEST_F(FTest, Depth3PROP44) {
@@ -39,15 +39,15 @@ TEST_F(FTest, Depth3PROP44) {
   PursuitDomain::height_ = 4;
   vector<Pos> loc = {{0, 0},
                      {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}};
-  unique_ptr<Domain> d = MakeUnique<PursuitDomain>(loc, loc.size(), 3);
+  unique_ptr<Domain> d = MakeUnique<PursuitDomain>(3, loc.size(), loc);
   unique_ptr<EFGNode> node = MakeUnique<EFGNode>(0, std::make_shared<PursuitState>(loc, 1),
-                                                 vector<double>(loc.size()));
+                                                 vector<double>(loc.size()), nullptr);
 
   EFGTreewalk(d, node.get(), d->GetMaxDepth(), 1, {});
   ASSERT_EQ(reward[0], 20);
   ASSERT_EQ(reward[1], -20);
-  ASSERT_EQ(count, 12960);
-  ASSERT_EQ(arrIS.size(), 58);
+  ASSERT_EQ(countStates, 12960);
+  ASSERT_EQ(mapa.size(), 58);
 }
 
 TEST_F(FTest, Depth3PROP33) {
@@ -55,14 +55,14 @@ TEST_F(FTest, Depth3PROP33) {
   PursuitDomain::height_ = 3;
   vector<Pos> loc = {{0, 0},
                      {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}};
-  unique_ptr<Domain> d = MakeUnique<PursuitDomain>(loc, loc.size(), 3);
+  unique_ptr<Domain> d = MakeUnique<PursuitDomain>(3, loc.size(), loc);
   unique_ptr<EFGNode> node = MakeUnique<EFGNode>(0, std::make_shared<PursuitState>(loc, 1),
-                                                 vector<double>(loc.size()));
+                                                 vector<double>(loc.size()), nullptr);
   EFGTreewalk(d, node.get(), d->GetMaxDepth(), 1, {});
   ASSERT_EQ(reward[0], 1064);
   ASSERT_EQ(reward[1], -1064);
-  ASSERT_EQ(count, 12080);
-  ASSERT_EQ(arrIS.size(), 206);
+  ASSERT_EQ(countStates, 12080);
+  ASSERT_EQ(mapa.size(), 226);
 }
 
 TEST_F(FTest, MMDepth2PROP33) {
@@ -70,14 +70,17 @@ TEST_F(FTest, MMDepth2PROP33) {
   PursuitDomain::height_ = 3;
   vector<Pos> loc = {{0, 0},
                      {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}};
-  unique_ptr<Domain> d = MakeUnique<PursuitDomain>(loc, loc.size(), 2);
+  unique_ptr<Domain> d = MakeUnique<PursuitDomain>(2, loc.size(), loc);
   unique_ptr<EFGNode> node = MakeUnique<EFGNode>(0, std::make_shared<MMPursuitState>(loc, vector<bool>({true, false}), 1),
-                                                 vector<double>(loc.size()));
+                                                 vector<double>(loc.size()), nullptr);
   EFGTreewalk(d, node.get(), d->GetMaxDepth(), 1, {});
   ASSERT_EQ(reward[0], 0);
   ASSERT_EQ(reward[1], 0);
-  ASSERT_EQ(count, 24);  //  MMPursuitState::PerformAction: count = 2; each player has one move, then plays the second one
-  ASSERT_EQ(arrIS.size(),4);
+  /*  MMPursuitState::PerformAction: count = 2;
+   * each player has one move, then plays the second one
+   * it is a turn based game */
+  ASSERT_EQ(countStates, 24);
+  ASSERT_EQ(mapa.size(), 4);
 }
 
 
@@ -86,14 +89,17 @@ TEST_F(FTest, MMDepth3PROP44) {
   PursuitDomain::height_ = 4;
   vector<Pos> loc = {{0, 0},
                      {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}};
-  unique_ptr<Domain> d = MakeUnique<PursuitDomain>(loc, loc.size(), 3);
+  unique_ptr<Domain> d = MakeUnique<PursuitDomain>(3, loc.size(), loc);
   unique_ptr<EFGNode> node = MakeUnique<EFGNode>(0, std::make_shared<MMPursuitState>(loc, vector<bool>({true, false}), 1),
-                                                 vector<double>(loc.size()));
+                                                 vector<double>(loc.size()), nullptr);
   EFGTreewalk(d, node.get(), d->GetMaxDepth(), 1, {});
   ASSERT_EQ(reward[0], 0);
   ASSERT_EQ(reward[1], 0);
-  ASSERT_EQ(count, 132);  //  MMPursuitState::PerformAction: count = 2; each player has one move, then plays the second one
-  ASSERT_EQ(arrIS.size(),15);
+  /*  MMPursuitState::PerformAction: count = 2;
+   * each player has one move, then plays the second one
+   * it is a turn based game */
+  ASSERT_EQ(countStates, 132);
+  ASSERT_EQ(mapa.size(), 15);
 }
 
 TEST_F(FTest, MMDepth4PROP44) {
@@ -101,12 +107,15 @@ TEST_F(FTest, MMDepth4PROP44) {
   PursuitDomain::height_ = 3;
   vector<Pos> loc = {{0, 0},
                      {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}};
-  unique_ptr<Domain> d = MakeUnique<PursuitDomain>(loc, loc.size(), 4);
+  unique_ptr<Domain> d = MakeUnique<PursuitDomain>(4, loc.size(), loc);
   unique_ptr<EFGNode> node = MakeUnique<EFGNode>(0, std::make_shared<MMPursuitState>(loc, vector<bool>({true, false}), 1),
-                                                 vector<double>(loc.size()));
+                                                 vector<double>(loc.size()), nullptr);
   EFGTreewalk(d, node.get(), d->GetMaxDepth(), 1, {});
   ASSERT_EQ(reward[0], 96);
   ASSERT_EQ(reward[1], -96);
-  ASSERT_EQ(count, 696);  //  MMPursuitState::PerformAction: count = 2; each player has one move, then plays the second one
-  ASSERT_EQ(arrIS.size(),74);
+  /*  MMPursuitState::PerformAction: count = 2;
+   * each player has one move, then plays the second one
+   * it is a turn based game */
+  ASSERT_EQ(countStates, 696);
+  ASSERT_EQ(mapa.size(), 102);
 }

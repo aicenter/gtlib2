@@ -5,26 +5,22 @@
 #include "base.h"
 
 
+
 Action::Action(int id): id_(id) {}
 
 Observation::Observation(int id): id_(id) {}
 
-Outcome::Outcome(const shared_ptr<State>& s, vector<unique_ptr<Observation>> ob,
-                 const vector<double> &rew):
-    st_(s), ob_(move(ob)), rew_(rew) {}
+Outcome::Outcome(shared_ptr<State> s, vector<shared_ptr<Observation>> ob,
+                 vector<double> rew):
+    st_(move(s)), ob_(move(ob)), rew_(move(rew)) {}
 
 ProbDistribution::ProbDistribution(vector<std::pair<Outcome, double>> pairs):
     pairs_(move(pairs)) {}
 
-Outcome ProbDistribution::GetRandom() {
-  int r = rand() % pairs_.size();
-  return move(pairs_[r].first);
-}
-
 vector<Outcome>  ProbDistribution::GetOutcomes() {
   vector<Outcome> list;
   for (auto &pair : pairs_) {
-    list.push_back(move(pair.first));
+    list.push_back(pair.first);
   }
   return list;
 }
@@ -32,26 +28,36 @@ vector<Outcome>  ProbDistribution::GetOutcomes() {
 AOH::AOH(int player, const vector<int> &hist):
     player_(player), aohistory_(hist) {}
 
-size_t AOH::GetIS() {
+size_t AOH::GetHash() {
   if (seed_ == 0) {
     for (int i : aohistory_) {
       seed_ ^= i + 0x9e3779b9 + (seed_ << 6) + (seed_ >> 2);
     }
+    seed_ ^= player_ + 0x9e3779b9 + (seed_ << 6) + (seed_ >> 2);
   }
   return seed_;
 }
 
 State::State() = default;
 
-Domain::Domain(int maxplayers, int max):
-    maxplayers_(maxplayers), maxdepth_(max) {}
+Domain::Domain(unsigned int max, unsigned int maxplayers):
+    maxdepth_(max), maxplayers_(maxplayers) {}
 
 
 int Domain::depth_ = 0;  // TODO(rozlijak)
 
 
+void TreewalkStart(const shared_ptr<Domain>& domain, unsigned int depth) {
+  if (depth == 0)
+    depth = domain->GetMaxDepth();
+  vector<Outcome> outcomes = domain->GetRoot()->GetOutcomes();
+  for (Outcome &o : outcomes) {
+    Treewalk(domain, o.GetState().get(), depth, domain->GetMaxPlayers());
+  }
+}
+
 void Treewalk(const shared_ptr<Domain> domain, State *state,
-              int depth, int players, std::function<void(State*)> FunctionForState) {
+              unsigned int depth, int players, std::function<void(State*)> FunctionForState) {
   if (state == nullptr) {
     throw("State is NULL");
   }
@@ -79,7 +85,7 @@ void Treewalk(const shared_ptr<Domain> domain, State *state,
 
 
 void Treewalk(const shared_ptr<Domain> domain, State *state,
-              int depth, int players) {
+              unsigned int depth, int players) {
   Treewalk(domain, state, depth, players, [](State* s){});
 }
 

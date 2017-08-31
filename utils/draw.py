@@ -4,8 +4,7 @@ dot = Digraph(comment='Pursuit evasion - EFG')
 q = example.initialization()
 b = example.graph2()
 IS = example.array2()
-players = example.play()
-
+parents = example.par2()
 colors = ["blue", "yellow", "green", "red", "cyan", "orange", "gold", "lightskyblue", "wheat", "grey", "seagreen", "pink", "limegreen", "aquamarine", "greenyellow"]
 
 colors2 = [
@@ -48,47 +47,16 @@ colors2 = [
     "tomato1", "tomato3", "tomato4", "turquoise", "turquoise1", "turquoise3",
     "turquoise4", "violet", "violetred", "violetred1", "wheat1", "wheat3", "yellow1",
     "yellow3", "yellowgreen", "skyblue1", "skyblue3", "seagreen3", "seagreen4", "navy", "seagreen1"]
+
 for i in range(len(q)):
     #if(IS[i] == -1 or (players[i] == 1 and q[i] == 1)):
-    if(IS[i] == -1 and players[i] != 2):
-        continue
+    # if(b[i] == "leaf"):
+    #     continue
     dot.attr('node', style='filled', color=colors[IS[i]])
     dot.node(str(i),b[i])
-
-for i in range(len(q)-1,-1,-1):
-    pom = 0
-    #if(IS[i] == -1 or (players[i] == 1 and q[i] == 1)):
-    if(IS[i] == -1 and players[i] != 2):
-        continue
-    for j in range(i, -1,-1):
-        if(players[i] == 2):
-            pom = 2
-            if(players[j] == 1 and q[j] == q[i]):
-                pom = 1
-                if(q[j] == 1):
-                    dot.edge(str(j), str(i), minlen = str((i-j-1)*0.2 + 1))
-                else:
-                    dot.edge(str(j), str(i))
-                break
-        if(players[i] == 1):
-            if(players[j] == 0 and q[j] == q[i]):
-                if(q[j] == 1):
-                    dot.edge(str(j), str(i), minlen = str((i-j-1)*0.2 + 1))
-                else:
-                    dot.edge(str(j), str(i))
-                break
-        elif(q[j] > q[i]):
-            dot.edge(str(j), str(i))
-            break
-
-
-    if(pom == 2):
-        for j in range(i, -1,-1):
-            if(players[i] == 2):
-                if(players[j] == 0 and q[j] == q[i]):
-                    if(q[j] == 1):
-                        dot.edge(str(j), str(i), minlen = str((i-j-1)*0.2 + 1))
-                    else:
-                        dot.edge(str(j), str(i))
-                    break
-dot.render('tree-oneplayer2.gv', view=True)
+    if(i > 0):
+        if(q[i] == 1):
+            dot.edge(str(parents[i]), str(i), minlen = str((i-parents[i]-1)*0.1 + 1))
+        else:
+            dot.edge(str(parents[i]), str(i))
+dot.render('tree', view=True)
