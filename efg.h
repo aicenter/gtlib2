@@ -20,6 +20,10 @@ class EFGNode {
   EFGNode(int player, const shared_ptr<State>& state,
           const vector<double>& rewards, EFGNode* node);
 
+  // constructor
+  EFGNode(int player, const shared_ptr<State>& state,
+          const vector<double>& rewards, EFGNode* node, vector<int> list);
+
   // constructor for a first EFGNode
   EFGNode();
 
@@ -48,14 +52,11 @@ class EFGNode {
   vector<int> GetAOH(int player) const;
 
   // AddAOH sets action-observation histories of all players.
-  inline void AddAOH(int id) {
-    last_.push_back(id);
-  }
 
   // GetHash returns the player's information set.
   inline shared_ptr<InfSet> GetIS() {
     if (infset_ == nullptr)
-      infset_ = make_shared<AOH>(player_ & 1, GetAOH(player_ & 1));
+      infset_ = make_shared<AOH>(player_, GetAOH(player_));
     return infset_;
   }
 
@@ -64,15 +65,25 @@ class EFGNode {
     return node_;
   }
 
+  // GetLast returns vector of actions' and observations' id from last state.
+  inline const vector<int>& GetLast() const {
+    return last_;
+  }
+  void PushLast(int action, int obs) {
+    last_.push_back(action);
+    last_.push_back(obs);
+  }
+
+
   int IS = -1;  // information set id
 
- protected:
+ private:
   int player_;
   shared_ptr<State> state_;
   vector<double> rewards_;
   shared_ptr<AOH> infset_;
   EFGNode* node_;
-  vector<int> last_;
+  vector<int> last_;  // last turn
 };
 
 /**
@@ -82,6 +93,7 @@ class ChanceNode {
  public:
 //  // constructor
   ChanceNode(ProbDistribution* prob,
+             const vector<shared_ptr<Action>>& actions,
              const unique_ptr<EFGNode>& node);
 
   // GetALL returns a vector of all new EFGNodes.
@@ -89,6 +101,7 @@ class ChanceNode {
 
  private:
   ProbDistribution* prob_;  // probability distribution over the new state
+  const vector<shared_ptr<Action>>& actions_;
   const unique_ptr<EFGNode>& node_;  // a current node
 };
 
@@ -105,8 +118,12 @@ void EFGTreewalk(const shared_ptr<Domain>& domain, EFGNode *node,
                  const vector<shared_ptr<Action>>& list,
                  std::function<void(EFGNode*)> FunctionForState);
 
-// Start method for domain independent extensive form game treewalk algorithm
+//// Start method for domain independent extensive form game treewalk algorithm
 void EFGTreewalkStart(const shared_ptr<Domain>& domain,
+                      unsigned int depth = 0);
+
+void EFGTreewalkStart(const shared_ptr<Domain>& domain,
+                      std::function<void(EFGNode*)> FunctionForState,
                       unsigned int depth = 0);
 
 

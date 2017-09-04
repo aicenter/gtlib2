@@ -5,7 +5,6 @@
 #include "base.h"
 
 
-
 Action::Action(int id): id_(id) {}
 
 Observation::Observation(int id): id_(id) {}
@@ -21,6 +20,14 @@ vector<Outcome>  ProbDistribution::GetOutcomes() {
   vector<Outcome> list;
   for (auto &pair : pairs_) {
     list.push_back(pair.first);
+  }
+  return list;
+}
+
+vector<double> ProbDistribution::GetProb() {
+  vector<double> list;
+  for (auto &pair : pairs_) {
+    list.push_back(pair.second);
   }
   return list;
 }
@@ -72,7 +79,7 @@ void Treewalk(const shared_ptr<Domain> domain, State *state,
     v.emplace_back(state->GetActions(i));
   }
 
-  auto action = CartProduct<shared_ptr<Action>>(v);
+  auto action = CartProduct(v);
   for (const auto &k : action) {
     ProbDistribution prob = state->PerformAction(k);
     vector<Outcome> outcomes = prob.GetOutcomes();
@@ -80,7 +87,6 @@ void Treewalk(const shared_ptr<Domain> domain, State *state,
       Treewalk(domain, o.GetState().get(), depth - 1, players, FunctionForState);
     }
   }
-
 }
 
 
@@ -89,6 +95,56 @@ void Treewalk(const shared_ptr<Domain> domain, State *state,
   Treewalk(domain, state, depth, players, [](State* s){});
 }
 
-double Domain::CalculateUtility(vector<unordered_map<vector<int>,int>>& pure_strategy_profile) {
+double Domain::CalculateUtility(const vector<unordered_map<vector<int>,
+    shared_ptr<Action>>>& pure_strategies) {
+  vector<Outcome> outcomes = root_->GetOutcomes();
+  vector<double> p = root_->GetProb();
+  double suma = 0;
+  int z = 0;
+  for (Outcome &o : outcomes) {
+    if (!o.GetReward().empty())
+      suma += o.GetReward()[0] * p[z];
+    suma += ComputeUtility(o.GetState().get(), maxdepth_, maxplayers_,
+                           pure_strategies, vector<vector<int>>(pure_strategies.size())) * p[z];
+    ++z;
+  }
+  return suma;
+}
 
+
+double Domain::ComputeUtility(State* state, unsigned int depth,
+                              unsigned int players,
+                              const vector<unordered_map<vector<int>,
+                                  shared_ptr<Action>>>& pure_strategies,
+                              const vector<vector<int>>& aoh) {
+  if (state == nullptr) {
+    throw("State is NULL");
+  }
+
+  if (depth == 0) {
+    return 0;
+  }
+
+  auto search = vector<shared_ptr<Action>>(aoh.size());
+  for (int i = 0; i < aoh.size(); ++i) {
+      search[i] = pure_strategies[i].find(aoh[i])->second;
+  }
+  ProbDistribution prob = state->PerformAction(search);
+  vector<Outcome> outcomes = prob.GetOutcomes();
+  vector<double> p = prob.GetProb();
+  double suma = 0;
+  int z = 0;
+  for (Outcome &o : outcomes) {
+    vector<vector<int>> locallist = aoh;
+    for (int i = 0; i < search.size(); ++i) {
+      locallist[i].push_back(search[i]->GetID());
+      locallist[i].push_back(o.GetObs()[i]->GetID());
+    }
+    if (!o.GetReward().empty())
+      suma += o.GetReward()[0] *p[z];
+    suma += ComputeUtility(o.GetState().get(), depth - 1, players,
+                           pure_strategies, locallist) * p[z];
+    ++z;
+  }
+  return suma;
 }

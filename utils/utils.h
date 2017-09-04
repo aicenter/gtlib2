@@ -65,7 +65,7 @@ vector<shared_ptr<U>> Cast(const vector<shared_ptr<T>>& list2) {
  * Hash container for using vector in a hash map
  */
 namespace std {
-template<> // we can make this generic for any container [1]
+template<>  // we can make this generic for any container [1]
 struct hash<vector<int>> {
     std::size_t operator()(vector<int> const &c) const {
         std::size_t result = c.size();
@@ -75,9 +75,8 @@ struct hash<vector<int>> {
         for (int x : c) {
             result += result*31+h(x);
         }
-
         return result;
     }
 };
-}
+}  // namespace std
 #endif  // UTILS_UTILS_H_

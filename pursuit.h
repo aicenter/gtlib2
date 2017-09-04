@@ -135,13 +135,7 @@ class PursuitState: public State {
         strings_[player] + "\n";
   }
 
-  // GetLast returns vector of actions' and observations' id from last state.
-  inline const vector<int>& GetLast() const override {
-    return obs_;
-  }
-
  protected:
-  vector<int> obs_;
   unsigned int numplayers_ = 0;
   vector<Pos> place_;  // locations of all players
   double prob_ = 1;  // state probability
@@ -243,10 +237,10 @@ extern int countStates;  // temporary for testing treewalk
 extern vector<double> reward;  // temporary for testing treewalk
 
 // Domain independent treewalk algorithm
-void Pursuit(const unique_ptr<Domain>& domain, State *state,
+void Pursuit(const shared_ptr<Domain>& domain, State *state,
              unsigned int depth, int players);
 
 // Start method for domain independent treewalk algorithm
-void PursuitStart(const unique_ptr<Domain>& domain, unsigned int depth = 0);
+void PursuitStart(const shared_ptr<Domain>& domain, unsigned int depth = 0);
 
 #endif  // PURSUIT_H_

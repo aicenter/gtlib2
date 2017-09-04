@@ -7,12 +7,12 @@
 
 #define IL_STD
 
-#include <bits/shared_ptr.h>
+
 #include <ilcplex/ilocplex.h>
 #include <iostream>
 #include <vector>
 #include <memory>
-#include "base.h"
+#include "efg.h"
 
 using std::vector;
 using std::shared_ptr;

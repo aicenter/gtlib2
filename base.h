@@ -5,6 +5,7 @@
 #ifndef BASE_H_
 #define BASE_H_
 
+#include <functional>
 #include <iostream>
 #include <vector>
 #include <cmath>
@@ -133,6 +134,8 @@ class ProbDistribution {
   // GetOutcomes returns a vector of all outcomes.
   vector<Outcome> GetOutcomes();
 
+  vector<double> GetProb();
+
  private:
   vector<std::pair<Outcome, double>> pairs_;
 };
@@ -211,9 +214,6 @@ class State {
 
   // ToString returns state description
   virtual string ToString(int player) = 0;
-
-  // GetLast returns vector of actions' and observations' id from last state.
-  virtual const vector<int>& GetLast() const = 0;
 };
 
 
@@ -249,17 +249,29 @@ class Domain {
   static int depth_;
 
   // Calculate an expected value for a strategy profile
-  double CalculateUtility(vector<unordered_map<vector<int>,int>>& pure_strategy_profile);
+  virtual double CalculateUtility(const vector<unordered_map<vector<int>,
+      shared_ptr<Action>>>&pure_strategy_profile);
 
-protected:
-    unsigned int maxdepth_;
-    unsigned int maxplayers_;
-    shared_ptr<ProbDistribution> root_;
+
+  virtual double ComputeUtility(State* state, unsigned int depth,
+                                unsigned int players,
+                                const vector<unordered_map<vector<int>,
+                                    shared_ptr<Action>>>& pure_strategies,
+                                const vector<vector<int>>& aoh);
+
+ protected:
+  unsigned int maxdepth_;
+  unsigned int maxplayers_;
+  shared_ptr<ProbDistribution> root_;
 };
+
 
 // Domain independent treewalk algorithm
 void Treewalk(const shared_ptr<Domain> domain, State *state,
-              unsigned int depth, int players, std::function<void(State*)> FunctionForState);
+              unsigned int depth, int players,
+              std::function<void(State*)> FunctionForState);
+
+
 void Treewalk(const shared_ptr<Domain> domain, State *state,
               unsigned int depth, int players);
 

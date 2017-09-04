@@ -2,13 +2,11 @@
 // Created by bbosansky on 8/11/17.
 //
 
+#include "normalFormLP.h"
 #include <vector>
 #include <memory>
 #include <map>
 #include <unordered_map>
-#include "normalFormLP.h"
-#include "utils/utils.h"
-#include "efg.h"
 
 
 NormalFormLP::NormalFormLP(const int _p1_actions, const int _p2_actions, const vector<double>& _utilities) {
@@ -33,50 +31,59 @@ NormalFormLP::NormalFormLP(const int _p1_actions, const int _p2_actions, const v
             tmp[i*cols_ + j] = _utilities[i][j];
         }
     }
-
     BuildModel(&tmp);
 }
 
 NormalFormLP::NormalFormLP(const shared_ptr<Domain> _game) {
-    auto aohistories = std::make_shared<std::unordered_map<vector<int>, vector<shared_ptr<Action>>>>();
+  auto aohistories = vector<shared_ptr<unordered_map<vector<int>, vector<shared_ptr<Action>>>>>
+      {make_shared<unordered_map<vector<int>, vector<shared_ptr<Action>>>>(),
+       make_shared<unordered_map<vector<int>, vector<shared_ptr<Action>>>>()};
 
+  std::function<void(EFGNode*, vector<shared_ptr<std::unordered_map<vector<int>,
+      vector<shared_ptr<Action>>>>> _aohistories)> funkce =
+      ([](EFGNode* n, vector<shared_ptr<std::unordered_map<vector<int>,
+          vector<shared_ptr<Action>>>>> _aohistories) {
+        _aohistories[n->GetPlayer()]->operator[](n->GetAOH(n->GetPlayer())) =
+            n->GetState()->GetActions(n->GetPlayer());
+  });
 
-    std::function<void(EFGNode*, shared_ptr<std::unordered_map<vector<int>, vector<shared_ptr<Action>>>> _aohistories)> funkce = ([](EFGNode* n, shared_ptr<std::unordered_map<vector<int>, vector<shared_ptr<Action>>>> _aohistories) {
-//        cout << _aohistories->size() << " ";
+  EFGTreewalkStart(_game, std::bind(funkce, std::placeholders::_1, aohistories));
 
-        _aohistories->operator[](n->GetState()->GetAOH().at(0)) = n->GetState()->GetActions(0);
-//        for (int i=0; i<n->GetState()->GetAOH().at(0).size(); i++)
-//            cout << n->GetState()->GetAOH().at(0).at(i);
-//        cout << "\n";
-//        cout << _aohistories->size() << "\n";
-    });
-
-
-    vector<Pos> loc = {{0, 0}, {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}};
-    unique_ptr<EFGNode> node = MakeUnique<EFGNode>(0, std::make_shared<PursuitState>(loc, 1),
-                                                   vector<double>(loc.size()));
-
-    EFGTreewalk(_game, node.get(), _game->GetMaxDepth(), _game->GetMaxPlayers(), {}, std::bind(funkce, std::placeholders::_1, aohistories));
-
-//    cout << aohistories->size() << "\n";
-    vector<vector<shared_ptr<Action>>> actions;
-    for (auto it = aohistories->begin(); it != aohistories->end(); ++it) {
-        actions.push_back(it->second);
-        for (auto x : it->first) {
-            cout << x;
-        }
-        cout << "\n";
+  auto aoh = vector<vector<vector<std::pair<vector<int>, shared_ptr<Action>>>>>(_game->GetMaxPlayers());
+  for(int i = 0; i < _game->GetMaxPlayers(); ++i) {
+    int k = 0;
+    for (auto it = aohistories[i]->begin(); it != aohistories[i]->end(); ++it, ++k) {
+      aoh[i].emplace_back();
+      for (int j = 0; j < it->second.size(); ++j) {
+        aoh[i][k].emplace_back(it->first, it->second[j]);
+      }
     }
+  }
 
-    vector<vector<shared_ptr<Action>>> result = CartProduct(actions);
-    for (auto& x : result) {
-        for (auto& y : x) {
-            cout << y->ToString() << "-";
-        }
-        cout << "\n";
+  auto res = vector<vector<vector<std::pair<vector<int>, shared_ptr<Action>>>>>(aoh.size());
+
+  for(int i = 0; i < aoh.size(); ++i) {
+    res[i] = CartProduct(aoh[i]);
+  }
+
+  auto pole = vector<vector<double>>(res[0].size());
+
+  for (int i = 0; i < res[0].size(); i++) {
+    auto a1 = unordered_map<vector<int>, shared_ptr<Action>>();
+    for (auto &x : res[0][i]) {
+      a1.emplace(x.first, x.second);
     }
-
-
+    for (auto &j : res[1]) {
+      auto a2 = unordered_map<vector<int>, shared_ptr<Action>>();
+      for (auto &x : j) {
+        a2.emplace(x.first, x.second);
+      }
+      auto vec = vector<unordered_map<vector<int>, shared_ptr<Action>>>({a1, a2});
+      pole[i].push_back(_game->CalculateUtility(vec));
+    }
+  }
+  NormalFormLP a(res[0].size(), res[1].size(), pole);
+  cout << "vysledek hry: " << a.SolveGame() << "\n";
 }
 
 NormalFormLP::~NormalFormLP() {

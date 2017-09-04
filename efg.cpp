@@ -7,8 +7,12 @@
 
 EFGNode::EFGNode(int player, const shared_ptr<State>& state,
                  const vector<double>& rewards, EFGNode* node):
-    player_(player), state_(state), rewards_(rewards), infset_(nullptr), node_(node)  {
-}
+    player_(player), state_(state), rewards_(rewards), infset_(nullptr), node_(node)  {}
+
+EFGNode::EFGNode(int player, const shared_ptr<State> &state,
+                 const vector<double> &rewards, EFGNode *node,
+                 vector<int> list):
+    player_(player), state_(state), rewards_(rewards), infset_(nullptr), node_(node), last_(move(list)) {}
 
 EFGNode::EFGNode() {
   player_ = -1;
@@ -21,25 +25,36 @@ vector<shared_ptr<Action>> EFGNode::GetAction() {
 }
 
 unique_ptr<EFGNode> EFGNode::PerformAction(const shared_ptr<Action> &action2) {
-  return MakeUnique<EFGNode>(player_+1, state_, rewards_, this);
+  int player = player_ + 1;
+  if (player >= rewards_.size())
+    player -= rewards_.size();
+  return MakeUnique<EFGNode>(player, state_, rewards_, this);
 }
 
 vector<int> EFGNode::GetAOH(int player) const {
   if (node_ == nullptr) {
-    if (player == (player_ & 1))
-      return last_;
+    if (player == player_) {
+      if (!last_.empty()) {
+        return {last_[0], last_[1]};
+      }
+    }
     return {};
   }
-  vector<int> list = node_->GetAOH(player & 1);
-  if (player == (player_ & 1))
-    list.insert(list.end(), last_.begin(), last_.end());
+  vector<int> list = node_->GetAOH(player);
+  if (player == player_) {
+    if (!last_.empty()) {
+      list.push_back(last_[0]);
+      list.push_back(last_[1]);
+    }
+  }
   return list;
 }
 
 
 ChanceNode::ChanceNode(ProbDistribution* prob,
+                       const vector<shared_ptr<Action>> &actions,
                        const unique_ptr<EFGNode>& node):
-    prob_(prob),  node_(node) {}
+    prob_(prob), actions_(actions),  node_(node) {}
 
 
 vector<unique_ptr<EFGNode>> ChanceNode::GetAll() {
@@ -48,11 +63,21 @@ vector<unique_ptr<EFGNode>> ChanceNode::GetAll() {
   vec.reserve(outcomes.size());
   if (node_->GetPlayer() >= 0) {  // preparing first states
     for (Outcome &o : outcomes) {
-      vector<double> rews = vector<double>({node_->GetRewards()[0] + o.GetReward()[0],
-                                            node_->GetRewards()[1] + o.GetReward()[1]});
+      vector<double> rews = vector<double>(o.GetReward().size());
+      for (int j = 0; j < rews.size(); ++j) {
+        rews[j] = node_->GetRewards()[j] + o.GetReward()[j];
+      }
       for (unsigned int i = 0; i < o.GetState()->GetPlayers().size(); ++i) {
         if (o.GetState()->GetPlayers()[i]) {
-          vec.push_back(MakeUnique<EFGNode>(i, o.GetState(), rews, node_.get()));
+          vector<int> aoh{actions_[i]->GetID(), o.GetObs()[i]->GetID()};
+          for (unsigned int j = 0; j < o.GetState()->GetPlayers().size(); ++j) {
+            if (j == i)
+              continue;
+            aoh.push_back(actions_[j]->GetID());
+            aoh.push_back(o.GetObs()[j]->GetID());
+          }
+          auto n = MakeUnique<EFGNode>(i, o.GetState(), rews, node_.get(), aoh);
+          vec.push_back(move(n));
           break;
         }
       }
@@ -60,7 +85,8 @@ vector<unique_ptr<EFGNode>> ChanceNode::GetAll() {
     return vec;
   }
   for (Outcome &o : outcomes) {
-    vec.push_back(MakeUnique<EFGNode>(0, o.GetState(), vector<double>(2), node_.get()));
+    vec.push_back(MakeUnique<EFGNode>(0, o.GetState(),
+                                      vector<double>(o.GetReward().size()), node_.get()));
   }
   return vec;
 }
@@ -68,20 +94,27 @@ vector<unique_ptr<EFGNode>> ChanceNode::GetAll() {
 
 unordered_map<size_t, vector<EFGNode>> mapa;
 
-void EFGTreewalkStart(const shared_ptr<Domain>& domain, unsigned int depth) {
+void EFGTreewalkStart(const shared_ptr<Domain>& domain,
+                      std::function<void(EFGNode*)> FunctionForState,
+                      unsigned int depth) {
   if (depth == 0)
     depth = domain->GetMaxDepth();
   auto node = MakeUnique<EFGNode>();
-  ChanceNode chan(domain->GetRoot().get(), node);
+  ChanceNode chan(domain->GetRoot().get(), {}, node);
   vector<unique_ptr<EFGNode>> vec = chan.GetAll();
   for (auto &j : vec) {
     ++countStates;
     for (unsigned int k = 0; k < reward.size(); ++k) {
       reward[k] += j->GetRewards()[k];
     }
-    EFGTreewalk(domain, j.get(), depth, 1, {});
+    EFGTreewalk(domain, j.get(), depth, 1, {}, FunctionForState);
   }
 }
+
+void EFGTreewalkStart(const shared_ptr<Domain>& domain, unsigned int depth) {
+  EFGTreewalkStart(domain, [](EFGNode* s){}, depth);
+}
+
 
 void EFGTreewalk(const shared_ptr<Domain>& domain, EFGNode *node,
                  unsigned int depth, int players,
@@ -97,20 +130,17 @@ void EFGTreewalk(const shared_ptr<Domain>& domain, EFGNode *node,
 
   FunctionForState(node);
 
-  unsigned int l = 0;
   vector<shared_ptr<Action>> actions = node->GetAction();
 
-  if (depth < domain->GetMaxDepth()) {
-    node->AddAOH(node->GetState()->GetLast()[2 * node->GetPlayer()]);
-    node->AddAOH(node->GetState()->GetLast()[2 * node->GetPlayer() + 1]);
-  }
-
   auto search = mapa.find(node->GetIS()->GetHash());
-  auto n2 = EFGNode(node->GetPlayer(), node->GetState(), node->GetRewards(), node);
   if (search != mapa.end()) {
-    search->second.push_back(n2);
+    search->second.emplace_back(node->GetPlayer(), node->GetState(),
+                                node->GetRewards(), node->GetParent(),
+                                node->GetLast());
   } else {
-    mapa.emplace(node->GetIS()->GetHash(), vector<EFGNode>{n2});
+    auto n2 = EFGNode(node->GetPlayer(), node->GetState(),
+                      node->GetRewards(), node->GetParent(), node->GetLast());
+    mapa.emplace(n2.GetIS()->GetHash(), vector<EFGNode>{n2});
   }
 
   for (auto &i : actions) {
@@ -120,22 +150,23 @@ void EFGTreewalk(const shared_ptr<Domain>& domain, EFGNode *node,
 
     if (players == n->GetState()->GetNumPlayers()) {
       int actionssize = locallist.size();
+      int index = 1;
       while (node->GetPlayer() >= actionssize) {
-        n->AddAOH(n->GetState()->GetLast()[2 * (n->GetPlayer() & 1)]);
-        n->AddAOH(n->GetState()->GetLast()[2 * (n->GetPlayer() &1) + 1]);
+        n->PushLast(node->GetLast()[2 * index], node->GetLast()[2 * index + 1]);
         locallist.insert(locallist.begin(), make_shared<Action>(NoA));
         ++actionssize;
+        ++index;
       }
       while (domain->GetMaxPlayers() > locallist.size()) {
         locallist.push_back(make_shared<Action>(NoA));
-        if (!n->GetState()->GetLast().empty()) {
-          n->AddAOH(n->GetState()->GetLast()[2 * (n->GetPlayer() & 1)]);
-          n->AddAOH(n->GetState()->GetLast()[2 * (n->GetPlayer() & 1) + 1]);
+        if (!node->GetLast().empty()) {
+          n->PushLast(node->GetLast()[2* index], node->GetLast()[2* index + 1]);
         }
+        ++index;
       }
-      // if all players play in this turn, returns a ProbDistribution
+     // if all players play in this turn, returns a ProbDistribution
       ProbDistribution prob = n->GetState()->PerformAction(locallist);
-      ChanceNode chan(&prob, n);
+      ChanceNode chan(&prob, locallist, n);
       vector<unique_ptr<EFGNode>> vec = chan.GetAll();
       for (auto &j : vec) {
         ++countStates;
@@ -145,13 +176,20 @@ void EFGTreewalk(const shared_ptr<Domain>& domain, EFGNode *node,
         EFGTreewalk(domain, j.get(), depth - 1, 1, {}, FunctionForState);
       }
     } else {
+      if (depth < domain->GetMaxDepth()) {
+        int index = n->GetPlayer();
+        while (index < domain->GetMaxPlayers()) {
+          n->PushLast(node->GetLast()[2 * index], node->GetLast()[2 * index + 1]);
+          ++index;
+        }
+    }
       EFGTreewalk(domain, n.get(), depth, players + 1, locallist, FunctionForState);
     }
   }
 }
 
 void EFGTreewalk(const shared_ptr<Domain>& domain, EFGNode *node,
-                 int depth, int players,
+                 unsigned int depth, int players,
                  const vector<shared_ptr<Action>>& list) {
   EFGTreewalk(domain, node, depth, players, list, [](EFGNode* s){});
 }

@@ -23,7 +23,7 @@ TEST_F(FTest, Depth2PROP33) {
   PursuitDomain::height_ = 3;
   vector<Pos> loc = {{0, 0},
                      {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}};
-  unique_ptr<Domain> d = MakeUnique<PursuitDomain>(2, loc.size(), loc);
+  shared_ptr<Domain> d = make_shared<PursuitDomain>(2, loc.size(), loc);
   unique_ptr<EFGNode> node = MakeUnique<EFGNode>(0, std::make_shared<PursuitState>(loc, 1),
                                                  vector<double>(loc.size()), nullptr);
 
@@ -39,7 +39,7 @@ TEST_F(FTest, Depth3PROP44) {
   PursuitDomain::height_ = 4;
   vector<Pos> loc = {{0, 0},
                      {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}};
-  unique_ptr<Domain> d = MakeUnique<PursuitDomain>(3, loc.size(), loc);
+  shared_ptr<Domain> d = make_shared<PursuitDomain>(3, loc.size(), loc);
   unique_ptr<EFGNode> node = MakeUnique<EFGNode>(0, std::make_shared<PursuitState>(loc, 1),
                                                  vector<double>(loc.size()), nullptr);
 
@@ -55,7 +55,7 @@ TEST_F(FTest, Depth3PROP33) {
   PursuitDomain::height_ = 3;
   vector<Pos> loc = {{0, 0},
                      {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}};
-  unique_ptr<Domain> d = MakeUnique<PursuitDomain>(3, loc.size(), loc);
+  shared_ptr<Domain> d = make_shared<PursuitDomain>(3, loc.size(), loc);
   unique_ptr<EFGNode> node = MakeUnique<EFGNode>(0, std::make_shared<PursuitState>(loc, 1),
                                                  vector<double>(loc.size()), nullptr);
   EFGTreewalk(d, node.get(), d->GetMaxDepth(), 1, {});
@@ -70,7 +70,7 @@ TEST_F(FTest, MMDepth2PROP33) {
   PursuitDomain::height_ = 3;
   vector<Pos> loc = {{0, 0},
                      {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}};
-  unique_ptr<Domain> d = MakeUnique<PursuitDomain>(2, loc.size(), loc);
+  shared_ptr<Domain> d = make_shared<PursuitDomain>(2, loc.size(), loc);
   unique_ptr<EFGNode> node = MakeUnique<EFGNode>(0, std::make_shared<MMPursuitState>(loc, vector<bool>({true, false}), 1),
                                                  vector<double>(loc.size()), nullptr);
   EFGTreewalk(d, node.get(), d->GetMaxDepth(), 1, {});
@@ -89,7 +89,7 @@ TEST_F(FTest, MMDepth3PROP44) {
   PursuitDomain::height_ = 4;
   vector<Pos> loc = {{0, 0},
                      {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}};
-  unique_ptr<Domain> d = MakeUnique<PursuitDomain>(3, loc.size(), loc);
+  shared_ptr<Domain> d = make_shared<PursuitDomain>(3, loc.size(), loc);
   unique_ptr<EFGNode> node = MakeUnique<EFGNode>(0, std::make_shared<MMPursuitState>(loc, vector<bool>({true, false}), 1),
                                                  vector<double>(loc.size()), nullptr);
   EFGTreewalk(d, node.get(), d->GetMaxDepth(), 1, {});
@@ -107,7 +107,7 @@ TEST_F(FTest, MMDepth4PROP44) {
   PursuitDomain::height_ = 3;
   vector<Pos> loc = {{0, 0},
                      {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}};
-  unique_ptr<Domain> d = MakeUnique<PursuitDomain>(4, loc.size(), loc);
+  shared_ptr<Domain> d = make_shared<PursuitDomain>(4, loc.size(), loc);
   unique_ptr<EFGNode> node = MakeUnique<EFGNode>(0, std::make_shared<MMPursuitState>(loc, vector<bool>({true, false}), 1),
                                                  vector<double>(loc.size()), nullptr);
   EFGTreewalk(d, node.get(), d->GetMaxDepth(), 1, {});
