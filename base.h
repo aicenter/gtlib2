@@ -7,10 +7,10 @@
 
 #include <functional>
 #include <iostream>
+#include <utility>
 #include <vector>
 #include <cmath>
 #include <memory>
-#include <utility>
 #include <ctime>
 #include <string>
 #include <unordered_map>
@@ -25,12 +25,14 @@ using std::shared_ptr;
 using std::to_string;
 using std::unordered_map;
 using std::make_shared;
+using std::pair;
 
 
 
 /**
  * Action is an abstract class that represents actions,
- * which are identified by their id.  */
+ * which are identified by their id.
+ */
 class Action {
  public:
   // constructor
@@ -59,7 +61,8 @@ static Action NoA(-1);  // No Action
 
 /**
  * Observation is an abstract class that represents observations,
- * which are identified by their id.  */
+ * which are identified by their id.
+ */
 class Observation {
  public:
   // constructor
@@ -96,7 +99,8 @@ class State;  // Forward declaration
 
 /**
  * Outcome is a class that represents outcomes,
- * which contain rewards, observations and a new state.  */
+ * which contain rewards, observations and a new state.
+ */
 class Outcome{
  public:
   Outcome(shared_ptr<State> s, vector<shared_ptr<Observation>> ob,
@@ -125,25 +129,29 @@ class Outcome{
 
 /**
  * ProbDistribution is a class that represent
- * pairs of outcomes and their probability.  */
+ * pairs of outcomes and their probability.
+ */
 class ProbDistribution {
  public:
   // constructor
-  explicit ProbDistribution(vector<std::pair<Outcome, double>> pairs);
+  explicit ProbDistribution(vector<pair<Outcome, double>> pairs);
 
   // GetOutcomes returns a vector of all outcomes.
   vector<Outcome> GetOutcomes();
 
+  // GetProb returns vector of probabilities over outcomes.
   vector<double> GetProb();
 
  private:
-  vector<std::pair<Outcome, double>> pairs_;
+  vector<pair<Outcome, double>> pairs_;
 };
 
 
 /**
  * InfSet is an abstract class that represent information sets,
- *  which are identified by their hash code.  */
+ *  which are identified by their hash code. Contains two structs
+ *  used for hashing this class.
+ */
 class InfSet {
  public:
   InfSet() = default;
@@ -152,13 +160,29 @@ class InfSet {
 
   // GetHash returns hash code.
   virtual size_t GetHash() = 0;
+
+  // Hash is struct that is used as hash function for InfSet shared pointer.
+  struct Hash {
+    size_t operator() (shared_ptr<InfSet> const &p) const {
+      return p->GetHash();
+    }
+  };
+
+  // Compare is used as compare function for InfSet shared pointers.
+  struct Compare {
+    bool operator() (shared_ptr<InfSet> const &a,
+                     shared_ptr<InfSet> const &b) const {
+      return *a == *b;
+    }
+  };
 };
 
 
 /**
  * AOH is a class that represents action-observation history,
  * which contains player id and vector of action-observation history,
- * hash code for faster comparing and has overloaded operator '=='  */
+ * hash code for faster comparing and has overloaded operator '=='.
+ */
 class AOH: public InfSet {
  public:
   // constructor
@@ -176,7 +200,6 @@ class AOH: public InfSet {
     }
     return false;
   }
-
  private:
   int player_;
   vector<int> aohistory_;
@@ -184,8 +207,88 @@ class AOH: public InfSet {
 };
 
 
+
 /**
- * State is an abstract class that represent states  */
+ * Strategy is a class that represents a player's (behavioral) strategy.
+ * Contains unordered_map with shared pointer to InfSet used as key and
+ * probability distribution over actions as values. Prob. distribution is
+ * represented by vector of pairs of double (0-1) and shared pointer to Action.
+ */
+class Strategy {
+ public:
+  // constructor
+  Strategy() {
+    purestrategies = unordered_map<shared_ptr<InfSet>,
+        vector<pair<double, shared_ptr<Action>>>,
+        InfSet::Hash, InfSet::Compare>();
+  }
+
+  // inserts new element into unordered_map
+  inline void Add(const shared_ptr<InfSet>& key,
+                  const vector<pair<double, shared_ptr<Action>>>& value) {
+    purestrategies.emplace(key, value);
+  }
+
+  // returns element with  key equivalent to key
+  inline const vector<pair<double, shared_ptr<Action>>>& Find(const shared_ptr<InfSet>& key) const {
+    return purestrategies.find(key)->second;  // TODO(rozlijak): osetrit false
+  }
+
+  // returns all strategies
+  inline virtual const unordered_map<shared_ptr<InfSet>,
+      vector<pair<double, shared_ptr<Action>>>,
+      InfSet::Hash, InfSet::Compare>& GetStrategies() {
+    return purestrategies;
+  }
+
+ protected:
+  unordered_map<shared_ptr<InfSet>, vector<pair<double, shared_ptr<Action>>>,
+      InfSet::Hash, InfSet::Compare> purestrategies;
+};
+
+
+/**
+ * PureStrategy is a class that represents a player's pure strategy.
+ * Contains unordered_map with shared pointer to InfSet used as key and
+ * probability distribution over actions as values. Prob. distribution is
+ * represented by a pair of double (1) and shared pointer to Action.
+ */
+class PureStrategy: public Strategy {
+ public:
+  // constructor
+  PureStrategy() : Strategy() {}
+
+  // inserts new element into unordered_map
+  inline void Add(const shared_ptr<InfSet> &key,
+                  const shared_ptr<Action> &value) {
+    purestrategies.emplace(key, vector<pair<double, shared_ptr<Action>>>
+        {std::make_pair(1, value)});
+  }
+
+  // returns all pure strategies
+  inline const unordered_map<shared_ptr<InfSet>,
+      vector<pair<double, shared_ptr<Action>>>,
+      InfSet::Hash, InfSet::Compare>& GetStrategies() override {
+    return purestrategies;
+  }
+
+  // returns shared pointer to Action with key equivalent to key or returns NoA
+  inline const shared_ptr<Action>& Find(const shared_ptr<InfSet>& key)const {
+    auto search = purestrategies.find(key);
+    if (search != purestrategies.end()) {
+      return search->second[0].second;
+    }
+    return noa;
+  }
+
+ private:
+  shared_ptr<Action> noa = make_shared<Action>(NoA);  // TODO(rozlijak): temp
+};
+
+
+/**
+ * State is an abstract class that represent states
+ */
 class State {
  public:
   // constructor
@@ -219,7 +322,8 @@ class State {
 
 /**
  * Domain is an abstract class that represent domain,
- * contains a probability distribution over root states.  */
+ * contains a probability distribution over root states.
+ */
 class Domain {
  public:
   // constructor
@@ -248,15 +352,13 @@ class Domain {
 
   static int depth_;
 
+  // Start function to calculate an expected value for a strategy profile
+  virtual double CalculateUtility(const vector<PureStrategy>&pure_strategies);
+
   // Calculate an expected value for a strategy profile
-  virtual double CalculateUtility(const vector<unordered_map<vector<int>,
-      shared_ptr<Action>>>&pure_strategy_profile);
-
-
   virtual double ComputeUtility(State* state, unsigned int depth,
                                 unsigned int players,
-                                const vector<unordered_map<vector<int>,
-                                    shared_ptr<Action>>>& pure_strategies,
+                                const vector<PureStrategy>& pure_strategies,
                                 const vector<vector<int>>& aoh);
 
  protected:
@@ -266,13 +368,17 @@ class Domain {
 };
 
 
+
+
+
+
 // Domain independent treewalk algorithm
-void Treewalk(const shared_ptr<Domain> domain, State *state,
+void Treewalk(shared_ptr<Domain> domain, State *state,
               unsigned int depth, int players,
               std::function<void(State*)> FunctionForState);
 
 
-void Treewalk(const shared_ptr<Domain> domain, State *state,
+void Treewalk(shared_ptr<Domain> domain, State *state,
               unsigned int depth, int players);
 
 // Start method for domain independent treewalk algorithm

@@ -19,7 +19,8 @@ const vector<string> eightdes_ = {"nowhere", "top left", "top", "top right",
 
 /**
  * PursuitAction is a class that represents pursuit actions,
- * which are identified by their id and contain where to move.  */
+ * which are identified by their id and contain where to move.
+ */
 class PursuitAction: public Action {
  public:
   // constructor
@@ -44,7 +45,8 @@ class PursuitAction: public Action {
 /**
  * PursuitObservation is a class that represents pursuit observation,
  * which are identified by their id and
- * contain vector of mini-observations to others.  */
+ * contain vector of mini-observations to others.
+ */
 class PursuitObservation: public Observation {
  public:
   // constructor
@@ -64,7 +66,8 @@ class PursuitObservation: public Observation {
 
 /**
  * PursuitObservationLoc is a class that represents pursuit observation,
- * which are identified by their id and contain vector of others' locations. */
+ * which are identified by their id and contain vector of others' locations.
+ */
 class PursuitObservationLoc: public Observation {
  public:
   // constructor
@@ -86,7 +89,8 @@ class PursuitObservationLoc: public Observation {
 /**
  * PursuitState is a class that represents pursuit states,
  * which contains eight surrounding, moves,
- * vector of locations of all players and state probability.  */
+ * vector of locations of all players and state probability.
+ */
 class PursuitState: public State {
  public:
   // Constructor
@@ -151,7 +155,8 @@ class PursuitState: public State {
 
 /**
  * MMPursuitState is a class that represents multiple-move pursuit states,
- * which contains vector of all players and a move count of player on turn. */
+ * which contains vector of all players and a move count of player on turn.
+ */
 class MMPursuitState: public PursuitState {
  public:
   // Constructor
@@ -183,7 +188,8 @@ class MMPursuitState: public PursuitState {
  * ObsPursuitState is a class that represents pursuit states,
  * which contains eight surrounding, moves,
  * vector of locations of all players and state probability.
- * A difference is that it uses PursuitObservationLoc. */
+ * A difference is that it uses PursuitObservationLoc.
+ */
 class ObsPursuitState: public PursuitState {
  public:
   // Constructor
@@ -220,7 +226,8 @@ class PursuitDomain: public Domain{
 
 /**
  * PursuitDomainChance is a class that represents pursuit domain,
- * it starts with a ChanceNode, so it can have more first states. */
+ * it starts with a ChanceNode, so it can have more first states.
+ */
 class PursuitDomainChance: public PursuitDomain{
  public:
   // constructor

@@ -13,7 +13,8 @@ using std::unordered_map;
 /**
  * EFGNode is a class that represents node in an extensive form game,
  * which contains action-observation history, state,
- * rewards (utility) and Information set.  */
+ * rewards (utility) and Information set.
+ */
 class EFGNode {
  public:
   // constructor
@@ -74,9 +75,6 @@ class EFGNode {
     last_.push_back(obs);
   }
 
-
-  int IS = -1;  // information set id
-
  private:
   int player_;
   shared_ptr<State> state_;
@@ -88,7 +86,8 @@ class EFGNode {
 
 /**
  * ChanceNode is a class which encapsulates probability distribution,
- * making new EFGNodes from outcomes */
+ * making new EFGNodes from outcomes
+ */
 class ChanceNode {
  public:
 //  // constructor

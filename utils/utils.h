@@ -40,7 +40,8 @@ unique_ptr<T> MakeUnique(Args &&... args) {
 }
 
 /* CastDynamic dynamically casts vector of type T to vector of type U,
- * works only with shared_ptr, it has no problem with virtual inheritence. */
+ * works only with shared_ptr, it has no problem with virtual inheritence.
+ */
 template <typename T, typename U>
 vector<shared_ptr<U>> CastDynamic(const vector<shared_ptr<T>>& list2) {
   vector<shared_ptr<U>> list = vector<shared_ptr<U>>();
@@ -51,7 +52,8 @@ vector<shared_ptr<U>> CastDynamic(const vector<shared_ptr<T>>& list2) {
 }
 
 /* Cast statically casts vector of type T to vector of type U,
- * works only with shared_ptr, it should be a default choice. */
+ * works only with shared_ptr, it should be a default choice.
+ */
 template <typename T, typename U>
 vector<shared_ptr<U>> Cast(const vector<shared_ptr<T>>& list2) {
   vector<shared_ptr<U>> list = vector<shared_ptr<U>>();
@@ -64,19 +66,20 @@ vector<shared_ptr<U>> Cast(const vector<shared_ptr<T>>& list2) {
 /*
  * Hash container for using vector in a hash map
  */
+
 namespace std {
 template<>  // we can make this generic for any container [1]
 struct hash<vector<int>> {
-    std::size_t operator()(vector<int> const &c) const {
-        std::size_t result = c.size();
+  std::size_t operator()(vector<int> const &c) const {
+    std::size_t result = c.size();
 
-        std::hash<int> h;
+    std::hash<int> h;
 
-        for (int x : c) {
-            result += result*31+h(x);
-        }
-        return result;
+    for (int x : c) {
+      result += result * 31 + h(x);
     }
+    return result;
+  }
 };
 }  // namespace std
 #endif  // UTILS_UTILS_H_

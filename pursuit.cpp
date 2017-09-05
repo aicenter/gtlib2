@@ -87,11 +87,12 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
     if (i->GetID() == -1)
       powsize--;
   }
-  auto count = pow(2, powsize);
-  vector<std::pair<Outcome, double>> pairs;
+  int count = (1 << powsize);
+  vector<pair<Outcome, double>> pairs;
+  pairs.reserve(count);
   for (int k = 0; k < count; ++k) {
     auto rew = vector<double>(place_.size());
-    double probability = 1;
+    double probability = prob_;
     // making moves and assigning probability
     vector<Pos> moves = place_;
     for (int i = 0; i < actionssize; ++i) {
@@ -107,10 +108,10 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
     }
 
     shared_ptr<PursuitState> s = make_shared<PursuitState>(moves, probability);
-    int size = s->place_.size();
+    unsigned int size = s->place_.size();
     moves.clear();
     // detection if first has caught others
-    for (int i = 1; i < size; ++i) {
+    for (unsigned int i = 1; i < size; ++i) {
       if ((s->place_[0].x == place_[i].x && s->place_[0].y == place_[i].y &&
            s->place_[i].x == place_[0].x &&
            s->place_[i].y == place_[0].y) ||
@@ -125,9 +126,9 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
     obser.reserve(size);
     vector<int> ob = vector<int>();
     ob.reserve(size+1);
-    for (int m = 0; m < size; ++m) {  // making observations
+    for (unsigned int m = 0; m < size; ++m) {  // making observations
       id = 0;
-      for (int i = 0, p = 0; i < size; ++i, ++p) {
+      for (unsigned int i = 0, p = 0; i < size; ++i, ++p) {
         if (m == i) {
           --p;
           continue;
@@ -151,18 +152,18 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
         id += index * pow(id2, p);  // counting observation id
       }
       ob.push_back(((k >> m) & 1));
-      id += ((k >> m) & 1) * ob.size()* eight_.size();  // TODO(rozlijak): vyresit jinak
+      id += ((k >> m) & 1) * ob.size()* eight_.size();  // TODO(rozlijak): jinak
       obser.push_back(MakeUnique<PursuitObservation>(id, ob));
       ob.clear();
     }
-    D(for (int j = 0; j < size; ++j) {
+    D(for (unsigned int j = 0; j < size; ++j) {
       s->AddString(strings_[j] + "  ||  ACTION: " + actions[j]->ToString() +
                    "  | OBS: " + obser[j]->ToString(), j);
     })
 
-//    double p2 = s->prob_/prob_;
+    double p2 = s->prob_/prob_;
     Outcome p(move(s), move(obser), rew);
-    pairs.emplace_back(move(p), probability);  // pair of an outcome and its probability
+    pairs.emplace_back(move(p), p2);  // pair of an outcome and its probability
   }
   ProbDistribution prob(move(pairs));
   return prob;
@@ -185,10 +186,11 @@ ProbDistribution MMPursuitState::PerformAction(const vector<shared_ptr<Action>> 
 //  }
   int actionssize = actions.size();
   // number of all combinations
-  vector<std::pair<Outcome, double>> pairs;
+  vector<pair<Outcome, double>> pairs;
+  pairs.reserve(count);
   for (int k = 0; k < count; ++k) {
     auto rew = vector<double>(place_.size());
-    double probability = 1;
+    double probability = prob_;
     // making moves and assigning probability
     vector<Pos> moves = place_;
     for (int i = 0; i < actionssize; ++i) {
@@ -220,7 +222,9 @@ ProbDistribution MMPursuitState::PerformAction(const vector<shared_ptr<Action>> 
     int index;
     int id;
     auto obs = vector<shared_ptr<Observation>>();
+    obs.reserve(size);
     vector<int> ob = vector<int>();
+    ob.reserve(size+1);
     for (int m = 0, pom = 0; m < size; ++m, ++pom) {  // making observations
       if (actions[m]->GetID() == -1 && movecount_ > 1) {
         obs.push_back(MakeUnique<Observation>(NoOb));
@@ -260,9 +264,9 @@ ProbDistribution MMPursuitState::PerformAction(const vector<shared_ptr<Action>> 
       s->AddString(strings_[j] + "  ||  ACTION: " + actions[j]->ToString() +
                    "  | OBS: " + obs[j]->ToString(), j);
     })
-//    double p2 = s->prob_/prob_;
+    double p2 = s->prob_/prob_;
     Outcome p(move(s), move(obs), rew);
-    pairs.emplace_back(move(p), probability);  // pair of an outcome and its probability
+    pairs.emplace_back(move(p), p2);  // pair of an outcome and its probability
   }
   ProbDistribution prob(move(pairs));
   return prob;
@@ -293,11 +297,12 @@ ProbDistribution ObsPursuitState::PerformAction(const vector<shared_ptr<Action>>
     if (i->GetID() == -1)
       powsize--;
   }
-  auto count = pow(2, powsize);
-  vector<std::pair<Outcome, double>> pairs;
+  int count = 1 << powsize;
+  vector<pair<Outcome, double>> pairs;
+  pairs.reserve(count);
   for (int k = 0; k < count; ++k) {
     auto rew = vector<double>(place_.size());
-    double probability = 1;
+    double probability = prob_;
     // making moves and assigning probability
     vector<Pos> moves = place_;
     for (int i = 0; i < actionssize; ++i) {
@@ -328,7 +333,9 @@ ProbDistribution ObsPursuitState::PerformAction(const vector<shared_ptr<Action>>
     }
     int id;
     auto obs = vector<shared_ptr<Observation>>();
+    obs.reserve(size);
     vector<Pos> ob = vector<Pos>();
+    ob.reserve(size + 1);
     for (int m = 0; m < size; ++m) {  // making observations
       id = 0;
       for (int i = 0, p = 0; i < size; ++i, ++p) {
@@ -351,9 +358,9 @@ ProbDistribution ObsPursuitState::PerformAction(const vector<shared_ptr<Action>>
       s->AddString(strings_[j] + "  ||  ACTION: " + actions[j]->ToString() +
                    "  | OBS: " + obs[j]->ToString(), j);
     })
-//    double p2 = s->prob_/prob_;
+    double p2 = s->prob_/prob_;
     Outcome p(move(s), move(obs), rew);
-    pairs.emplace_back(move(p), probability);  // pair of an outcome and its probability
+    pairs.emplace_back(move(p), p2);  // pair of an outcome and its probability
   }
   ProbDistribution prob(move(pairs));
   return prob;
@@ -363,7 +370,7 @@ ProbDistribution ObsPursuitState::PerformAction(const vector<shared_ptr<Action>>
 PursuitDomain::PursuitDomain(unsigned int max, unsigned int maxplayers,
                              const vector<Pos> &loc):
     Domain(max, maxplayers) {
-  vector<std::pair<Outcome, double>> pairs;
+  vector<pair<Outcome, double>> pairs;
   Outcome o(make_shared<PursuitState>(loc),
             move(vector<shared_ptr<Observation>>(loc.size())),
             vector<double>(loc.size()));
@@ -388,16 +395,17 @@ string PursuitDomain::GetInfo() {
 
 PursuitDomain::PursuitDomain(unsigned int max) :
     PursuitDomain(max, 2,
-                  vector<Pos>{{0, 0}, {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}}) {
-}
+                  vector<Pos>{{0, 0}, {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}}) {}
 
 PursuitDomainChance::PursuitDomainChance(unsigned int max,
                                          unsigned int maxplayers,
                                          const vector<Pos> &loc):
     PursuitDomain(max, maxplayers, loc) {
-  vector<Pos> start1 = {{0, 0}, {0, 1}, {1, 0}};
-  vector<Pos> start2 = {{1, 2}, {2, 1}, {2, 2}};
-  vector<std::pair<Outcome, double>> pairs;
+  vector<Pos> start1 = {{0, 0}, {0, 1}};
+  vector<Pos> start2 = {{1, 0}, {1, 1}};
+//  vector<Pos> start1 = {{0, 0}, {0, 1}, {1, 0}};
+//  vector<Pos> start2 = {{1, 2}, {2, 1}, {2, 2}};
+  vector<pair<Outcome, double>> pairs;
   for (int i = 0; i < 3; ++i) {
     Outcome o(make_shared<PursuitState>(vector<Pos>{start1[i], start2[2]}),
               move(vector<shared_ptr<Observation>>(loc.size())),

@@ -12,7 +12,8 @@ EFGNode::EFGNode(int player, const shared_ptr<State>& state,
 EFGNode::EFGNode(int player, const shared_ptr<State> &state,
                  const vector<double> &rewards, EFGNode *node,
                  vector<int> list):
-    player_(player), state_(state), rewards_(rewards), infset_(nullptr), node_(node), last_(move(list)) {}
+    player_(player), state_(state), rewards_(rewards), infset_(nullptr),
+    node_(node), last_(move(list)) {}
 
 EFGNode::EFGNode() {
   player_ = -1;
@@ -156,6 +157,7 @@ void EFGTreewalk(const shared_ptr<Domain>& domain, EFGNode *node,
         locallist.insert(locallist.begin(), make_shared<Action>(NoA));
         ++actionssize;
         ++index;
+        FunctionForState(n.get());
       }
       while (domain->GetMaxPlayers() > locallist.size()) {
         locallist.push_back(make_shared<Action>(NoA));
@@ -163,6 +165,7 @@ void EFGTreewalk(const shared_ptr<Domain>& domain, EFGNode *node,
           n->PushLast(node->GetLast()[2* index], node->GetLast()[2* index + 1]);
         }
         ++index;
+        FunctionForState(n.get());
       }
      // if all players play in this turn, returns a ProbDistribution
       ProbDistribution prob = n->GetState()->PerformAction(locallist);
@@ -182,7 +185,7 @@ void EFGTreewalk(const shared_ptr<Domain>& domain, EFGNode *node,
           n->PushLast(node->GetLast()[2 * index], node->GetLast()[2 * index + 1]);
           ++index;
         }
-    }
+      }
       EFGTreewalk(domain, n.get(), depth, players + 1, locallist, FunctionForState);
     }
   }
