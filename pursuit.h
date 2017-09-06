@@ -122,7 +122,7 @@ class PursuitState: public State {
   }
 
   // GetPlayers returns who can play in this state.
-  inline const vector<bool> GetPlayers() const override {
+  inline const vector<bool>& GetPlayers() const override {
     return players_;
   }
 
@@ -174,7 +174,7 @@ class MMPursuitState: public PursuitState {
   inline const int GetNumPlayers() const override;
 
   // GetPlayers returns who can play in this state.
-  inline const vector<bool> GetPlayers() const override {
+  inline const vector<bool>& GetPlayers() const override {
     return players_;
   }
 
@@ -212,6 +212,10 @@ class PursuitDomain: public Domain{
                 const vector<Pos> &loc);
 
   // constructor
+  PursuitDomain(unsigned int max, unsigned int maxplayers,
+                const shared_ptr<MMPursuitState>& state);
+
+  // constructor
   explicit PursuitDomain(unsigned int max);
 
   // destructor
@@ -233,6 +237,10 @@ class PursuitDomainChance: public PursuitDomain{
   // constructor
   PursuitDomainChance(unsigned int max, unsigned int maxplayers,
                       const vector<Pos> &loc);
+
+  // constructor
+  PursuitDomainChance(unsigned int max, unsigned int maxplayers,
+                const shared_ptr<MMPursuitState>& state);
 
   // constructor
   explicit PursuitDomainChance(unsigned int max);

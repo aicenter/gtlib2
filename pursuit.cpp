@@ -397,6 +397,16 @@ PursuitDomain::PursuitDomain(unsigned int max) :
     PursuitDomain(max, 2,
                   vector<Pos>{{0, 0}, {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}}) {}
 
+PursuitDomain::PursuitDomain(unsigned int max, unsigned int maxplayers,
+                             const shared_ptr<MMPursuitState> &state):
+    Domain(max, maxplayers) {
+  vector<pair<Outcome, double>> pairs;
+  Outcome o(state, move(vector<shared_ptr<Observation>>(maxplayers)),
+            vector<double>(maxplayers));
+  pairs.emplace_back(move(o), 1);
+  root_ = make_shared<ProbDistribution>(move(pairs));
+}
+
 PursuitDomainChance::PursuitDomainChance(unsigned int max,
                                          unsigned int maxplayers,
                                          const vector<Pos> &loc):
@@ -418,6 +428,23 @@ PursuitDomainChance::PursuitDomainChance(unsigned int max,
 PursuitDomainChance::PursuitDomainChance(unsigned int max) :
     PursuitDomainChance(max, 2,
                         vector<Pos>{{0, 0}, {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}}) {}
+
+PursuitDomainChance::PursuitDomainChance(unsigned int max,
+                                         unsigned int maxplayers,
+                                         const shared_ptr<MMPursuitState> &state)
+    : PursuitDomain(max, maxplayers, state) {
+  vector<Pos> start1 = {{0, 0}, {0, 1}};
+  vector<Pos> start2 = {{1, 0}, {1, 1}};
+//  vector<Pos> start1 = {{0, 0}, {0, 1}, {1, 0}};
+//  vector<Pos> start2 = {{1, 2}, {2, 1}, {2, 2}};
+  vector<pair<Outcome, double>> pairs;
+  for (int i = 0; i < 3; ++i) {
+    Outcome o(state, move(vector<shared_ptr<Observation>>(maxplayers)),
+              vector<double>(maxplayers));
+    pairs.emplace_back(move(o), 1);
+  }
+  root_ = make_shared<ProbDistribution>(move(pairs));
+}
 
 
 int countStates = 0;

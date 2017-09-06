@@ -2,6 +2,8 @@
 // Created by rozliv on 07.08.2017.
 //
 
+
+#include <cassert>
 #include "base.h"
 
 
@@ -78,9 +80,18 @@ double Domain::ComputeUtility(State* state, unsigned int depth,
   }
 
   auto search = vector<shared_ptr<Action>>(aoh.size());
+  auto player = state->GetPlayers();
   for (int i = 0; i < aoh.size(); ++i) {
-    auto ptr = make_shared<AOH>(i, aoh[i]);
-    search[i] = pure_strategies[i].Find(ptr);
+    if(player[i]) {
+      auto ptr = make_shared<AOH>(i, aoh[i]);
+      auto action = pure_strategies[i].Find(ptr);
+      if (action != pure_strategies[i].End())
+        search[i] = action->second[0].second;
+      else
+        throw("No action found!");
+    } else {
+      search[i] = make_shared<Action>(NoA);
+    }
   }
   ProbDistribution prob = state->PerformAction(search);
   vector<Outcome> outcomes = prob.GetOutcomes();
@@ -103,8 +114,33 @@ double Domain::ComputeUtility(State* state, unsigned int depth,
 }
 
 
-
 int Domain::depth_ = 0;  // TODO(rozlijak)
+
+double BestResponse(int player, const shared_ptr<vector<double>>& strategies,
+                    int rows, int cols, const vector<double>& utilities) {
+  assert(rows * cols == utilities.size());
+  double suma;
+  if(player == 1) {
+    double min = INT32_MAX;
+    for (int i = 0; i < rows; i++) {
+      suma = 0;
+      for (unsigned int j = 0; j < cols; j++) {
+        suma += utilities[i * cols + j] * strategies->operator[](j);
+      }
+      if (suma < min) min = suma;
+    }
+    return min;
+  }
+  double max = INT32_MIN;
+  for (int i=0; i < cols; i++) {
+    suma = 0;
+    for (unsigned int j = 0; j < rows; j++) {
+      suma +=utilities[j*cols + i] * strategies->operator[](j);
+    }
+    if (suma > max) max = suma;
+  }
+  return max;
+}
 
 
 void TreewalkStart(const shared_ptr<Domain>& domain, unsigned int depth) {

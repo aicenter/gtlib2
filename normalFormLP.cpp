@@ -38,16 +38,14 @@ NormalFormLP::NormalFormLP(const int _p1_actions, const int _p2_actions,
 
 NormalFormLP::NormalFormLP(const shared_ptr<Domain> _game) {
   auto aohistories = vector<shared_ptr<unordered_map<shared_ptr<InfSet>,
-      vector<shared_ptr<Action>>, InfSet::Hash, InfSet::Compare>>>
-      {make_shared<unordered_map<shared_ptr<InfSet>, vector<shared_ptr<Action>>,
-          InfSet::Hash, InfSet::Compare>>(),
-       make_shared<unordered_map<shared_ptr<InfSet>, vector<shared_ptr<Action>>,
-           InfSet::Hash, InfSet::Compare>>()};
+      vector<shared_ptr<Action>>>>>
+      {make_shared<unordered_map<shared_ptr<InfSet>, vector<shared_ptr<Action>>>>(),
+       make_shared<unordered_map<shared_ptr<InfSet>, vector<shared_ptr<Action>>>>()};
 
   std::function<void(EFGNode*, vector<shared_ptr<unordered_map<shared_ptr<InfSet>,
-      vector<shared_ptr<Action>>, InfSet::Hash, InfSet::Compare>>> _aohistories)> funkce =
+      vector<shared_ptr<Action>>>>> _aohistories)> funkce =
       ([](EFGNode* n, vector<shared_ptr<unordered_map<shared_ptr<InfSet>,
-          vector<shared_ptr<Action>>, InfSet::Hash, InfSet::Compare>>> _aohistories) {
+          vector<shared_ptr<Action>>>>> _aohistories) {
         auto ptr = make_shared<AOH>(n->GetPlayer(), n->GetAOH(n->GetPlayer()));
         _aohistories[n->GetPlayer()]->operator[](ptr) =
             n->GetState()->GetActions(n->GetPlayer());
@@ -55,7 +53,7 @@ NormalFormLP::NormalFormLP(const shared_ptr<Domain> _game) {
 
 //  vector<Pos> loc = {{0, 0},
 //                     {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}};
-//  unique_ptr<EFGNode> node = MakeUnique<EFGNode>(0, std::make_shared<MMPursuitState>(loc, vector<bool>({true, false}), 2),
+//  unique_ptr<EFGNode> node = MakeUnique<EFGNode>(0, make_shared<MMPursuitState>(loc, vector<bool>({true, false}), 1),
 //                                                 vector<double>(loc.size()), nullptr);
 //  EFGTreewalk(_game, node.get(), _game->GetMaxDepth(), 1, {},
 //              std::bind(funkce, std::placeholders::_1, aohistories));
@@ -63,12 +61,9 @@ NormalFormLP::NormalFormLP(const shared_ptr<Domain> _game) {
   EFGTreewalkStart(_game, std::bind(funkce, std::placeholders::_1, aohistories));
 
   auto aoh = vector<vector<vector<shared_ptr<Action>>>>(_game->GetMaxPlayers());
-  int co = 1;
   for (int i = 0; i < _game->GetMaxPlayers(); ++i) {
     for (auto it = aohistories[i]->begin(); it != aohistories[i]->end(); ++it) {
       aoh[i].emplace_back(it->second);
-      if (i == 0)
-        co *= it->second.size();
     }
   }
 
@@ -79,57 +74,27 @@ NormalFormLP::NormalFormLP(const shared_ptr<Domain> _game) {
   for (const auto &i : aoh) {
     res.push_back(CartProduct(i));
   }
-  auto pole = vector<vector<double>>(res[0].size());
-  for (int i = 0; i < res[0].size(); i++) {
+  rows_ = res[0].size();
+  cols_ = res[1].size();
+  vector<double> tmp(rows_*cols_);
+
+  for (int i = 0; i < rows_; i++) {
     auto a1 = PureStrategy();
     int k = 0;
     for (auto it = aohistories[0]->begin(); it != aohistories[0]->end(); ++it, ++k) {
       a1.Add(it->first, res[0][i][k]);
     }
-    for (auto &j : res[1]) {
+    for (int j = 0; j < cols_; j++)  {
       auto a2 = PureStrategy();
       k = 0;
       for (auto it = aohistories[1]->begin(); it != aohistories[1]->end(); ++it, ++k) {
-        a2.Add(it->first, j[k]);
+        a2.Add(it->first, res[1][j][k]);
       }
       auto vec = vector<PureStrategy>({a1, a2});
-      pole[i].push_back(_game->CalculateUtility(vec));
-    }
-  }
-  rows_ = res[0].size();
-  cols_ = res[1].size();
-  vector<double> tmp(rows_*cols_);
-
-  for (int i=0; i < rows_; i++) {
-    for (int j=0; j < cols_; j++) {
-      tmp[i*cols_ + j] = pole[i][j];
+      tmp[i*cols_ + j] = _game->CalculateUtility(vec);
     }
   }
   BuildModel(&tmp);
-  cout << "vysledek hry: " << SolveGame() << "\n";
-
-  double suma;
-  auto vec1 = GetStrategy(0);
-  double min = 5;
-  for (int i=0; i < rows_; i++) {
-    suma = 0;
-    for (unsigned int j = 0; j < cols_; j++) {
-      suma +=pole[i][j] * vec1->operator[](j);
-    }
-    if (suma < min) min = suma;
-  }
-  cout << "vysledek pro 0.: " << min << "\n";
-
-  auto vec = GetStrategy(1);
-  double max = -5;
-  for (int i=0; i < cols_; i++) {
-    suma = 0;
-    for (unsigned int j = 0; j < rows_; j++) {
-      suma +=pole[j][i] * vec->operator[](j);
-    }
-    if (suma > max) max = suma;
-  }
-  cout << "vysledek pro 1.: " << max << "\n\n";
 }
 
 NormalFormLP::~NormalFormLP() {
@@ -156,6 +121,7 @@ double NormalFormLP::SolveGame() {
   return value_of_the_game_;
 }
 
+
 void NormalFormLP::BuildModel(const vector<double>* _utility_matrix) {
   assert(_utility_matrix != nullptr);
 
@@ -178,7 +144,7 @@ void NormalFormLP::BuildModel(const vector<double>* _utility_matrix) {
   for (int i=0; i < rows_; ++i) {
     IloExpr sum(env_);
     for (int j=0; j < cols_; ++j) {
-      sum += _utility_matrix->at(i*cols_+j)*x_[j];
+      sum += _utility_matrix->operator[](i*cols_+j)*x_[j];
     }
     c_.add(IloRange(env_, 0, sum - V));
   }
@@ -207,13 +173,13 @@ shared_ptr<vector<double>> NormalFormLP::GetStrategy(int _player) {
     for (int i=0; i < cols_; ++i) {
       result[i] = cplex_.getValue(x_[i]);
     }
-    return std::make_shared<vector<double>>(result);
+    return make_shared<vector<double>>(result);
   } else {
     vector<double> result(rows_);
     for (int i=0; i < rows_; ++i) {
       result[i] = -cplex_.getDual(c_[i]);
     }
-    return std::make_shared<vector<double>>(result);
+    return make_shared<vector<double>>(result);
   }
 }
 

@@ -125,5 +125,4 @@ void EFGTreewalkStart(const shared_ptr<Domain>& domain,
                       std::function<void(EFGNode*)> FunctionForState,
                       unsigned int depth = 0);
 
-
 #endif  // EFG_H_

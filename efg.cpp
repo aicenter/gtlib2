@@ -65,9 +65,7 @@ vector<unique_ptr<EFGNode>> ChanceNode::GetAll() {
   if (node_->GetPlayer() >= 0) {  // preparing first states
     for (Outcome &o : outcomes) {
       vector<double> rews = vector<double>(o.GetReward().size());
-      for (int j = 0; j < rews.size(); ++j) {
-        rews[j] = node_->GetRewards()[j] + o.GetReward()[j];
-      }
+      rews = node_->GetRewards() + o.GetReward();
       for (unsigned int i = 0; i < o.GetState()->GetPlayers().size(); ++i) {
         if (o.GetState()->GetPlayers()[i]) {
           vector<int> aoh{actions_[i]->GetID(), o.GetObs()[i]->GetID()};

@@ -147,10 +147,10 @@ class ProbDistribution {
 };
 
 
+
 /**
  * InfSet is an abstract class that represent information sets,
- *  which are identified by their hash code. Contains two structs
- *  used for hashing this class.
+ *  which are identified by their hash code.
  */
 class InfSet {
  public:
@@ -160,21 +160,6 @@ class InfSet {
 
   // GetHash returns hash code.
   virtual size_t GetHash() = 0;
-
-  // Hash is struct that is used as hash function for InfSet shared pointer.
-  struct Hash {
-    size_t operator() (shared_ptr<InfSet> const &p) const {
-      return p->GetHash();
-    }
-  };
-
-  // Compare is used as compare function for InfSet shared pointers.
-  struct Compare {
-    bool operator() (shared_ptr<InfSet> const &a,
-                     shared_ptr<InfSet> const &b) const {
-      return *a == *b;
-    }
-  };
 };
 
 
@@ -206,7 +191,22 @@ class AOH: public InfSet {
   size_t seed_ = 0;
 };
 
+namespace std {
+  template<>
+  struct hash<shared_ptr<InfSet>> {
+    size_t operator()(shared_ptr<InfSet> const &p) const {
+      return p->GetHash();
+    }
+  };
 
+  template<>
+  struct equal_to<shared_ptr<InfSet>> {
+    bool operator()(shared_ptr<InfSet> const &a,
+                    shared_ptr<InfSet> const &b) const {
+      return *a == *b;
+    }
+  };
+}
 
 /**
  * Strategy is a class that represents a player's (behavioral) strategy.
@@ -215,35 +215,38 @@ class AOH: public InfSet {
  * represented by vector of pairs of double (0-1) and shared pointer to Action.
  */
 class Strategy {
+ protected:
+  unordered_map<shared_ptr<InfSet>, vector<pair<double, shared_ptr<Action>>>> purestrategies;
  public:
   // constructor
   Strategy() {
     purestrategies = unordered_map<shared_ptr<InfSet>,
-        vector<pair<double, shared_ptr<Action>>>,
-        InfSet::Hash, InfSet::Compare>();
+        vector<pair<double, shared_ptr<Action>>>>();
   }
 
   // inserts new element into unordered_map
-  inline void Add(const shared_ptr<InfSet>& key,
-                  const vector<pair<double, shared_ptr<Action>>>& value) {
+  inline auto Add(const shared_ptr<InfSet>& key,
+                  const vector<pair<double, shared_ptr<Action>>>& value)
+  -> decltype(purestrategies.emplace(key, value)) {
     purestrategies.emplace(key, value);
   }
 
   // returns element with  key equivalent to key
-  inline const vector<pair<double, shared_ptr<Action>>>& Find(const shared_ptr<InfSet>& key) const {
-    return purestrategies.find(key)->second;  // TODO(rozlijak): osetrit false
+  inline auto Find(const shared_ptr<InfSet>& key)const
+  -> decltype(purestrategies.find(key)) {
+    return purestrategies.find(key);
+  }
+
+  // returns end of unordered_map it is used with Find method.
+  inline auto End()const -> decltype(purestrategies.end()) const {
+    return purestrategies.end();
   }
 
   // returns all strategies
   inline virtual const unordered_map<shared_ptr<InfSet>,
-      vector<pair<double, shared_ptr<Action>>>,
-      InfSet::Hash, InfSet::Compare>& GetStrategies() {
+      vector<pair<double, shared_ptr<Action>>>>& GetStrategies() {
     return purestrategies;
   }
-
- protected:
-  unordered_map<shared_ptr<InfSet>, vector<pair<double, shared_ptr<Action>>>,
-      InfSet::Hash, InfSet::Compare> purestrategies;
 };
 
 
@@ -259,30 +262,13 @@ class PureStrategy: public Strategy {
   PureStrategy() : Strategy() {}
 
   // inserts new element into unordered_map
-  inline void Add(const shared_ptr<InfSet> &key,
-                  const shared_ptr<Action> &value) {
+  inline auto Add(const shared_ptr<InfSet> &key,
+                  const shared_ptr<Action> &value)
+  -> decltype(purestrategies.emplace(key, vector<pair<double, shared_ptr<Action>>>
+      {std::make_pair(1, value)})){
     purestrategies.emplace(key, vector<pair<double, shared_ptr<Action>>>
         {std::make_pair(1, value)});
   }
-
-  // returns all pure strategies
-  inline const unordered_map<shared_ptr<InfSet>,
-      vector<pair<double, shared_ptr<Action>>>,
-      InfSet::Hash, InfSet::Compare>& GetStrategies() override {
-    return purestrategies;
-  }
-
-  // returns shared pointer to Action with key equivalent to key or returns NoA
-  inline const shared_ptr<Action>& Find(const shared_ptr<InfSet>& key)const {
-    auto search = purestrategies.find(key);
-    if (search != purestrategies.end()) {
-      return search->second[0].second;
-    }
-    return noa;
-  }
-
- private:
-  shared_ptr<Action> noa = make_shared<Action>(NoA);  // TODO(rozlijak): temp
 };
 
 
@@ -310,7 +296,7 @@ class State {
   virtual const int GetNumPlayers() const = 0;
 
   // GetPlayers returns who can play in this state.
-  virtual const vector<bool> GetPlayers() const = 0;
+  virtual const vector<bool>& GetPlayers() const = 0;
 
   // AddString adds string s to a string in vector of strings.
   virtual void AddString(const string &s, int player) = 0;
@@ -367,10 +353,19 @@ class Domain {
   shared_ptr<ProbDistribution> root_;
 };
 
+vector<double> operator+(const vector<double>& v1, const vector<double>& v2) {
+  if (v1.size() == v2.size()) {
+    vector<double> vec = vector<double>(v1.size());
+    for (unsigned int k = 0; k < v1.size(); ++k) {
+      vec[k] = v1[k] + v2[k];
+    }
+    return vec;
+  }
+  return {};
+}
 
-
-
-
+double BestResponse(int player, shared_ptr<vector<double>> strategies, int rows,
+                    int cols, vector<double> utilities);
 
 // Domain independent treewalk algorithm
 void Treewalk(shared_ptr<Domain> domain, State *state,
