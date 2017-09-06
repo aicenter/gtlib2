@@ -63,6 +63,29 @@ vector<shared_ptr<U>> Cast(const vector<shared_ptr<T>>& list2) {
   return list;
 }
 
+// overloaded operator + for vector<double>
+inline vector<double> operator+(const vector<double>& v1, const vector<double>& v2) {
+  if (v1.size() == v2.size()) {
+    vector<double> vec = vector<double>(v1.size());
+    for (unsigned int k = 0; k < v1.size(); ++k) {
+      vec[k] = v1[k] + v2[k];
+    }
+    return vec;
+  }
+  return {};
+}
+
+// overloaded operator += for vector<double>
+inline vector<double>& operator +=(vector<double>& v1, const vector<double>& v2) {
+  if (v1.size() == v2.size()) {
+    for (unsigned int k = 0; k < v1.size(); ++k) {
+      v1[k] += v2[k];
+    }
+  }
+  return v1;
+}
+
+
 /*
  * Hash container for using vector in a hash map
  */

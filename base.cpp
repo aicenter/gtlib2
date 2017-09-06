@@ -82,7 +82,7 @@ double Domain::ComputeUtility(State* state, unsigned int depth,
   auto search = vector<shared_ptr<Action>>(aoh.size());
   auto player = state->GetPlayers();
   for (int i = 0; i < aoh.size(); ++i) {
-    if(player[i]) {
+    if (player[i]) {
       auto ptr = make_shared<AOH>(i, aoh[i]);
       auto action = pure_strategies[i].Find(ptr);
       if (action != pure_strategies[i].End())
@@ -120,7 +120,7 @@ double BestResponse(int player, const shared_ptr<vector<double>>& strategies,
                     int rows, int cols, const vector<double>& utilities) {
   assert(rows * cols == utilities.size());
   double suma;
-  if(player == 1) {
+  if (player == 1) {
     double min = INT32_MAX;
     for (int i = 0; i < rows; i++) {
       suma = 0;

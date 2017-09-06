@@ -3,8 +3,6 @@
 //
 
 #include "normalFormLP.h"
-#include <vector>
-#include <memory>
 #include <map>
 #include <unordered_map>
 
@@ -50,13 +48,6 @@ NormalFormLP::NormalFormLP(const shared_ptr<Domain> _game) {
         _aohistories[n->GetPlayer()]->operator[](ptr) =
             n->GetState()->GetActions(n->GetPlayer());
   });
-
-//  vector<Pos> loc = {{0, 0},
-//                     {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}};
-//  unique_ptr<EFGNode> node = MakeUnique<EFGNode>(0, make_shared<MMPursuitState>(loc, vector<bool>({true, false}), 1),
-//                                                 vector<double>(loc.size()), nullptr);
-//  EFGTreewalk(_game, node.get(), _game->GetMaxDepth(), 1, {},
-//              std::bind(funkce, std::placeholders::_1, aohistories));
 
   EFGTreewalkStart(_game, std::bind(funkce, std::placeholders::_1, aohistories));
 

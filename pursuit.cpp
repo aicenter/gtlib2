@@ -121,6 +121,7 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
       }
     }
     int index;
+    int maximum = 0;
     int id;
     auto obser = vector<shared_ptr<Observation>>();
     obser.reserve(size);
@@ -128,6 +129,7 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
     ob.reserve(size+1);
     for (unsigned int m = 0; m < size; ++m) {  // making observations
       id = 0;
+      maximum = 0;
       for (unsigned int i = 0, p = 0; i < size; ++i, ++p) {
         if (m == i) {
           --p;
@@ -148,11 +150,12 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
             index = l;
           }
         }
+        maximum += pow(id2, p+1);
         ob.push_back(index);
         id += index * pow(id2, p);  // counting observation id
       }
+      id += ((k >> m) & 1) * maximum;
       ob.push_back(((k >> m) & 1));
-      id += ((k >> m) & 1) * ob.size()* eight_.size();  // TODO(rozlijak): jinak
       obser.push_back(MakeUnique<PursuitObservation>(id, ob));
       ob.clear();
     }
@@ -456,9 +459,7 @@ void PursuitStart(const shared_ptr<Domain>& domain, unsigned int depth) {
     depth = domain->GetMaxDepth();
   vector<Outcome> outcomes = domain->GetRoot()->GetOutcomes();
   for (Outcome &o : outcomes) {
-    for (unsigned int i = 0; i < reward.size(); ++i) {
-      reward[i] += o.GetReward()[i];
-    }
+    reward += o.GetReward();
     ++countStates;
     Pursuit(domain, o.GetState().get(), depth, domain->GetMaxPlayers());
   }
@@ -481,9 +482,7 @@ void Pursuit(const shared_ptr<Domain>& domain, State *state,
   for (const auto &k : action) {
     ProbDistribution prob = state->PerformAction(k);
     for (Outcome &o : prob.GetOutcomes()) {
-      for (unsigned int i = 0; i < reward.size(); ++i) {
-        reward[i] += o.GetReward()[i];
-      }
+      reward += o.GetReward();
       ++countStates;
       Pursuit(domain, o.GetState().get(), depth - 1, players);
     }

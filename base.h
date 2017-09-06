@@ -192,21 +192,21 @@ class AOH: public InfSet {
 };
 
 namespace std {
-  template<>
-  struct hash<shared_ptr<InfSet>> {
-    size_t operator()(shared_ptr<InfSet> const &p) const {
-      return p->GetHash();
-    }
-  };
+template<>
+struct hash<shared_ptr<InfSet>> {
+  size_t operator()(shared_ptr<InfSet> const &p) const {
+    return p->GetHash();
+  }
+};
 
-  template<>
-  struct equal_to<shared_ptr<InfSet>> {
-    bool operator()(shared_ptr<InfSet> const &a,
-                    shared_ptr<InfSet> const &b) const {
-      return *a == *b;
-    }
-  };
-}
+template<>
+struct equal_to<shared_ptr<InfSet>> {
+  bool operator()(shared_ptr<InfSet> const &a,
+                  shared_ptr<InfSet> const &b) const {
+    return *a == *b;
+  }
+};
+}  // namespace std
 
 /**
  * Strategy is a class that represents a player's (behavioral) strategy.
@@ -216,7 +216,9 @@ namespace std {
  */
 class Strategy {
  protected:
-  unordered_map<shared_ptr<InfSet>, vector<pair<double, shared_ptr<Action>>>> purestrategies;
+  unordered_map<shared_ptr<InfSet>,
+      vector<pair<double, shared_ptr<Action>>>> purestrategies;
+
  public:
   // constructor
   Strategy() {
@@ -353,16 +355,6 @@ class Domain {
   shared_ptr<ProbDistribution> root_;
 };
 
-vector<double> operator+(const vector<double>& v1, const vector<double>& v2) {
-  if (v1.size() == v2.size()) {
-    vector<double> vec = vector<double>(v1.size());
-    for (unsigned int k = 0; k < v1.size(); ++k) {
-      vec[k] = v1[k] + v2[k];
-    }
-    return vec;
-  }
-  return {};
-}
 
 double BestResponse(int player, shared_ptr<vector<double>> strategies, int rows,
                     int cols, vector<double> utilities);

@@ -103,9 +103,7 @@ void EFGTreewalkStart(const shared_ptr<Domain>& domain,
   vector<unique_ptr<EFGNode>> vec = chan.GetAll();
   for (auto &j : vec) {
     ++countStates;
-    for (unsigned int k = 0; k < reward.size(); ++k) {
-      reward[k] += j->GetRewards()[k];
-    }
+    reward += j->GetRewards();
     EFGTreewalk(domain, j.get(), depth, 1, {}, FunctionForState);
   }
 }
@@ -171,9 +169,7 @@ void EFGTreewalk(const shared_ptr<Domain>& domain, EFGNode *node,
       vector<unique_ptr<EFGNode>> vec = chan.GetAll();
       for (auto &j : vec) {
         ++countStates;
-        for (unsigned int k = 0; k < reward.size(); ++k) {
-          reward[k] += j->GetRewards()[k];
-        }
+        reward += j->GetRewards();
         EFGTreewalk(domain, j.get(), depth - 1, 1, {}, FunctionForState);
       }
     } else {

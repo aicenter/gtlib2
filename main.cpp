@@ -14,10 +14,7 @@ int main(int argc, char* argv[]) {
   countStates = 0;
   PursuitDomain::height_ = 2;
   mapa = unordered_map<size_t, vector<EFGNode>>();
-  vector<Pos> loc = {{0, 0},
-                     {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}};
-  auto st = std::make_shared<MMPursuitState>(loc, vector<bool>({true, false}), 1);
-  shared_ptr<Domain> d = make_shared<PursuitDomain>(2, loc.size(), st);
+  shared_ptr<Domain> d = make_shared<PursuitDomain>(1);
 //  shared_ptr<Domain> d2 = make_shared<PursuitDomainChance>(1);
   reward = vector<double>(d->GetMaxPlayers());
   NormalFormLP nor(d);
