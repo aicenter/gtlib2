@@ -8,6 +8,7 @@
 #  cplex-cp - the CP Optimizer library
 
 include(FindPackageHandleStandardArgs)
+include(directories)
 
 # Find the path to CPLEX Studio.
 # CPLEX Studio 12.4 can be installed in the following default locations:
@@ -15,41 +16,45 @@ include(FindPackageHandleStandardArgs)
 #   /opt/IBM/ILOG/CPLEX_Studio<edition>124 - UNIX
 #   ~/Applications/IBM/ILOG/CPLEX_Studio<edition>124 - Mac OS X
 #   C:\Program Files\IBM\ILOG\CPLEX_Studio<edition>124 - Windows
+
+# directories can be edited in directories.cmake file.
+
 if (UNIX)
-  set(CPLEX_ILOG_DIRS /opt/ibm/ILOG /opt/IBM/ILOG)
+  set(CPLEX_ILOG_DIRS ${LINUX_DIR} ${UNIX_DIR})
   if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(CPLEX_ARCH x86-64)
   else ()
     set(CPLEX_ARCH x86)
   endif ()
   if (APPLE)
-    set(CPLEX_ILOG_DIRS $ENV{HOME}/Applications/IBM/ILOG ${CPLEX_ILOG_DIRS})
+    set(CPLEX_ILOG_DIRS ${APPLE_DIR} ${CPLEX_ILOG_DIRS})
+
     foreach (suffix "osx" "darwin9_gcc4.0")
       set(CPLEX_LIB_PATH_SUFFIXES
-          ${CPLEX_LIB_PATH_SUFFIXES} lib/${CPLEX_ARCH}_${suffix}/static_pic)
+              ${CPLEX_LIB_PATH_SUFFIXES} lib/${CPLEX_ARCH}_${suffix}/static_pic)
     endforeach ()
   else ()
     set(CPLEX_LIB_PATH_SUFFIXES
-      lib/${CPLEX_ARCH}_sles10_4.1/static_pic lib/${CPLEX_ARCH}_linux/static_pic)
+            lib/${CPLEX_ARCH}_sles10_4.1/static_pic lib/${CPLEX_ARCH}_linux/static_pic)
   endif ()
 else ()
-  set(CPLEX_ILOG_DIRS "C:/Program Files/IBM/ILOG")
+  set(CPLEX_ILOG_DIRS ${WIN64_DIR})
   if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(CPLEX_ARCH x64)
   else ()
     set(CPLEX_ARCH x86)
-    set(CPLEX_ILOG_DIRS "C:/Program Files (x86)/IBM/ILOG" ${CPLEX_ILOG_DIRS})
+    set(CPLEX_ILOG_DIRS ${WIN86_DIR} ${CPLEX_ILOG_DIRS})
   endif ()
   if (MSVC10)
     set(CPLEX_LIB_PATH_SUFFIXES
-      lib/${CPLEX_ARCH}_windows_vs2010/stat_mda)
+            lib/${CPLEX_ARCH}_windows_vs2010/stat_mda)
     set(CPLEX_LIB_PATH_SUFFIXES_DEBUG
-      lib/${CPLEX_ARCH}_windows_vs2010/stat_mdd)
+            lib/${CPLEX_ARCH}_windows_vs2010/stat_mdd)
   elseif (MSVC9)
     set(CPLEX_LIB_PATH_SUFFIXES
-      lib/${CPLEX_ARCH}_windows_vs2008/stat_mda)
+            lib/${CPLEX_ARCH}_windows_vs2008/stat_mda)
     set(CPLEX_LIB_PATH_SUFFIXES_DEBUG
-      lib/${CPLEX_ARCH}_windows_vs2008/stat_mdd)
+            lib/${CPLEX_ARCH}_windows_vs2008/stat_mdd)
   endif ()
 endif ()
 if (NOT CPLEX_STUDIO_DIR)
@@ -67,7 +72,7 @@ if (NOT CPLEX_STUDIO_DIR)
     set(CPLEX_STUDIO_DIR_ CPLEX_STUDIO_DIR-NOTFOUND)
   endif ()
   set(CPLEX_STUDIO_DIR ${CPLEX_STUDIO_DIR_} CACHE PATH
-    "Path to the CPLEX Studio directory")
+          "Path to the CPLEX Studio directory")
 endif ()
 
 find_package(Threads)
