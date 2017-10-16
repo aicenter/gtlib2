@@ -5,14 +5,13 @@
 #ifndef NORMALFORMLP_H_
 #define NORMALFORMLP_H_
 
-#define IL_STD
-
-
-#include <ilcplex/ilocplex.h>
+#include <cassert>
 #include <iostream>
 #include <vector>
 #include <memory>
-#include "../efg.h"
+#include "efg.h"
+#include "LPSolver.h"
+
 
 using std::vector;
 using std::shared_ptr;
@@ -25,9 +24,11 @@ using std::shared_ptr;
  */
 class NormalFormLP {
  public:
-    explicit NormalFormLP(shared_ptr<Domain> _game);
-    explicit NormalFormLP(const int _p1_actions, const int _p2_actions, const vector<double>& _utilities);
-    explicit NormalFormLP(const int _p1_actions, const int _p2_actions, const vector<vector<double>>& _utilities);
+    explicit NormalFormLP(shared_ptr<Domain> _game, shared_ptr<LPSolver> _lp_solver);
+    explicit NormalFormLP(const int _p1_actions, const int _p2_actions,
+                          const vector<double>& _utilities, shared_ptr<LPSolver> _lp_solver);
+    explicit NormalFormLP(const int _p1_actions, const int _p2_actions,
+                          const vector<vector<double>>& _utilities, shared_ptr<LPSolver> _lp_solver);
 
     virtual ~NormalFormLP();
 
@@ -44,17 +45,11 @@ class NormalFormLP {
 
 
  protected:
+    shared_ptr<LPSolver> lp_solver;
+
     int rows_;
     int cols_;
     const bool OUTPUT = true;
-
-    IloEnv env_;
-    IloModel model_;
-    IloCplex cplex_;
-
-    IloNumVarArray x_;
-    IloRangeArray c_;
-    IloRange prob_;
 
     double value_of_the_game_ = NAN;
 

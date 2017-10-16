@@ -62,7 +62,7 @@ TEST_F(FTest, Depth3PROP33) {
   ASSERT_EQ(reward[0], 1064);
   ASSERT_EQ(reward[1], -1064);
   ASSERT_EQ(countStates, 12080);
-  ASSERT_EQ(mapa.size(), 226);
+  ASSERT_EQ(mapa.size(), 218);
 }
 
 TEST_F(FTest, MMDepth2PROP33) {

@@ -30,6 +30,6 @@ if( CPLEX_FOUND )
     set(CPLEXLIB ilocplex)
 endif()
 
-set(SOURCE_FILES main.cpp pursuit.h tests/firstTest.cpp base.cpp base.h pursuit.cpp efg.cpp efg.h utils/utils.h)
+set(SOURCE_FILES main.cpp pursuit.h tests/firstTest.cpp base.cpp base.h pursuit.cpp efg.cpp efg.h utils/utils.h LPSolver.cpp LPSolver.h normalFormLP.cpp normalFormLP.h)
 add_executable(pursuit ${SOURCE_FILES} ${CPLEX_FILES} )
 target_link_libraries(pursuit gtest gtest_main ${CPLEXLIB} ${CMAKE_THREAD_LIBS_INIT})

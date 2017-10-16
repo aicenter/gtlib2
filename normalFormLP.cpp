@@ -8,16 +8,17 @@
 
 
 NormalFormLP::NormalFormLP(const int _p1_actions, const int _p2_actions,
-                           const vector<double>& _utilities) {
+                           const vector<double>& _utilities, shared_ptr<LPSolver> _lp_solver) {
   ValidateInput(_p1_actions, _p2_actions, _utilities);
-
+  lp_solver = std::move(_lp_solver);
   rows_ = _p2_actions;
   cols_ = _p1_actions;
   BuildModel(&_utilities);
 }
 
 NormalFormLP::NormalFormLP(const int _p1_actions, const int _p2_actions,
-                           const vector<vector<double>> &_utilities) {
+                           const vector<vector<double>> &_utilities, shared_ptr<LPSolver> _lp_solver) {
+  lp_solver = std::move(_lp_solver);
   rows_ = _p2_actions;
   cols_ = _p1_actions;
 
@@ -34,7 +35,8 @@ NormalFormLP::NormalFormLP(const int _p1_actions, const int _p2_actions,
   BuildModel(&tmp);
 }
 
-NormalFormLP::NormalFormLP(const shared_ptr<Domain> _game) {
+NormalFormLP::NormalFormLP(const shared_ptr<Domain> _game, shared_ptr<LPSolver> _lp_solver) {
+  lp_solver = std::move(_lp_solver);
   auto aohistories = vector<shared_ptr<unordered_map<shared_ptr<InfSet>,
       vector<shared_ptr<Action>>>>>
       {make_shared<unordered_map<shared_ptr<InfSet>, vector<shared_ptr<Action>>>>(),
@@ -96,18 +98,14 @@ void NormalFormLP::CleanModel() {
   model_ready_ = false;
   model_solved_ = false;
   value_of_the_game_ = NAN;
-  env_.end();
+  lp_solver->CleanModel();
 }
 
 double NormalFormLP::SolveGame() {
   if (!model_ready_)
     throw(-1);
-  if ( !cplex_.solve() ) {
-    env_.error() << "Failed to optimize LP" << std::endl;
-    throw(-1);
-  }
 
-  value_of_the_game_ = cplex_.getObjValue();
+  value_of_the_game_ = lp_solver->SolveGame();
   model_solved_ = true;
   return value_of_the_game_;
 }
@@ -115,37 +113,7 @@ double NormalFormLP::SolveGame() {
 
 void NormalFormLP::BuildModel(const vector<double>* _utility_matrix) {
   assert(_utility_matrix != nullptr);
-
-  env_ = IloEnv();
-  model_ = IloModel(env_);
-
-  x_ = IloNumVarArray(env_, cols_, 0, 1, ILOFLOAT);
-  c_ = IloRangeArray(env_);
-  IloNumVar V(env_, "V");
-
-  model_.add(IloMaximize(env_, V));
-
-  IloExpr prob(env_);
-  for (int i=0; i < cols_; ++i) {
-    prob += x_[i];
-  }
-  prob_ = IloRange(prob == 1);
-  model_.add(prob_);
-
-  for (int i=0; i < rows_; ++i) {
-    IloExpr sum(env_);
-    for (int j=0; j < cols_; ++j) {
-      sum += _utility_matrix->operator[](i*cols_+j)*x_[j];
-    }
-    c_.add(IloRange(env_, 0, sum - V));
-  }
-  model_.add(c_);
-
-  cplex_ = IloCplex(model_);
-  cplex_.exportModel("nfg2.lp");
-  if (!OUTPUT) {
-    cplex_.setOut(env_.getNullStream());
-  }
+  lp_solver->BuildModel(rows_, cols_, _utility_matrix, OUTPUT);
 
   model_ready_ = true;
 }
@@ -162,13 +130,13 @@ shared_ptr<vector<double>> NormalFormLP::GetStrategy(int _player) {
   if (_player == 0) {
     vector<double> result(cols_);
     for (int i=0; i < cols_; ++i) {
-      result[i] = cplex_.getValue(x_[i]);
+      result[i] = lp_solver->GetValue(i);
     }
     return make_shared<vector<double>>(result);
   } else {
     vector<double> result(rows_);
     for (int i=0; i < rows_; ++i) {
-      result[i] = -cplex_.getDual(c_[i]);
+      result[i] =  -lp_solver->GetDual(i);
     }
     return make_shared<vector<double>>(result);
   }
@@ -224,8 +192,8 @@ void NormalFormLP::ChangeOutcome(const int _action_for_p1, const int _action_for
   if (!model_ready_) {
     throw(-1);
   }
-
-  c_[_action_for_p2].setLinearCoef(x_[_action_for_p1], _new_utility);
+  // constrain. variable
+  lp_solver->SetConstraintCoefForVariable(_action_for_p2, _action_for_p1, _new_utility);
   model_solved_ = false;
 }
 
@@ -233,7 +201,7 @@ void NormalFormLP::SaveLP(const char* _file) {
   if (!model_ready_) {
     throw(-1);
   }
-  cplex_.exportModel(_file);
+  lp_solver->SaveLP(_file);
 }
 
 void NormalFormLP::AddRows(const vector<vector<double>>& _utility_for_cols) {
@@ -245,17 +213,8 @@ void NormalFormLP::AddRows(const vector<vector<double>>& _utility_for_cols) {
     throw(-1);
   }
 
-  IloExpr V = cplex_.getObjective().getExpr();
+  lp_solver->AddRows(cols_,_utility_for_cols);
 
-  for (int i=0; i < new_rows; ++i) {
-    IloExpr sum(env_);
-    for (int j=0; j < cols_; ++j) {
-      sum += _utility_for_cols[i][j]*x_[j];
-    }
-
-    c_.add(IloRange(env_, 0, sum - V));
-  }
-  model_.add(c_);
   rows_ += new_rows;
 }
 void NormalFormLP::AddCols(const vector<vector<double>>& _utility_for_rows) {
@@ -267,17 +226,7 @@ void NormalFormLP::AddCols(const vector<vector<double>>& _utility_for_rows) {
     throw(-1);
   }
 
-  IloNumVarArray new_x = IloNumVarArray(env_, new_cols, 0, 1, ILOFLOAT);
+  lp_solver->AddCols(rows_,_utility_for_rows);
 
-  for (int i=0; i < new_cols; i++) {
-    prob_.setLinearCoef(new_x[i], 1);
-  }
-
-  for (int i=0; i < rows_; i++) {
-    for (int j=0; j < new_cols; j++) {
-      c_[i].setLinearCoef(new_x[j], _utility_for_rows[j][i]);
-    }
-  }
-  x_.add(new_x);
   cols_ += new_cols;
 }

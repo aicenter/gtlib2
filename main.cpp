@@ -4,8 +4,8 @@
 
 //#include <gtest/gtest.h>
 
-#include "efg.h"
-#include "cplexfiles/normalFormLP.h"
+#include "normalFormLP.h"
+#include "cplexfiles/CplexLPSolver.h"
 
 int main(int argc, char* argv[]) {
   srand(static_cast<unsigned int>(time(nullptr)));
@@ -17,7 +17,8 @@ int main(int argc, char* argv[]) {
   shared_ptr<Domain> d = make_shared<PursuitDomain>(1);
 //  shared_ptr<Domain> d2 = make_shared<PursuitDomainChance>(1);
   reward = vector<double>(d->GetMaxPlayers());
-  NormalFormLP nor(d);
+  shared_ptr<LPSolver> solver = make_shared<CplexLPSolver>();
+  NormalFormLP nor(d, solver);
   cout << "vysledek hry: " << nor.SolveGame() << "\n";
 //  EFGTreewalkStart(d);
 //  TreewalkStart(d);
