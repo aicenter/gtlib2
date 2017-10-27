@@ -43,6 +43,7 @@ void CplexLPSolver::BuildModel(int rows, int cols,
     }
     c_.add(IloRange(env_, 0, sum - V));
   }
+
   model_.add(c_);
 
   cplex_ = IloCplex(model_);
@@ -58,7 +59,6 @@ double const CplexLPSolver::GetValue(int index) const {
 
 double const CplexLPSolver::GetDual(int index) const {
   return cplex_.getDual(c_[index]);
-
 }
 
 void CplexLPSolver::SaveLP(const char* file) {
@@ -70,7 +70,8 @@ void CplexLPSolver::SetConstraintCoefForVariable(int constraint, int variable,
   c_[constraint].setLinearCoef(x_[variable], new_utility);
 }
 
-void CplexLPSolver::AddRows(int cols, const vector<vector<double>>& utility_for_cols) {
+void CplexLPSolver::AddRows(int cols,
+                            const vector<vector<double>>& utility_for_cols) {
   int new_rows = utility_for_cols.size();
 
   IloExpr V = cplex_.getObjective().getExpr();
@@ -86,9 +87,9 @@ void CplexLPSolver::AddRows(int cols, const vector<vector<double>>& utility_for_
   model_.add(c_);
 }
 
-void CplexLPSolver::AddCols(int rows, const vector<vector<double>>& utility_for_rows) {
+void CplexLPSolver::AddCols(int rows,
+                            const vector<vector<double>>& utility_for_rows) {
   int new_cols = utility_for_rows.size();
-
   IloNumVarArray new_x = IloNumVarArray(env_, new_cols, 0, 1, ILOFLOAT);
 
   for (int i=0; i < new_cols; i++) {

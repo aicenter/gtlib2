@@ -8,7 +8,8 @@
 
 
 NormalFormLP::NormalFormLP(const int _p1_actions, const int _p2_actions,
-                           const vector<double>& _utilities, shared_ptr<LPSolver> _lp_solver) {
+                           const vector<double>& _utilities,
+                           shared_ptr<LPSolver> _lp_solver) {
   ValidateInput(_p1_actions, _p2_actions, _utilities);
   lp_solver = std::move(_lp_solver);
   rows_ = _p2_actions;
@@ -17,7 +18,8 @@ NormalFormLP::NormalFormLP(const int _p1_actions, const int _p2_actions,
 }
 
 NormalFormLP::NormalFormLP(const int _p1_actions, const int _p2_actions,
-                           const vector<vector<double>> &_utilities, shared_ptr<LPSolver> _lp_solver) {
+                           const vector<vector<double>> &_utilities,
+                           shared_ptr<LPSolver> _lp_solver) {
   lp_solver = std::move(_lp_solver);
   rows_ = _p2_actions;
   cols_ = _p1_actions;
@@ -35,12 +37,15 @@ NormalFormLP::NormalFormLP(const int _p1_actions, const int _p2_actions,
   BuildModel(&tmp);
 }
 
-NormalFormLP::NormalFormLP(const shared_ptr<Domain> _game, shared_ptr<LPSolver> _lp_solver) {
+NormalFormLP::NormalFormLP(const shared_ptr<Domain> _game,
+                           shared_ptr<LPSolver> _lp_solver) {
   lp_solver = std::move(_lp_solver);
   auto aohistories = vector<shared_ptr<unordered_map<shared_ptr<InfSet>,
       vector<shared_ptr<Action>>>>>
-      {make_shared<unordered_map<shared_ptr<InfSet>, vector<shared_ptr<Action>>>>(),
-       make_shared<unordered_map<shared_ptr<InfSet>, vector<shared_ptr<Action>>>>()};
+      {make_shared<unordered_map<shared_ptr<InfSet>,
+          vector<shared_ptr<Action>>>>(),
+       make_shared<unordered_map<shared_ptr<InfSet>,
+           vector<shared_ptr<Action>>>>()};
 
   std::function<void(EFGNode*, vector<shared_ptr<unordered_map<shared_ptr<InfSet>,
       vector<shared_ptr<Action>>>>> _aohistories)> funkce =
@@ -74,13 +79,15 @@ NormalFormLP::NormalFormLP(const shared_ptr<Domain> _game, shared_ptr<LPSolver> 
   for (int i = 0; i < rows_; i++) {
     auto a1 = PureStrategy();
     int k = 0;
-    for (auto it = aohistories[0]->begin(); it != aohistories[0]->end(); ++it, ++k) {
+    for (auto it = aohistories[0]->begin(); it != aohistories[0]->end();
+         ++it, ++k) {
       a1.Add(it->first, res[0][i][k]);
     }
     for (int j = 0; j < cols_; j++)  {
       auto a2 = PureStrategy();
       k = 0;
-      for (auto it = aohistories[1]->begin(); it != aohistories[1]->end(); ++it, ++k) {
+      for (auto it = aohistories[1]->begin(); it != aohistories[1]->end();
+           ++it, ++k) {
         a2.Add(it->first, res[1][j][k]);
       }
       auto vec = vector<PureStrategy>({a1, a2});
@@ -142,7 +149,8 @@ shared_ptr<vector<double>> NormalFormLP::GetStrategy(int _player) {
   }
 }
 
-void NormalFormLP::AddActions(const int _player, const vector<vector<double>>& _utility_for_opponent) {
+void NormalFormLP::AddActions(const int _player,
+                              const vector<vector<double>>& _utility_for_opponent) {
   if (_player == 0) {
     AddCols(_utility_for_opponent);
   } else if (_player == 1) {
@@ -177,15 +185,20 @@ void NormalFormLP::UpdateUtilityMatrix(const vector<vector<double>> &_utilities)
   BuildModel(&tmp);
 }
 
-bool NormalFormLP::ValidateInput(const int _p1_actions, const int _p2_actions, const vector<double>& _utilities) {
-  if (!(_p1_actions >= 1 && _p2_actions >= 1 && _utilities.size() == _p1_actions*_p2_actions)) {
+bool NormalFormLP::ValidateInput(const int _p1_actions, const int _p2_actions,
+                                 const vector<double>& _utilities) {
+  if (!(_p1_actions >= 1 && _p2_actions >= 1
+        && _utilities.size() == _p1_actions*_p2_actions)) {
     throw("Illegal Argument in NormalFormLP");
   }
   return true;
 }
 
-void NormalFormLP::ChangeOutcome(const int _action_for_p1, const int _action_for_p2, double _new_utility) {
-  if (!(_action_for_p1 >= 0 && _action_for_p1 < cols_&& _action_for_p2 >=0 && _action_for_p2 < rows_ )) {
+void NormalFormLP::ChangeOutcome(const int _action_for_p1,
+                                 const int _action_for_p2,
+                                 double _new_utility) {
+  if (!(_action_for_p1 >= 0 && _action_for_p1 < cols_&& _action_for_p2 >=0
+        && _action_for_p2 < rows_)) {
     throw("Illegal Argument in NormalFormLP - Change Outcome");
   }
 
@@ -193,7 +206,8 @@ void NormalFormLP::ChangeOutcome(const int _action_for_p1, const int _action_for
     throw(-1);
   }
   // constrain. variable
-  lp_solver->SetConstraintCoefForVariable(_action_for_p2, _action_for_p1, _new_utility);
+  lp_solver->SetConstraintCoefForVariable(_action_for_p2,
+                                          _action_for_p1, _new_utility);
   model_solved_ = false;
 }
 
@@ -213,7 +227,7 @@ void NormalFormLP::AddRows(const vector<vector<double>>& _utility_for_cols) {
     throw(-1);
   }
 
-  lp_solver->AddRows(cols_,_utility_for_cols);
+  lp_solver->AddRows(cols_, _utility_for_cols);
 
   rows_ += new_rows;
 }
@@ -226,7 +240,7 @@ void NormalFormLP::AddCols(const vector<vector<double>>& _utility_for_rows) {
     throw(-1);
   }
 
-  lp_solver->AddCols(rows_,_utility_for_rows);
+  lp_solver->AddCols(rows_, _utility_for_rows);
 
   cols_ += new_cols;
 }

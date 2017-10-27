@@ -1,22 +1,20 @@
 //
-// Created by rozliv on 16.10.17.
+// Created by rozliv on 19.10.17.
 //
 
-#ifndef CPLEXLPSOLVER_H_
-#define CPLEXLPSOLVER_H_
+#ifndef GLPKLPSOLVER_H_
+#define GLPKLPSOLVER_H_
 
-#define IL_STD
-
-#include <ilcplex/ilocplex.h>
+#include <glpk.h>
 #include "../LPSolver.h"
 
 
 
-class CplexLPSolver : public LPSolver {
+class GlpkLPSolver: public LPSolver {
  public:
-  CplexLPSolver() = default;
+  GlpkLPSolver() = default;
 
-  ~CplexLPSolver() override = default;
+  ~GlpkLPSolver() override = default;
 
   void CleanModel() final;
 
@@ -40,13 +38,8 @@ class CplexLPSolver : public LPSolver {
 
 
  protected:
-  IloEnv env_;
-  IloModel model_;
-  IloCplex cplex_;
-
-  IloNumVarArray x_;
-  IloRangeArray c_;
-  IloRange prob_;
+  glp_prob *lp;
 };
 
-#endif  // CPLEXLPSOLVER_H_
+
+#endif  // GLPKLPSOLVER_H_

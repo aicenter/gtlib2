@@ -10,3 +10,9 @@ set(LINUX_DIR /opt/ibm/ILOG)
 set(UNIX_DIR /opt/IBM/ILOG)
 set(WIN64_DIR "C:/Program Files/IBM/ILOG")
 set(WIN86_DIR "C:/Program Files (x86)/IBM/ILOG")
+
+
+
+# Path to GLPK, there is not default location
+# so it is necessary to set your library location
+set(GLPK_DIR /home/rozliv/Documents/glpk-4.63)

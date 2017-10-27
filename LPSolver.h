@@ -36,9 +36,11 @@ class LPSolver {
   virtual void SetConstraintCoefForVariable(int constraint, int variable,
                                             double new_utility) = 0;
 
-  virtual void AddRows(int cols, const vector<vector<double>>& utility_for_cols) = 0;
+  virtual void AddRows(int cols,
+                       const vector<vector<double>>& utility_for_cols) = 0;
 
-  virtual void AddCols(int rows, const vector<vector<double>>& utility_for_rows) = 0;
+  virtual void AddCols(int rows,
+                       const vector<vector<double>>& utility_for_rows) = 0;
 };
 
-#endif //LPSOLVER_H_
+#endif  // LPSOLVER_H_
