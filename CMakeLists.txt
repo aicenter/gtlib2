@@ -30,6 +30,29 @@ if( CPLEX_FOUND )
     set(CPLEXLIB ilocplex)
 endif()
 
-set(SOURCE_FILES main.cpp pursuit.h tests/firstTest.cpp base.cpp base.h pursuit.cpp efg.cpp efg.h utils/utils.h LPSolver.cpp LPSolver.h normalFormLP.cpp normalFormLP.h)
-add_executable(pursuit ${SOURCE_FILES} ${CPLEX_FILES} )
-target_link_libraries(pursuit gtest gtest_main ${CPLEXLIB} ${CMAKE_THREAD_LIBS_INIT})
+FIND_PATH(GLPK_INCLUDE_DIR NAMES glpk.h PATHS
+        ${GLPK_DIR}/src
+        NO_DEFAULT_PATH
+        )
+
+FIND_PATH(GLPK_LIB_DIR  NAMES libglpk.so PATHS
+        ${GLPK_DIR}/src/.libs
+        NO_DEFAULT_PATH
+        )
+
+if (GLPK_INCLUDE_DIR AND GLPK_LIB_DIR)
+    set(GLPKLIB glpk)
+    file(GLOB GLPK_FILES
+            "glpkfiles/*.h"
+            "glpkfiles/*.cpp"
+            )
+endif()
+
+
+set(SOURCE_FILES main.cpp pursuit.h tests/firstTest.cpp base.cpp base.h
+        pursuit.cpp efg.cpp efg.h utils/utils.h LPSolver.cpp LPSolver.h
+        normalFormLP.cpp normalFormLP.h )
+add_executable(pursuit ${SOURCE_FILES} ${CPLEX_FILES} ${GLPK_FILES})
+
+target_link_libraries(pursuit gtest gtest_main ${CPLEXLIB}
+        ${CMAKE_THREAD_LIBS_INIT} ${GLPKLIB})
