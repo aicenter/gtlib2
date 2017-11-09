@@ -66,10 +66,11 @@ vector<unique_ptr<EFGNode>> ChanceNode::GetAll() {
     for (Outcome &o : outcomes) {
       vector<double> rews = vector<double>(o.GetReward().size());
       rews = node_->GetRewards() + o.GetReward();
-      for (unsigned int i = 0; i < o.GetState()->GetPlayers().size(); ++i) {
-        if (o.GetState()->GetPlayers()[i]) {
+      auto players = o.GetState()->GetPlayers();
+      for (unsigned int i = 0; i < players.size(); ++i) {
+        if (players[i]) {
           vector<int> aoh{actions_[i]->GetID(), o.GetObs()[i]->GetID()};
-          for (unsigned int j = 0; j < o.GetState()->GetPlayers().size(); ++j) {
+          for (unsigned int j = 0; j < players.size(); ++j) {
             if (j == i)
               continue;
             aoh.push_back(actions_[j]->GetID());

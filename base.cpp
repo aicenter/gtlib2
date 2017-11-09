@@ -114,8 +114,6 @@ double Domain::ComputeUtility(State* state, unsigned int depth,
 }
 
 
-int Domain::depth_ = 0;  // TODO(rozlijak)
-
 double BestResponse(int player, const shared_ptr<vector<double>>& strategies,
                     int rows, int cols, const vector<double>& utilities) {
   assert(rows * cols == utilities.size());
@@ -156,7 +154,7 @@ void Treewalk(const shared_ptr<Domain> domain, State *state,
               unsigned int depth, int players,
               std::function<void(State*)> FunctionForState) {
   if (state == nullptr) {
-    throw("State is NULL");
+    return;
   }
 
   FunctionForState(state);

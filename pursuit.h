@@ -111,14 +111,9 @@ class PursuitState: public State {
   // PerformAction performs actions for all players who can play in the state.
   ProbDistribution PerformAction(const vector<shared_ptr<Action>>& actions) override;
 
-  // GetPlace returns locations of all players.
-  inline const vector<Pos>& GetPlace() const {
-    return place_;
-  }
-
   // GetNumPlayers returns number of players who can play in this state.
   inline const int GetNumPlayers() const override {
-    return numplayers_ == 0? place_.size() : numplayers_;
+    return  place_.size();
   }
 
   // GetPlayers returns who can play in this state.
@@ -140,7 +135,6 @@ class PursuitState: public State {
   }
 
  protected:
-  unsigned int numplayers_ = 0;
   vector<Pos> place_;  // locations of all players
   double prob_ = 1;  // state probability
   // eight surrounding

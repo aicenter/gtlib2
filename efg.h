@@ -29,7 +29,7 @@ class EFGNode {
   EFGNode();
 
   // GetAction returns a possible actions for the player in the node.
-  virtual vector<shared_ptr<Action>>  GetAction();
+  vector<shared_ptr<Action>>  GetAction();
 
   // PerformAction performs the player's action.
   unique_ptr<EFGNode> PerformAction(const shared_ptr<Action>& action2);
@@ -52,9 +52,7 @@ class EFGNode {
   // GetAOH returns action-observation histories of all players.
   vector<int> GetAOH(int player) const;
 
-  // AddAOH sets action-observation histories of all players.
-
-  // GetHash returns the player's information set.
+  // GetIS returns the player's information set.
   inline shared_ptr<InfSet> GetIS() {
     if (infset_ == nullptr)
       infset_ = make_shared<AOH>(player_, GetAOH(player_));

@@ -338,8 +338,6 @@ class Domain {
   // GetInfo returns string containing domain information.
   virtual string GetInfo() = 0;
 
-  static int depth_;
-
   // Start function to calculate an expected value for a strategy profile
   virtual double CalculateUtility(const vector<PureStrategy>&pure_strategies);
 

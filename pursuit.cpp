@@ -55,7 +55,6 @@ PursuitState::PursuitState(const vector<Pos> &p, double prob):
     place_(p), prob_(prob) {
   probdis_ = {0.1, 0.9};
   strings_ = vector<string>(p.size());
-  numplayers_ = p.size();
   players_ = vector<bool>(p.size(), true);
 }
 
@@ -183,7 +182,7 @@ MMPursuitState::MMPursuitState(const vector<Pos> &p, double prob,
 
 ProbDistribution MMPursuitState::PerformAction(const vector<shared_ptr<Action>> &actions2) {
   vector<shared_ptr<PursuitAction>> actions = Cast<Action, PursuitAction>(actions2);
-  int count = 2;
+  unsigned int count = 2;
 //  if (movecount_ == 1) {
 //    count *= 2;
 //  }
@@ -386,19 +385,16 @@ int PursuitDomain::width_ = 0;
 
 
 string PursuitDomain::GetInfo() {
-  shared_ptr<PursuitState> root =
-      std::dynamic_pointer_cast<PursuitState>(root_->GetOutcomes()[0].GetState());
   return "Rozmery pole jsou: " + to_string(PursuitDomain::height_) + " x " +
-         to_string(PursuitDomain::width_) + " maximalni hloubka grafu je: " +
-         to_string(maxdepth_) + " a pocatecni stav je: " +
-         to_string(root->GetPlace()[0].x) +" "+ to_string(root->GetPlace()[0].y) +
-         "    " + to_string(root->GetPlace()[1].x) +" "+
-         to_string(root->GetPlace()[1].y) + "\n";
+      to_string(PursuitDomain::width_) + "\nmaximalni hloubka grafu je: " +
+      to_string(maxdepth_) + "\na pocatecni stav je: " +
+      root_->GetOutcomes()[0].GetState()->ToString(0) +
+      root_->GetOutcomes()[0].GetState()->ToString(1);
 }
 
 PursuitDomain::PursuitDomain(unsigned int max) :
-    PursuitDomain(max, 2,
-                  vector<Pos>{{0, 0}, {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}}) {}
+    PursuitDomain(max, 2, vector<Pos>{{0, 0}, {PursuitDomain::height_ - 1,
+                      PursuitDomain::width_ - 1}}) {}
 
 PursuitDomain::PursuitDomain(unsigned int max, unsigned int maxplayers,
                              const shared_ptr<MMPursuitState> &state):
@@ -416,8 +412,6 @@ PursuitDomainChance::PursuitDomainChance(unsigned int max,
     PursuitDomain(max, maxplayers, loc) {
   vector<Pos> start1 = {{0, 0}, {0, 1}};
   vector<Pos> start2 = {{1, 0}, {1, 1}};
-//  vector<Pos> start1 = {{0, 0}, {0, 1}, {1, 0}};
-//  vector<Pos> start2 = {{1, 2}, {2, 1}, {2, 2}};
   vector<pair<Outcome, double>> pairs;
   for (int i = 0; i < 3; ++i) {
     Outcome o(make_shared<PursuitState>(vector<Pos>{start1[i], start2[2]}),
@@ -429,8 +423,8 @@ PursuitDomainChance::PursuitDomainChance(unsigned int max,
 }
 
 PursuitDomainChance::PursuitDomainChance(unsigned int max) :
-    PursuitDomainChance(max, 2,
-                        vector<Pos>{{0, 0}, {PursuitDomain::height_ - 1, PursuitDomain::width_ - 1}}) {}
+    PursuitDomainChance(max, 2, vector<Pos>{{0, 0}, {PursuitDomain::height_ - 1,
+                            PursuitDomain::width_ - 1}}) {}
 
 PursuitDomainChance::PursuitDomainChance(unsigned int max,
                                          unsigned int maxplayers,
@@ -468,7 +462,7 @@ void PursuitStart(const shared_ptr<Domain>& domain, unsigned int depth) {
 void Pursuit(const shared_ptr<Domain>& domain, State *state,
              unsigned int depth, int players) {
   if (state == nullptr) {
-    throw("State is NULL");
+    return;
   }
 
   if (depth == 0) {
