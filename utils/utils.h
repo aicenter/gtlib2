@@ -51,6 +51,9 @@ vector<shared_ptr<U>> CastDynamic(const vector<shared_ptr<T>>& list2) {
   return list;
 }
 
+
+// TODO: Code that uses the following function is probably wrong
+
 /* Cast statically casts vector of type T to vector of type U,
  * works only with shared_ptr, it should be a default choice.
  */
