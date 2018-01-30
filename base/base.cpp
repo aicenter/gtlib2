@@ -253,7 +253,7 @@ namespace GTLib2 {
 
     vector<int> Domain::getPlayers() const {
         //TODO: Implement this in phantom and pursuits domains and remove this and make this method abstract.
-
+        assert(("domain::getPlayers not implemented!",false));
         vector<int> players;
         for (int i = 0; i< getNumberOfPlayers(); ++i){
             players.push_back(i);

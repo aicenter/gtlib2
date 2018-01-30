@@ -63,6 +63,10 @@ namespace GTLib2 {
             return "Goof spiel. Max depth is: " + std::to_string(maxDepth);
         }
 
+        vector<int> GoofSpielDomain::getPlayers() const {
+            return {1,2};
+        }
+
         GoofSpielState::GoofSpielState(unordered_set<int> player1Deck, unordered_set<int> player2Deck,
                                        unordered_set<int> natureDeck, optional<int> natureSelectedCard,
                                        double player1CommulativeReward, double player2CommulativeReward) {
