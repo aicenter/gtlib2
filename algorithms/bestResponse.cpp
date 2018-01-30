@@ -33,7 +33,7 @@ namespace GTLib2 {
                         //Player's node
 
                         auto allNodesInTheSameInfSet = gelAllNodesInTheInformationSetWithNatureProbability(
-                                node->pavelgetAOHInfSet(), domain);
+                                node->getAOHInfSet(), domain);
 
 
                         shared_ptr<Action> bestAction;
@@ -50,9 +50,9 @@ namespace GTLib2 {
 
                                 double natureProb = std::get<1>(siblingNatureProb);
                                 const auto &sibling = std::get<0>(siblingNatureProb);
-                                double seqProb = sibling->getProbabilityOfSeqOfPlayer(opponent,opoStrat);
+                                double seqProb = sibling->getProbabilityOfActionsSeqOfPlayer(opponent,opoStrat);
                                 double val = 0;
-                                for (auto siblingProb : sibling->pavelPerformAction(action)) {
+                                for (auto siblingProb : sibling->performAction(action)) {
 
                                     auto brs_val = bestResp(siblingProb.first, depth - 1,
                                                             natureProb * seqProb * siblingProb.second);
@@ -72,17 +72,17 @@ namespace GTLib2 {
                             }
                         }
 
-                        brs[node->pavelgetAOHInfSet()] = {{bestAction, 1.0}};
+                        brs[node->getAOHInfSet()] = {{bestAction, 1.0}};
                         return pair<BehavioralStrategy, double>(brs, bestActionVal);
                     } else {
                         // Opponent's node
                         double val = 0;
                         BehavioralStrategy brs;
-                        auto stratAtTheNode = opoStrat.at(node->pavelgetAOHInfSet());
+                        auto stratAtTheNode = opoStrat.at(node->getAOHInfSet());
                         for (auto action : node->availableActions()) {
                             if (stratAtTheNode.find(action) != stratAtTheNode.end()) {
                                 double actionProb = stratAtTheNode.at(action);
-                                for (auto childProb : node->pavelPerformAction(action)) {
+                                for (auto childProb : node->performAction(action)) {
                                     auto brs_val = bestResp(childProb.first, depth - 1,
                                                             prob * childProb.second * actionProb);
                                     val += std::get<1>(brs_val);
@@ -95,7 +95,8 @@ namespace GTLib2 {
                     }
                 };
 
-        auto initNodesProb = algorithms::createEFGNodesFromDomainInitDistr(*domain.getRootStateDistributionPtr());
+        auto initNodesProb = algorithms::createRootEFGNodesFromInitialOutcomeDistribution(
+                domain.getRootStatesDistribution());
         BehavioralStrategy brs;
         double expVal = 0.0;
         for (auto nodeProb : initNodesProb) {

@@ -27,41 +27,42 @@ namespace GTLib2 {
     class EFGNode : public std::enable_shared_from_this<EFGNode const> {
     public:
 
-        // constructor for the first EFGNode
-        EFGNode();
-
         // Constructor for the same round node
-        EFGNode(shared_ptr<EFGNode const> lastNode, const shared_ptr<Action> &lastAction,
-                int lastPlayer, vector<int> remainingPlayers);
+        EFGNode(shared_ptr<EFGNode const> parent, const shared_ptr<Action> &lastAction,
+                int lastPlayer);
 
         // Constructor for the new round node
-        EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> lastNode,
-                const unordered_map<int, shared_ptr<Observation>> &observations,
-                const unordered_map<int, double> &rewards,
-                const unordered_map<int, shared_ptr<Action>> &lastRoundActions);
-
-        // Constructor for the new round node
-        EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> lastNode,
+        EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,
                 const unordered_map<int, shared_ptr<Observation>> &observations,
                 const unordered_map<int, double> &rewards,
                 const unordered_map<int, shared_ptr<Action>> &lastRoundActions,
+                double natureProbability);
+
+        // Constructor for the new round node
+        EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,
+                const unordered_map<int, shared_ptr<Observation>> &observations,
+                const unordered_map<int, double> &rewards,
+                const unordered_map<int, shared_ptr<Action>> &lastRoundActions,
+                double natureProbability,
                 const unordered_map<int, shared_ptr<Observation>> &initialObservations);
 
 
         // Returns the sequence of actions performed by the player since the root.
-        ActionSequence getActionHistoryOfPlayer(int player) const;
+        ActionSequence getActionsSeqOfPlayer(int player) const;
+
+        double getProbabilityOfActionsSeqOfPlayer(int player, const BehavioralStrategy &strat) const;
 
         // Returns available actions for the current player
         vector<shared_ptr<Action>> availableActions() const;
 
         // Perform the given action and returns the next node or nodes in case of stochastic games together with the probabilities.
-        unordered_map<shared_ptr<EFGNode>, double> pavelPerformAction(shared_ptr<Action> action) const;
+        unordered_map<shared_ptr<EFGNode>, double> performAction(shared_ptr<Action> action) const;
 
         // Gets the information set of the node represented as ActionObservationHistory set.
-        shared_ptr<AOH> pavelgetAOHInfSet() const;
+        shared_ptr<AOH> getAOHInfSet() const;
 
         // Check if the node is in the given information set.
-        bool containedInInformationSet(const shared_ptr<AOH> &infSet) const;
+        bool isContainedInInformationSet(const shared_ptr<AOH> &infSet) const;
 
         virtual string description() const { return "No Description"; }; //TODO: Change to abstract method
 
@@ -73,16 +74,22 @@ namespace GTLib2 {
         shared_ptr<State> getState() const;
 
 
+        size_t getHash() const;
 
-        double getProbabilityOfSeqOfPlayer(int player, const BehavioralStrategy &strat) const;
+        bool operator==(const EFGNode &rhs) const;
+
+
+
 
         optional<int> getCurrentPlayer() const;
 
         unordered_map<int, double> rewards;
 
+        double natureProbability;
+
     private:
 
-        vector<std::tuple<int, int>> pavelGetAOH(int player) const;
+        vector<std::tuple<int, int>> getAOH(int player) const;
 
         vector<int> remainingPlayersInTheRound;
         unordered_map<int, shared_ptr<Action>> performedActionsInThisRound;
@@ -91,10 +98,10 @@ namespace GTLib2 {
         unordered_map<int, shared_ptr<Observation>> initialObservations;
         unordered_map<int, shared_ptr<Observation>> observations;
 
-        unordered_map<int, shared_ptr<Action>> lastRoundActions;
+        unordered_map<int, shared_ptr<Action>> previousRoundActions;
         shared_ptr<EFGNode const> parent;
 
-        //---------------------------------------------
+        //----------------DEPRECATED_BELLOW-----------------------------
 
     public:
 
@@ -105,6 +112,10 @@ namespace GTLib2 {
             return nullptr;
             //return parent.get();
         }
+
+
+        [[deprecated]]
+        EFGNode();
 
         // constructor
         [[deprecated]]
@@ -121,9 +132,9 @@ namespace GTLib2 {
         [[deprecated]]
         vector<shared_ptr<Action>> GetAction();
 
-        // PerformAction performs the player's action.
+        // OldPerformAction performs the player's action.
         [[deprecated]]
-        unique_ptr<EFGNode> PerformAction(const shared_ptr<Action> &action2);
+        unique_ptr<EFGNode> OldPerformAction(const shared_ptr<Action> &action2);
 
         // GetNumPlayers returns player on the turn (player in this node).
         [[deprecated]]
@@ -138,15 +149,15 @@ namespace GTLib2 {
         }
 
 
-        // GetAOH returns action-observation histories of all players.
+        // OldGetAOH returns action-observation histories of all players.
         [[deprecated]]
-        vector<int> GetAOH(int player) const;
+        vector<int> OldGetAOH(int player) const;
 
         // GetIS returns the player's information set.
         [[deprecated]]
         inline shared_ptr<InformationSet> GetIS() {
             if (infset_ == nullptr)
-                infset_ = make_shared<AOH>(player_, GetAOH(player_));
+                infset_ = make_shared<AOH>(player_, OldGetAOH(player_));
             return infset_;
         }
 
@@ -180,8 +191,23 @@ namespace GTLib2 {
 
 }
 
+namespace std {
+    template<>
+    struct hash<shared_ptr<EFGNode>> {
+        size_t operator()(const shared_ptr<EFGNode> &p) const {
+            return p->getHash();
+        }
+    };
 
-// The rest of the file is obsolete
+    template<>
+    struct equal_to<shared_ptr<EFGNode>> {
+        bool operator()(const shared_ptr<EFGNode> &a,
+                        const shared_ptr<EFGNode> &b) const {
+            return *a == *b;
+        }
+    };
+}
+
 
 #endif  // EFG_H_
 

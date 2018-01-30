@@ -11,19 +11,20 @@
 namespace GTLib2 {
 
     unordered_map<shared_ptr<EFGNode>, double>
-    algorithms::createEFGNodesFromDomainInitDistr(const ProbDistribution &probDist) {
-        auto dummyChanceNodeAboveRootNodes = make_shared<EFGNode>();
+    algorithms::createRootEFGNodesFromInitialOutcomeDistribution(const OutcomeDistribution &probDist) {
+        //auto dummyChanceNodeAboveRootNodes = make_shared<EFGNode>();
 
         unordered_map<shared_ptr<EFGNode>, double> nodes;
 
-        for (auto outcomeProb: probDist.distribution) {
-            auto outcome = std::get<0>(outcomeProb);
-            auto prob = std::get<1>(outcomeProb);
-            auto state = outcome.GetState();
-            auto node = make_shared<EFGNode>(state, dummyChanceNodeAboveRootNodes,
+        for (auto outcomeProb: probDist) {
+            auto outcome = outcomeProb.first;
+            auto prob = outcomeProb.second;
+            auto state = outcome.state;
+            auto node = make_shared<EFGNode>(state, nullptr,
                                              outcome.observations,
                                              outcome.rewards,
                                              unordered_map<int, shared_ptr<Action>>(),
+                                             prob,
                                              outcome.observations);
             nodes[node] = prob;
         }
@@ -38,13 +39,13 @@ namespace GTLib2 {
         int stratIndex = 0;
         for (const auto &pureStrat : pureStrats) {
             double stratProb = distribution[stratIndex];
-            auto rootNodes = createEFGNodesFromDomainInitDistr(*domain.getRootStateDistributionPtr());
+            auto rootNodes = createRootEFGNodesFromInitialOutcomeDistribution(domain.getRootStatesDistribution());
 
             // Inner function
             std::function<void(const shared_ptr<EFGNode> &)> updateBehavStratStartingFromNode =
                     [&behavStrat, &pureStrat, &stratProb, &updateBehavStratStartingFromNode]
                     (const shared_ptr<EFGNode> &node) {
-                auto infSet = node->pavelgetAOHInfSet();
+                auto infSet = node->getAOHInfSet();
 
                 if (pureStrat.find(infSet) == pureStrat.end()) {
                     return;
@@ -63,7 +64,7 @@ namespace GTLib2 {
                 //Proceed to the next node(nodes in case of stochastic game)
 
 
-                auto newNodes = node->pavelPerformAction(strategyAction);
+                auto newNodes = node->performAction(strategyAction);
                 for (const auto &newNode : newNodes) {
                     updateBehavStratStartingFromNode(newNode.first);
                 }
@@ -86,13 +87,13 @@ namespace GTLib2 {
 
         vector<pair<shared_ptr<EFGNode>,double>> nodes;
 
-        auto checkAndAdd = [&infSet, &nodes](shared_ptr<EFGNode> node, double prob) {
-            if (node->containedInInformationSet(infSet)) {
-                nodes.push_back(pair<shared_ptr<EFGNode>,double>(node,prob));
+        auto checkAndAdd = [&infSet, &nodes](shared_ptr<EFGNode> node) {
+            if (node->isContainedInInformationSet(infSet)) {
+                nodes.push_back(pair<shared_ptr<EFGNode>,double>(node,node->natureProbability));
             }
         };
 
-        pavelEFGTreeWalk(domain, checkAndAdd, domain.getMaxDepth());
+        treeWalkEFG(domain, checkAndAdd, domain.getMaxDepth());
 
         return nodes;
     }

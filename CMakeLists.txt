@@ -61,7 +61,7 @@ endif()
 set(SOURCE_FILES domains/pursuit.h
         base/base.cpp base/base.h
         domains/pursuit.cpp base/efg.cpp base/efg.h utils/utils.h LPsolvers/LPSolver.cpp LPsolvers/LPSolver.h
-        algorithms/normalFormLP.cpp algorithms/normalFormLP.h domains/phantomTTT.cpp domains/phantomTTT.h domains/matching_pennies.cpp domains/matching_pennies.h algorithms/treeWalk.cpp algorithms/treeWalk.h base/efg_old.cpp base/efg_old.h base/base_old.cpp base/base_old.h algorithms/bestResponse.cpp algorithms/bestResponse.h algorithms/common.cpp algorithms/common.h algorithms/utility.cpp algorithms/utility.h algorithms/equilibrium.cpp algorithms/equilibrium.h LPsolvers/simpleCplexSolver.cpp LPsolvers/simpleCplexSolver.h)
+        algorithms/normalFormLP.cpp algorithms/normalFormLP.h domains/phantomTTT.cpp domains/phantomTTT.h domains/matching_pennies.cpp domains/matching_pennies.h algorithms/treeWalk.cpp algorithms/treeWalk.h base/efg_old.cpp base/efg_old.h base/base_old.cpp base/base_old.h algorithms/bestResponse.cpp algorithms/bestResponse.h algorithms/common.cpp algorithms/common.h algorithms/utility.cpp algorithms/utility.h algorithms/equilibrium.cpp algorithms/equilibrium.h LPsolvers/simpleCplexSolver.cpp LPsolvers/simpleCplexSolver.h domains/goofSpiel.cpp domains/goofSpiel.h)
 add_executable(main  main.cpp ${SOURCE_FILES} ${CPLEX_FILES} ${GLPK_FILES})
 
 target_link_libraries(main
@@ -71,7 +71,7 @@ target_link_libraries(main
 
 
 #testing stuff
-add_executable(tester tests/matchingPenniesTest.cpp ${SOURCE_FILES} ${CPLEX_FILES} ${GLPK_FILES})
+add_executable(tester tests/matchingPenniesTest.cpp ${SOURCE_FILES} ${CPLEX_FILES} ${GLPK_FILES} tests/goofSpielTest.cpp)
 target_link_libraries(tester ${CPLEXLIB}
         ${CMAKE_THREAD_LIBS_INIT} ${GLPKLIB} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(tester tester)

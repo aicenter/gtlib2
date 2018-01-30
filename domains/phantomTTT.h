@@ -85,11 +85,11 @@ class PhantomTTTState: public State {
   // GetActions returns possible actions for a player in the state.
   void GetActions(vector<shared_ptr<Action>>& list, int player) const override;
 
-    ProbDistribution performActions(const unordered_map<int,shared_ptr<Action>> &actions) const override;
+    OutcomeDistribution performActions(const unordered_map<int,shared_ptr<Action>> &actions) const override;
 
 
-    // PerformAction performs actions for all players who can play in the state.
-  ProbDistribution PerformAction(const vector<shared_ptr<Action>>& actions2) override;
+    // OldPerformAction performs actions for all players who can play in the state.
+  OutcomeDistributionOld PerformAction(const vector<shared_ptr<Action>>& actions2) override;
 
   // GetNumPlayers returns number of players who can play in this state.
   inline int getNumberOfPlayers() const override {
@@ -107,7 +107,7 @@ class PhantomTTTState: public State {
   }
 
   // ToString returns state description.
-  inline string toString(int player) override {
+  inline string toString(int player) const override {
     string s;
     for (int i = 0; i < 9; ++i) {
       switch (place_[player][i]) {
@@ -143,7 +143,7 @@ class PhantomTTTDomain: public Domain{
   ~PhantomTTTDomain() override = default;
 
   // GetInfo returns string containing domain information.
-  string GetInfo() final;
+  string getInfo() const final;
 };
 
 #endif  // PHANTOMTTT_H_

@@ -13,7 +13,8 @@
 namespace GTLib2 {
     namespace algorithms {
 
-        unordered_map<shared_ptr<EFGNode>, double> createEFGNodesFromDomainInitDistr(const ProbDistribution &probDist);
+        unordered_map<shared_ptr<EFGNode>, double> createRootEFGNodesFromInitialOutcomeDistribution(
+                const OutcomeDistribution &probDist);
         BehavioralStrategy mixedStrategyToBehavioralStrategy(const vector<BehavioralStrategy> &pureStrats,
                                                              const vector<double> &distribution,
                                                              const Domain &domain);

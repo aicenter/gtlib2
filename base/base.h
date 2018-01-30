@@ -21,7 +21,7 @@
 #include "../utils/utils.h"
 #include <tuple>
 #include <boost/functional/hash.hpp>
-//#include "efg.h"
+
 
 using std::string;
 using std::cout;
@@ -37,12 +37,12 @@ using std::pair;
 using std::tuple;
 
 
-
 namespace GTLib2 {
 
 /**
  * Action is an abstract class that represents actions,
- * which are identified by their id.
+ * which are identified by their id. Different actions have to have different ids, the same actions have to have
+ * the same id.
  */
     class Action {
     public:
@@ -54,7 +54,7 @@ namespace GTLib2 {
 
         int getId() const;
 
-        virtual bool operator==(Action &that);
+        virtual bool operator==(const Action &that) const;
 
         virtual size_t getHash() const;
 
@@ -70,7 +70,8 @@ namespace GTLib2 {
 
 /**
  * Observation is an abstract class that represents observations,
- * which are identified by their id.
+ * which are identified by their id. Different observations have to have different ids, the same observations have to have
+ * the same id.
  */
     class Observation {
     public:
@@ -84,8 +85,12 @@ namespace GTLib2 {
         // Returns observation id
         int getId() const;
 
+        virtual bool operator==(const Observation &rhs) const;
+
+        virtual size_t getHash() const;
+
     protected:
-        int id_;
+        int id;
     };
 
 
@@ -93,7 +98,7 @@ namespace GTLib2 {
 
 /**
  * Outcome is a class that represents outcomes,
- * which contain rewards, observations and a new state.
+ * which contain rewards for each player, observations for each player and a new state.
  */
     class Outcome {
     public:
@@ -105,6 +110,10 @@ namespace GTLib2 {
         unordered_map<int, shared_ptr<Observation>> observations;
         unordered_map<int, double> rewards;
 
+
+        size_t getHash() const;
+
+        bool operator==(const Outcome &rhs) const;
 
 
 
@@ -142,43 +151,24 @@ namespace GTLib2 {
 
     };
 
-/**
- * ProbDistribution is a class that represent
- * pairs of outcomes and their probability.
- */
-    class ProbDistribution {
-    public:
-        // constructor
-
-        ProbDistribution();
-
-        explicit ProbDistribution(vector<pair<Outcome, double>> pairs);
-
-        // GetOutcomes returns a vector of all outcomes.
-        [[deprecated]]
-        vector<Outcome> GetOutcomes();
-
-        // GetProb returns vector of probabilities over outcomes.
-        [[deprecated]]
-        vector<double> GetProb();
 
 
-        vector<pair<Outcome, double>> distribution;
-    };
+typedef unordered_map<Outcome,double> OutcomeDistribution;
+
 
 
 /**
  * InfSet is an abstract class that represent information sets,
- *  which are identified by their hash code.
+ *  which are identified by their hash code. TODO: Maybe rather identified by some unique id?
  */
     class InformationSet {
     public:
         InformationSet() = default;
 
-        virtual bool operator==(InformationSet &other) = 0;
+        virtual bool operator==(const InformationSet &rhs) const = 0;
 
         // GetHash returns hash code.
-        virtual size_t getHash() = 0;
+        virtual size_t getHash() const = 0;
     };
 
 
@@ -193,27 +183,113 @@ namespace GTLib2 {
         AOH(int player, int initialObservation, const vector<tuple<int, int>> &aoHistory);
 
         // GetHash returns hash code.
-        size_t getHash() final;
+        size_t getHash() const final;
 
         // Overloaded for comparing two AOHs
-        bool operator==(InformationSet &other2) override;
+        bool operator==(const InformationSet &rhs) const override;
 
         [[deprecated]]
         AOH(int player, const vector<int> &hist);
 
     private:
+        size_t computeHash() const;
+
         int player_;
         int initialObservationId;
         vector<tuple<int, int>> aoh; // Vector of pairs. First coordinate is action id, the second is observation id.
-        // vector<int> aohistory_; // TODO: remove
-        size_t seed_ = 0;
+        size_t hashValue;
+    };
+
+
+
+    class [[deprecated]] OutcomeDistributionOld {
+    public:
+        // constructor
+
+        OutcomeDistributionOld();
+
+        explicit OutcomeDistributionOld(vector<pair<Outcome, double>> pairs);
+
+        // GetOutcomes returns a vector of all outcomes.
+        [[deprecated]]
+        vector<Outcome> GetOutcomes();
+
+        // GetProb returns vector of probabilities over outcomes.
+        [[deprecated]]
+        vector<double> GetProb();
+
+
+        vector<pair<Outcome, double>> distribution;
+    };
+
+
+
+    /**
+ * State is an abstract class that represent states
+ */
+    class State {
+    public:
+        State();
+
+        virtual ~State() = default;
+
+        // Returns possible actions for a player in the state.
+        virtual vector<shared_ptr<Action>> getAvailableActionsFor(int player) const = 0;
+
+        // Performs actions given by player->action map
+        virtual OutcomeDistribution performActions(const unordered_map<int, shared_ptr<Action>> &actions) const = 0;
+
+        // Gets players that can play as an unordered_set of int TODO: Change to vector
+
+        virtual unordered_set<int> getPlayersSet() const;
+
+        // GetNumPlayers returns number of players who can play in this state.
+        virtual int getNumberOfPlayers() const;
+
+        virtual string toString() const;
+
+        virtual bool operator==(const State &rhs) const;
+
+        virtual size_t getHash() const;
+
+
+
+
+
+
+
+        // ToString returns state description
+        virtual string toString(int player) const;
+
+// Following methods are obsolete
+        // GetActions returns possible actions for a player in the state.
+        [[deprecated]]
+        virtual void GetActions(vector<shared_ptr<Action>> &list, int player) const;
+
+        // OldPerformAction performs actions for all players who can play in the state.
+        [[deprecated]]
+        virtual OutcomeDistributionOld PerformAction(const vector<shared_ptr<Action>> &actions);
+
+
+        // GetPlayers returns who can play in this state.
+        [[deprecated]]
+        virtual const vector<bool> &GetPlayers() const;
+
+
+        // AddString adds string s to a string in vector of strings.
+        [[deprecated]]
+        virtual void AddString(const string &s, int player);
+
+
     };
 
 
 }
 
+
 namespace std {
     using namespace GTLib2;
+
     template<>
     struct hash<shared_ptr<InformationSet>> {
         size_t operator()(shared_ptr<InformationSet> const &p) const {
@@ -248,8 +324,8 @@ namespace std {
     struct hash<shared_ptr<ActionSequence>> {
         size_t operator()(const shared_ptr<ActionSequence> &seq) const {
             size_t seed = 0;
-            for (auto it = (*seq).begin(); it != (*seq).end(); ++it) {
-                boost::hash_combine(seed, *it);
+            for (const auto &action : (*seq)) {
+                boost::hash_combine(seed, action);
             }
             return seed;
         }
@@ -287,18 +363,59 @@ namespace std {
         }
     };
 
-}  // namespace std
+
+    template<>
+    struct hash<shared_ptr<Observation>> {
+        size_t operator()(const shared_ptr<Observation> &p) const {
+            return p->getHash();
+        }
+    };
+
+    template<>
+    struct equal_to<shared_ptr<Observation>> {
+        bool operator()(const shared_ptr<Observation> &a,
+                        const shared_ptr<Observation> &b) const {
+            return *a == *b;
+        }
+    };
+
+
+    template<>
+    struct hash<shared_ptr<State>> {
+        size_t operator()(const shared_ptr<State> &p) const {
+            return p->getHash();
+        }
+    };
+
+    template<>
+    struct equal_to<shared_ptr<State>> {
+        bool operator()(const shared_ptr<State> &a,
+                        const shared_ptr<State> &b) const {
+            return *a == *b;
+        }
+    };
+
+    template<>
+    struct hash<Outcome> {
+        size_t operator()(const Outcome &p) const {
+            return p.getHash();
+        }
+    };
+
+    template<>
+    struct equal_to<Outcome> {
+        bool operator()(const Outcome &a,
+                        const Outcome &b) const {
+            return a == b;
+        }
+    };
+} // namespace std
+
 
 namespace GTLib2 {
 
-    typedef unordered_map<shared_ptr<InformationSet>, unordered_map<shared_ptr<Action>, double>> BehavioralStrategy;
 
-/**
- * Strategy is a class that represents a player's (behavioral) strategy.
- * Contains unordered_map with shared pointer to InfSet used as key and
- * probability distribution over actions as values. Prob. distribution is
- * represented by vector of pairs of double (0-1) and shared pointer to Action.
- */
+    typedef unordered_map<shared_ptr<InformationSet>, unordered_map<shared_ptr<Action>, double>> BehavioralStrategy;
 
 
     class [[deprecated]] Strategy {
@@ -339,12 +456,6 @@ namespace GTLib2 {
     };
 
 
-/**
- * PureStrategy is a class that represents a player's pure strategy.
- * Contains unordered_map with shared pointer to InfSet used as key and
- * probability distribution over actions as values. Prob. distribution is
- * represented by a pair of double (1) and shared pointer to Action.
- */
     class [[deprecated]] PureStrategy : public Strategy {
     public:
         // constructor
@@ -361,75 +472,21 @@ namespace GTLib2 {
     };
 
 
-/**
- * State is an abstract class that represent states
- */
-    class State {
-    public:
-        // constructor
-        State();
 
-        // destructor
-        virtual ~State() = default;
-
-        // Returns possible actions for a player in the state.
-        virtual vector<shared_ptr<Action>> getAvailableActionsFor(int player) const = 0;
-
-        // Performs actions given by player->action map
-        virtual ProbDistribution performActions(const unordered_map<int, shared_ptr<Action>> &actions) const = 0;
-
-// Gets players that can play as an unordered_set of int
-
-        virtual unordered_set<int> getPlayersSet() const;
-
-        // GetNumPlayers returns number of players who can play in this state.
-        virtual int getNumberOfPlayers() const = 0;
-
-        // ToString returns state description
-        virtual string toString(int player) = 0;
-
-// Following methods are obsolete
-        // GetActions returns possible actions for a player in the state.
-        [[deprecated]]
-        virtual void GetActions(vector<shared_ptr<Action>> &list, int player) const;
-
-        // PerformAction performs actions for all players who can play in the state.
-        [[deprecated]]
-        virtual ProbDistribution PerformAction(const vector<shared_ptr<Action>> &actions);
-
-
-        // GetPlayers returns who can play in this state.
-        [[deprecated]]
-        virtual const vector<bool> &GetPlayers() const;
-
-
-        // AddString adds string s to a string in vector of strings.
-        [[deprecated]]
-        virtual void AddString(const string &s, int player);
-
-
-    };
-
-
-    typedef shared_ptr<Action> ActionPtr;
-
-/**
+    /**
  * Domain is an abstract class that represent domain,
  * contains a probability distribution over root states.
  */
     class Domain {
     public:
         // constructor
-        Domain(int maxDepth,int numberOfPlayers);
+        Domain(int maxDepth, int numberOfPlayers);
 
         // destructor
         virtual ~Domain() = default;
 
         // Returns distributions of the root states.
-        inline shared_ptr<ProbDistribution> getRootStateDistributionPtr() const {
-            return rootStatesDistributionPtr;
-        }
-
+        OutcomeDistribution getRootStatesDistribution() const;
 
         virtual vector<int> getPlayers() const;
 
@@ -444,8 +501,13 @@ namespace GTLib2 {
         }
 
         // GetInfo returns string containing domain information.
-        virtual string GetInfo() = 0;
+        virtual string getInfo() const = 0;
 
+
+        [[deprecated]]
+        inline shared_ptr<OutcomeDistributionOld> getRootStateDistributionPtr() const {
+            return rootStatesDistributionPtr;
+        }
         // Start function to calculate an expected value for a strategy profile
         [[deprecated]]
         virtual double CalculateUtility(const vector<PureStrategy> &pure_strategies);
@@ -457,15 +519,15 @@ namespace GTLib2 {
                                       const vector<PureStrategy> &pure_strategies,
                                       const vector<vector<int>> &aoh);
 
-
     protected:
         int maxDepth;
         int numberOfPlayers;
-        ProbDistribution rootStatesDistribution;
-        shared_ptr<ProbDistribution> rootStatesDistributionPtr; // TODO: remove shared_ptr
-    };
+        OutcomeDistribution rootStatesDistribution;
 
-// The rest of the file is obsolete - does not work.
+
+        [[deprecated]]
+        shared_ptr<OutcomeDistributionOld> rootStatesDistributionPtr;
+    };
 
 
     [[deprecated]]
@@ -474,9 +536,6 @@ namespace GTLib2 {
     static Observation NoOb(-1);  // No Observation
 
 }
-
-
-
 
 #endif  // BASE_H_
 

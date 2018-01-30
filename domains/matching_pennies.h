@@ -16,7 +16,7 @@ namespace GTLib2 {
     public:
         MatchingPenniesDomain();
 
-        string GetInfo() override { return "Matching pennies"; }
+        string getInfo() const override { return "Matching pennies"; }
 
     };
 
@@ -24,7 +24,7 @@ namespace GTLib2 {
     public:
         SimultaneousMatchingPenniesDomain();
 
-        string GetInfo() override { return "Matching pennies"; }
+        string getInfo() const override { return "Matching pennies"; }
 
     };
 
@@ -57,24 +57,21 @@ namespace GTLib2 {
 
         vector<shared_ptr<Action>> getAvailableActionsFor(int player) const override;
 
-        void GetActions(vector<shared_ptr<Action>> &list, int player) const override;
 
-        ProbDistribution PerformAction(const vector<shared_ptr<Action>> &actions) override;
-
-        ProbDistribution performActions(const unordered_map<int, shared_ptr<Action>> &actions) const override;
+        OutcomeDistribution performActions(const unordered_map<int, shared_ptr<Action>> &actions) const override;
 
         int getNumberOfPlayers() const override;
+        unordered_set<int> getPlayersSet() const override ;
+        size_t getHash() const override;
 
-        const vector<bool> &GetPlayers() const override;
 
         Move player1;
         Move player2;
-        vector<bool> players;
+        unordered_set<int> players;
 
-        void AddString(const string &s, int player) override {};
 
         // ToString returns state description
-        string toString(int player) override;
+        string toString(int player) const override;
 
     };
 
@@ -84,31 +81,27 @@ namespace GTLib2 {
 
         vector<shared_ptr<Action>> getAvailableActionsFor(int player) const override;
 
-        void GetActions(vector<shared_ptr<Action>> &list, int player) const override;
 
-        ProbDistribution PerformAction(const vector<shared_ptr<Action>> &actions) override;
-
-        ProbDistribution performActions(const unordered_map<int, shared_ptr<Action>> &actions) const override;
+        OutcomeDistribution performActions(const unordered_map<int, shared_ptr<Action>> &actions) const override;
 
         int getNumberOfPlayers() const override;
 
-        const vector<bool> &GetPlayers() const override;
+        unordered_set<int> getPlayersSet() const override;
+
+        size_t getHash() const override;
+
 
         Move player1;
         Move player2;
-        vector<bool> players;
-
-        void AddString(const string &s, int player) override {};
+        unordered_set<int> players;
 
         // ToString returns state description
-        string toString(int player) override;
+        string toString(int player) const override;
 
     };
 
 
 }
-
-
 
 
 #endif //PURSUIT_MATCHING_PENNIES_H

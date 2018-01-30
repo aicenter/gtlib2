@@ -80,7 +80,7 @@ void PursuitState::GetActions(vector<shared_ptr<Action>> &list, int player) cons
   }
 }
 
-ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& actions2) {
+OutcomeDistributionOld PursuitState::PerformAction(const vector<shared_ptr<Action>>& actions2) {
   vector<shared_ptr<PursuitAction>> actions = Cast<Action, PursuitAction>(actions2);
   // number of all combinations
   int actionssize = actions.size();
@@ -170,13 +170,13 @@ ProbDistribution PursuitState::PerformAction(const vector<shared_ptr<Action>>& a
     Outcome p(move(s), move(obser), rew);
     pairs.emplace_back(move(p), p2);  // pair of an outcome and its probability
   }
-  ProbDistribution prob(move(pairs));
+  OutcomeDistributionOld prob(move(pairs));
   return prob;
 }
 
-ProbDistribution PursuitState::performActions(const unordered_map<int, shared_ptr<Action>> &actions) const {
-    assert(false);
-    return ProbDistribution(vector<pair<Outcome, double>>());
+OutcomeDistribution PursuitState::performActions(const unordered_map<int, shared_ptr<Action>> &actions) const {
+    assert(("To be implemented",false));
+    return OutcomeDistribution();
 }
 
 
@@ -188,7 +188,7 @@ MMPursuitState::MMPursuitState(const vector<Pos> &p, double prob,
                                const vector<bool>& players, int movecount):
     PursuitState(p, prob), players_(players), movecount_(movecount) {}
 
-ProbDistribution MMPursuitState::PerformAction(const vector<shared_ptr<Action>> &actions2) {
+OutcomeDistributionOld MMPursuitState::PerformAction(const vector<shared_ptr<Action>> &actions2) {
   vector<shared_ptr<PursuitAction>> actions = Cast<Action, PursuitAction>(actions2);
   unsigned int count = 2;
 //  if (movecount_ == 1) {
@@ -278,7 +278,7 @@ ProbDistribution MMPursuitState::PerformAction(const vector<shared_ptr<Action>> 
     Outcome p(move(s), move(obs), rew);
     pairs.emplace_back(move(p), p2);  // pair of an outcome and its probability
   }
-  ProbDistribution prob(move(pairs));
+  OutcomeDistributionOld prob(move(pairs));
   return prob;
 }
 
@@ -298,7 +298,7 @@ ObsPursuitState::ObsPursuitState(const vector<Pos> &p) : PursuitState(p) {}
 ObsPursuitState::ObsPursuitState(const vector<Pos> &p, double prob) :
     PursuitState(p, prob) {}
 
-ProbDistribution ObsPursuitState::PerformAction(const vector<shared_ptr<Action>> &actions2) {
+OutcomeDistributionOld ObsPursuitState::PerformAction(const vector<shared_ptr<Action>> &actions2) {
   vector<shared_ptr<PursuitAction>> actions = Cast<Action, PursuitAction>(actions2);
   // number of all combinations
   int actionssize = actions.size();
@@ -372,7 +372,7 @@ ProbDistribution ObsPursuitState::PerformAction(const vector<shared_ptr<Action>>
     Outcome p(move(s), move(obs), rew);
     pairs.emplace_back(move(p), p2);  // pair of an outcome and its probability
   }
-  ProbDistribution prob(move(pairs));
+  OutcomeDistributionOld prob(move(pairs));
   return prob;
 }
 
@@ -385,14 +385,14 @@ PursuitDomain::PursuitDomain(unsigned int max, unsigned int maxplayers,
             move(vector<shared_ptr<Observation>>(loc.size())),
             vector<double>(loc.size()));
   pairs.emplace_back(move(o), 1);
-  rootStatesDistributionPtr = make_shared<ProbDistribution>(move(pairs));
+  rootStatesDistributionPtr = make_shared<OutcomeDistributionOld>(move(pairs));
 }
 
 int PursuitDomain::height_ = 0;
 int PursuitDomain::width_ = 0;
 
 
-string PursuitDomain::GetInfo() {
+string PursuitDomain::getInfo() const {
   return "Rozmery pole jsou: " + to_string(PursuitDomain::height_) + " x " +
       to_string(PursuitDomain::width_) + "\nmaximalni hloubka grafu je: " +
       to_string(maxDepth) + "\na pocatecni stav je: " +
@@ -411,7 +411,7 @@ PursuitDomain::PursuitDomain(unsigned int max, unsigned int maxplayers,
   Outcome o(state, move(vector<shared_ptr<Observation>>(maxplayers)),
             vector<double>(maxplayers));
   pairs.emplace_back(move(o), 1);
-  rootStatesDistributionPtr = make_shared<ProbDistribution>(move(pairs));
+  rootStatesDistributionPtr = make_shared<OutcomeDistributionOld>(move(pairs));
 }
 
 
@@ -430,7 +430,7 @@ PursuitDomainChance::PursuitDomainChance(unsigned int max,
               vector<double>(loc.size()));
     pairs.emplace_back(move(o), 1);
   }
-  rootStatesDistributionPtr = make_shared<ProbDistribution>(move(pairs));
+  rootStatesDistributionPtr = make_shared<OutcomeDistributionOld>(move(pairs));
 }
 
 PursuitDomainChance::PursuitDomainChance(unsigned int max) :
@@ -451,7 +451,7 @@ PursuitDomainChance::PursuitDomainChance(unsigned int max,
               vector<double>(maxplayers));
     pairs.emplace_back(move(o), 1);
   }
-  rootStatesDistributionPtr = make_shared<ProbDistribution>(move(pairs));
+  rootStatesDistributionPtr = make_shared<OutcomeDistributionOld>(move(pairs));
 }
 
 
@@ -485,7 +485,7 @@ void Pursuit(const shared_ptr<Domain>& domain, State *state,
   }
   auto action = CartProduct(v);
   for (const auto &k : action) {
-    ProbDistribution prob = state->PerformAction(k);
+    OutcomeDistributionOld prob = state->PerformAction(k);
     for (Outcome &o : prob.GetOutcomes()) {
       reward += o.GetReward();
       ++countStates;

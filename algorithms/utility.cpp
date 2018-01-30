@@ -36,13 +36,13 @@ namespace GTLib2 {
                         double p2Util = 0.0;
                         const auto actions = node->availableActions();
                         for (const auto &action : actions) {
-                            auto infSet = node->pavelgetAOHInfSet();
+                            auto infSet = node->getAOHInfSet();
 
                             double actionStratProb = findActionProb(infSet,
                                                                     (*node->getCurrentPlayer() == player1) ?
                                                                     player1Strat : player2Strat,action);
                             if (actionStratProb > 0 ) {
-                                auto newNodes = node->pavelPerformAction(
+                                auto newNodes = node->performAction(
                                         action); // Non-deterministic - can get multiple nodes
                                 for (auto newNodeProb : newNodes) {
                                     auto util = calculate(newNodeProb.first,
@@ -59,7 +59,8 @@ namespace GTLib2 {
 
             double player1Utility = 0.0;
             double player2Utility = 0.0;
-            auto rootNodes = algorithms::createEFGNodesFromDomainInitDistr(*domain.getRootStateDistributionPtr());
+            auto rootNodes = algorithms::createRootEFGNodesFromInitialOutcomeDistribution(
+                    domain.getRootStatesDistribution());
             for (auto nodeProb : rootNodes) {
                 auto utility = calculate(nodeProb.first, nodeProb.second, domain.getMaxDepth());
                 player1Utility += utility.first;
@@ -77,17 +78,17 @@ namespace GTLib2 {
         generateInformationSetsAndAvailableActions(const Domain &domain, const int player) {
             unordered_map<shared_ptr<AOH>, vector<shared_ptr<Action>>> infSetsAndActions;
 
-            std::function<void(shared_ptr<EFGNode>, double)> extract =
-                    [&infSetsAndActions, &player](shared_ptr<EFGNode> node, double prob) {
+            std::function<void(shared_ptr<EFGNode>)> extract =
+                    [&infSetsAndActions, &player](shared_ptr<EFGNode> node) {
                         if (node->getCurrentPlayer() && *node->getCurrentPlayer() == player) {
-                            auto infSet = node->pavelgetAOHInfSet();
+                            auto infSet = node->getAOHInfSet();
                             auto actions = node->availableActions();
                             infSetsAndActions[infSet] = actions;
                         }
                     };
 
 
-            pavelEFGTreeWalk(domain,extract,domain.getMaxDepth());
+            treeWalkEFG(domain, extract, domain.getMaxDepth());
             return infSetsAndActions;
         };
 
@@ -133,7 +134,7 @@ namespace GTLib2 {
 
 
 
-            int numberOfRows = player1PureStrats.size();
+            auto numberOfRows = player1PureStrats.size();
             auto numberOfColls = player2PureStrats.size();
 
             vector<double> matrix(numberOfRows * numberOfColls, 0.0);

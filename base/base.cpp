@@ -14,7 +14,7 @@ namespace GTLib2 {
 
     Action::Action(int id) : id(id) {}
 
-    bool Action::operator==(Action &that) {
+    bool Action::operator==(const Action &that) const{
         return id == that.id;
     }
 
@@ -33,17 +33,26 @@ namespace GTLib2 {
         return h(id);
     }
 
-    Observation::Observation(int id) : id_(id) {}
+    Observation::Observation(int id) : id(id) {}
 
     string Observation::toString() const {
-        if (id_ == -1) {
+        if (id == -1) {
             return "NoOb;";
         }
-        return to_string(id_);
+        return to_string(id);
     }
 
     int Observation::getId() const {
-        return id_;
+        return id;
+    }
+
+    bool Observation::operator==(const Observation &rhs) const {
+        return id == rhs.id;
+    }
+
+    size_t Observation::getHash() const {
+        std::hash<int> h;
+        return h(id);
     }
 
     Outcome::Outcome(shared_ptr<State> s, vector<shared_ptr<Observation>> ob,
@@ -58,10 +67,52 @@ namespace GTLib2 {
 
     }
 
-    ProbDistribution::ProbDistribution(vector<pair<Outcome, double>> pairs) :
+    size_t Outcome::getHash() const {
+        size_t seed = state->getHash();
+        for (const auto &playerObservation : observations) {
+            boost::hash_combine(seed, std::get<0>(playerObservation));
+            boost::hash_combine(seed, std::get<1>(playerObservation));
+        }
+        for (const auto &playerReward : rewards) {
+            boost::hash_combine(seed, std::get<0>(playerReward));
+            boost::hash_combine(seed, std::get<1>(playerReward));
+        }
+        return seed;
+    }
+
+    bool Outcome::operator==(const Outcome &rhs) const {
+        if (observations.size() != rhs.observations.size()) {
+            return false;
+        }
+        if (rewards.size() != rhs.rewards.size()) {
+            return false;
+        }
+        if (!(state == rhs.state)) {
+            return false;
+        }
+        for (const auto &playerReward : rewards) {
+            auto player = std::get<0>(playerReward);
+            auto reward = std::get<1>(playerReward);
+            if (rhs.rewards.find(player) == rhs.rewards.end() ||
+                    rhs.rewards.at(player) != reward) {
+                return false;
+            }
+        }
+        for (const auto &playerObservation : observations) {
+            auto player = std::get<0>(playerObservation);
+            auto observation = std::get<1>(playerObservation);
+            if (rhs.observations.find(player) == rhs.observations.end() ||
+                rhs.observations.at(player) != observation) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    OutcomeDistributionOld::OutcomeDistributionOld(vector<pair<Outcome, double>> pairs) :
             distribution(move(pairs)) {}
 
-    vector<Outcome> ProbDistribution::GetOutcomes() {
+    vector<Outcome> OutcomeDistributionOld::GetOutcomes() {
         vector<Outcome> list;
         for (auto &pair : distribution) {
             list.push_back(pair.first);
@@ -69,7 +120,7 @@ namespace GTLib2 {
         return list;
     }
 
-    vector<double> ProbDistribution::GetProb() {
+    vector<double> OutcomeDistributionOld::GetProb() {
         vector<double> list;
         for (auto &pair : distribution) {
             list.push_back(pair.second);
@@ -77,7 +128,7 @@ namespace GTLib2 {
         return list;
     }
 
-    ProbDistribution::ProbDistribution() {
+    OutcomeDistributionOld::OutcomeDistributionOld() {
 
     }
 
@@ -89,45 +140,50 @@ namespace GTLib2 {
             aoh.push_back(tuple<int, int>(actionId, observationId));
         }
         this->initialObservationId = -1;
+        hashValue = computeHash();
     }
 
-
-    size_t AOH::getHash() {
-        if (seed_ == 0) {
-            for (auto actionObservation : aoh) {
-                seed_ ^= (std::get<0>(actionObservation) + std::get<1>(actionObservation)) + 0x9e3779b9 + (seed_ << 6) +
-                         (seed_ >> 2);
+    size_t AOH::computeHash() const {
+        size_t seed = 0;
+        for (auto actionObservation : aoh) {
+            boost::hash_combine(seed, std::get<0>(actionObservation));
+            boost::hash_combine(seed, std::get<1>(actionObservation));
             }
-            seed_ ^= player_ + 0x9e3779b9 + (seed_ << 6) + (seed_ >> 2);
-        }
-        return seed_;
+        return seed;
+    }
+
+    size_t AOH::getHash() const {
+        return hashValue;
     }
 
     AOH::AOH(int player, int initialObservation, const vector<tuple<int, int>> &aoHistory) {
         aoh = aoHistory;
         player_ = player;
         this->initialObservationId = initialObservation;
-
+        hashValue = computeHash();
     }
 
-    bool AOH::operator==(InformationSet &other2) {
-        auto *other = dynamic_cast<AOH *>(&other2);
-        if (other != nullptr) {
-            if (player_ != other->player_ ||
-                getHash() != other->getHash() ||
-                aoh.size() != other->aoh.size() ||
-                initialObservationId != other->initialObservationId) {
+    bool AOH::operator==(const InformationSet &rhs) const {
+        const auto rhsAOH = dynamic_cast<const AOH*>(&rhs);
+
+        if (rhsAOH != nullptr) {
+            if (player_ != rhsAOH->player_ ||
+                getHash() != rhsAOH->getHash() ||
+                aoh.size() != rhsAOH->aoh.size() ||
+                initialObservationId != rhsAOH->initialObservationId) {
                 return false;
             }
             for (int i = 0; i < aoh.size(); i++) {
-                if (std::get<0>(aoh[i]) != std::get<0>(other->aoh[i]) ||
-                    std::get<1>(aoh[i]) != std::get<1>(other->aoh[i])) {
+                if (std::get<0>(aoh[i]) != std::get<0>(rhsAOH->aoh[i]) ||
+                    std::get<1>(aoh[i]) != std::get<1>(rhsAOH->aoh[i])) {
                     return false;
                 }
             }
         }
         return true;
     }
+
+
 
     State::State() = default;
 
@@ -175,7 +231,7 @@ namespace GTLib2 {
                 search[i] = make_shared<Action>(NoA);
             }
         }
-        ProbDistribution prob = state->PerformAction(search);
+        OutcomeDistributionOld prob = state->PerformAction(search);
         vector<Outcome> outcomes = prob.GetOutcomes();
         vector<double> p = prob.GetProb();
         double suma = 0;
@@ -196,6 +252,8 @@ namespace GTLib2 {
     }
 
     vector<int> Domain::getPlayers() const {
+        //TODO: Implement this in phantom and pursuits domains and remove this and make this method abstract.
+
         vector<int> players;
         for (int i = 0; i< getNumberOfPlayers(); ++i){
             players.push_back(i);
@@ -203,8 +261,14 @@ namespace GTLib2 {
         return players;
     }
 
+    OutcomeDistribution Domain::getRootStatesDistribution() const {
+        return rootStatesDistribution;
+    }
+
 
     unordered_set<int> State::getPlayersSet() const {
+        //TODO: Implement this in phantom and pursuits domains and remove this and make this method abstract.
+        assert(("getPlayers not implemented", false));
         unordered_set<int> set;
         vector<bool> players = GetPlayers();
         for (int i = 0; i < players.size(); i++) {
@@ -219,9 +283,9 @@ namespace GTLib2 {
         assert(false);
     }
 
-    ProbDistribution State::PerformAction(const vector<shared_ptr<Action>> &actions) {
+    OutcomeDistributionOld State::PerformAction(const vector<shared_ptr<Action>> &actions) {
         assert(false);
-        return ProbDistribution(vector<pair<Outcome, double>>());
+        return OutcomeDistributionOld(vector<pair<Outcome, double>>());
     }
 
     const vector<bool> &State::GetPlayers() const {
@@ -232,6 +296,28 @@ namespace GTLib2 {
     void State::AddString(const string &s, int player) {
         assert(false);
 
+    }
+
+    bool State::operator==(const State &rhs) const {
+        assert(("operator == is not implemented", false));
+        return false;
+    }
+
+    size_t State::getHash() const {
+        assert(("getHash is not implemented", false));
+        return 0;
+    }
+
+    int State::getNumberOfPlayers() const {
+        return (int) getPlayersSet().size();
+    }
+
+    string State::toString(int player) const {
+        return std::string();
+    }
+
+    string State::toString() const {
+        return std::string();
     }
 
 //ProbDistribution State::performActions(unordered_map<int, shared_ptr<Action>> &actions) {
@@ -245,7 +331,7 @@ namespace GTLib2 {
 //        }
 //    }
 //
-//    auto probDistr = PerformAction(actionsVector);
+//    auto probDistr = OldPerformAction(actionsVector);
 //
 //    return probDistr;
 //}

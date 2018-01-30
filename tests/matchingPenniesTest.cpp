@@ -7,6 +7,7 @@
 #include "../algorithms/bestResponse.h"
 #include "../algorithms/common.h"
 #include "../algorithms/equilibrium.h"
+#include "../domains/goofSpiel.h"
 
 
 #define BOOST_TEST_DYN_LINK // For linking with dynamic libraries.
@@ -59,13 +60,14 @@ BOOST_AUTO_TEST_SUITE(Matching_Pennies)
     BOOST_AUTO_TEST_CASE(best_response_test) {
         MatchingPenniesDomain d;
 
-        auto initNodes = GTLib2::algorithms::createEFGNodesFromDomainInitDistr(*d.getRootStateDistributionPtr());
+        auto initNodes = GTLib2::algorithms::createRootEFGNodesFromInitialOutcomeDistribution(
+                d.getRootStatesDistribution());
         auto firstNode = (*initNodes.begin()).first;
 
-        auto player0Is = firstNode->pavelgetAOHInfSet();
-        auto secondNode = (*firstNode->pavelPerformAction(make_shared<MatchingPenniesAction>(Heads)).begin()).first;
+        auto player0Is = firstNode->getAOHInfSet();
+        auto secondNode = (*firstNode->performAction(make_shared<MatchingPenniesAction>(Heads)).begin()).first;
 
-        auto player1Is = secondNode->pavelgetAOHInfSet();
+        auto player1Is = secondNode->getAOHInfSet();
 
 
         BehavioralStrategy stratHeads;
@@ -88,11 +90,12 @@ BOOST_AUTO_TEST_SUITE(Matching_Pennies)
     BOOST_AUTO_TEST_CASE(num_states_test) {
         MatchingPenniesDomain d;
         int stateCounter = 0;
-        auto countingFunction = [&stateCounter](shared_ptr<EFGNode> node, double prob) {
+        auto countingFunction = [&stateCounter](shared_ptr<EFGNode> node) {
             stateCounter += 1;
+
         };
 
-        algorithms::pavelEFGTreeWalk(d, countingFunction, 10);
+        algorithms::treeWalkEFG(d, countingFunction, 10);
 
         BOOST_CHECK(stateCounter == 7);
     }
@@ -101,11 +104,12 @@ BOOST_AUTO_TEST_SUITE(Matching_Pennies)
     BOOST_AUTO_TEST_CASE(num_states_test_simultaneous) {
         SimultaneousMatchingPenniesDomain d;
         int stateCounter = 0;
-        auto countingFunction = [&stateCounter](shared_ptr<EFGNode> node, double prob) {
+        auto countingFunction = [&stateCounter](shared_ptr<EFGNode> node) {
             stateCounter += 1;
+
         };
 
-        algorithms::pavelEFGTreeWalk(d, countingFunction, 10);
+        algorithms::treeWalkEFG(d, countingFunction, 10);
 
         BOOST_CHECK(stateCounter == 7);
     }
@@ -115,11 +119,11 @@ BOOST_AUTO_TEST_SUITE(Matching_Pennies)
         auto player1InfSet = unordered_map<shared_ptr<AOH>, vector<shared_ptr<Action>>>();
         auto player2InfSet = unordered_map<shared_ptr<AOH>, vector<shared_ptr<Action>>>();
 
-        auto infSetsFunction = [&player1InfSet, &player2InfSet](shared_ptr<EFGNode> node, double prob) {
+        auto infSetsFunction = [&player1InfSet, &player2InfSet](shared_ptr<EFGNode> node) {
             optional<int> player = node->getCurrentPlayer();
 
             if (player) {
-                auto aoh = node->pavelgetAOHInfSet();
+                auto aoh = node->getAOHInfSet();
                 if (aoh != nullptr) {
                     auto actions = node->availableActions();
                     if (*player == 0) {
@@ -133,11 +137,64 @@ BOOST_AUTO_TEST_SUITE(Matching_Pennies)
 
         };
 
-        algorithms::pavelEFGTreeWalk(d, infSetsFunction, 10);
+        algorithms::treeWalkEFG(d, infSetsFunction, 10);
 
         BOOST_CHECK(player1InfSet.size() == 1 && player2InfSet.size() == 1 &&
                     player1InfSet.begin()->second.size() == 2 &&
                     player2InfSet.begin()->second.size() == 2);
+    }
+
+BOOST_AUTO_TEST_SUITE_END()
+
+
+BOOST_AUTO_TEST_SUITE(GoofSpiel)
+
+    BOOST_AUTO_TEST_CASE( numberOfRootNodes ) {
+        domains::GoofSpielDomain gsd(0);
+
+        int numberOfNodes = algorithms::countNodes(gsd);
+
+        //13 posible nature bids in the start
+
+        BOOST_CHECK(numberOfNodes == 13);
+
+
+    }
+
+    BOOST_AUTO_TEST_CASE( numberOfFirstAndRootLevelNodes ) {
+        domains::GoofSpielDomain gsd(1);
+
+        int numberOfNodes = algorithms::countNodes(gsd);
+
+        //13 root state + 13*13 next level states
+
+        BOOST_CHECK(numberOfNodes == 182);
+
+
+    }
+
+    BOOST_AUTO_TEST_CASE( numberOfSecondAndFirstAndRootLevelNodes ) {
+        domains::GoofSpielDomain gsd(2);
+
+        int numberOfNodes = algorithms::countNodes(gsd);
+
+        //182 previous levels + (13*13)*13*12 ==== 13*13 previous level nodes 13 player2 choices and 12 nature choices
+
+        BOOST_CHECK(numberOfNodes == 26546);
+
+
+    }
+
+    BOOST_AUTO_TEST_CASE( depth4numberOfNodes ) {
+        domains::GoofSpielDomain gsd(4);
+
+        int numberOfNodes = algorithms::countNodes(gsd);
+
+        // [(13*13)*13*12] * [12*12*11]
+
+        BOOST_CHECK(numberOfNodes == 42103490);
+
+
     }
 
 BOOST_AUTO_TEST_SUITE_END()

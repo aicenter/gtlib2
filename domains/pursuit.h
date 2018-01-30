@@ -120,10 +120,10 @@ class PursuitState: public State {
   // GetActions returns possible actions for a player in the state.
   void GetActions(vector<shared_ptr<Action>>& list, int player) const override;
 
-  // PerformAction performs actions for all players who can play in the state.
-  ProbDistribution PerformAction(const vector<shared_ptr<Action>>& actions) override;
+  // OldPerformAction performs actions for all players who can play in the state.
+  OutcomeDistributionOld PerformAction(const vector<shared_ptr<Action>>& actions) override;
 
-    ProbDistribution performActions(const unordered_map<int,shared_ptr<Action>> &actions) const override;
+    OutcomeDistribution performActions(const unordered_map<int,shared_ptr<Action>> &actions) const override;
 
   // GetNumPlayers returns number of players who can play in this state.
   inline int getNumberOfPlayers() const override {
@@ -144,7 +144,7 @@ class PursuitState: public State {
   }
 
   // ToString returns state description.
-  inline string toString(int player) override {
+  inline string toString(int player) const override {
     return  "player: " + to_string(player) +  ", location: " +
         to_string(place_[player].x) + " " + to_string(place_[player].y) +
         strings_[player] + "\n";
@@ -177,8 +177,8 @@ class MMPursuitState: public PursuitState {
   MMPursuitState(const vector<Pos> &p, double prob,
                  const vector<bool>& players, int movecount);
 
-  // PerformAction performs actions for all players who can play in the state.
-  ProbDistribution PerformAction(const vector<shared_ptr<Action>>& actions) override;
+  // OldPerformAction performs actions for all players who can play in the state.
+  OutcomeDistributionOld PerformAction(const vector<shared_ptr<Action>>& actions) override;
 
   // GetNumPlayers returns number of players who can play in this state.
   inline int getNumberOfPlayers() const override;
@@ -208,8 +208,8 @@ class ObsPursuitState: public PursuitState {
   // Constructor
   ObsPursuitState(const vector<Pos> &p, double prob);
 
-  // PerformAction performs actions for all players who can play in the state.
-  ProbDistribution PerformAction(const vector<shared_ptr<Action>>& actions) override;
+  // OldPerformAction performs actions for all players who can play in the state.
+  OutcomeDistributionOld PerformAction(const vector<shared_ptr<Action>>& actions) override;
 };
 
 /**
@@ -232,7 +232,7 @@ class PursuitDomain: public Domain{
   ~PursuitDomain() override = default;
 
   // GetInfo returns string containing domain information.
-  string GetInfo() final;
+  string getInfo() const final;
 
 
   static int height_;

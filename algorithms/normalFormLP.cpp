@@ -56,12 +56,12 @@ namespace GTLib2 {
                 vector<shared_ptr<Action>>>>> _aohistories)> funkce =
                 ([](EFGNode *n, vector<shared_ptr<unordered_map<shared_ptr<InformationSet>,
                         vector<shared_ptr<Action>>>>> _aohistories) {
-                    auto ptr = make_shared<AOH>(n->GetPlayer(), n->GetAOH(n->GetPlayer()));
+                    auto ptr = make_shared<AOH>(n->GetPlayer(), n->OldGetAOH(n->GetPlayer()));
                     _aohistories[n->GetPlayer()]->operator[](ptr) =
                             n->getState()->getAvailableActionsFor(n->GetPlayer());
                 });
 
-        EFGTreewalkStart(_game, std::bind(funkce, std::placeholders::_1, aohistories));
+        OldEFGTreewalkStart(_game, std::bind(funkce, std::placeholders::_1, aohistories));
 
         auto aoh = vector<vector<vector<shared_ptr<Action>>>>(_game->getNumberOfPlayers());
         for (int i = 0; i < _game->getNumberOfPlayers(); ++i) {

@@ -42,7 +42,7 @@ void PhantomTTTState::GetActions(vector<shared_ptr<Action>> &list,
   }
 }
 
-ProbDistribution
+OutcomeDistributionOld
 PhantomTTTState::PerformAction(const vector<shared_ptr<Action>> &actions2) {
   vector<shared_ptr<PhantomTTTAction>> actions =
       Cast<Action, PhantomTTTAction>(actions2);
@@ -139,13 +139,13 @@ PhantomTTTState::PerformAction(const vector<shared_ptr<Action>> &actions2) {
 
   Outcome p(move(s), move(obser), rew);
   vector<pair<Outcome, double>> pair{{move(p), 1}};
-  ProbDistribution prob(move(pair));  // pair of an outcome and its probability
+  OutcomeDistributionOld prob(move(pair));  // pair of an outcome and its probability
   return prob;
 }
 
-ProbDistribution PhantomTTTState::performActions(const unordered_map<int, shared_ptr<Action>> &actions) const {
-  assert(false);
-  return ProbDistribution(vector<pair<Outcome, double>>());
+OutcomeDistribution PhantomTTTState::performActions(const unordered_map<int, shared_ptr<Action>> &actions) const {
+  assert(("Implement this",false));
+  return OutcomeDistribution();
 }
 
 
@@ -159,10 +159,10 @@ PhantomTTTDomain::PhantomTTTDomain(unsigned int max) :
             move(vector<shared_ptr<Observation>>(numberOfPlayers)),
             vector<double>(numberOfPlayers));
   pairs.emplace_back(move(o), 1);
-  rootStatesDistributionPtr = make_shared<ProbDistribution>(move(pairs));
+  rootStatesDistributionPtr = make_shared<OutcomeDistributionOld>(move(pairs));
 }
 
-string PhantomTTTDomain::GetInfo() {
+string PhantomTTTDomain::getInfo() const {
   return "************ Phantom Tic Tac Toe *************\n" +
           rootStatesDistributionPtr->GetOutcomes()[0].GetState()->toString(0) + "\n" +
           rootStatesDistributionPtr->GetOutcomes()[0].GetState()->toString(1) + "\n";

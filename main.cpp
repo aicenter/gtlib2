@@ -16,8 +16,20 @@
 #include "algorithms/common.h"
 #include "algorithms/bestResponse.h"
 #include "algorithms/equilibrium.h"
+#include "domains/goofSpiel.h"
 
 //#include <boost/test/unit_test.hpp>
+
+using namespace GTLib2;
+
+int goofSpiel() {
+    domains::GoofSpielDomain d(4);
+
+    int cnt = algorithms::countNodes(d);
+
+    cout << "Goof spiel number of nodes: " << cnt << endl;
+
+}
 
 int equilibrium() {
     MatchingPenniesDomain d;
@@ -45,13 +57,13 @@ int equilibrium() {
 int pavelTreeWalkTest3() {
     MatchingPenniesDomain d;
 
-    auto initNodes = algorithms::createEFGNodesFromDomainInitDistr(*d.getRootStateDistributionPtr());
+    auto initNodes = algorithms::createRootEFGNodesFromInitialOutcomeDistribution(d.getRootStatesDistribution());
     auto firstNode = (*initNodes.begin()).first;
 
-    auto player0Is = firstNode->pavelgetAOHInfSet();
-    auto secondNode = (*firstNode->pavelPerformAction(make_shared<MatchingPenniesAction>(Heads)).begin()).first;
+    auto player0Is = firstNode->getAOHInfSet();
+    auto secondNode = (*firstNode->performAction(make_shared<MatchingPenniesAction>(Heads)).begin()).first;
 
-    auto player1Is = secondNode->pavelgetAOHInfSet();
+    auto player1Is = secondNode->getAOHInfSet();
 
 
 
@@ -79,14 +91,14 @@ int pursuitGame1() {
     PursuitDomain::width_ = 3;
     PursuitDomain::height_ = 3;
     PursuitDomain pd = PursuitDomain(2);
-    cout << pd.GetInfo();
+    cout << pd.getInfo();
     //shared_ptr<Domain> d = make_shared<PursuitDomain>(2);
     //shared_ptr<LPSolver> solver = make_shared<CplexLPSolver>();
     CplexLPSolver solver = CplexLPSolver();
 
     NormalFormLP nor(make_shared<PursuitDomain>(pd) , make_shared<CplexLPSolver>(solver));
     cout << "vysledek hry: " << nor.SolveGame() << "\n";
-    cout << pd.GetInfo();
+    cout << pd.getInfo();
     return 0;
 }
 
@@ -98,7 +110,7 @@ int pavelTreeWalkTest2() {
     auto player1InfSet = unordered_map<shared_ptr<AOH>,vector<shared_ptr<Action>>>();
     auto player2InfSet = unordered_map<shared_ptr<AOH>,vector<shared_ptr<Action>>>();
 
-    auto countingFunction = [&stateCounter, &player1InfSet, &player2InfSet](shared_ptr<EFGNode> node, double prob) {
+    auto countingFunction = [&stateCounter, &player1InfSet, &player2InfSet](shared_ptr<EFGNode> node) {
         stateCounter += 1;
         cout << node->description() << endl;
         cout << node->getState()->toString(-1) << endl;
@@ -106,7 +118,7 @@ int pavelTreeWalkTest2() {
         optional<int> player = node->getCurrentPlayer();
 
         if (player) {
-            auto aoh = node->pavelgetAOHInfSet();
+            auto aoh = node->getAOHInfSet();
             if (aoh != nullptr) {
                 auto actions = node->availableActions();
                 if (*player == 0) {
@@ -120,7 +132,7 @@ int pavelTreeWalkTest2() {
 
     };
 
-    algorithms::pavelEFGTreeWalk(d,countingFunction,10);
+    algorithms::treeWalkEFG(d, countingFunction, 10);
 
     cout << "Number of states: " << stateCounter << endl;
 
@@ -130,13 +142,13 @@ int pavelTreeWalkTest2() {
 int pavelTreeWalkTest() {
     SimultaneousMatchingPenniesDomain d;
     int stateCounter = 0;
-    auto countingFunction = [&stateCounter](shared_ptr<EFGNode> node, double prob) {
+    auto countingFunction = [&stateCounter](shared_ptr<EFGNode> node) {
         stateCounter += 1;
         cout << node->description() << endl;
         cout << node->getState()->toString(-1) << endl;
     };
 
-    algorithms::pavelEFGTreeWalk(d,countingFunction,10);
+    algorithms::treeWalkEFG(d, countingFunction, 10);
 
     cout << "Number of states: " << stateCounter << endl;
 }
@@ -195,7 +207,8 @@ int matchingPenniesTest() {
             };
 
 
-    EFGTreewalkStart(make_shared<MatchingPenniesDomain>(d),std::bind(countingFunction, std::placeholders::_1,&stateCounter));
+    OldEFGTreewalkStart(make_shared<MatchingPenniesDomain>(d),
+                        std::bind(countingFunction, std::placeholders::_1, &stateCounter));
 
     cout << "Number of states is: " << stateCounter << endl;
 
@@ -214,7 +227,8 @@ int main(int argc, char* argv[]) {
   //countStates = 0;
 
 
-    equilibrium();
+    goofSpiel();
+    //equilibrium();
 
   //mapa = unordered_map<size_t, vector<EFGNode>>();
 //  shared_ptr<Domain> d = make_shared<PhantomTTTDomain>(4);
@@ -237,8 +251,8 @@ int main(int argc, char* argv[]) {
 //  NormalFormLP nor2(d, solver2);
 //  cout << "vysledek hry: " << nor2.SolveGame() << "\n";
 //  cout << d->GetInfo();
-//  EFGTreewalkStart(d);
-//  TreewalkStart(d);
+//  OldEFGTreewalkStart(d);
+//  OldTreewalkStart(d);
 //  PursuitStart(d);
 //  for (double i : reward) {
 //    cout << i << " ";

@@ -14,17 +14,16 @@ using std::tuple;
 
 namespace GTLib2 {
 
-    void algorithms::pavelEFGTreeWalk(const Domain &domain, std::function<void(shared_ptr<EFGNode>, double)> function,
-                                      const int maxDepth) {
+    void algorithms::treeWalkEFG(const Domain &domain, std::function<void(shared_ptr<EFGNode>)> function,
+                                 int maxDepth) {
 
-        std::function<void(shared_ptr<EFGNode>, double, int)> traverse = [&function, &traverse](
-                shared_ptr<EFGNode> node,
-                double prob, int depth) {
+        std::function<void(shared_ptr<EFGNode>, int)> traverse = [&function, &traverse](
+                shared_ptr<EFGNode> node, int depth) {
 
             // Call the provided function on the current node.
             // Prob is the probability that this node is reached due to nature, given that the players played
             // the required actions to reach this node.
-            function(node, prob);
+            function(node);
 
             if (depth <= 0) {
                 return;
@@ -32,26 +31,31 @@ namespace GTLib2 {
 
             const auto actions = node->availableActions();
             for (const auto &action : actions) {
-                auto newNodes = node->pavelPerformAction(action); // Non-deterministic - can get multiple nodes
+                auto newNodes = node->performAction(action); // Non-deterministic - can get multiple nodes
                 for (auto newNodeProb : newNodes) {
-                    traverse(newNodeProb.first, newNodeProb.second * prob, depth - 1);
+                    traverse(newNodeProb.first, depth - 1);
                 }
             }
         };
 
-        auto rootNodes = algorithms::createEFGNodesFromDomainInitDistr(*domain.getRootStateDistributionPtr());
+        auto rootNodes = algorithms::createRootEFGNodesFromInitialOutcomeDistribution(
+                domain.getRootStatesDistribution());
 
         for (auto nodeProb : rootNodes) {
-            traverse(nodeProb.first, nodeProb.second, maxDepth);
+            traverse(nodeProb.first,  maxDepth);
         }
     }
 
     int algorithms::countNodes(const Domain &domain) {
         int nodesCounter = 0;
-        auto countingFunction = [&nodesCounter](shared_ptr<EFGNode> node, double prob) {
+        auto countingFunction = [&nodesCounter](shared_ptr<EFGNode> node) {
             nodesCounter += 1;
+
+            if (nodesCounter % 100000 == 0) {
+                cout << "Number of nodes: " << nodesCounter << std::endl;
+            }
         };
-        algorithms::pavelEFGTreeWalk(domain,countingFunction,domain.getMaxDepth());
+        algorithms::treeWalkEFG(domain, countingFunction, domain.getMaxDepth());
         return nodesCounter;
     }
 

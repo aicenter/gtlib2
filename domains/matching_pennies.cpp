@@ -29,48 +29,48 @@ MatchingPenniesDomain::MatchingPenniesDomain() : Domain(std::numeric_limits<int>
 
     Outcome outcome(rootState,observations,rewards);
 
-    vector<pair<Outcome, double>> distr;
-    distr.emplace_back(outcome,1.0);
+    rootStatesDistribution[outcome] = 1.0;
 
-    rootStatesDistributionPtr = make_shared<ProbDistribution>(distr);
+//    vector<pair<Outcome, double>> distr;
+//    distr.emplace_back(outcome,1.0);
+//
+//    rootStatesDistributionPtr = make_shared<OutcomeDistributionOld>(distr);
 
 }
 
 vector<shared_ptr<Action>> MatchingPenniesState::getAvailableActionsFor(int player) const {
 
     vector<shared_ptr<Action>> actions = vector<shared_ptr<Action>>();
-    GetActions(actions, player);
+    if (player == 0 && player1 == Nothing && player2 == Nothing) {
+        actions.push_back(make_shared<MatchingPenniesAction>(Heads));
+        actions.push_back(make_shared<MatchingPenniesAction>(Tails));
+    } else if (player == 1 && player1 != Nothing && player2 == Nothing){
+        actions.push_back(make_shared<MatchingPenniesAction>(Heads));
+        actions.push_back(make_shared<MatchingPenniesAction>(Tails));
+    }
     return actions;
 }
 
-void MatchingPenniesState::GetActions(vector<shared_ptr<Action>> &list, int player) const {
-    if (player == 0 && player1 == Nothing && player2 == Nothing) {
-        list.push_back(make_shared<MatchingPenniesAction>(Heads));
-        list.push_back(make_shared<MatchingPenniesAction>(Tails));
-    } else if (player == 1 && player1 != Nothing && player2 == Nothing){
-        list.push_back(make_shared<MatchingPenniesAction>(Heads));
-        list.push_back(make_shared<MatchingPenniesAction>(Tails));
-    }
-}
 
 MatchingPenniesState::MatchingPenniesState(Move p1, Move p2) : State() {
-    players = vector<bool>(2);
     player1 = p1;
     player2 = p2;
-    players[0] = player1 == Nothing && player2 == Nothing;
-    players[1] = player2 == Nothing && player1 != Nothing;
+    if (player1 == Nothing && player2 == Nothing) {
+        players.insert(0);
+    }
+    if (player2 == Nothing && player1 != Nothing) {
+        players.insert(1);
+    }
+
 }
 
-const vector<bool> &MatchingPenniesState::GetPlayers() const {
-    return players;
-}
+
 
 int MatchingPenniesState::getNumberOfPlayers() const {
-    const int numPlayers = players[0] ? 1 : 0 + players[1] ? 1 : 0;
-    return numPlayers;
+    return (int) players.size();
 }
 
-ProbDistribution MatchingPenniesState::performActions(const unordered_map<int, shared_ptr<Action>> &actions) const {
+OutcomeDistribution MatchingPenniesState::performActions(const unordered_map<int, shared_ptr<Action>> &actions) const {
 
 
     auto a1 = actions.find(0) != actions.end() ? actions.at(0) : nullptr;
@@ -116,29 +116,18 @@ ProbDistribution MatchingPenniesState::performActions(const unordered_map<int, s
 
     Outcome outcome(newState,observations,rewards);
 
-    vector<pair<Outcome, double>> distr;
-    distr.emplace_back(outcome,1.0);
+    unordered_map<Outcome, double> distr;
+    distr[outcome] = 1.0;
 
-    return ProbDistribution(distr);
+//    vector<pair<Outcome, double>> distr;
+//    distr.emplace_back(outcome,1.0);
+
+    return distr;
 }
 
-ProbDistribution MatchingPenniesState::PerformAction(const vector<shared_ptr<Action>> &actionsParm) {
 
 
-    // TODO: make an assert that only one action is performed
-    // TODO: remove body of this function and call performActions(unordered_map<int, shared_ptr<Action>> &actions)
-
-
-    unordered_map<int, shared_ptr<Action>> actions;
-
-    actions[0] = actionsParm[0];
-    actions[1] = actionsParm[1];
-
-    return performActions(actions);
-
-}
-
-string MatchingPenniesState::toString(int player) {
+string MatchingPenniesState::toString(int player) const {
 
     std:: string desc = "Player 1: ";
     desc += player1 == Nothing ? "Nothing" : player1 == Heads ? "Heads" : "Tails";
@@ -148,7 +137,16 @@ string MatchingPenniesState::toString(int player) {
     return desc;
 }
 
+unordered_set<int> MatchingPenniesState::getPlayersSet() const {
+    return players;
+}
 
+size_t MatchingPenniesState::getHash() const {
+    size_t seed = 0;
+    boost::hash_combine(seed, player1);
+    boost::hash_combine(seed, player2);
+    return seed;
+}
 
 
 MatchingPenniesObservation::MatchingPenniesObservation(OtherMove otherMoveParm) :
@@ -171,37 +169,29 @@ string MatchingPenniesAction::toString() const{
 
 SimultaneousMatchingPenniesState::SimultaneousMatchingPenniesState(Move p1, Move p2) : State() {
     assert((p1 != Nothing && p2 != Nothing) || (p1 == Nothing && p2 == Nothing));
-    players = vector<bool>(2);
     player1 = p1;
     player2 = p2;
-    players[0] = player1 == Nothing ;
-    players[1] = player2 == Nothing;
+    if (player1 == Nothing) {
+        players.insert(0);
+    }
+    if (player2 == Nothing) {
+        players.insert(1);
+    }
 }
 
 vector<shared_ptr<Action>> SimultaneousMatchingPenniesState::getAvailableActionsFor(int player) const {
     vector<shared_ptr<Action>> actions = vector<shared_ptr<Action>>();
-    GetActions(actions, player);
+    if (player1 == Nothing && player2 == Nothing) {
+        actions.push_back(make_shared<MatchingPenniesAction>(Heads));
+        actions.push_back(make_shared<MatchingPenniesAction>(Tails));
+    }
     return actions;
 }
 
-void SimultaneousMatchingPenniesState::GetActions(vector<shared_ptr<Action>> &list, int player) const {
-    if (player1 == Nothing && player2 == Nothing) {
-        list.push_back(make_shared<MatchingPenniesAction>(Heads));
-        list.push_back(make_shared<MatchingPenniesAction>(Tails));
-    }
 
-}
 
-ProbDistribution SimultaneousMatchingPenniesState::PerformAction(const vector<shared_ptr<Action>> &actionsParm) {
-    unordered_map<int, shared_ptr<Action>> actions;
 
-    actions[0] = actionsParm[0];
-    actions[1] = actionsParm[1];
-
-    return performActions(actions);
-}
-
-ProbDistribution SimultaneousMatchingPenniesState::performActions(const unordered_map<int, shared_ptr<Action>> &actions) const {
+OutcomeDistribution SimultaneousMatchingPenniesState::performActions(const unordered_map<int, shared_ptr<Action>> &actions) const {
 
     auto a1 = actions.find(0) != actions.end() ? actions.at(0) : nullptr;
     auto a2 = actions.find(1) != actions.end() ? actions.at(1) : nullptr;
@@ -246,28 +236,38 @@ ProbDistribution SimultaneousMatchingPenniesState::performActions(const unordere
 
     Outcome outcome(newState,observations,rewards);
 
-    vector<pair<Outcome, double>> distr;
-    distr.emplace_back(outcome,1.0);
+    unordered_map<Outcome, double> distr;
+    //vector<pair<Outcome, double>> distr;
+    //distr.emplace_back(outcome,1.0);
 
-    return ProbDistribution(distr);
+    distr[outcome] = 1.0;
+
+    return distr;
 }
 
 int SimultaneousMatchingPenniesState::getNumberOfPlayers() const {
-    const int numPlayers = players[0] ? 1 : 0 + players[1] ? 1 : 0;
-    return numPlayers;
+    return (int) players.size();
 }
 
-const vector<bool> &SimultaneousMatchingPenniesState::GetPlayers() const {
-    return players;
-}
 
-string SimultaneousMatchingPenniesState::toString(int player) {
+string SimultaneousMatchingPenniesState::toString(int player) const {
     std:: string desc = "Player 1: ";
     desc += player1 == Nothing ? "Nothing" : player1 == Heads ? "Heads" : "Tails";
     desc += " Player 2: ";
     desc += player2 == Nothing ? "Nothing" : player2 == Heads ? "Heads" : "Tails";
 
     return desc;
+}
+
+unordered_set<int> SimultaneousMatchingPenniesState::getPlayersSet() const {
+    return players;
+}
+
+size_t SimultaneousMatchingPenniesState::getHash() const {
+    size_t seed = 0;
+    boost::hash_combine(seed, player1);
+    boost::hash_combine(seed, player2);
+    return seed;
 }
 
 SimultaneousMatchingPenniesDomain::SimultaneousMatchingPenniesDomain() : Domain(std::numeric_limits<int>::max(),2) {
@@ -288,10 +288,12 @@ SimultaneousMatchingPenniesDomain::SimultaneousMatchingPenniesDomain() : Domain(
 
     Outcome outcome(rootState,observations,rewards);
 
-    vector<pair<Outcome, double>> distr;
-    distr.emplace_back(outcome,1.0);
+    rootStatesDistribution[outcome] = 1.0;
 
-    rootStatesDistributionPtr = make_shared<ProbDistribution>(distr);
+//    vector<pair<Outcome, double>> distr;
+//    distr.emplace_back(outcome,1.0);
+//
+//    rootStatesDistributionPtr = make_shared<OutcomeDistributionOld>(distr);
 
 }
 

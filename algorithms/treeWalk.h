@@ -13,7 +13,7 @@ namespace GTLib2 {
     namespace algorithms {
 
         void
-        pavelEFGTreeWalk(const Domain &domain, std::function<void(shared_ptr<EFGNode>, double)> function, int maxDepth);
+        treeWalkEFG(const Domain &domain, std::function<void(shared_ptr<EFGNode>)> function, int maxDepth);
 
 
         // Counts the number of nodes of the game given by the domain parameter.

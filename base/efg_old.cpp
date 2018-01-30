@@ -17,9 +17,9 @@ namespace GTLib2 {
 
     vector<double> reward;  // temporary for testing treewalk TODO: remove it
 
-    void EFGTreewalkStart(const shared_ptr<Domain> &domain,
-                          std::function<void(EFGNode *)> FunctionForState,
-                          unsigned int depth) {
+    void OldEFGTreewalkStart(const shared_ptr<Domain> &domain,
+                             std::function<void(EFGNode *)> FunctionForState,
+                             unsigned int depth) {
         if (depth == 0)
             depth = domain->getMaxDepth();
         auto node = MakeUnique<EFGNode>();
@@ -28,19 +28,19 @@ namespace GTLib2 {
         for (auto &j : vec) {
             ++countStates;
             reward += j->GetRewards();
-            EFGTreewalk(domain, j.get(), depth, 1, {}, FunctionForState);
+            OldEFGTreewalk(domain, j.get(), depth, 1, {}, FunctionForState);
         }
     }
 
-    void EFGTreewalkStart(const shared_ptr<Domain> &domain, unsigned int depth) {
-        EFGTreewalkStart(domain, [](EFGNode *s) {}, depth);
+    void OldEFGTreewalkStart(const shared_ptr<Domain> &domain, unsigned int depth) {
+        OldEFGTreewalkStart(domain, [](EFGNode *s) {}, depth);
     }
 
 
-    void EFGTreewalk(const shared_ptr<Domain> &domain, EFGNode *node,
-                     unsigned int depth, int players,
-                     const vector<shared_ptr<Action>> &list,
-                     std::function<void(EFGNode *)> FunctionForState) {
+    void OldEFGTreewalk(const shared_ptr<Domain> &domain, EFGNode *node,
+                        unsigned int depth, int players,
+                        const vector<shared_ptr<Action>> &list,
+                        std::function<void(EFGNode *)> FunctionForState) {
         if (node == nullptr) {
             throw ("Node is NULL");
         }
@@ -65,7 +65,7 @@ namespace GTLib2 {
         }
 
         for (auto &i : actions) {
-            unique_ptr<EFGNode> n = node->PerformAction(i);
+            unique_ptr<EFGNode> n = node->OldPerformAction(i);
             vector<shared_ptr<Action>> locallist = list;
             locallist.push_back(i);
 
@@ -88,13 +88,13 @@ namespace GTLib2 {
                     FunctionForState(n.get());
                 }
                 // if all players play in this turn, returns a ProbDistribution
-                ProbDistribution prob = n->getState()->PerformAction(locallist);
+                OutcomeDistributionOld prob = n->getState()->PerformAction(locallist);
                 ChanceNode chan(&prob, locallist, n);
                 vector<unique_ptr<EFGNode>> vec = chan.GetAll();
                 for (auto &j : vec) {
                     ++countStates;
                     reward += j->GetRewards();
-                    EFGTreewalk(domain, j.get(), depth - 1, 1, {}, FunctionForState);
+                    OldEFGTreewalk(domain, j.get(), depth - 1, 1, {}, FunctionForState);
                 }
             } else {
                 if (depth < domain->getMaxDepth()) {
@@ -104,19 +104,19 @@ namespace GTLib2 {
                         ++index;
                     }
                 }
-                EFGTreewalk(domain, n.get(), depth, players + 1, locallist, FunctionForState);
+                OldEFGTreewalk(domain, n.get(), depth, players + 1, locallist, FunctionForState);
             }
         }
     }
 
-    void EFGTreewalk(const shared_ptr<Domain> &domain, EFGNode *node,
-                     unsigned int depth, int players,
-                     const vector<shared_ptr<Action>> &list) {
-        EFGTreewalk(domain, node, depth, players, list, [](EFGNode *s) {});
+    void OldEFGTreewalk(const shared_ptr<Domain> &domain, EFGNode *node,
+                        unsigned int depth, int players,
+                        const vector<shared_ptr<Action>> &list) {
+        OldEFGTreewalk(domain, node, depth, players, list, [](EFGNode *s) {});
     }
 
 
-    ChanceNode::ChanceNode(ProbDistribution *prob,
+    ChanceNode::ChanceNode(OutcomeDistributionOld *prob,
                            const vector<shared_ptr<Action>> &actions,
                            const unique_ptr<EFGNode> &node) :
             prob_(prob), actions_(actions), node_(node) {}

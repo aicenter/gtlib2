@@ -38,18 +38,18 @@ namespace GTLib2 {
     }
 
 
-    void TreewalkStart(const shared_ptr<Domain> &domain, unsigned int depth) {
+    void OldTreewalkStart(const shared_ptr<Domain> &domain, unsigned int depth) {
         if (depth == 0)
             depth = domain->getMaxDepth();
         vector<Outcome> outcomes = domain->getRootStateDistributionPtr()->GetOutcomes();
         for (Outcome &o : outcomes) {
-            Treewalk(domain, o.GetState().get(), depth, domain->getNumberOfPlayers());
+            OldTreewalk(domain, o.GetState().get(), depth, domain->getNumberOfPlayers());
         }
     }
 
-    void Treewalk(const shared_ptr<Domain> domain, State *state,
-                  unsigned int depth, int players,
-                  std::function<void(State *)> FunctionForState) {
+    void OldTreewalk(shared_ptr<Domain> domain, State *state,
+                     unsigned int depth, int players,
+                     std::function<void(State *)> FunctionForState) {
         if (state == nullptr) {
             return;
         }
@@ -66,18 +66,18 @@ namespace GTLib2 {
 
         auto action = CartProduct(v);
         for (const auto &k : action) {
-            ProbDistribution prob = state->PerformAction(k);
+            OutcomeDistributionOld prob = state->PerformAction(k);
             vector<Outcome> outcomes = prob.GetOutcomes();
             for (Outcome &o : outcomes) {
-                Treewalk(domain, o.GetState().get(), depth - 1, players, FunctionForState);
+                OldTreewalk(domain, o.GetState().get(), depth - 1, players, FunctionForState);
             }
         }
     }
 
 
-    void Treewalk(const shared_ptr<Domain> domain, State *state,
-                  unsigned int depth, int players) {
-        Treewalk(domain, state, depth, players, [](State *s) {});
+    void OldTreewalk(shared_ptr<Domain> domain, State *state,
+                     unsigned int depth, int players) {
+        OldTreewalk(domain, state, depth, players, [](State *s) {});
     }
 }
 #pragma clang diagnostic pop
