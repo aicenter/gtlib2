@@ -38,7 +38,7 @@ namespace GTLib2 {
                 newNodes[newNode] = prob;
             }
         } else {
-            auto newNode = make_shared<EFGNode>(shared_from_this(), action, *currentPlayer);
+            auto newNode = make_shared<EFGNode>(shared_from_this(), actionsToBePerformed, *currentPlayer);
             newNodes[newNode] = 1.0;
         }
         return newNodes;
@@ -81,13 +81,19 @@ namespace GTLib2 {
 
     }
 
-    EFGNode::EFGNode(shared_ptr<EFGNode const> parent, const shared_ptr<Action> &lastAction, const int lastPlayer) {
+    EFGNode::EFGNode(shared_ptr<EFGNode const> parent, const unordered_map<int, shared_ptr<Action>> &performedActions,
+                     const int lastPlayer) {
         this->state = parent->getState();
         this->observations = parent->observations;
         this->rewards = parent->rewards;
         this->natureProbability = parent->natureProbability;
-        parent = parent;
-        performedActionsInThisRound[lastPlayer] = lastAction;
+        this->previousRoundActions = parent->previousRoundActions;
+        this->initialObservations = parent->initialObservations;
+        this->parent = parent;
+
+        this->performedActionsInThisRound = performedActions;
+
+        //___performedActionsInThisRound[lastPlayer] = lastAction;
         std::copy_if(parent->remainingPlayersInTheRound.begin(),
                      parent->remainingPlayersInTheRound.end(),
                      std::back_inserter(remainingPlayersInTheRound),
@@ -100,7 +106,7 @@ namespace GTLib2 {
             currentPlayer = nullopt;
             player_ = -1;
         }
-        this->initialObservations = parent->initialObservations;
+
     }
 
     vector<shared_ptr<Action>> EFGNode::availableActions() const {
@@ -123,16 +129,15 @@ namespace GTLib2 {
     vector<std::tuple<int, int>> EFGNode::getAOH(int player) const {
         auto aoh = this->parent != nullptr ? this->parent->getAOH(player) : vector<std::tuple<int, int>>();
 
-
         if (currentPlayer && *currentPlayer == player) {
+
             auto action = previousRoundActions.find(player);
             auto observation = observations.find(player);
 
-
             if (action != previousRoundActions.end() && observation != observations.end()) {
-                auto a = *action;
-                auto o = *observation;
-                aoh.emplace_back(action->second->getId(), observation->second->getId());
+                auto actionId = action->second->getId();
+                auto observationId = observation->second->getId();
+                aoh.emplace_back(actionId, observationId);
             }
         }
         return aoh;

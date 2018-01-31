@@ -15,6 +15,7 @@ namespace GTLib2 {
     class MatchingPenniesDomain : public Domain {
     public:
         MatchingPenniesDomain();
+        vector<int> getPlayers() const override;
 
         string getInfo() const override { return "Matching pennies"; }
 
@@ -23,6 +24,7 @@ namespace GTLib2 {
     class SimultaneousMatchingPenniesDomain : public Domain {
     public:
         SimultaneousMatchingPenniesDomain();
+        vector<int> getPlayers() const override;
 
         string getInfo() const override { return "Matching pennies"; }
 

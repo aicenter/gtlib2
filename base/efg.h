@@ -28,8 +28,8 @@ namespace GTLib2 {
     public:
 
         // Constructor for the same round node
-        EFGNode(shared_ptr<EFGNode const> parent, const shared_ptr<Action> &lastAction,
-                int lastPlayer);
+        EFGNode(shared_ptr<EFGNode const> parent, const unordered_map<int, shared_ptr<Action>> &performedActions,
+                const int lastPlayer);
 
         // Constructor for the new round node
         EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,

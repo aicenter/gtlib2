@@ -26,7 +26,7 @@ namespace GTLib2 {
             this->newBid = newBid;
             this->player1LastCard = player1LastCard;
             this->player2LastCard = player2LastCard;
-            this->id = newBid.value_or(0) + 14*player1LastCard.value_or(0) + 14*14*player1LastCard.value_or(0);
+            this->id = newBid.value_or(0) + 14*player1LastCard.value_or(0) + 14*14*player2LastCard.value_or(0);
 
         }
 

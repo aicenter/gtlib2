@@ -38,6 +38,10 @@ MatchingPenniesDomain::MatchingPenniesDomain() : Domain(std::numeric_limits<int>
 
 }
 
+vector<int> MatchingPenniesDomain::getPlayers() const {
+    return {0,1};
+}
+
 vector<shared_ptr<Action>> MatchingPenniesState::getAvailableActionsFor(int player) const {
 
     vector<shared_ptr<Action>> actions = vector<shared_ptr<Action>>();
@@ -295,6 +299,10 @@ SimultaneousMatchingPenniesDomain::SimultaneousMatchingPenniesDomain() : Domain(
 //
 //    rootStatesDistributionPtr = make_shared<OutcomeDistributionOld>(distr);
 
+}
+
+vector<int> SimultaneousMatchingPenniesDomain::getPlayers() const {
+    return {0,1};
 }
 
 
