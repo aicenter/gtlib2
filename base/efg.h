@@ -78,6 +78,8 @@ namespace GTLib2 {
 
         bool operator==(const EFGNode &rhs) const;
 
+        int getDistanceFromRoot() const;
+
 
 
 

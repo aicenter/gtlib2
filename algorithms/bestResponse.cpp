@@ -9,6 +9,11 @@
 
 namespace GTLib2 {
 
+    pair<BehavioralStrategy, double>
+    algorithms::bestResponseTo(const BehavioralStrategy &opoStrat, int opponent, int player, const Domain &domain) {
+        return algorithms::bestResponseTo(opoStrat,opponent,player,domain, domain.getMaxDepth());
+    }
+
     pair<BehavioralStrategy, double> algorithms::bestResponseTo(const BehavioralStrategy &opoStrat, const int opponent,
                                                                 const int player, const Domain &domain,
                                                                 const int maxDepth) {
@@ -37,11 +42,15 @@ namespace GTLib2 {
 
 
                         shared_ptr<Action> bestAction;
-                        double bestActionVal = -std::numeric_limits<double>::infinity();
+                        double bestActionExpectedVal = -std::numeric_limits<double>::infinity();
                         //BehavioralStrategy bestStratFromBestNode;
                         BehavioralStrategy brs;
 
+                        unordered_map<shared_ptr<Action>, unordered_map<shared_ptr<EFGNode>,double>> actionNodeVal;
+
+
                         for (const auto &action : node->availableActions()) {
+                            actionNodeVal[action] = unordered_map<shared_ptr<EFGNode>,double>();
 
                             double actionExpectedValue = 0.0;
 
@@ -62,18 +71,32 @@ namespace GTLib2 {
                                 }
                                 actionExpectedValue += val;
 
+                                actionNodeVal[action][sibling] = val;
+
                             }
 
 
-                            if (actionExpectedValue > bestActionVal) {
-                                bestActionVal = actionExpectedValue;
+                            if (actionExpectedValue > bestActionExpectedVal) {
+                                bestActionExpectedVal = actionExpectedValue;
                                 bestAction = action;
                                 //bestStratFromBestNode = brs;
                             }
                         }
 
                         brs[node->getAOHInfSet()] = {{bestAction, 1.0}};
-                        return pair<BehavioralStrategy, double>(brs, bestActionVal);
+
+                        for (const auto &siblingNatureProb : allNodesInTheSameInfSet) {
+                            const auto &sibling = std::get<0>(siblingNatureProb);
+                            auto bestActionVal = actionNodeVal[bestAction][sibling];
+                            cache[sibling] = pair<BehavioralStrategy, double>(brs, bestActionVal);
+                        }
+
+
+
+
+                        //cache[node] = pair<BehavioralStrategy, double>(brs, bestActionVal);
+                        //return pair<BehavioralStrategy, double>(brs, bestActionVal);
+                        return cache.at(node);
                     } else {
                         // Opponent's node
                         double val = 0;
@@ -109,4 +132,6 @@ namespace GTLib2 {
         }
         return pair<BehavioralStrategy, double>(brs, expVal);
     }
+
+
 }

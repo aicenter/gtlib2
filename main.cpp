@@ -24,6 +24,38 @@
 using namespace GTLib2;
 
 int goofSpiel() {
+    domains::GoofSpielDomain domain(2);
+
+    int player1 = domain.getPlayers()[0];
+    int player2 = domain.getPlayers()[1];
+
+    BehavioralStrategy player2Strat;
+
+    auto rootNodes = algorithms::createRootEFGNodesFromInitialOutcomeDistribution(domain.getRootStatesDistribution());
+    auto lowestCardAction = make_shared<domains::GoofSpielAction>(1);
+    auto secondLowestCardAction = make_shared<domains::GoofSpielAction>(2);
+
+
+    auto setAction = [&player2Strat, &lowestCardAction, &secondLowestCardAction](shared_ptr<EFGNode> node) {
+        if (node->getDistanceFromRoot() == 0) {
+            player2Strat[node->getAOHInfSet()] = {{lowestCardAction,1.0}};
+        } else if (node->getDistanceFromRoot() == 2) {
+            player2Strat[node->getAOHInfSet()] = {{secondLowestCardAction,1.0}};
+        }
+    };
+
+    algorithms::treeWalkEFG(domain,setAction);
+
+
+    auto player1BestResponse = algorithms::bestResponseTo(player2Strat,player2,player1,domain);
+
+    cout << "Value of the best response: " << player1BestResponse.second << endl;
+
+
+
+}
+
+int goofSpiel2() {
     domains::GoofSpielDomain domain(3);
 
     int player1 = domain.getPlayers()[0];

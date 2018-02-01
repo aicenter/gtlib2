@@ -13,6 +13,9 @@ namespace GTLib2 {
     namespace algorithms {
 
         pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStrat, int opponent,
+                                                        int player, const Domain &domain);
+
+        pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStrat, int opponent,
                                                         int player, const Domain &domain,
                                                         int maxDepth);
     }

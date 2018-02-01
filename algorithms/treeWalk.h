@@ -15,6 +15,8 @@ namespace GTLib2 {
         void
         treeWalkEFG(const Domain &domain, std::function<void(shared_ptr<EFGNode>)> function, int maxDepth);
 
+        void
+        treeWalkEFG(const Domain &domain, std::function<void(shared_ptr<EFGNode>)> function);
 
         // Counts the number of nodes of the game given by the domain parameter.
         // Does not include the initial dummy chance node above the root states.

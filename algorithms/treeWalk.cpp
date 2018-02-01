@@ -14,6 +14,10 @@ using std::tuple;
 
 namespace GTLib2 {
 
+    void algorithms::treeWalkEFG(const Domain &domain, std::function<void(shared_ptr<EFGNode>)> function) {
+        algorithms::treeWalkEFG(domain,function,domain.getMaxDepth());
+    }
+
     void algorithms::treeWalkEFG(const Domain &domain, std::function<void(shared_ptr<EFGNode>)> function,
                                  int maxDepth) {
 
@@ -58,6 +62,8 @@ namespace GTLib2 {
         algorithms::treeWalkEFG(domain, countingFunction, domain.getMaxDepth());
         return nodesCounter;
     }
+
+
 
 }
 

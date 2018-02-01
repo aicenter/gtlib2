@@ -54,7 +54,7 @@ namespace GTLib2 {
 
                 Outcome outcome(newState, newObservations, rewards);
 
-                rootStatesDistribution[outcome] = 1/natureDeck.size();
+                rootStatesDistribution[outcome] = 1.0/deck.size();
 
             }
         }
@@ -137,7 +137,7 @@ namespace GTLib2 {
                 newObservations[2] = player2Observation;
 
                 auto newOutcome = Outcome(newState, newObservations, newRewards);
-                newOutcomes[newOutcome] = 1/natureDeck.size();
+                newOutcomes[newOutcome] = 1.0/natureDeck.size();
             }
 
             return newOutcomes;

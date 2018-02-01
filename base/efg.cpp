@@ -93,7 +93,6 @@ namespace GTLib2 {
 
         this->performedActionsInThisRound = performedActions;
 
-        //___performedActionsInThisRound[lastPlayer] = lastAction;
         std::copy_if(parent->remainingPlayersInTheRound.begin(),
                      parent->remainingPlayersInTheRound.end(),
                      std::back_inserter(remainingPlayersInTheRound),
@@ -254,6 +253,14 @@ namespace GTLib2 {
 
     bool EFGNode::operator==(const EFGNode &rhs) const {
         return this->state == rhs.state && remainingPlayersInTheRound == rhs.remainingPlayersInTheRound;
+    }
+
+    int EFGNode::getDistanceFromRoot() const {
+        if (parent == nullptr) {
+            return 0;
+        } else {
+            return 1 + parent->getDistanceFromRoot();
+        }
     }
 
 

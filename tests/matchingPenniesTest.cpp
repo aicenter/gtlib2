@@ -198,6 +198,8 @@ BOOST_AUTO_TEST_SUITE(GoofSpiel)
         auto numOfInfSetsPlayer1 = player1InfSetsAndActions.size();
         auto numOfInfSetsPlayer2 = player2InfSetsAndActions.size();
 
+        // Number of infSets: rootStates: 13, p1 after first round : 13*(13*13)*12
+
         BOOST_CHECK(numOfInfSetsPlayer1 == 26377 && numOfInfSetsPlayer2 == 26377);
 
 
