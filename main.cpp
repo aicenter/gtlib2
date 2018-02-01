@@ -24,7 +24,7 @@
 using namespace GTLib2;
 
 int goofSpiel() {
-    domains::GoofSpielDomain gsd(2);
+    domains::GoofSpielDomain gsd(4);
 
     int player1 = gsd.getPlayers()[0];
     int player2 = gsd.getPlayers()[1];
@@ -38,19 +38,18 @@ int goofSpiel() {
 
     auto setAction = [&player2Strat, &lowestCardAction, &secondLowestCardAction](shared_ptr<EFGNode> node) {
         if (node->getDistanceFromRoot() == 0) {
-            player2Strat[node->getAOHInfSet()] = {{lowestCardAction,1.0}};
+            player2Strat[node->getAOHInfSet()] = {{lowestCardAction, 1.0}};
         } else if (node->getDistanceFromRoot() == 2) {
-            player2Strat[node->getAOHInfSet()] = {{secondLowestCardAction,1.0}};
+            player2Strat[node->getAOHInfSet()] = {{secondLowestCardAction, 1.0}};
         }
     };
 
-    algorithms::treeWalkEFG(gsd,setAction);
+    algorithms::treeWalkEFG(gsd, setAction);
 
 
-    auto player1BestResponse = algorithms::bestResponseTo(player2Strat,player2,player1,gsd);
+    auto player1BestResponse = algorithms::bestResponseTo(player2Strat, player2, player1, gsd);
 
     cout << "Value of the best response: " << player1BestResponse.second << endl;
-
 
 
 }
@@ -106,19 +105,16 @@ int pavelTreeWalkTest3() {
     auto player1Is = secondNode->getAOHInfSet();
 
 
-
     BehavioralStrategy stratHeads;
 
     auto action = make_shared<MatchingPenniesAction>(Heads);
 
-    stratHeads[player0Is] = {{action,1.0}};
+    stratHeads[player0Is] = {{action, 1.0}};
 
 
     auto brsVal = algorithms::bestResponseTo(stratHeads, 0, 1, d, 5);
 
     auto optAction = (*brsVal.first[player1Is].begin()).first;
-
-
 
 
     cout << "Best response: ";
@@ -127,36 +123,16 @@ int pavelTreeWalkTest3() {
 }
 
 
-//int pursuitGame1() {
-//    PursuitDomain::width_ = 3;
-//    PursuitDomain::height_ = 3;
-//    PursuitDomain pd = PursuitDomain(2);
-//    cout << pd.getInfo();
-//    //shared_ptr<Domain> d = make_shared<PursuitDomain>(2);
-//    //shared_ptr<LPSolver> solver = make_shared<CplexLPSolver>();
-//    CplexLPSolver solver = CplexLPSolver();
-//
-//    NormalFormLP nor(make_shared<PursuitDomain>(pd) , make_shared<CplexLPSolver>(solver));
-//    cout << "vysledek hry: " << nor.SolveGame() << "\n";
-//    cout << pd.getInfo();
-//    return 0;
-//}
-
-
-
-
-
-int main(int argc, char* argv[]) {
-  srand(static_cast<unsigned int>(time(nullptr)));
-  clock_t begin = clock();
-  //countStates = 0;
+int main(int argc, char *argv[]) {
+    srand(static_cast<unsigned int>(time(nullptr)));
+    clock_t begin = clock();
 
 
     goofSpiel();
 
-  clock_t end = clock();
-  double elapsed_secs = static_cast<double>(end - begin) / CLOCKS_PER_SEC;
-  cout << "hotovo: time " << elapsed_secs << "s" << '\n';
+    clock_t end = clock();
+    double elapsed_secs = static_cast<double>(end - begin) / CLOCKS_PER_SEC;
+    cout << "hotovo: time " << elapsed_secs << "s" << '\n';
 
-  return 0;
+    return 0;
 }

@@ -201,6 +201,24 @@ namespace GTLib2 {
         }
     }
 
+    size_t EFGNode::getHash() const {
+        auto seed = state->getHash();
+        boost::hash_combine(seed, remainingPlayersInTheRound);
+        return seed;
+    }
+
+    bool EFGNode::operator==(const EFGNode &rhs) const {
+        return *(this->state) == *(rhs.state) && remainingPlayersInTheRound == rhs.remainingPlayersInTheRound;
+    }
+
+    int EFGNode::getDistanceFromRoot() const {
+        if (parent == nullptr) {
+            return 0;
+        } else {
+            return 1 + parent->getDistanceFromRoot();
+        }
+    }
+
     // Following deprecated ====================================
 
     EFGNode::EFGNode(int player, const shared_ptr<State> &state,
@@ -245,23 +263,7 @@ namespace GTLib2 {
         return list;
     }
 
-    size_t EFGNode::getHash() const {
-        auto seed = state->getHash();
-        boost::hash_combine(seed, remainingPlayersInTheRound);
-        return seed;
-    }
 
-    bool EFGNode::operator==(const EFGNode &rhs) const {
-        return this->state == rhs.state && remainingPlayersInTheRound == rhs.remainingPlayersInTheRound;
-    }
-
-    int EFGNode::getDistanceFromRoot() const {
-        if (parent == nullptr) {
-            return 0;
-        } else {
-            return 1 + parent->getDistanceFromRoot();
-        }
-    }
 
 
 }

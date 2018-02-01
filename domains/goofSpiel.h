@@ -37,6 +37,7 @@ namespace GTLib2 {
         class GoofSpielDomain : public Domain {
         public:
             explicit GoofSpielDomain(int maxDepth);
+            GoofSpielDomain(int numberOfCards, int maxDepth);
             string getInfo() const override;
             vector<int> getPlayers() const override;
         };

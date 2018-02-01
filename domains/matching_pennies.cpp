@@ -152,6 +152,11 @@ size_t MatchingPenniesState::getHash() const {
     return seed;
 }
 
+bool MatchingPenniesState::operator==(const State &rhs) const {
+    auto mpState = dynamic_cast<const MatchingPenniesState&>(rhs);
+    return player1 == mpState.player1 && player2 == mpState.player2 && players == mpState.players;
+}
+
 
 MatchingPenniesObservation::MatchingPenniesObservation(OtherMove otherMoveParm) :
         Observation(static_cast<int>(otherMoveParm)) {

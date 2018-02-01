@@ -4,6 +4,7 @@
 
 #include <random>
 #include "goofSpiel.h"
+#include "boost/range/irange.hpp"
 
 
 #pragma clang diagnostic push
@@ -29,9 +30,15 @@ namespace GTLib2 {
             this->id = newBid.value_or(0) + 14*player1LastCard.value_or(0) + 14*14*player2LastCard.value_or(0);
 
         }
+        GoofSpielDomain::GoofSpielDomain(int maxDepth) : GoofSpielDomain(13, maxDepth) {
 
-        GoofSpielDomain::GoofSpielDomain(int maxDepth) : Domain(maxDepth,2){
-            unordered_set<int> deck = {1,2,3,4,5,6,7,8,9,10,11,12,13};
+        }
+
+        GoofSpielDomain::GoofSpielDomain(int numberOfCards, int maxDepth) : Domain(maxDepth,2){
+
+            auto range = boost::irange(1, numberOfCards + 1);
+            unordered_set<int> deck(range.begin(),range.end());
+
             unordered_map<int,double> rewards;
             rewards[1] = 0.0;
             rewards[2] = 0.0;

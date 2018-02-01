@@ -66,6 +66,8 @@ namespace GTLib2 {
         unordered_set<int> getPlayersSet() const override ;
         size_t getHash() const override;
 
+        virtual bool operator==(const State &rhs) const;
+
 
         Move player1;
         Move player2;
