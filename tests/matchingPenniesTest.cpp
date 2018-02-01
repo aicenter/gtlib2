@@ -150,6 +150,30 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(GoofSpiel)
 
+    BOOST_AUTO_TEST_CASE( bestResponseDepth2 ) {
+        domains::GoofSpielDomain gsd(2);
+
+        int player1 = gsd.getPlayers()[0];
+        int player2 = gsd.getPlayers()[1];
+
+
+        //Create strategy that plays the lowest card
+        BehavioralStrategy player2Strat;
+        auto lowestCardAction = make_shared<domains::GoofSpielAction>(1);
+        auto setAction = [&player2Strat, &lowestCardAction](shared_ptr<EFGNode> node) {
+            if (node->getDistanceFromRoot() == 0) {
+                player2Strat[node->getAOHInfSet()] = {{lowestCardAction,1.0}};
+            }
+        };
+        algorithms::treeWalkEFG(gsd,setAction);
+
+        auto player1BestResponse = algorithms::bestResponseTo(player2Strat,player2,player1,gsd);
+
+
+        BOOST_CHECK(player1BestResponse.second == 7);
+
+    }
+
     BOOST_AUTO_TEST_CASE( numberOfRootNodes ) {
         domains::GoofSpielDomain gsd(0);
 

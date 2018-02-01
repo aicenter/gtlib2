@@ -45,7 +45,7 @@ namespace GTLib2 {
         public:
             GoofSpielState(unordered_set<int> player1Deck, unordered_set<int> player2Deck,
                            unordered_set<int> natureDeck, optional<int> natureSelectedCard,
-                           double player1CommulativeReward, double player2CommulativeReward);
+                           double player1CumulativeReward, double player2CumulativeReward);
             vector<shared_ptr<Action>> getAvailableActionsFor(int player) const override;
             OutcomeDistribution performActions(
                     const unordered_map<int, shared_ptr<Action>> &actions) const override;
@@ -55,8 +55,8 @@ namespace GTLib2 {
 
             size_t getHash() const override;
 
-            double player1CommulativeReward;
-            double player2CommulativeReward;
+            double player1CumulativeReward;
+            double player2CumulativeReward;
 
             unordered_set<int> player1Deck;
             unordered_set<int> player2Deck;

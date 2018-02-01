@@ -69,13 +69,13 @@ namespace GTLib2 {
 
         GoofSpielState::GoofSpielState(unordered_set<int> player1Deck, unordered_set<int> player2Deck,
                                        unordered_set<int> natureDeck, optional<int> natureSelectedCard,
-                                       double player1CommulativeReward, double player2CommulativeReward) {
+                                       double player1CumulativeReward, double player2CumulativeReward) {
             this->player1Deck = std::move(player1Deck);
             this->player2Deck = std::move(player2Deck);
             this->natureDeck = std::move(natureDeck);
             this->natureSelectedCard = natureSelectedCard;
-            this->player1CommulativeReward = player1CommulativeReward;
-            this->player2CommulativeReward = player2CommulativeReward;
+            this->player1CumulativeReward = player1CumulativeReward;
+            this->player2CumulativeReward = player2CumulativeReward;
 
         }
 
@@ -115,8 +115,8 @@ namespace GTLib2 {
             double thisRoundRewardP2 = p1Card == p2Card ?
                             ((double) *natureSelectedCard) / 2 : p2Card > p1Card ? *natureSelectedCard : 0.0;
 
-            newRewards[1] = player1CommulativeReward + thisRoundRewardP1;
-            newRewards[2] = player2CommulativeReward + thisRoundRewardP2;
+            newRewards[1] = player1CumulativeReward + thisRoundRewardP1;
+            newRewards[2] = player2CumulativeReward + thisRoundRewardP2;
 
 
             for (auto natureCard : natureDeck) {
@@ -172,8 +172,8 @@ namespace GTLib2 {
             for (auto i : natureDeck) {
                 boost::hash_combine(seed, i);
             }
-            boost::hash_combine(seed, player1CommulativeReward);
-            boost::hash_combine(seed, player2CommulativeReward);
+            boost::hash_combine(seed, player1CumulativeReward);
+            boost::hash_combine(seed, player2CumulativeReward);
             return seed;
         }
     }
