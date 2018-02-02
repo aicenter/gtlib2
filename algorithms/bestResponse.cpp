@@ -96,6 +96,7 @@ namespace GTLib2 {
 
                         //cache[node] = pair<BehavioralStrategy, double>(brs, bestActionVal);
                         //return pair<BehavioralStrategy, double>(brs, bestActionVal);
+
                         return cache.at(node);
                     } else {
                         // Opponent's node

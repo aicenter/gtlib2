@@ -24,7 +24,7 @@
 using namespace GTLib2;
 
 int goofSpiel() {
-    domains::GoofSpielDomain gsd(4,4);
+    domains::GoofSpielDomain gsd(4,8);
 
     int player1 = gsd.getPlayers()[0];
     int player2 = gsd.getPlayers()[1];
@@ -34,13 +34,20 @@ int goofSpiel() {
     //auto rootNodes = algorithms::createRootEFGNodesFromInitialOutcomeDistribution(gsd.getRootStatesDistribution());
     auto lowestCardAction = make_shared<domains::GoofSpielAction>(1);
     auto secondLowestCardAction = make_shared<domains::GoofSpielAction>(2);
+    auto thirdLowestCardAction = make_shared<domains::GoofSpielAction>(3);
+    auto fourthLowestCardAction = make_shared<domains::GoofSpielAction>(4);
 
 
-    auto setAction = [&player2Strat, &lowestCardAction, &secondLowestCardAction](shared_ptr<EFGNode> node) {
+
+    auto setAction = [&player2Strat, &lowestCardAction, &secondLowestCardAction, &thirdLowestCardAction, &fourthLowestCardAction](shared_ptr<EFGNode> node) {
         if (node->getDistanceFromRoot() == 0) {
             player2Strat[node->getAOHInfSet()] = {{lowestCardAction, 1.0}};
         } else if (node->getDistanceFromRoot() == 2) {
             player2Strat[node->getAOHInfSet()] = {{secondLowestCardAction, 1.0}};
+        } else if (node->getDistanceFromRoot() == 4) {
+            player2Strat[node->getAOHInfSet()] = {{thirdLowestCardAction, 1.0}};
+        } else if (node->getDistanceFromRoot() == 6) {
+            player2Strat[node->getAOHInfSet()] = {{fourthLowestCardAction, 1.0}};
         }
     };
 
