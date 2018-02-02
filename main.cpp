@@ -24,7 +24,7 @@
 using namespace GTLib2;
 
 int goofSpiel() {
-    domains::GoofSpielDomain gsd(4);
+    domains::GoofSpielDomain gsd(4,4);
 
     int player1 = gsd.getPlayers()[0];
     int player2 = gsd.getPlayers()[1];

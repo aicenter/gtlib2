@@ -14,10 +14,7 @@
 namespace GTLib2 {
 
 
-    EFGNode::EFGNode() {
-        player_ = -1;
-        parent = nullptr;
-    }
+
 
     unordered_map<shared_ptr<EFGNode>, double> EFGNode::performAction(shared_ptr<Action> action) const {
 
@@ -34,11 +31,11 @@ namespace GTLib2 {
                 auto prob = outcomeProb.second;
                 auto newNode = make_shared<EFGNode>(outcome.state, shared_from_this(),
                                                     outcome.observations, outcome.rewards,
-                                                    actionsToBePerformed, prob * natureProbability);
+                                                    actionsToBePerformed, prob * natureProbability, action);
                 newNodes[newNode] = prob;
             }
         } else {
-            auto newNode = make_shared<EFGNode>(shared_from_this(), actionsToBePerformed, *currentPlayer);
+            auto newNode = make_shared<EFGNode>(shared_from_this(), actionsToBePerformed, *currentPlayer, action);
             newNodes[newNode] = 1.0;
         }
         return newNodes;
@@ -48,10 +45,10 @@ namespace GTLib2 {
                      const unordered_map<int, shared_ptr<Observation>> &observations,
                      const unordered_map<int, double> &rewards,
                      const unordered_map<int, shared_ptr<Action>> &lastRoundActions,
-                     double natureProbability,
+                     double natureProbability, shared_ptr<Action> incomingAction,
                      const unordered_map<int, shared_ptr<Observation>> &initialObservations) :
             EFGNode(std::move(newState), std::move(parent), observations,
-                    rewards, lastRoundActions, natureProbability) {
+                    rewards, lastRoundActions, natureProbability, std::move(incomingAction)) {
         this->initialObservations = initialObservations;
     }
 
@@ -59,7 +56,7 @@ namespace GTLib2 {
                      const unordered_map<int, shared_ptr<Observation>> &observations,
                      const unordered_map<int, double> &rewards,
                      const unordered_map<int, shared_ptr<Action>> &lastRoundActions,
-                     double natureProbability) {
+                     double natureProbability, shared_ptr<Action> incomingAction) {
         this->state = std::move(newState);
         this->observations = observations;
         this->previousRoundActions = lastRoundActions;
@@ -75,6 +72,7 @@ namespace GTLib2 {
             player_ = -1;
         }
         this->parent = parent;
+        this->incomingAction = std::move(incomingAction);
         if (parent != nullptr) {
             this->initialObservations = parent->initialObservations;
         }
@@ -82,7 +80,7 @@ namespace GTLib2 {
     }
 
     EFGNode::EFGNode(shared_ptr<EFGNode const> parent, const unordered_map<int, shared_ptr<Action>> &performedActions,
-                     const int lastPlayer) {
+                     const int lastPlayer, shared_ptr<Action> incomingAction) {
         this->state = parent->getState();
         this->observations = parent->observations;
         this->rewards = parent->rewards;
@@ -90,6 +88,7 @@ namespace GTLib2 {
         this->previousRoundActions = parent->previousRoundActions;
         this->initialObservations = parent->initialObservations;
         this->parent = parent;
+        this->incomingAction = std::move(incomingAction);
 
         this->performedActionsInThisRound = performedActions;
 
@@ -180,7 +179,10 @@ namespace GTLib2 {
         return *mySet == *infSet;
     }
 
+    shared_ptr<Action> EFGNode::getIncomingAction() const {
+        return incomingAction;
 
+    }
 
     double EFGNode::getProbabilityOfActionsSeqOfPlayer(int player, const BehavioralStrategy &strat) const {
         if (parent == nullptr) {
@@ -189,13 +191,12 @@ namespace GTLib2 {
 
         auto prob = parent->getProbabilityOfActionsSeqOfPlayer(player, strat);
 
-        if (*parent->getCurrentPlayer() == player && previousRoundActions.find(player) != previousRoundActions.end()) {
-            auto lastAction = previousRoundActions.at(player);
+        if (*parent->getCurrentPlayer() == player) {
             auto parentInfSet = parent->getAOHInfSet();
             auto actionsProbs = strat.at(parentInfSet);
-            double actionProb = (actionsProbs.find(lastAction) != actionsProbs.end()) ?
-                                actionsProbs.at(lastAction) : 0.0;
-            return actionProb*prob;
+            double actionProb = (actionsProbs.find(incomingAction) != actionsProbs.end()) ?
+                                actionsProbs.at(incomingAction) : 0.0;
+            return actionProb * prob;
         } else {
             return prob;
         }
@@ -219,7 +220,18 @@ namespace GTLib2 {
         }
     }
 
+
+
+
     // Following deprecated ====================================
+
+
+    EFGNode::EFGNode() {
+        player_ = -1;
+        assert(false);
+        parent = nullptr;
+        incomingAction = nullptr;
+    }
 
     EFGNode::EFGNode(int player, const shared_ptr<State> &state,
                      const vector<double> &rewards, EFGNode *node) :

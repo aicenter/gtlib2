@@ -24,7 +24,7 @@ namespace GTLib2 {
                                              outcome.observations,
                                              outcome.rewards,
                                              unordered_map<int, shared_ptr<Action>>(),
-                                             prob,
+                                             prob, nullptr,
                                              outcome.observations);
             nodes[node] = prob;
         }

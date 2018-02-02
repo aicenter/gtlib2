@@ -29,21 +29,21 @@ namespace GTLib2 {
 
         // Constructor for the same round node
         EFGNode(shared_ptr<EFGNode const> parent, const unordered_map<int, shared_ptr<Action>> &performedActions,
-                const int lastPlayer);
+                int lastPlayer, shared_ptr<Action> incomingAction);
 
         // Constructor for the new round node
         EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,
                 const unordered_map<int, shared_ptr<Observation>> &observations,
                 const unordered_map<int, double> &rewards,
                 const unordered_map<int, shared_ptr<Action>> &lastRoundActions,
-                double natureProbability);
+                double natureProbability, shared_ptr<Action> incomingAction);
 
         // Constructor for the new round node
         EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,
                 const unordered_map<int, shared_ptr<Observation>> &observations,
                 const unordered_map<int, double> &rewards,
                 const unordered_map<int, shared_ptr<Action>> &lastRoundActions,
-                double natureProbability,
+                double natureProbability, shared_ptr<Action> incomingAction,
                 const unordered_map<int, shared_ptr<Observation>> &initialObservations);
 
 
@@ -68,6 +68,9 @@ namespace GTLib2 {
 
         // Gets the parent efg node.
         shared_ptr<EFGNode const> getParent() const;
+
+        // Gets action that was performed at parent node and the result led to this node.
+        shared_ptr<Action> getIncomingAction() const;
 
         // Returns the game state of that is represented by EFG node. Note that in simultaneous games one state corresponds to
         // mutliple efg nodes.
@@ -95,13 +98,15 @@ namespace GTLib2 {
 
         vector<int> remainingPlayersInTheRound;
         unordered_map<int, shared_ptr<Action>> performedActionsInThisRound;
+        unordered_map<int, shared_ptr<Action>> previousRoundActions;
         optional<int> currentPlayer = nullopt;
         shared_ptr<State> state;
         unordered_map<int, shared_ptr<Observation>> initialObservations;
         unordered_map<int, shared_ptr<Observation>> observations;
 
-        unordered_map<int, shared_ptr<Action>> previousRoundActions;
+
         shared_ptr<EFGNode const> parent;
+        shared_ptr<Action> incomingAction; // Action performed in the parent node.
 
         //----------------DEPRECATED_BELLOW-----------------------------
 
@@ -111,6 +116,7 @@ namespace GTLib2 {
         // GetParent returns pointer to parent EFGNode.
         [[deprecated]]
         inline EFGNode *GetParent() const {
+            assert(("U r using deprecated method", false));
             return nullptr;
             //return parent.get();
         }
