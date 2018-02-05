@@ -16,12 +16,12 @@ namespace GTLib2 {
 
 
 
-    unordered_map<shared_ptr<EFGNode>, double> EFGNode::performAction(shared_ptr<Action> action) const {
+    EGGNodesDistribution EFGNode::performAction(shared_ptr<Action> action) const {
 
         unordered_map<int, shared_ptr<Action>> actionsToBePerformed(performedActionsInThisRound);
         actionsToBePerformed[*currentPlayer] = action;
 
-        unordered_map<shared_ptr<EFGNode>, double> newNodes;
+        EGGNodesDistribution newNodes;
 
         if (remainingPlayersInTheRound.size() == 1) {
             //Last player in the round. So we proceed to the next state
@@ -32,11 +32,11 @@ namespace GTLib2 {
                 auto newNode = make_shared<EFGNode>(outcome.state, shared_from_this(),
                                                     outcome.observations, outcome.rewards,
                                                     actionsToBePerformed, prob * natureProbability, action);
-                newNodes[newNode] = prob;
+                newNodes.emplace_back(newNode,prob);
             }
         } else {
             auto newNode = make_shared<EFGNode>(shared_from_this(), actionsToBePerformed, *currentPlayer, action);
-            newNodes[newNode] = 1.0;
+            newNodes.emplace_back(newNode,1.0);
         }
         return newNodes;
     }
@@ -124,8 +124,8 @@ namespace GTLib2 {
         }
     }
 
-    vector<std::tuple<int, int>> EFGNode::getAOH(int player) const {
-        auto aoh = this->parent != nullptr ? this->parent->getAOH(player) : vector<std::tuple<int, int>>();
+    vector<std::pair<int, int>> EFGNode::getAOH(int player) const {
+        auto aoh = this->parent != nullptr ? this->parent->getAOH(player) : vector<std::pair<int, int>>();
 
         if (currentPlayer && *currentPlayer == player) {
 
@@ -171,7 +171,6 @@ namespace GTLib2 {
 
     bool EFGNode::isContainedInInformationSet(const shared_ptr<AOH> &infSet) const {
 
-        //TODO: more efficient implementation.
         auto mySet = this->getAOHInfSet();
         if (mySet == nullptr) {
             return false;
@@ -220,7 +219,9 @@ namespace GTLib2 {
         }
     }
 
-
+    int EFGNode::getLastObservationIdOfCurrentPlayer() const {
+        return observations.at(*currentPlayer)->getId();
+    }
 
 
     // Following deprecated ====================================

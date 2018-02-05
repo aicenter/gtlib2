@@ -19,6 +19,11 @@ using std::experimental::optional;
 
 namespace GTLib2 {
 
+    class EFGNode;
+
+    typedef pair<shared_ptr<EFGNode>,double> EFGDistEntry;
+    typedef vector<EFGDistEntry> EGGNodesDistribution;
+
 /**
  * EFGNode is a class that represents node in an extensive form game,
  * which contains action-observation history, state,
@@ -56,7 +61,7 @@ namespace GTLib2 {
         vector<shared_ptr<Action>> availableActions() const;
 
         // Perform the given action and returns the next node or nodes in case of stochastic games together with the probabilities.
-        unordered_map<shared_ptr<EFGNode>, double> performAction(shared_ptr<Action> action) const;
+        EGGNodesDistribution performAction(shared_ptr<Action> action) const;
 
         // Gets the information set of the node represented as ActionObservationHistory set.
         shared_ptr<AOH> getAOHInfSet() const;
@@ -83,7 +88,7 @@ namespace GTLib2 {
 
         int getDistanceFromRoot() const;
 
-
+        int getLastObservationIdOfCurrentPlayer() const;
 
 
         optional<int> getCurrentPlayer() const;
@@ -94,7 +99,7 @@ namespace GTLib2 {
 
     private:
 
-        vector<std::tuple<int, int>> getAOH(int player) const;
+        vector<std::pair<int, int>> getAOH(int player) const;
 
         vector<int> remainingPlayersInTheRound;
         unordered_map<int, shared_ptr<Action>> performedActionsInThisRound;

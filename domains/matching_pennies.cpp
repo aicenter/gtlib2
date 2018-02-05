@@ -29,7 +29,7 @@ MatchingPenniesDomain::MatchingPenniesDomain() : Domain(std::numeric_limits<int>
 
     Outcome outcome(rootState,observations,rewards);
 
-    rootStatesDistribution[outcome] = 1.0;
+    rootStatesDistribution.push_back(pair<Outcome,double>(outcome,1.0));
 
 //    vector<pair<Outcome, double>> distr;
 //    distr.emplace_back(outcome,1.0);
@@ -120,8 +120,8 @@ OutcomeDistribution MatchingPenniesState::performActions(const unordered_map<int
 
     Outcome outcome(newState,observations,rewards);
 
-    unordered_map<Outcome, double> distr;
-    distr[outcome] = 1.0;
+    OutcomeDistribution distr;
+    distr.push_back(pair<Outcome,double>(outcome,1.0));
 
 //    vector<pair<Outcome, double>> distr;
 //    distr.emplace_back(outcome,1.0);
@@ -245,11 +245,11 @@ OutcomeDistribution SimultaneousMatchingPenniesState::performActions(const unord
 
     Outcome outcome(newState,observations,rewards);
 
-    unordered_map<Outcome, double> distr;
+    OutcomeDistribution distr;
     //vector<pair<Outcome, double>> distr;
     //distr.emplace_back(outcome,1.0);
 
-    distr[outcome] = 1.0;
+    distr.push_back(pair<Outcome,double>(outcome,1.0));
 
     return distr;
 }
@@ -297,7 +297,7 @@ SimultaneousMatchingPenniesDomain::SimultaneousMatchingPenniesDomain() : Domain(
 
     Outcome outcome(rootState,observations,rewards);
 
-    rootStatesDistribution[outcome] = 1.0;
+    rootStatesDistribution.push_back(pair<Outcome,double>(outcome,1.0));
 
 //    vector<pair<Outcome, double>> distr;
 //    distr.emplace_back(outcome,1.0);

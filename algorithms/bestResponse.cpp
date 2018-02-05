@@ -30,7 +30,9 @@ namespace GTLib2 {
                     }
 
                     if (!node->getCurrentPlayer() || depth <= 0) {
-                        auto expectedReward = node->rewards[player] * prob;
+                        double reward = node->rewards[player];
+                        auto expectedReward = reward * prob;
+
                         return pair<BehavioralStrategy, double>(BehavioralStrategy(), expectedReward);
                     };
 
@@ -47,7 +49,6 @@ namespace GTLib2 {
                         BehavioralStrategy brs;
 
                         unordered_map<shared_ptr<Action>, unordered_map<shared_ptr<EFGNode>,double>> actionNodeVal;
-
 
                         for (const auto &action : node->availableActions()) {
                             actionNodeVal[action] = unordered_map<shared_ptr<EFGNode>,double>();

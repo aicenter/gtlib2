@@ -30,6 +30,7 @@ namespace GTLib2 {
                         };
 
                         if (depth <= 0 || !node->getCurrentPlayer()) {
+                            //cout << "State: " << node->getState()->toString() << " - " << node->rewards[player2] << std::endl;
                             return pair<double ,double>(node->rewards[player1]*prob,node->rewards[player2]*prob);
                         }
                         double p1Util = 0.0;
@@ -42,6 +43,7 @@ namespace GTLib2 {
                                                                     (*node->getCurrentPlayer() == player1) ?
                                                                     player1Strat : player2Strat,action);
                             if (actionStratProb > 0 ) {
+
                                 auto newNodes = node->performAction(
                                         action); // Non-deterministic - can get multiple nodes
                                 for (auto newNodeProb : newNodes) {
@@ -65,6 +67,7 @@ namespace GTLib2 {
                 auto utility = calculate(nodeProb.first, nodeProb.second, domain.getMaxDepth());
                 player1Utility += utility.first;
                 player2Utility += utility.second;
+                //cout << " val for " << nodeProb.first->getState()->toString() << " - " << utility.second/nodeProb.second << std::endl;
             }
 
             return pair<double,double>(player1Utility,player2Utility);

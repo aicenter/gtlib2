@@ -21,6 +21,101 @@ using namespace GTLib2;
 
 BOOST_AUTO_TEST_SUITE(GoofSpiel)
 
+    BOOST_AUTO_TEST_CASE( computeUtilityFullDepthCard4 ) {
+        domains::GoofSpielDomain gsd(4,8);
+
+        int player1 = gsd.getPlayers()[0];
+        int player2 = gsd.getPlayers()[1];
+
+
+        //Create strategy that plays the lowest card
+        BehavioralStrategy player2Strat;
+        auto lowestCardAction = make_shared<domains::GoofSpielAction>(1);
+        auto secondLowestCardAction = make_shared<domains::GoofSpielAction>(2);
+        auto thirdLowestCardAction = make_shared<domains::GoofSpielAction>(3);
+        auto fourthLowestCardAction = make_shared<domains::GoofSpielAction>(4);
+
+
+
+        auto setAction = [&player2Strat, &lowestCardAction, &secondLowestCardAction, &thirdLowestCardAction, &fourthLowestCardAction](shared_ptr<EFGNode> node) {
+            if (node->getDistanceFromRoot() == 0) {
+                player2Strat[node->getAOHInfSet()] = {{lowestCardAction, 1.0}};
+            } else if (node->getDistanceFromRoot() == 2) {
+                player2Strat[node->getAOHInfSet()] = {{secondLowestCardAction, 1.0}};
+            } else if (node->getDistanceFromRoot() == 4) {
+                player2Strat[node->getAOHInfSet()] = {{thirdLowestCardAction, 1.0}};
+            } else if (node->getDistanceFromRoot() == 6) {
+                player2Strat[node->getAOHInfSet()] = {{fourthLowestCardAction, 1.0}};
+            }
+        };
+        algorithms::treeWalkEFG(gsd,setAction);
+
+        //Create strategy that plays the lowest card
+        BehavioralStrategy player1Strat;
+        auto lowestCardAction1 = make_shared<domains::GoofSpielAction>(1);
+        auto secondLowestCardAction1 = make_shared<domains::GoofSpielAction>(2);
+        auto thirdLowestCardAction1 = make_shared<domains::GoofSpielAction>(3);
+        auto fourthLowestCardAction1 = make_shared<domains::GoofSpielAction>(4);
+
+
+
+        auto setAction1 = [&player1Strat, &lowestCardAction1, &secondLowestCardAction1,
+                &thirdLowestCardAction1, &fourthLowestCardAction1](shared_ptr<EFGNode> node) {
+            if (node->getDistanceFromRoot() == 1) {
+                player1Strat[node->getAOHInfSet()] = {{lowestCardAction1, 1.0}};
+            } else if (node->getDistanceFromRoot() == 3) {
+                player1Strat[node->getAOHInfSet()] = {{secondLowestCardAction1, 1.0}};
+            } else if (node->getDistanceFromRoot() == 5) {
+                player1Strat[node->getAOHInfSet()] = {{thirdLowestCardAction1, 1.0}};
+            } else if (node->getDistanceFromRoot() == 7) {
+                player1Strat[node->getAOHInfSet()] = {{fourthLowestCardAction1, 1.0}};
+            }
+        };
+        algorithms::treeWalkEFG(gsd,setAction1);
+
+        auto utility = algorithms::computeUtilityTwoPlayersGame(gsd,player2Strat, player1Strat,player2,player1);
+
+        // Value of the utility should be 5.
+        BOOST_CHECK(std::abs(utility.second - 5) <= 0.001);
+
+    }
+
+    BOOST_AUTO_TEST_CASE( bestResponseFullDepthCard4 ) {
+        domains::GoofSpielDomain gsd(4,8);
+
+        int player1 = gsd.getPlayers()[0];
+        int player2 = gsd.getPlayers()[1];
+
+
+        //Create strategy that plays the lowest card
+        BehavioralStrategy player2Strat;
+        auto lowestCardAction = make_shared<domains::GoofSpielAction>(1);
+        auto secondLowestCardAction = make_shared<domains::GoofSpielAction>(2);
+        auto thirdLowestCardAction = make_shared<domains::GoofSpielAction>(3);
+        auto fourthLowestCardAction = make_shared<domains::GoofSpielAction>(4);
+
+
+
+        auto setAction = [&player2Strat, &lowestCardAction, &secondLowestCardAction, &thirdLowestCardAction, &fourthLowestCardAction](shared_ptr<EFGNode> node) {
+            if (node->getDistanceFromRoot() == 0) {
+                player2Strat[node->getAOHInfSet()] = {{lowestCardAction, 1.0}};
+            } else if (node->getDistanceFromRoot() == 2) {
+                player2Strat[node->getAOHInfSet()] = {{secondLowestCardAction, 1.0}};
+            } else if (node->getDistanceFromRoot() == 4) {
+                player2Strat[node->getAOHInfSet()] = {{thirdLowestCardAction, 1.0}};
+            } else if (node->getDistanceFromRoot() == 6) {
+                player2Strat[node->getAOHInfSet()] = {{fourthLowestCardAction, 1.0}};
+            }
+        };
+        algorithms::treeWalkEFG(gsd,setAction);
+
+        auto player1BestResponse = algorithms::bestResponseTo(player2Strat,player2,player1,gsd);
+
+        // Value of the best response should be 7.625. TODO: Double check this
+        BOOST_CHECK(std::abs(player1BestResponse.second - 7.625) <= 0.001);
+
+    }
+
     BOOST_AUTO_TEST_CASE( bestResponseDepth4Card4 ) {
         domains::GoofSpielDomain gsd(4,4);
 
@@ -133,8 +228,7 @@ BOOST_AUTO_TEST_SUITE(GoofSpiel)
         domains::GoofSpielDomain gsd(4);
 
 
-        //Long test!!! 30 mins
-
+        //Long test!!! 10 mins
         //int numberOfNodes = algorithms::countNodes(gsd);
 
         // [(13*13)*13*12] * [12*12*11]

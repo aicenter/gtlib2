@@ -27,6 +27,7 @@ namespace GTLib2 {
             this->newBid = newBid;
             this->player1LastCard = player1LastCard;
             this->player2LastCard = player2LastCard;
+            //TODO: Fix this. the id generation does not work for the number of card grater than 13
             this->id = newBid.value_or(0) + 14*player1LastCard.value_or(0) + 14*14*player2LastCard.value_or(0);
 
         }
@@ -65,7 +66,7 @@ namespace GTLib2 {
 
                 Outcome outcome(newState, newObservations, rewards);
 
-                rootStatesDistribution[outcome] = 1.0/deck.size();
+                rootStatesDistribution.emplace_back(outcome,1.0/deck.size());
 
             }
         }
@@ -163,7 +164,7 @@ namespace GTLib2 {
                 newObservations[2] = player2Observation;
 
                 auto newOutcome = Outcome(newState, newObservations, newRewards);
-                newOutcomes[newOutcome] = 1.0;
+                newOutcomes.emplace_back(newOutcome,1.0);
 
 
             } else {
@@ -191,7 +192,7 @@ namespace GTLib2 {
                     newObservations[2] = player2Observation;
 
                     auto newOutcome = Outcome(newState, newObservations, newRewards);
-                    newOutcomes[newOutcome] = 1.0 / natureDeck.size();
+                    newOutcomes.emplace_back(newOutcome,1.0 / natureDeck.size());
                 }
             }
 
@@ -212,7 +213,19 @@ namespace GTLib2 {
         }
 
         string GoofSpielState::toString() const {
-            return "Number of cards left: " + std::to_string(player1Deck.size());
+            string ret = "p1played: ";
+            for (int card : player1PlayedCards) {
+                ret.append(" " + std::to_string(card) + " ");
+            }
+            ret.append(" p2played: ");
+            for (auto card : player2PlayedCards) {
+                ret.append(" " + std::to_string(card) + " ");
+            }
+            ret.append(" naturePlayed ");
+            for (auto card : naturePlayedCards) {
+                ret.append(" " + std::to_string(card) + " ");
+            }
+            return ret;
         }
 
         bool GoofSpielState::operator==(const State &rhs) const {

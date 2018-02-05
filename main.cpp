@@ -24,6 +24,7 @@
 using namespace GTLib2;
 
 int goofSpiel() {
+    //assert(false);
     domains::GoofSpielDomain gsd(4,8);
 
     int player1 = gsd.getPlayers()[0];
@@ -57,6 +58,12 @@ int goofSpiel() {
     auto player1BestResponse = algorithms::bestResponseTo(player2Strat, player2, player1, gsd);
 
     cout << "Value of the best response: " << player1BestResponse.second << endl;
+
+    auto val = algorithms::computeUtilityTwoPlayersGame(gsd,player2Strat, player1BestResponse.first, player2, player1);
+
+    cout << "val" << val.first << endl;
+
+
 
 
 }

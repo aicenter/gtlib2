@@ -13,14 +13,14 @@
 namespace GTLib2 {
     namespace algorithms {
 
-        unordered_map<shared_ptr<EFGNode>, double> createRootEFGNodesFromInitialOutcomeDistribution(
+        EGGNodesDistribution createRootEFGNodesFromInitialOutcomeDistribution(
                 const OutcomeDistribution &probDist);
         BehavioralStrategy mixedStrategyToBehavioralStrategy(const vector<BehavioralStrategy> &pureStrats,
                                                              const vector<double> &distribution,
                                                              const Domain &domain);
 
         //Naive implementation. Maybe iterator over the nodes would be better.
-        vector<pair<shared_ptr<EFGNode>,double>>
+        EGGNodesDistribution
         gelAllNodesInTheInformationSetWithNatureProbability(const shared_ptr<AOH> &infSet,
                                                             const Domain &domain);
 

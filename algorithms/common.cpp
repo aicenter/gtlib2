@@ -10,11 +10,11 @@
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
 namespace GTLib2 {
 
-    unordered_map<shared_ptr<EFGNode>, double>
+    EGGNodesDistribution
     algorithms::createRootEFGNodesFromInitialOutcomeDistribution(const OutcomeDistribution &probDist) {
         //auto dummyChanceNodeAboveRootNodes = make_shared<EFGNode>();
 
-        unordered_map<shared_ptr<EFGNode>, double> nodes;
+        EGGNodesDistribution nodes;
 
         for (auto outcomeProb: probDist) {
             auto outcome = outcomeProb.first;
@@ -26,7 +26,7 @@ namespace GTLib2 {
                                              unordered_map<int, shared_ptr<Action>>(),
                                              prob, nullptr,
                                              outcome.observations);
-            nodes[node] = prob;
+            nodes.emplace_back(node, prob);
         }
         return nodes;
     }
@@ -44,31 +44,31 @@ namespace GTLib2 {
             // Inner function
             std::function<void(const shared_ptr<EFGNode> &)> updateBehavStratStartingFromNode =
                     [&behavStrat, &pureStrat, &stratProb, &updateBehavStratStartingFromNode]
-                    (const shared_ptr<EFGNode> &node) {
-                auto infSet = node->getAOHInfSet();
+                            (const shared_ptr<EFGNode> &node) {
+                        auto infSet = node->getAOHInfSet();
 
-                if (pureStrat.find(infSet) == pureStrat.end()) {
-                    return;
-                }
-                auto strategyAction = (*pureStrat.at(infSet).begin()).first;
+                        if (pureStrat.find(infSet) == pureStrat.end()) {
+                            return;
+                        }
+                        auto strategyAction = (*pureStrat.at(infSet).begin()).first;
 
-                //Update behavioral strategy
-                auto infSetActionsDistr = (behavStrat.find(infSet) == behavStrat.end()) ?
-                                          unordered_map<shared_ptr<Action>, double>() : behavStrat[infSet];
-                auto actionProb = (infSetActionsDistr.find(strategyAction) == infSetActionsDistr.end()) ?
-                                  0.0 : infSetActionsDistr[strategyAction];
-                infSetActionsDistr[strategyAction] = actionProb + stratProb;
-                behavStrat[infSet] = infSetActionsDistr;
-                // End of update of the bahavioral strategy
+                        //Update behavioral strategy
+                        auto infSetActionsDistr = (behavStrat.find(infSet) == behavStrat.end()) ?
+                                                  unordered_map<shared_ptr<Action>, double>() : behavStrat[infSet];
+                        auto actionProb = (infSetActionsDistr.find(strategyAction) == infSetActionsDistr.end()) ?
+                                          0.0 : infSetActionsDistr[strategyAction];
+                        infSetActionsDistr[strategyAction] = actionProb + stratProb;
+                        behavStrat[infSet] = infSetActionsDistr;
+                        // End of update of the bahavioral strategy
 
-                //Proceed to the next node(nodes in case of stochastic game)
+                        //Proceed to the next node(nodes in case of stochastic game)
 
 
-                auto newNodes = node->performAction(strategyAction);
-                for (const auto &newNode : newNodes) {
-                    updateBehavStratStartingFromNode(newNode.first);
-                }
-            };
+                        auto newNodes = node->performAction(strategyAction);
+                        for (const auto &newNode : newNodes) {
+                            updateBehavStratStartingFromNode(newNode.first);
+                        }
+                    };
             // End inner function
 
             for (const auto &rootNode : rootNodes) {
@@ -82,18 +82,79 @@ namespace GTLib2 {
 
 
     //TODO: Write a test
-    vector<pair<shared_ptr<EFGNode>,double>>
-    algorithms::gelAllNodesInTheInformationSetWithNatureProbability(const shared_ptr<AOH> &infSet, const Domain &domain) {
+    EGGNodesDistribution
+    algorithms::gelAllNodesInTheInformationSetWithNatureProbability(const shared_ptr<AOH> &infSet,
+                                                                    const Domain &domain) {
 
-        vector<pair<shared_ptr<EFGNode>,double>> nodes;
 
-        auto checkAndAdd = [&infSet, &nodes](shared_ptr<EFGNode> node) {
-            if (node->isContainedInInformationSet(infSet)) {
-                nodes.push_back(pair<shared_ptr<EFGNode>,double>(node,node->natureProbability));
-            }
-        };
+        vector<pair<shared_ptr<EFGNode>, double>> nodes;
 
-        treeWalkEFG(domain, checkAndAdd, domain.getMaxDepth());
+        auto aoh = infSet->getAOHistory();
+        int player = infSet->getPlayer();
+
+        std::function<void(shared_ptr<EFGNode>, int, int)> traverse =
+                [&nodes, &aoh, &player, &traverse, &infSet](shared_ptr<EFGNode> node,
+                                                   int actionIndex, int observationIdToCheck) {
+
+//                    if (actionIndex >= aoh.size()) {
+//                        if (node->getLastObservationIdOfCurrentPlayer() == observationIdToCheck &&
+//                                node->getCurrentPlayer()
+//                            && *node->getCurrentPlayer() == player) {
+//                            nodes.emplace_back(node, node->natureProbability);
+//                            assert(node->isContainedInInformationSet(infSet));
+//                            cout << "x"<<std::endl;
+//                        }
+//                        return;
+//                    }
+
+                    if (node->getCurrentPlayer() && *node->getCurrentPlayer() == player) {
+                        if (node->getLastObservationIdOfCurrentPlayer() == observationIdToCheck) {
+                            if (actionIndex >= aoh.size()) {
+                                nodes.emplace_back(node, node->natureProbability);
+                                assert(node->isContainedInInformationSet(infSet));
+                                return;
+                            }
+                            auto actionId = std::get<0>(aoh[actionIndex]);
+                            auto observationId = std::get<1>(aoh[actionIndex]);
+                            auto actions = node->availableActions();
+                            for (const auto &action : actions) {
+                                if (action->getId() == actionId) {
+                                    auto nextNodes = node->performAction(action);
+                                    for (const auto &nextNode : nextNodes) {
+                                        traverse(nextNode.first, actionIndex + 1, observationId);
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        auto actions = node->availableActions();
+                        for (const auto &action : actions) {
+                            auto nextNodes = node->performAction(action);
+                            for (const auto &nextNode : nextNodes) {
+                                traverse(nextNode.first, actionIndex, observationIdToCheck);
+                            }
+                        }
+
+                    }
+                };
+
+
+
+//        auto checkAndAdd = [&infSet, &nodes](shared_ptr<EFGNode> node) {
+//            if (node->isContainedInInformationSet(infSet)) {
+//                nodes.emplace_back(node,node->natureProbability);
+//            }
+//        };
+//
+//        treeWalkEFG(domain, checkAndAdd, domain.getMaxDepth());
+
+        auto rootNodes = algorithms::createRootEFGNodesFromInitialOutcomeDistribution(
+                domain.getRootStatesDistribution());
+
+
+        for (const auto &rootNode : rootNodes) {
+            traverse(rootNode.first, 0, infSet->getInitialObservationId());
+        }
 
         return nodes;
     }

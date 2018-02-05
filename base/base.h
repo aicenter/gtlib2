@@ -152,8 +152,9 @@ namespace GTLib2 {
     };
 
 
+    typedef pair<Outcome,double> distributionEntry;
+    typedef vector<distributionEntry> OutcomeDistribution;
 
-typedef unordered_map<Outcome,double> OutcomeDistribution;
 
 
 
@@ -180,7 +181,9 @@ typedef unordered_map<Outcome,double> OutcomeDistribution;
     class AOH : public InformationSet {
     public:
 
-        AOH(int player, int initialObservation, const vector<tuple<int, int>> &aoHistory);
+        AOH(int player, int initialObservation, const vector<pair<int, int>> &aoHistory);
+
+        int getNumberOfActions() const;
 
         // GetHash returns hash code.
         size_t getHash() const final;
@@ -191,12 +194,16 @@ typedef unordered_map<Outcome,double> OutcomeDistribution;
         [[deprecated]]
         AOH(int player, const vector<int> &hist);
 
+        int getPlayer() const;
+        int getInitialObservationId() const;
+        vector<pair<int, int>> getAOHistory() const;
+
     private:
         size_t computeHash() const;
 
         int player_;
         int initialObservationId;
-        vector<tuple<int, int>> aoh; // Vector of pairs. First coordinate is action id, the second is observation id.
+        vector<pair<int, int>> aoh; // Vector of pairs. First coordinate is action id, the second is observation id.
         size_t hashValue;
     };
 

@@ -156,7 +156,7 @@ namespace GTLib2 {
         return hashValue;
     }
 
-    AOH::AOH(int player, int initialObservation, const vector<tuple<int, int>> &aoHistory) {
+    AOH::AOH(int player, int initialObservation, const vector<pair<int, int>> &aoHistory) {
         aoh = aoHistory;
         player_ = player;
         this->initialObservationId = initialObservation;
@@ -183,6 +183,21 @@ namespace GTLib2 {
         return true;
     }
 
+    int AOH::getNumberOfActions() const {
+        return (int) aoh.size();
+    }
+
+    vector<pair<int, int>> AOH::getAOHistory() const {
+        return aoh;
+    }
+
+    int AOH::getInitialObservationId() const {
+        return initialObservationId;
+    }
+
+    int AOH::getPlayer() const {
+        return player_;
+    }
 
 
     State::State() = default;
