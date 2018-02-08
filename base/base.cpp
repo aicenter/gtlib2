@@ -137,7 +137,7 @@ namespace GTLib2 {
             int actionId = hist[i];
             i++;
             int observationId = hist[i];
-            aoh.push_back(tuple<int, int>(actionId, observationId));
+            aoh.push_back(pair<int, int>(actionId, observationId));
         }
         this->initialObservationId = -1;
         hashValue = computeHash();
