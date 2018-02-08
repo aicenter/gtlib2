@@ -4,7 +4,6 @@
 
 #include "common.h"
 #include "treeWalk.h"
-#include <unordered_map>
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"

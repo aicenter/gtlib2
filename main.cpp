@@ -23,7 +23,7 @@
 
 using namespace GTLib2;
 
-int goofSpiel() {
+void goofSpiel() {
     //assert(false);
     domains::GoofSpielDomain gsd(4,8);
 

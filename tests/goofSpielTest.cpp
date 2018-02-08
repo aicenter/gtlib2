@@ -229,11 +229,11 @@ BOOST_AUTO_TEST_SUITE(GoofSpiel)
 
 
         //Long test!!! 10 mins
-        //int numberOfNodes = algorithms::countNodes(gsd);
-
         // [(13*13)*13*12] * [12*12*11]
 
-        //BOOST_CHECK(numberOfNodes == 42103490);
+
+        int numberOfNodes = algorithms::countNodes(gsd);
+        BOOST_CHECK(numberOfNodes == 42103490);
 
 
     }

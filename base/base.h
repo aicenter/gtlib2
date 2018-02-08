@@ -201,7 +201,7 @@ namespace GTLib2 {
     private:
         size_t computeHash() const;
 
-        int player_;
+        int player;
         int initialObservationId;
         vector<pair<int, int>> aoh; // Vector of pairs. First coordinate is action id, the second is observation id.
         size_t hashValue;

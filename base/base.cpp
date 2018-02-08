@@ -132,7 +132,7 @@ namespace GTLib2 {
 
     }
 
-    AOH::AOH(int player, const vector<int> &hist) : player_(player) {
+    AOH::AOH(int player, const vector<int> &hist) : player(player) {
         for (int i = 0; i < hist.size(); i++) {
             int actionId = hist[i];
             i++;
@@ -158,7 +158,7 @@ namespace GTLib2 {
 
     AOH::AOH(int player, int initialObservation, const vector<pair<int, int>> &aoHistory) {
         aoh = aoHistory;
-        player_ = player;
+        this->player = player;
         this->initialObservationId = initialObservation;
         hashValue = computeHash();
     }
@@ -167,7 +167,7 @@ namespace GTLib2 {
         const auto rhsAOH = dynamic_cast<const AOH*>(&rhs);
 
         if (rhsAOH != nullptr) {
-            if (player_ != rhsAOH->player_ ||
+            if (player != rhsAOH->player ||
                 getHash() != rhsAOH->getHash() ||
                 aoh.size() != rhsAOH->aoh.size() ||
                 initialObservationId != rhsAOH->initialObservationId) {
@@ -196,7 +196,7 @@ namespace GTLib2 {
     }
 
     int AOH::getPlayer() const {
-        return player_;
+        return player;
     }
 
 
