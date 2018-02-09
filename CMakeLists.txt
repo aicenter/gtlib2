@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.8)
 project(GTLib2)
 
+#set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_STANDARD 17)
+
+#set(CMAKE_C_COMPILER "gcc-7")
+#set(CMAKE_CXX_COMPILER "g++-7")
 
 # directories with googletest files used for unit tests
 #add_subdirectory(lib/googletest)

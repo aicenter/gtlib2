@@ -21,6 +21,8 @@
 
 //#include <boost/test/unit_test.hpp>
 
+using std::endl;
+
 using namespace GTLib2;
 
 void goofSpiel() {

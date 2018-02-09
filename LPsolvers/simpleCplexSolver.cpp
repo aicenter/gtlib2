@@ -4,8 +4,11 @@
 
 #include "simpleCplexSolver.h"
 
-
+#define IL_STD
 #include <ilcplex/ilocplex.h>
+
+using std::endl;
+using std::cerr;
 
 double solveLP(const int rows, const int cols,
                const vector<double> &utility_matrix,
