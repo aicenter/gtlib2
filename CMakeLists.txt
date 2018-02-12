@@ -4,6 +4,12 @@ project(GTLib2)
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_STANDARD 17)
 
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
+set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+
 #set(CMAKE_C_COMPILER "gcc-7")
 #set(CMAKE_CXX_COMPILER "g++-7")
 
@@ -38,9 +44,17 @@ endif()
 #set(Boost_INCLUDE_DIR /usr/local/Cellar/boost/1.66.0/include)
 #set(Boost_LIBRARY_DIR /usr/local/Cellar/boost/1.66.0/lib)
 
+
+
+
+#set(Boost_USE_STATIC_LIBS OFF)
+#set(Boost_USE_MULTITHREADED ON)
+#set(Boost_USE_STATIC_RUNTIME OFF)
+find_package(Boost COMPONENTS unit_test_framework system REQUIRED)
+
 include_directories(${Boost_INCLUDE_DIR})
 
-find_package(Boost COMPONENTS unit_test_framework REQUIRED)
+
 
 
 FIND_PATH(GLPK_INCLUDE_DIR NAMES glpk.h PATHS
@@ -70,12 +84,12 @@ add_executable(main  main.cpp ${SOURCE_FILES} ${CPLEX_FILES} ${GLPK_FILES})
 
 target_link_libraries(main
         ${CPLEXLIB}
-        ${CMAKE_THREAD_LIBS_INIT} ${GLPKLIB} )
+        ${CMAKE_THREAD_LIBS_INIT} ${GLPKLIB} ${Boost_LIBRARIES})
 
 
 
 #testing stuff
 add_executable(tester tests/matchingPenniesTest.cpp ${SOURCE_FILES} ${CPLEX_FILES} ${GLPK_FILES} tests/goofSpielTest.cpp)
 target_link_libraries(tester ${CPLEXLIB}
-        ${CMAKE_THREAD_LIBS_INIT} ${GLPKLIB} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+        ${CMAKE_THREAD_LIBS_INIT} ${GLPKLIB} ${Boost_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(tester tester)

@@ -29,7 +29,7 @@ namespace GTLib2 {
  * which contains action-observation history, state,
  * rewards (utility) and Information set.
  */
-    class EFGNode : public std::enable_shared_from_this<EFGNode const> {
+    class EFGNode final : public std::enable_shared_from_this<EFGNode const> {
     public:
 
         // Constructor for the same round node
@@ -68,8 +68,6 @@ namespace GTLib2 {
 
         // Check if the node is in the given information set.
         bool isContainedInInformationSet(const shared_ptr<AOH> &infSet) const;
-
-        virtual string description() const { return "No Description"; }; //TODO: Change to abstract method
 
         // Gets the parent efg node.
         shared_ptr<EFGNode const> getParent() const;

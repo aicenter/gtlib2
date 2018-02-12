@@ -25,6 +25,12 @@ using std::endl;
 
 using namespace GTLib2;
 
+void goofSpiel5() {
+    domains::GoofSpielDomain gsd(4);
+    int numberOfNodes = algorithms::countNodes(gsd);
+    cout << "Number of nodes: " << numberOfNodes << endl;
+}
+
 void goofSpiel() {
     //assert(false);
     domains::GoofSpielDomain gsd(4,8);
@@ -70,7 +76,7 @@ void goofSpiel() {
 
 }
 
-int goofSpiel2() {
+void goofSpiel2() {
     domains::GoofSpielDomain domain(3);
 
     int player1 = domain.getPlayers()[0];
@@ -86,7 +92,7 @@ int goofSpiel2() {
 
 }
 
-int equilibrium() {
+void equilibrium() {
     MatchingPenniesDomain d;
     auto v = algorithms::findEquilibriumTwoPlayersZeroSum(d);
 
@@ -109,7 +115,7 @@ int equilibrium() {
 
 }
 
-int pavelTreeWalkTest3() {
+void pavelTreeWalkTest3() {
     MatchingPenniesDomain d;
 
     auto initNodes = algorithms::createRootEFGNodesFromInitialOutcomeDistribution(d.getRootStatesDistribution());
@@ -144,7 +150,7 @@ int main(int argc, char *argv[]) {
     clock_t begin = clock();
 
 
-    goofSpiel();
+    goofSpiel5();
 
     clock_t end = clock();
     double elapsed_secs = static_cast<double>(end - begin) / CLOCKS_PER_SEC;

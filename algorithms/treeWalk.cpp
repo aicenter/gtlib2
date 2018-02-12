@@ -21,8 +21,8 @@ namespace GTLib2 {
     void algorithms::treeWalkEFG(const Domain &domain, std::function<void(shared_ptr<EFGNode>)> function,
                                  int maxDepth) {
 
-        std::function<void(shared_ptr<EFGNode>, int)> traverse = [&function, &traverse](
-                shared_ptr<EFGNode> node, int depth) {
+        std::function<void(const shared_ptr<EFGNode>&, int)> traverse = [&function, &traverse](
+                const shared_ptr<EFGNode>& node, int depth) {
 
             // Call the provided function on the current node.
             // Prob is the probability that this node is reached due to nature, given that the players played
@@ -36,8 +36,8 @@ namespace GTLib2 {
             const auto actions = node->availableActions();
             for (const auto &action : actions) {
                 auto newNodes = node->performAction(action); // Non-deterministic - can get multiple nodes
-                for (auto newNodeProb : newNodes) {
-                    traverse(newNodeProb.first, depth - 1);
+                for (auto const& [newNode,prob] : newNodes) {
+                    traverse(newNode, depth - 1);
                 }
             }
         };
