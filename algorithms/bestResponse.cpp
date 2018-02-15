@@ -25,8 +25,13 @@ namespace GTLib2 {
                                                        int, double)> bestResp =
                 [&player, &opponent, &domain, &bestResp, &opoStrat, &cache](shared_ptr<EFGNode> node, int depth,
                                                                     double prob) {
+
                     if (cache.find(node)!=cache.end()) {
                         return cache.at(node);
+                    }
+
+                    if (prob == 0) {
+                        return pair<BehavioralStrategy, double>(BehavioralStrategy(), 0.0);
                     }
 
                     if (!node->getCurrentPlayer() || depth <= 0) {
@@ -51,7 +56,7 @@ namespace GTLib2 {
                         unordered_map<shared_ptr<Action>, unordered_map<shared_ptr<EFGNode>,double>> actionNodeVal;
 
                         for (const auto &action : node->availableActions()) {
-                            actionNodeVal[action] = unordered_map<shared_ptr<EFGNode>,double>();
+                             unordered_map<shared_ptr<EFGNode>,double> siblingsVal;
 
                             double actionExpectedValue = 0.0;
 
@@ -72,9 +77,14 @@ namespace GTLib2 {
                                 }
                                 actionExpectedValue += val;
 
-                                actionNodeVal[action][sibling] = val;
+                                if (siblingsVal.find(sibling) != siblingsVal.end()) {
+                                    cout << "error" <<std::endl;
+                                }
 
+                                siblingsVal[sibling] = val;
                             }
+
+                            actionNodeVal[action] = siblingsVal;
 
 
                             if (actionExpectedValue > bestActionExpectedVal) {
@@ -88,17 +98,12 @@ namespace GTLib2 {
 
                         for (const auto &siblingNatureProb : allNodesInTheSameInfSet) {
                             const auto &sibling = siblingNatureProb.first;
-                            auto bestActionVal = actionNodeVal[bestAction][sibling];
+                            auto bestActionVal = actionNodeVal.at(bestAction).at(sibling);
                             cache[sibling] = pair<BehavioralStrategy, double>(brs, bestActionVal);
                         }
 
-
-
-
-                        //cache[node] = pair<BehavioralStrategy, double>(brs, bestActionVal);
-                        //return pair<BehavioralStrategy, double>(brs, bestActionVal);
-
-                        return cache.at(node);
+                        auto bstVal = cache.at(node);
+                        return bstVal;
                     } else {
                         // Opponent's node
                         double val = 0;

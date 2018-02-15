@@ -8,7 +8,7 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+set(CMAKE_CXX_FLAGS_RELEASE "-msse2 -O3 -ffast-math -fvectorize")
 
 #set(CMAKE_C_COMPILER "gcc-7")
 #set(CMAKE_CXX_COMPILER "g++-7")

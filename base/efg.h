@@ -99,7 +99,7 @@ namespace GTLib2 {
 
         vector<std::pair<int, int>> getAOH(int player) const;
 
-        vector<int> remainingPlayersInTheRound;
+        unordered_set<int> remainingPlayersInTheRound;
         unordered_map<int, shared_ptr<Action>> performedActionsInThisRound;
         unordered_map<int, shared_ptr<Action>> previousRoundActions;
         optional<int> currentPlayer = nullopt;

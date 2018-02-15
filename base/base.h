@@ -246,9 +246,9 @@ namespace GTLib2 {
         // Performs actions given by player->action map
         virtual OutcomeDistribution performActions(const unordered_map<int, shared_ptr<Action>> &actions) const = 0;
 
-        // Gets players that can play as an unordered_set of int TODO: Change to vector
+        // Gets players that can play in this state
 
-        virtual unordered_set<int> getPlayersSet() const;
+        virtual vector<int> getPlayers() const;
 
         // GetNumPlayers returns number of players who can play in this state.
         virtual int getNumberOfPlayers() const;
@@ -278,9 +278,9 @@ namespace GTLib2 {
         virtual OutcomeDistributionOld PerformAction(const vector<shared_ptr<Action>> &actions);
 
 
-        // GetPlayers returns who can play in this state.
+        // OldGetPlayers returns who can play in this state.
         [[deprecated]]
-        virtual const vector<bool> &GetPlayers() const;
+        virtual const vector<bool> &OldGetPlayers() const;
 
 
         // AddString adds string s to a string in vector of strings.

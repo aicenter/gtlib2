@@ -63,7 +63,9 @@ namespace GTLib2 {
         this->rewards = rewards;
         this->natureProbability = natureProbability;
 
-        remainingPlayersInTheRound = vector<int>(state->getPlayersSet().begin(), state->getPlayersSet().end());
+
+        auto statePlayers = state->getPlayers();
+        remainingPlayersInTheRound = unordered_set<int>(statePlayers.begin(),statePlayers.end());
         if (!remainingPlayersInTheRound.empty()) {
             currentPlayer = *remainingPlayersInTheRound.begin();
             player_ = *remainingPlayersInTheRound.begin();
@@ -92,10 +94,13 @@ namespace GTLib2 {
 
         this->performedActionsInThisRound = performedActions;
 
-        std::copy_if(parent->remainingPlayersInTheRound.begin(),
-                     parent->remainingPlayersInTheRound.end(),
-                     std::back_inserter(remainingPlayersInTheRound),
-                     [&lastPlayer](int i) { return i != lastPlayer; });
+        remainingPlayersInTheRound = parent->remainingPlayersInTheRound;
+        remainingPlayersInTheRound.erase(lastPlayer);
+
+//        std::copy_if(parent->remainingPlayersInTheRound.begin(),
+//                     parent->remainingPlayersInTheRound.end(),
+//                     std::back_inserter(remainingPlayersInTheRound),
+//                     [&lastPlayer](int i) { return i != lastPlayer; });
 
         if (!remainingPlayersInTheRound.empty()) {
             currentPlayer = *remainingPlayersInTheRound.begin();
@@ -203,12 +208,24 @@ namespace GTLib2 {
 
     size_t EFGNode::getHash() const {
         auto seed = state->getHash();
-        boost::hash_combine(seed, remainingPlayersInTheRound);
+        boost::hash_combine(seed, performedActionsInThisRound.size());
+        boost::hash_combine(seed, remainingPlayersInTheRound.size());
         return seed;
     }
 
     bool EFGNode::operator==(const EFGNode &rhs) const {
-        return *(this->state) == *(rhs.state) && remainingPlayersInTheRound == rhs.remainingPlayersInTheRound;
+        if (this->performedActionsInThisRound.size() != rhs.performedActionsInThisRound.size()) {
+            return false;
+        }
+        for (auto const& [player, action] : this->performedActionsInThisRound) {
+            if (rhs.performedActionsInThisRound.find(player) == rhs.performedActionsInThisRound.end()
+                    || !(*rhs.performedActionsInThisRound.at(player) == *action)) {
+                return false;
+            }
+        }
+        bool remainingPlayersSame = this->remainingPlayersInTheRound == rhs.remainingPlayersInTheRound;
+        bool innerStateSame = *(this->state) == *(rhs.state);
+        return remainingPlayersSame && innerStateSame;
     }
 
     int EFGNode::getDistanceFromRoot() const {

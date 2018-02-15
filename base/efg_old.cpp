@@ -130,7 +130,7 @@ namespace GTLib2 {
             for (Outcome &o : outcomes) {
                 vector<double> rews = vector<double>(o.GetReward().size());
                 rews = node_->GetRewards() + o.GetReward();
-                auto players = o.GetState()->GetPlayers();
+                auto players = o.GetState()->OldGetPlayers();
                 for (unsigned int i = 0; i < players.size(); ++i) {
                     if (players[i]) {
                         vector<int> aoh{actions_[i]->getId(), o.GetObs()[i]->getId()};

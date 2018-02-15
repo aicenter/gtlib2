@@ -60,10 +60,10 @@ MatchingPenniesState::MatchingPenniesState(Move p1, Move p2) : State() {
     player1 = p1;
     player2 = p2;
     if (player1 == Nothing && player2 == Nothing) {
-        players.insert(0);
+        players.push_back(0);
     }
     if (player2 == Nothing && player1 != Nothing) {
-        players.insert(1);
+        players.push_back(1);
     }
 
 }
@@ -141,7 +141,7 @@ string MatchingPenniesState::toString(int player) const {
     return desc;
 }
 
-unordered_set<int> MatchingPenniesState::getPlayersSet() const {
+vector<int> MatchingPenniesState::getPlayers() const {
     return players;
 }
 
@@ -181,10 +181,10 @@ SimultaneousMatchingPenniesState::SimultaneousMatchingPenniesState(Move p1, Move
     player1 = p1;
     player2 = p2;
     if (player1 == Nothing) {
-        players.insert(0);
+        players.push_back(0);
     }
     if (player2 == Nothing) {
-        players.insert(1);
+        players.push_back(1);
     }
 }
 
@@ -268,7 +268,7 @@ string SimultaneousMatchingPenniesState::toString(int player) const {
     return desc;
 }
 
-unordered_set<int> SimultaneousMatchingPenniesState::getPlayersSet() const {
+vector<int> SimultaneousMatchingPenniesState::getPlayers() const {
     return players;
 }
 

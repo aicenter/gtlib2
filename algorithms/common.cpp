@@ -155,6 +155,7 @@ namespace GTLib2 {
             traverse(rootNode.first, 0, infSet->getInitialObservationId());
         }
 
+
         return nodes;
     }
 

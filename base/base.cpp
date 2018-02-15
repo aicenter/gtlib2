@@ -233,7 +233,7 @@ namespace GTLib2 {
         }
 
         auto search = vector<shared_ptr<Action>>(aoh.size());
-        auto player = state->GetPlayers();
+        auto player = state->OldGetPlayers();
         for (int i = 0; i < aoh.size(); ++i) {
             if (player[i]) {
                 auto ptr = make_shared<AOH>(i, aoh[i]);
@@ -281,17 +281,11 @@ namespace GTLib2 {
     }
 
 
-    unordered_set<int> State::getPlayersSet() const {
+    vector<int> State::getPlayers() const {
         //TODO: Implement this in phantom and pursuits domains and remove this and make this method abstract.
         assert(("getPlayers not implemented", false));
-        unordered_set<int> set;
-        vector<bool> players = GetPlayers();
-        for (int i = 0; i < players.size(); i++) {
-            if (players[i]) {
-                set.insert(i);
-            }
-        }
-        return set;
+        vector<int> v;
+        return v;
     }
 
     void State::GetActions(vector<shared_ptr<Action>> &list, int player) const {
@@ -303,7 +297,7 @@ namespace GTLib2 {
         return OutcomeDistributionOld(vector<pair<Outcome, double>>());
     }
 
-    const vector<bool> &State::GetPlayers() const {
+    const vector<bool> &State::OldGetPlayers() const {
         assert(false);
         return vector<bool>();
     }
@@ -324,7 +318,7 @@ namespace GTLib2 {
     }
 
     int State::getNumberOfPlayers() const {
-        return (int) getPlayersSet().size();
+        return (int) getPlayers().size();
     }
 
     string State::toString(int player) const {

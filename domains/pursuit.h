@@ -130,8 +130,8 @@ class PursuitState: public State {
     return  place_.size();
   }
 
-  // GetPlayers returns who can play in this state.
-  inline const vector<bool>& GetPlayers() const override {
+  // OldGetPlayers returns who can play in this state.
+  inline const vector<bool>& OldGetPlayers() const override {
     return players_;
   }
 
@@ -183,8 +183,8 @@ class MMPursuitState: public PursuitState {
   // GetNumPlayers returns number of players who can play in this state.
   inline int getNumberOfPlayers() const override;
 
-  // GetPlayers returns who can play in this state.
-  inline const vector<bool>& GetPlayers() const override {
+  // OldGetPlayers returns who can play in this state.
+  inline const vector<bool>& OldGetPlayers() const override {
     return players_;
   }
 

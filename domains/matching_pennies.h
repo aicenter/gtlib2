@@ -63,7 +63,7 @@ namespace GTLib2 {
         OutcomeDistribution performActions(const unordered_map<int, shared_ptr<Action>> &actions) const override;
 
         int getNumberOfPlayers() const override;
-        unordered_set<int> getPlayersSet() const override ;
+        vector<int> getPlayers() const override ;
         size_t getHash() const override;
 
         bool operator==(const State &rhs) const override;
@@ -71,7 +71,7 @@ namespace GTLib2 {
 
         Move player1;
         Move player2;
-        unordered_set<int> players;
+        vector<int> players;
 
 
         // ToString returns state description
@@ -90,14 +90,14 @@ namespace GTLib2 {
 
         int getNumberOfPlayers() const override;
 
-        unordered_set<int> getPlayersSet() const override;
+        vector<int> getPlayers() const override;
 
         size_t getHash() const override;
 
 
         Move player1;
         Move player2;
-        unordered_set<int> players;
+        vector<int> players;
 
         // ToString returns state description
         string toString(int player) const override;

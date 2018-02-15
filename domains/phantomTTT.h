@@ -96,8 +96,8 @@ class PhantomTTTState: public State {
     return 1;
   }
 
-  // GetPlayers returns who can play in this state.
-  inline const vector<bool>& GetPlayers() const override {
+  // OldGetPlayers returns who can play in this state.
+  inline const vector<bool>& OldGetPlayers() const override {
     return players_;
   }
 

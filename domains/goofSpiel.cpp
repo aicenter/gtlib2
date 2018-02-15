@@ -80,10 +80,10 @@ namespace GTLib2 {
         }
 
         GoofSpielState::GoofSpielState(unordered_set<int> player1Deck, unordered_set<int> player2Deck,
-                                       unordered_set<int> natureDeck, optional<int> natureSelectedCard,
-                                       double player1CumulativeReward, double player2CumulativeReward,
-                                       vector<int> player1PlayedCards, vector<int> player2PlayedCards,
-                                       vector<int> naturePlayedCards) {
+                                        unordered_set<int> natureDeck, optional<int> natureSelectedCard,
+                                        double player1CumulativeReward, double player2CumulativeReward,
+                                        vector<int> player1PlayedCards, vector<int> player2PlayedCards,
+                                        vector<int> naturePlayedCards) : State() {
             this->player1Deck = std::move(player1Deck);
             this->player2Deck = std::move(player2Deck);
             this->natureDeck = std::move(natureDeck);
@@ -94,6 +94,39 @@ namespace GTLib2 {
             this->player2PlayedCards = std::move(player2PlayedCards);
             this->naturePlayedCards = std::move(naturePlayedCards);
 
+        }
+
+        GoofSpielState::GoofSpielState(const GoofSpielState &previousState, int player1Card, int player2Card,
+                                       optional<int> newNatureCard, double player1CumulativeReward,
+                                       double player2CumulativeReward) : State() {
+            player1Deck = previousState.player1Deck;
+            player1Deck.erase(player1Card);
+
+            player2Deck = previousState.player2Deck;
+            player2Deck.erase(player2Card);
+
+            player1PlayedCards = previousState.player1PlayedCards;
+            player1PlayedCards.push_back(player1Card);
+
+            player2PlayedCards = previousState.player2PlayedCards;
+            player2PlayedCards.push_back(player2Card);
+
+            this->player1CumulativeReward = player1CumulativeReward;
+            this->player2CumulativeReward = player2CumulativeReward;
+
+            if (newNatureCard == nullopt) {
+                natureDeck = unordered_set<int>();
+                naturePlayedCards = previousState.naturePlayedCards;
+                natureSelectedCard = nullopt;
+            } else {
+                natureDeck = previousState.natureDeck;
+                natureDeck.erase(*newNatureCard);
+
+                naturePlayedCards = previousState.naturePlayedCards;
+                naturePlayedCards.push_back(*newNatureCard);
+
+                natureSelectedCard = newNatureCard;
+            }
         }
 
         vector<shared_ptr<Action>> GoofSpielState::getAvailableActionsFor(const int player) const {
@@ -117,18 +150,6 @@ namespace GTLib2 {
             const int p1Card = player1Action->cardNumber;
             const int p2Card = player2Action->cardNumber;
 
-            auto newPlayer1Deck = unordered_set<int>(player1Deck.begin(),player1Deck.end());
-            newPlayer1Deck.erase(player1Action->cardNumber);
-
-            auto newPlayer1PlayedCards = player1PlayedCards;
-            newPlayer1PlayedCards.push_back(player1Action->cardNumber);
-
-            auto newPlayer2Deck = unordered_set<int>(player2Deck.begin(),player2Deck.end());
-            newPlayer2Deck.erase(player2Action->cardNumber);
-
-            auto newPlayer2PlayedCards = player2PlayedCards;
-            newPlayer2PlayedCards.push_back(player2Action->cardNumber);
-
             OutcomeDistribution newOutcomes;
 
             unordered_map<int,double> newRewards;
@@ -143,18 +164,9 @@ namespace GTLib2 {
 
 
             if (natureDeck.empty()) {
-                //final state
-                const auto newNatureDeck = unordered_set<int>();
-
-                const auto newState = make_shared<GoofSpielState>(newPlayer1Deck,
-                                                            newPlayer2Deck,
-                                                            newNatureDeck,
-                                                            nullopt,
-                                                            newRewards[1],
-                                                            newRewards[2],
-                                                            newPlayer1PlayedCards,
-                                                            newPlayer2PlayedCards,
-                                                            naturePlayedCards);
+                const auto newStatex = make_shared<GoofSpielState>(*this, p1Card, p2Card, nullopt,
+                                                                   newRewards[1],
+                                                                   newRewards[2]);
 
                 const auto player1Observation = make_shared<GoofSpielObservation>(nullopt, p1Card, p2Card);
                 const auto player2Observation = make_shared<GoofSpielObservation>(nullopt, p1Card, p2Card);
@@ -163,26 +175,17 @@ namespace GTLib2 {
                 newObservations[1] = player1Observation;
                 newObservations[2] = player2Observation;
 
-                const auto newOutcome = Outcome(newState, newObservations, newRewards);
+                const auto newOutcome = Outcome(newStatex, newObservations, newRewards);
                 newOutcomes.emplace_back(newOutcome,1.0);
 
 
             } else {
                 for (const auto natureCard : natureDeck) {
-                    auto newNatureDeck = unordered_set<int>(natureDeck.begin(), natureDeck.end());
-                    newNatureDeck.erase(natureCard);
-                    auto newNaturePlayedCards = naturePlayedCards;
-                    newNaturePlayedCards.push_back(natureCard);
 
-                    const auto newState = make_shared<GoofSpielState>(newPlayer1Deck,
-                                                                newPlayer2Deck,
-                                                                newNatureDeck,
-                                                                natureCard,
-                                                                newRewards[1],
-                                                                newRewards[2],
-                                                                newPlayer1PlayedCards,
-                                                                newPlayer2PlayedCards,
-                                                                newNaturePlayedCards);
+                    const auto newStatex = make_shared<GoofSpielState>(*this, p1Card, p2Card, natureCard,
+                                                                       newRewards[1],
+                                                                       newRewards[2]);
+
 
                     const auto player1Observation = make_shared<GoofSpielObservation>(natureCard, p1Card, p2Card);
                     const auto player2Observation = make_shared<GoofSpielObservation>(natureCard, p1Card, p2Card);
@@ -191,7 +194,7 @@ namespace GTLib2 {
                     newObservations[1] = player1Observation;
                     newObservations[2] = player2Observation;
 
-                    const auto newOutcome = Outcome(newState, newObservations, newRewards);
+                    const auto newOutcome = Outcome(newStatex, newObservations, newRewards);
                     newOutcomes.emplace_back(newOutcome,1.0 / natureDeck.size());
                 }
             }
@@ -199,17 +202,12 @@ namespace GTLib2 {
             return newOutcomes;
         }
 
-        unordered_set<int> GoofSpielState::getPlayersSet() const {
-            unordered_set<int> players;
-            if (!player1Deck.empty()) {
-                players.insert(1);
+        vector<int> GoofSpielState::getPlayers() const {
+            if (!player1Deck.empty() && !player2Deck.empty()) {
+                return {1,2};
+            } else {
+                return {};
             }
-
-            if (!player2Deck.empty()) {
-                players.insert(2);
-            }
-
-            return players;
         }
 
         string GoofSpielState::toString() const {
@@ -231,30 +229,33 @@ namespace GTLib2 {
         bool GoofSpielState::operator==(const State &rhs) const {
             auto gsState = dynamic_cast<const GoofSpielState&>(rhs);
 
-            return player1Deck == gsState.player1Deck && player2Deck == gsState.player2Deck &&
-                    natureDeck == gsState.natureDeck && natureSelectedCard == gsState.natureSelectedCard &&
+            return  natureSelectedCard == gsState.natureSelectedCard &&
                     player1CumulativeReward == gsState.player1CumulativeReward &&
                     player2CumulativeReward == gsState.player2CumulativeReward &&
                     player1PlayedCards == gsState.player1PlayedCards &&
                     player2PlayedCards == gsState.player2PlayedCards &&
-                    naturePlayedCards == gsState.naturePlayedCards;
+                    naturePlayedCards == gsState.naturePlayedCards &&
+            player1Deck == gsState.player1Deck && player2Deck == gsState.player2Deck &&
+            natureDeck == gsState.natureDeck;
         }
 
         size_t GoofSpielState::getHash() const {
             size_t seed = 0;
-            for (auto i : player1Deck) {
+            for (auto i : player1PlayedCards) {
                 boost::hash_combine(seed, i);
             }
-            for (auto i : player2Deck) {
+            for (auto i : player2PlayedCards) {
                 boost::hash_combine(seed, i);
             }
-            for (auto i : natureDeck) {
+            for (auto i : naturePlayedCards) {
                 boost::hash_combine(seed, i);
             }
             boost::hash_combine(seed, player1CumulativeReward);
             boost::hash_combine(seed, player2CumulativeReward);
             return seed;
         }
+
+
     }
 }
 #pragma clang diagnostic pop

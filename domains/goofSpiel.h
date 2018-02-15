@@ -44,16 +44,27 @@ namespace GTLib2 {
 
         class GoofSpielState : public State {
         public:
+//            GoofSpielState(unordered_set<int> player1Deck, unordered_set<int> player2Deck,
+//                           unordered_set<int> natureDeck, optional<int> natureSelectedCard,
+//                           double player1CumulativeReward, double player2CumulativeReward,
+//                           vector<int> player1PlayedCards, vector<int> player2PlayedCards,
+//                           vector<int> naturePlayedCards,const GoofSpielState &previousState,int player1Card, int player2Card,
+//                           optional<int> newNatureCard,  unordered_set<int> deckx );
             GoofSpielState(unordered_set<int> player1Deck, unordered_set<int> player2Deck,
                            unordered_set<int> natureDeck, optional<int> natureSelectedCard,
                            double player1CumulativeReward, double player2CumulativeReward,
                            vector<int> player1PlayedCards, vector<int> player2PlayedCards,
                            vector<int> naturePlayedCards);
 
+            GoofSpielState(const GoofSpielState& previousState, int player1Card,
+                           int player2Card, optional<int> newNatureCard,
+                           double player1CumulativeReward,
+                            double player2CumulativeReward);
+
             vector<shared_ptr<Action>> getAvailableActionsFor(int player) const override;
             OutcomeDistribution performActions(
                     const unordered_map<int, shared_ptr<Action>> &actions) const override;
-            unordered_set<int> getPlayersSet() const override ;
+            vector<int> getPlayers() const override ;
             string toString() const override;
             bool operator==(const State &rhs) const override ;
 
