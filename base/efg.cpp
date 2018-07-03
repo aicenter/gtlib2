@@ -26,9 +26,9 @@ namespace GTLib2 {
         if (remainingPlayersInTheRound.size() == 1) {
             //Last player in the round. So we proceed to the next state
             auto probDist = state->performActions(actionsToBePerformed);
-            for (auto const& [outcome, prob] : probDist) {
-                //auto outcome = outcomeProb.first;
-                //auto prob = outcomeProb.second;
+            for (auto const& outcomeProb : probDist) {
+                auto outcome = outcomeProb.first;
+                auto prob = outcomeProb.second;
                 auto newNode = make_shared<EFGNode>(outcome.state, shared_from_this(),
                                                     outcome.observations, outcome.rewards,
                                                     actionsToBePerformed, prob * natureProbability, action);
@@ -217,7 +217,10 @@ namespace GTLib2 {
         if (this->performedActionsInThisRound.size() != rhs.performedActionsInThisRound.size()) {
             return false;
         }
-        for (auto const& [player, action] : this->performedActionsInThisRound) {
+//        for (auto const& [player, action] : this->performedActionsInThisRound) {
+        for (auto const& it : this->performedActionsInThisRound) {
+            auto player = it.first;
+            auto action = it.second;
             if (rhs.performedActionsInThisRound.find(player) == rhs.performedActionsInThisRound.end()
                     || !(*rhs.performedActionsInThisRound.at(player) == *action)) {
                 return false;

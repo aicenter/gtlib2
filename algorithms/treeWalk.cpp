@@ -36,7 +36,8 @@ namespace GTLib2 {
             const auto actions = node->availableActions();
             for (const auto &action : actions) {
                 auto newNodes = node->performAction(action); // Non-deterministic - can get multiple nodes
-                for (auto const& [newNode,prob] : newNodes) {
+                for (auto const& it : newNodes) {
+                    auto newNode = it.first;
                     traverse(newNode, depth - 1);
                 }
             }
