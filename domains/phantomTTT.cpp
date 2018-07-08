@@ -15,24 +15,16 @@
 
 PhantomTTTAction::PhantomTTTAction(int id, int move): Action(id), move_(move) {}
 
-PhantomTTTObservation::PhantomTTTObservation(int id, int value):
-    Observation(id), value_(value) {}
-
+PhantomTTTObservation::PhantomTTTObservation(int id) : Observation(id) {}
 
 PhantomTTTState::PhantomTTTState(const vector<vector<int>> &p,
-                                 const vector<bool>& players):
+                                 const vector<int>& players):
   place_(p), players_(players) {
   strings_ = vector<string>(2);
 }
 
 vector<shared_ptr<Action>> PhantomTTTState::getAvailableActionsFor(int player) const {
   auto list = vector<shared_ptr<Action>>();
-  GetActions(list, player);
-  return list;
-}
-
-void PhantomTTTState::GetActions(vector<shared_ptr<Action>> &list,
-                                 int player) const {
   int count = 0;
   for (int i = 0; i < 9; ++i) {
     if (place_[player][i] == 0) {
@@ -40,40 +32,41 @@ void PhantomTTTState::GetActions(vector<shared_ptr<Action>> &list,
       ++count;
     }
   }
+  return list;
 }
-
-OutcomeDistributionOld
-PhantomTTTState::PerformAction(const vector<shared_ptr<Action>> &actions2) {
-  vector<shared_ptr<PhantomTTTAction>> actions =
-      Cast<Action, PhantomTTTAction>(actions2);
-  auto rew = vector<double>(2);
-  auto obser = vector<shared_ptr<Observation>>();
-  auto ob = vector<int>(2);
-  vector<bool> pla2(2, true);
-  obser.reserve(2);
+OutcomeDistribution PhantomTTTState::performActions
+    (const unordered_map<int, shared_ptr<Action>> &actions) const { // TODO: prepsat
+  auto a1 = std::dynamic_pointer_cast<PhantomTTTAction>(actions.find(0)->second);
+  auto a2 = std::dynamic_pointer_cast<PhantomTTTAction>(actions.find(1)->second);
+  unordered_map<int,shared_ptr<Observation>> observations = unordered_map<int,shared_ptr<Observation>>();
+  unordered_map<int,double> rewards = unordered_map<int,double>();
+  int success = 0;
+  vector<int> pla2;
+  observations.reserve(2);
+  rewards.reserve(2);
   vector<vector<int>> moves = place_;
-  if (actions[0]->getId() > -1) {
-    if (moves[1][actions[0]->GetMove()] == 0) {
-      moves[0][actions[0]->GetMove()] = 1;
-      ob[0] = 1;
-      pla2[0] = false;
+  if (a1->getId() > -1) {
+    if (moves[1][a1->GetMove()] == 0) {
+      moves[0][a1->GetMove()] = 1;
+      success = 1;
+      pla2.emplace_back(1);
     } else {
-      moves[0][actions[0]->GetMove()] = 2;
-      pla2[1] = false;
+      moves[0][a1->GetMove()] = 2;
+      pla2.emplace_back(0);
     }
-    obser.push_back(MakeUnique<PhantomTTTObservation>(0, ob[0]));
-    obser.push_back(MakeUnique<Observation>(NoOb));
+    observations[0]=make_unique<PhantomTTTObservation>(success);
+    observations[1]= make_unique<Observation>(-1);
   } else {
-    if (moves[0][actions[1]->GetMove()] == 0) {
-      moves[1][actions[1]->GetMove()] = 1;
-      ob[1] = 1;
-      pla2[1] = false;
+    if (moves[0][a2->GetMove()] == 0) {
+      moves[1][a2->GetMove()] = 1;
+      success = 1;
+      pla2.emplace_back(0);
     } else {
-      moves[1][actions[1]->GetMove()] = 2;
-      pla2[0] = false;
+      moves[1][a2->GetMove()] = 2;
+      pla2.emplace_back(1);
     }
-    obser.push_back(MakeUnique<Observation>(NoOb));
-    obser.push_back(MakeUnique<PhantomTTTObservation>(0, ob[1]));
+    observations[0] = make_unique<Observation>(-1);
+    observations[1] = make_unique<PhantomTTTObservation>(success);
   }
   auto board = moves[0];
   for (int i = 0; i < 9; ++i) {
@@ -87,35 +80,44 @@ PhantomTTTState::PerformAction(const vector<shared_ptr<Action>> &actions2) {
       || (board[0] == board[3] && board[3] == board[6])
       || (board[0] == board[4] && board[4] == board[8])) {
     if (board[0] == 1) {
-      rew ={1.0, -1.0};
+      rewards[0] = +1;
+      rewards[1] = -1;
     } else if (board[0] == 2) {
-      rew = {-1.0, 1.0};
+      rewards[0] = -1;
+      rewards[1] = +1;
     }
   }
   if ((board[8] == board[5] && board[5] == board[2])
       || (board[8] == board[7] && board[7] == board[6])) {
     if (board[8] == 1) {
-      rew ={1.0, -1.0};
+      rewards[0] = +1;
+      rewards[1] = -1;
     } else if (board[8] == 2) {
-      rew = {-1.0, 1.0};
+      rewards[0] = -1;
+      rewards[1] = +1;
     }
   }
   if ((board[4] == board[1] && board[4] == board[7])
       || (board[4] == board[3] && board[4] == board[5])) {
     if (board[4] == 1) {
-      rew ={1.0, -1.0};
+      rewards[0] = +1;
+      rewards[1] = -1;
     } else if (board[4] == 2) {
-      rew = {-1.0, 1.0};
+      rewards[0] = -1;
+      rewards[1] = +1;
     }
   }
   if ((board[2] == board[4] && board[4] == board[6])) {
     if (board[2] == 1) {
-      rew ={1.0, -1.0};
+      rewards[0] = +1;
+      rewards[1] = -1;
     } else if (board[2] == 2) {
-      rew = {-1.0, 1.0};
+      rewards[0] = -1;
+      rewards[1] = +1;
     }
   }
-  if (rew[0] != 0) {
+  auto actions2 = vector<shared_ptr<PhantomTTTAction>>{a1,a2};
+  if (rewards[0] != 0) {
     for (int j = 0; j < 9; ++j) {
       if (moves[0][j] == 0) {
         moves[0][j] = -1;
@@ -126,46 +128,42 @@ PhantomTTTState::PerformAction(const vector<shared_ptr<Action>> &actions2) {
     }
     s = make_shared<PhantomTTTState>(moves, pla2);
     D(for (unsigned int j = 0; j < 2; ++j) {
-      s->AddString(strings_[j] + "  ||  ACTION: " + actions[j]->toString() +
-                   "  | OBS: " + obser[j]->toString()+ "  ||  END OF GAME", j);
+      s->AddString(strings_[j] + "  ||  ACTION: " + actions2[j]->toString() +
+                   "  | OBS: " + observations[j]->toString()+ "  ||  END OF GAME", j);
     })
   } else {
     s = make_shared<PhantomTTTState>(moves, pla2);
     D(for (unsigned int j = 0; j < 2; ++j) {
-      s->AddString(strings_[j] + "  ||  ACTION: " + actions[j]->toString() +
-                   "  | OBS: " + obser[j]->toString(), j);
+      s->AddString(strings_[j] + "  ||  ACTION: " + actions2[j]->toString() +
+                   "  | OBS: " + observations[j]->toString(), j);
     })
   }
-
-  Outcome p(move(s), move(obser), rew);
-  vector<pair<Outcome, double>> pair{{move(p), 1}};
-  OutcomeDistributionOld prob(move(pair));  // pair of an outcome and its probability
+  Outcome o(move(s), observations, rewards);
+  OutcomeDistribution prob;
+  prob.push_back(pair<Outcome,double>(move(o),1.0));
   return prob;
-}
-
-OutcomeDistribution PhantomTTTState::performActions(const unordered_map<int, shared_ptr<Action>> &actions) const {
-  assert(("Implement this",false));
-  return OutcomeDistribution();
 }
 
 
 PhantomTTTDomain::PhantomTTTDomain(unsigned int max) :
     Domain(max, 2) {
-  vector<pair<Outcome, double>> pairs;
   auto vec = vector<vector<int>>{{0, 0, 0, 0, 0, 0, 0, 0, 0},
                                  {0, 0, 0, 0, 0, 0, 0, 0, 0}};
-  auto players = vector<bool>({true, false});
-  Outcome o(make_shared<PhantomTTTState>(vec, players),
-            move(vector<shared_ptr<Observation>>(numberOfPlayers)),
-            vector<double>(numberOfPlayers));
-  pairs.emplace_back(move(o), 1);
-  rootStatesDistributionPtr = make_shared<OutcomeDistributionOld>(move(pairs));
+  auto players = vector<int>({0});
+  unordered_map<int,double> rewards;
+  rewards[0] = 0.0;
+  rewards[1] = 0.0;
+  unordered_map<int,shared_ptr<Observation>> Obs;
+  Obs[0] = make_shared<Observation>(-1);
+  Obs[1] = make_shared<Observation>(-1);
+  Outcome o(make_shared<PhantomTTTState>(vec, players), Obs, rewards);
+  rootStatesDistribution.push_back(pair<Outcome,double>(move(o),1.0));
 }
 
 string PhantomTTTDomain::getInfo() const {
   return "************ Phantom Tic Tac Toe *************\n" +
-          rootStatesDistributionPtr->GetOutcomes()[0].GetState()->toString(0) + "\n" +
-          rootStatesDistributionPtr->GetOutcomes()[0].GetState()->toString(1) + "\n";
+         rootStatesDistribution[0].first.state->toString(0) + "\n" +
+         rootStatesDistribution[0].first.state->toString(1) + "\n";
 }
 
 #pragma clang diagnostic pop

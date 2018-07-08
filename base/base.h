@@ -33,6 +33,7 @@ using std::to_string;
 using std::unordered_map;
 using std::unordered_set;
 using std::make_shared;
+using std::make_unique;
 using std::pair;
 using std::tuple;
 
@@ -248,7 +249,7 @@ namespace GTLib2 {
 
         // Gets players that can play in this state
 
-        virtual vector<int> getPlayers() const;
+        virtual vector<int> getPlayers() const = 0;
 
         // GetNumPlayers returns number of players who can play in this state.
         virtual int getNumberOfPlayers() const;
@@ -269,10 +270,6 @@ namespace GTLib2 {
         virtual string toString(int player) const;
 
 // Following methods are obsolete
-        // GetActions returns possible actions for a player in the state.
-        [[deprecated]]
-        virtual void GetActions(vector<shared_ptr<Action>> &list, int player) const;
-
         // OldPerformAction performs actions for all players who can play in the state.
         [[deprecated]]
         virtual OutcomeDistributionOld PerformAction(const vector<shared_ptr<Action>> &actions);
@@ -495,7 +492,7 @@ namespace GTLib2 {
         // Returns distributions of the root states.
         OutcomeDistribution getRootStatesDistribution() const;
 
-        virtual vector<int> getPlayers() const;
+        virtual vector<int> getPlayers() const = 0;
 
         // Returns number of players in the game.
         inline int getNumberOfPlayers() const {
@@ -516,7 +513,7 @@ namespace GTLib2 {
             return rootStatesDistributionPtr;
         }
         // Start function to calculate an expected value for a strategy profile
-        [[deprecated]]
+        [[deprecated]] // TODO: asi lze smazat, je to v algorithms
         virtual double CalculateUtility(const vector<PureStrategy> &pure_strategies);
 
         // Calculate an expected value for a strategy profile
@@ -539,8 +536,6 @@ namespace GTLib2 {
 
     [[deprecated]]
     static Action NoA(-1);  // No Action
-    [[deprecated]]
-    static Observation NoOb(-1);  // No Observation
 
 }
 

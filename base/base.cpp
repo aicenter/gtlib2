@@ -266,31 +266,10 @@ namespace GTLib2 {
         return suma;
     }
 
-    vector<int> Domain::getPlayers() const {
-        //TODO: Implement this in phantom and pursuits domains and remove this and make this method abstract.
-        assert(("domain::getPlayers not implemented!",false));
-        vector<int> players;
-        for (int i = 0; i< getNumberOfPlayers(); ++i){
-            players.push_back(i);
-        }
-        return players;
-    }
-
     OutcomeDistribution Domain::getRootStatesDistribution() const {
         return rootStatesDistribution;
     }
 
-
-    vector<int> State::getPlayers() const {
-        //TODO: Implement this in phantom and pursuits domains and remove this and make this method abstract.
-        assert(("getPlayers not implemented", false));
-        vector<int> v;
-        return v;
-    }
-
-    void State::GetActions(vector<shared_ptr<Action>> &list, int player) const {
-        assert(false);
-    }
 
     OutcomeDistributionOld State::PerformAction(const vector<shared_ptr<Action>> &actions) {
         assert(false);
@@ -344,10 +323,8 @@ namespace GTLib2 {
 //
 //    return probDistr;
 //}
-    int countStates; // TODO: Remove this
 
 }
 
-int countStates; // TODO: Remove this
 
 #pragma clang diagnostic pop
