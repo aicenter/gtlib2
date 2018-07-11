@@ -26,7 +26,17 @@ namespace GTLib2 {
 
                         auto findActionProb = [] (const shared_ptr<AOH> &infSet,const BehavioralStrategy & strat,
                                                   const shared_ptr<Action> & action) -> double {
-                            return (strat.at(infSet).find(action) != strat.at(infSet).end()) ? strat.at(infSet).at(action) : 0.0;
+
+                            for (auto &st:strat) {
+                                cout << st.first <<  "\n";
+                            }
+                            cout << "bla\n" << infSet << "\n\n\n";
+                            if(strat.find(infSet) != strat.end()) {
+                                return (strat.at(infSet).find(action) != strat.at(infSet).end()) ? strat.at(infSet).at(
+                                        action) : 0.0;
+                            } else {
+                                return 0;
+                            }
                         };
 
                         if (depth <= 0 || !node->getCurrentPlayer()) {
@@ -38,7 +48,6 @@ namespace GTLib2 {
                         const auto actions = node->availableActions();
                         for (const auto &action : actions) {
                             auto infSet = node->getAOHInfSet();
-
                             double actionStratProb = findActionProb(infSet,
                                                                     (*node->getCurrentPlayer() == player1) ?
                                                                     player1Strat : player2Strat,action);
