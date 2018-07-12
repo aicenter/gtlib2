@@ -5,7 +5,7 @@
 #include "efg.h"
 
 #include <utility>
-
+#include <algorithm>
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
@@ -66,6 +66,8 @@ namespace GTLib2 {
 
         auto statePlayers = state->getPlayers();
         remainingPlayersInTheRound = unordered_set<int>(statePlayers.begin(),statePlayers.end());
+        remainingPlayers = statePlayers;    // TODO : prepsat na vector<int>
+//        std::reverse(remainingPlayers.begin(), remainingPlayers.end());
         if (!remainingPlayersInTheRound.empty()) {
             currentPlayer = *remainingPlayersInTheRound.begin();
             player_ = *remainingPlayersInTheRound.begin();
@@ -96,6 +98,13 @@ namespace GTLib2 {
 
         remainingPlayersInTheRound = parent->remainingPlayersInTheRound;
         remainingPlayersInTheRound.erase(lastPlayer);
+        /*
+        for(auto i = std::begin(remainingPlayers); i != std::end(remainingPlayers);++i) {
+            if(*i.base() == lastPlayer) {
+                remainingPlayers.erase(i);
+            }
+        }*/
+
 
 //        std::copy_if(parent->remainingPlayersInTheRound.begin(),
 //                     parent->remainingPlayersInTheRound.end(),
@@ -109,7 +118,6 @@ namespace GTLib2 {
             currentPlayer = nullopt;
             player_ = -1;
         }
-
     }
 
     vector<shared_ptr<Action>> EFGNode::availableActions() const {
@@ -249,7 +257,7 @@ namespace GTLib2 {
 
     EFGNode::EFGNode() {
         player_ = -1;
-        assert(false);
+    //    assert(false);
         parent = nullptr;
         incomingAction = nullptr;
     }

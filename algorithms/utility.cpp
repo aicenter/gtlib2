@@ -26,21 +26,11 @@ namespace GTLib2 {
 
                         auto findActionProb = [] (const shared_ptr<AOH> &infSet,const BehavioralStrategy & strat,
                                                   const shared_ptr<Action> & action) -> double {
-
-                            for (auto &st:strat) {
-                                cout << st.first <<  "\n";
-                            }
-                            cout << "bla\n" << infSet << "\n\n\n";
-                            if(strat.find(infSet) != strat.end()) {
                                 return (strat.at(infSet).find(action) != strat.at(infSet).end()) ? strat.at(infSet).at(
                                         action) : 0.0;
-                            } else {
-                                return 0;
-                            }
                         };
 
-                        if (depth <= 0 || !node->getCurrentPlayer()) {
-                            //cout << "State: " << node->getState()->toString() << " - " << node->rewards[player2] << std::endl;
+                        if (depth < 0 || !node->getCurrentPlayer()) { // changed to get correct depth
                             return pair<double ,double>(node->rewards[player1]*prob,node->rewards[player2]*prob);
                         }
                         double p1Util = 0.0;
@@ -52,7 +42,6 @@ namespace GTLib2 {
                                                                     (*node->getCurrentPlayer() == player1) ?
                                                                     player1Strat : player2Strat,action);
                             if (actionStratProb > 0 ) {
-
                                 auto newNodes = node->performAction(
                                         action); // Non-deterministic - can get multiple nodes
                                 for (auto newNodeProb : newNodes) {
@@ -95,10 +84,9 @@ namespace GTLib2 {
                         if (node->getCurrentPlayer() && *node->getCurrentPlayer() == player) {
                             auto infSet = node->getAOHInfSet();
                             auto actions = node->availableActions();
-                            infSetsAndActions[infSet] = actions;
+                                infSetsAndActions[infSet] = actions;
                         }
                     };
-
 
             treeWalkEFG(domain, extract, domain.getMaxDepth());
             return infSetsAndActions;
@@ -124,14 +112,13 @@ namespace GTLib2 {
                             for (auto action : infSetWithActions.second) {
                                 unordered_map<shared_ptr<Action>,double> actionsDistribution = {{action,1.0}};
                                 strat[infSetWithActions.first] = actionsDistribution;
-                                gener(strat,++setIndex);
+                                gener(strat,setIndex + 1);
                             }
                         }
                     };
 
 
             auto s = BehavioralStrategy();
-            //auto it = infSetsAndActions.begin();
             gener(s,0);
             return allPureStrats;
         }
@@ -150,8 +137,6 @@ namespace GTLib2 {
             auto numberOfColls = player2PureStrats.size();
 
             vector<double> matrix(numberOfRows * numberOfColls, 0.0);
-
-
             int row = 0;
             for (const auto &stratPlayer1 : player1PureStrats) {
                 int col = 0;

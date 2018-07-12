@@ -156,12 +156,12 @@ namespace GTLib2 {
         // eight surrounding
         vector<Pos> eight_ = {{-2, -2},
                               {-1, -1},
-                              {-1, 0},
-                              {-1, 1},
-                              {0,  -1},
-                              {0,  1},
-                              {1,  -1},
+                              {0,-1},
+                              {1, -1},
+                              {-1,  0},
                               {1,  0},
+                              {-1,  1},
+                              {0,  1},
                               {1,  1},
                               {0,  0}};
         vector<Pos> m_ = {{0,  0},
@@ -187,7 +187,7 @@ namespace GTLib2 {
 
         // Constructor
         MMPursuitState(const vector<Pos> &p, const vector<int> &players,
-                       vector<int> numberOfMoves, int currentNOM);
+                       vector<int> numberOfMoves, int currentNOM, int currentPlayer);
 
         // Constructor
         MMPursuitState(const vector<Pos> &p, double prob,
@@ -195,7 +195,7 @@ namespace GTLib2 {
 
         // Constructor
         MMPursuitState(const vector<Pos> &p, double prob, const vector<int> &players,
-                       vector<int> numberOfMoves, int currentNOM);
+                       vector<int> numberOfMoves, int currentNOM, int currentPlayer);
 
         OutcomeDistribution
         performActions(const unordered_map<int, shared_ptr<Action>> &actions) const override;
@@ -210,6 +210,7 @@ namespace GTLib2 {
         vector<int> numberOfMoves_;
         vector<int> players_;
         int currentNOM_;
+        int currentPlayer_;
     };
 
 

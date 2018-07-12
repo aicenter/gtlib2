@@ -13,7 +13,6 @@ using std::tuple;
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
 namespace GTLib2 {
-
     void algorithms::treeWalkEFG(const Domain &domain, std::function<void(shared_ptr<EFGNode>)> function) {
         algorithms::treeWalkEFG(domain,function,domain.getMaxDepth());
     }
@@ -27,18 +26,21 @@ namespace GTLib2 {
             // Call the provided function on the current node.
             // Prob is the probability that this node is reached due to nature, given that the players played
             // the required actions to reach this node.
-            function(node);
 
             if (depth <= 0) {
                 return;
             }
-
+            function(node);
             const auto actions = node->availableActions();
             for (const auto &action : actions) {
                 auto newNodes = node->performAction(action); // Non-deterministic - can get multiple nodes
                 for (auto const& it : newNodes) {
                     auto newNode = it.first;
-                    traverse(newNode, depth - 1);
+                    if(newNode->getState()== node->getState()) {
+                        traverse(newNode, depth);
+                    } else {
+                        traverse(newNode, depth - 1);
+                    }
                 }
             }
         };
@@ -57,15 +59,12 @@ namespace GTLib2 {
             nodesCounter += 1;
 
             if (nodesCounter % 100000 == 0) {
-                cout << "Number of nodes: " << nodesCounter << std::endl;
+                cout << "Number of nodes: " << nodesCounter << "\n";
             }
         };
         algorithms::treeWalkEFG(domain, countingFunction, domain.getMaxDepth());
         return nodesCounter;
     }
-
-
-
 }
 
 #pragma clang diagnostic pop

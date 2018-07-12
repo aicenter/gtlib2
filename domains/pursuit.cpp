@@ -12,7 +12,7 @@
 #ifdef DString
 #  define D(x) x
 #else
-#  define D(x) x
+#  define DebugString(x) x
 #endif  // MyDEBUG
 
 PursuitAction::PursuitAction(int id, int move): Action(id), move_(move) {}
@@ -68,15 +68,19 @@ PursuitState::PursuitState(const vector<Pos> &p, double prob):
 vector<shared_ptr<Action>> PursuitState::getAvailableActionsFor(int player) const {
   auto list = vector<shared_ptr<Action>>();
   int count = 0;
+  //cout << "Player: " << player << " current pos: " << place_[player].x << " " << place_[player].y << "   ";
   for (int i = 1; i < 5; ++i) {  // verifies whether moves are correct
     if ((place_[player].x + m_[i].x) >= 0 && (place_[player].x + m_[i].x)
                                              < PursuitDomain::width_ &&
         (place_[player].y + m_[i].y) >= 0 && (place_[player].y + m_[i].y)
                                              < PursuitDomain::height_) {
+
         list.push_back(make_shared<PursuitAction>(count, i));
+   //     cout << movedes_[i] << "  "<< place_[player].x + m_[i].x << " " << place_[player].y + m_[i].y << "    |      ";
         count++;
     }
   }
+ // cout << std::endl;
   return list;
 }
 
@@ -166,7 +170,7 @@ OutcomeDistribution PursuitState::performActions(const unordered_map<int, shared
       observations[m] = std::make_unique<PursuitObservation>(id, ob);
       ob.clear();
     }
-    D(for (unsigned int j = 0; j < size; ++j) {
+    DebugString(for (unsigned int j = 0; j < size; ++j) {
       s->AddString(strings_[j] + "  ||  ACTION: " + actions[j]->toString() +
                    "  | OBS: " + observations[j]->toString(), j);
     })
@@ -181,22 +185,22 @@ OutcomeDistribution PursuitState::performActions(const unordered_map<int, shared
 
 MMPursuitState::MMPursuitState(const vector<Pos> &p,
                                const vector<int>& players, vector<int> numberOfMoves):
-    MMPursuitState(p, players, numberOfMoves, numberOfMoves[0]) {}
+    MMPursuitState(p, players, numberOfMoves, numberOfMoves[0], 0) {}
 
 MMPursuitState::MMPursuitState(const vector<Pos> &p, const vector<int> &players,
-                               vector<int> numberOfMoves, int currentNOM):
-    PursuitState(p), players_(players),
-    numberOfMoves_(numberOfMoves), currentNOM_(currentNOM)  {}
+                               vector<int> numberOfMoves, int currentNOM, int currentPlayer):
+    PursuitState(p), players_(players), numberOfMoves_(numberOfMoves),
+    currentNOM_(currentNOM), currentPlayer_(currentPlayer)  {}
 
 MMPursuitState::MMPursuitState(const vector<Pos> &p, double prob,
                                const vector<int>& players, vector<int> numberOfMoves):
-    MMPursuitState(p, prob, players, numberOfMoves, numberOfMoves[0]) {}
+    MMPursuitState(p, prob, players, numberOfMoves, numberOfMoves[0], 0) {}
 
 MMPursuitState::MMPursuitState(const vector<Pos> &p, double prob,
                                const vector<int>& players, vector<int> numberOfMoves,
-                               int currentNOM):
-    PursuitState(p, prob), players_(players),
-    numberOfMoves_(numberOfMoves), currentNOM_(currentNOM) {}
+                               int currentNOM, int currentPlayer):
+    PursuitState(p, prob), players_(players), numberOfMoves_(numberOfMoves),
+    currentNOM_(currentNOM), currentPlayer_(currentPlayer) {}
 
 
 OutcomeDistribution //TODO: upravit vice tahu vice hracu - zjistit princip
@@ -211,7 +215,8 @@ MMPursuitState::performActions(const unordered_map<int, shared_ptr<Action>> &act
   OutcomeDistribution prob;
   prob.reserve(players_.size());
   for (auto &k:players_) {
-    unordered_map<int,shared_ptr<Observation>> observations = unordered_map<int,shared_ptr<Observation>>();
+    unordered_map<int,shared_ptr<Observation>> observations =
+            unordered_map<int,shared_ptr<Observation>>();
     unordered_map<int,double> rewards = unordered_map<int,double>();
     observations.reserve(place_.size());
     rewards.reserve(place_.size());
@@ -225,12 +230,13 @@ MMPursuitState::performActions(const unordered_map<int, shared_ptr<Action>> &act
       }
     }
     shared_ptr<MMPursuitState> s;
-    if (/*movecount_ == */1) {
-      vector<int> pla2 = {k};
-      s = make_shared<MMPursuitState>(moves, probability, pla2, numberOfMoves_, (k >> 1) + 1);
-    } else {
-      //s = make_shared<MMPursuitState>(moves, probability, players_, movecount_ - 1);
-    }
+ //   if (currentNOM_ == 1) {
+   //   vector<int> pla2 = {k};
+
+//      s = make_shared<MMPursuitState>(moves, probability, pla2, (k >> 1) + 1);
+ //   } else {
+      s = make_shared<MMPursuitState>(moves, probability, players_,numberOfMoves_, currentNOM_- 1, currentPlayer_);
+   // }
     int size = s->place_.size();
     moves.clear();
     // detection if first has caught the others
@@ -282,7 +288,7 @@ MMPursuitState::performActions(const unordered_map<int, shared_ptr<Action>> &act
       observations[m] = std::make_unique<PursuitObservation>(id, ob);
       ob.clear();
     }
-    D(for (int j = 0; j < size; ++j) {
+      DebugString(for (int j = 0; j < size; ++j) {
       s->AddString(strings_[j] + "  ||  ACTION: " + actions[j]->toString() +
                    "  | OBS: " + observations[j]->toString(), j);
     })
@@ -369,7 +375,7 @@ ObsPursuitState::performActions(const unordered_map<int, shared_ptr<Action>> &ac
       observations[m] = std::make_unique<PursuitObservationLoc>(id, ob);
       ob.clear();
     }
-    D(for (int j = 0; j < size; ++j) {
+    DebugString(for (int j = 0; j < size; ++j) {
       s->AddString(strings_[j] + "  ||  ACTION: " + actions[j]->toString() +
                    "  | OBS: " + observations[j]->toString(), j);
     })

@@ -20,17 +20,15 @@ namespace GTLib2 {
             auto player2InfSetsAndActions = generateInformationSetsAndAvailableActions(domain, player2);
             auto player1PureStrats = generateAllPureStrategies(player1InfSetsAndActions);
             auto player2PureStrats = generateAllPureStrategies(player2InfSetsAndActions);
-
             auto utilityMatrixPlayer1 = constructUtilityMatrixFor(domain,player1,player1PureStrats, player2PureStrats);
-
 
             // Solution is a probability distribution over player1PureStrats
             vector<double> solution(std::get<1>(utilityMatrixPlayer1)*std::get<2>(utilityMatrixPlayer1), 0.0);
 
             double val = solveLP(std::get<1>(utilityMatrixPlayer1),std::get<2>(utilityMatrixPlayer1),
-            std::get<0>(utilityMatrixPlayer1),solution);
+                   std::get<0>(utilityMatrixPlayer1),solution);
 
-            auto equilibriumStrat = mixedStrategyToBehavioralStrategy(player1PureStrats, solution, domain);
+            auto equilibriumStrat= mixedStrategyToBehavioralStrategy(player1PureStrats, solution, domain);
 
 
             return tuple<double, BehavioralStrategy>(val,equilibriumStrat);
