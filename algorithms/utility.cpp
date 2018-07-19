@@ -30,7 +30,7 @@ namespace GTLib2 {
                                         action) : 0.0;
                         };
 
-                        if (depth < 0 || !node->getCurrentPlayer()) { // changed to get correct depth
+                        if (depth <= 0 || !node->getCurrentPlayer()) {
                             return pair<double ,double>(node->rewards[player1]*prob,node->rewards[player2]*prob);
                         }
                         double p1Util = 0.0;
@@ -45,9 +45,10 @@ namespace GTLib2 {
                                 auto newNodes = node->performAction(
                                         action); // Non-deterministic - can get multiple nodes
                                 for (auto newNodeProb : newNodes) {
+                                  int newDepth = newNodeProb.first->getState()== node->getState()? depth : depth-1;
                                     auto util = calculate(newNodeProb.first,
                                                           actionStratProb * newNodeProb.second * prob,
-                                                          depth - 1);
+                                                          newDepth);
                                     p1Util += util.first;
                                     p2Util += util.second;
                                 }
@@ -84,7 +85,7 @@ namespace GTLib2 {
                         if (node->getCurrentPlayer() && *node->getCurrentPlayer() == player) {
                             auto infSet = node->getAOHInfSet();
                             auto actions = node->availableActions();
-                                infSetsAndActions[infSet] = actions;
+                            infSetsAndActions[infSet] = actions;
                         }
                     };
 

@@ -1,5 +1,5 @@
 //
-// Created by rozliv on 02.08.2017.
+// Created by Jakub Rozlivek on 02.08.2017.
 //
 
 #pragma clang diagnostic push
@@ -129,16 +129,12 @@ namespace GTLib2 {
         OutcomeDistribution
         performActions(const unordered_map<int, shared_ptr<Action>> &actions) const override;
 
-        // GetNumPlayers returns number of players who can play in this state.
-        inline int getNumberOfPlayers() const override {
-          return place_.size();
-        }
-
         inline vector<int> getPlayers() const final {
           return players_;
         }
 
-        // AddString adds string s to a string in vector of strings. //TODO: vyresit jinak -> AddString deprecated
+        // AddString adds string s to a string in vector of strings.
+        // TODO: vyresit jinak -> AddString deprecated
         inline void AddString(const string &s, int player) override {
           strings_[player].append(s);
         }
@@ -149,6 +145,31 @@ namespace GTLib2 {
                  to_string(place_[player].x) + " " + to_string(place_[player].y) +
                  strings_[player] + "\n";
         }
+
+      inline bool operator==(const State &rhs) const override {
+        auto State = dynamic_cast<const PursuitState&>(rhs);
+
+        return  place_[0].x== State.place_[0].x &&
+                place_[1].x== State.place_[1].x &&
+                place_[0].y== State.place_[0].y &&
+                place_[1].y== State.place_[1].y &&
+                players_ == State.players_ &&
+                prob_ == State.prob_;
+        }
+
+      inline size_t getHash() const override {
+        size_t seed = 0;
+        for (auto &i : place_) {
+          boost::hash_combine(seed, i.x);
+          boost::hash_combine(seed, i.y);
+        }
+        for (auto &i : players_) {
+          boost::hash_combine(seed, i);
+        }
+        boost::hash_combine(seed, prob_);
+        return seed;
+      }
+
 
     protected:
         vector<Pos> place_;  // locations of all players
@@ -200,10 +221,37 @@ namespace GTLib2 {
         OutcomeDistribution
         performActions(const unordered_map<int, shared_ptr<Action>> &actions) const override;
 
-        // GetNumPlayers returns number of players who can play in this state.
-        inline int getNumberOfPlayers() const override {
-          return players_.size();
+      inline bool operator==(const State &rhs) const override {
+        auto State = dynamic_cast<const MMPursuitState&>(rhs);
+
+        return  place_[0].x== State.place_[0].x &&
+                place_[1].x== State.place_[1].x &&
+                place_[0].y== State.place_[0].y &&
+                place_[1].y== State.place_[1].y &&
+                players_ == State.players_ &&
+                prob_ == State.prob_ &&
+                numberOfMoves_ == State.numberOfMoves_ &&
+                currentNOM_ == State.currentNOM_ &&
+                currentPlayer_ == State.currentPlayer_;
+      }
+
+      inline size_t getHash() const override {
+        size_t seed = 0;
+        for (auto &i : place_) {
+          boost::hash_combine(seed, i.x);
+          boost::hash_combine(seed, i.y);
         }
+        for (auto &i : players_) {
+          boost::hash_combine(seed, i);
+        }
+        for (auto &i : numberOfMoves_) {
+          boost::hash_combine(seed, i);
+        }
+        boost::hash_combine(seed, prob_);
+        boost::hash_combine(seed, currentPlayer_);
+        boost::hash_combine(seed, currentNOM_);
+        return seed;
+      }
 
 
     private:
@@ -234,7 +282,8 @@ namespace GTLib2 {
 
 /**
  * PursuitDomain is a class that represents pursuit domain,
- * which contain static height and static width.  */
+ * which contain static height and static width.
+ */
     class PursuitDomain : public Domain {
     public:
         // constructor
@@ -284,16 +333,7 @@ namespace GTLib2 {
                             int height, int weight);
 
     };
-
 }
-// Domain independent treewalk algorithm
-[[deprecated]]
-    void Pursuit(const shared_ptr<Domain> &domain, State *state,
-                 unsigned int depth, int players);
-
-// Start method for domain independent treewalk algorithm
-[[deprecated]]
-    void PursuitStart(const shared_ptr<Domain> &domain, unsigned int depth = 0);
 
 
 #endif  // PURSUIT_H_

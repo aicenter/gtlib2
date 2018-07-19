@@ -22,7 +22,7 @@ namespace GTLib2 {
     class EFGNode;
 
     typedef pair<shared_ptr<EFGNode>,double> EFGDistEntry;
-    typedef vector<EFGDistEntry> EGGNodesDistribution;
+    typedef vector<EFGDistEntry> EFGNodesDistribution;
 
 /**
  * EFGNode is a class that represents node in an extensive form game,
@@ -61,7 +61,7 @@ namespace GTLib2 {
         vector<shared_ptr<Action>> availableActions() const;
 
         // Perform the given action and returns the next node or nodes in case of stochastic games together with the probabilities.
-        EGGNodesDistribution performAction(shared_ptr<Action> action) const;
+        EFGNodesDistribution performAction(shared_ptr<Action> action) const;
 
         // Gets the information set of the node represented as ActionObservationHistory set.
         shared_ptr<AOH> getAOHInfSet() const;
@@ -112,93 +112,6 @@ namespace GTLib2 {
         shared_ptr<EFGNode const> parent;
         shared_ptr<Action> incomingAction; // Action performed in the parent node.
 
-        //----------------DEPRECATED_BELLOW-----------------------------
-
-    public:
-
-
-        // GetParent returns pointer to parent EFGNode.
-        [[deprecated]]
-        inline EFGNode *GetParent() const {
-            assert(("U r using deprecated method", false));
-            return nullptr;
-            //return parent.get();
-        }
-
-
-        [[deprecated]]
-        EFGNode();
-
-        // constructor
-        [[deprecated]]
-        EFGNode(int player, const shared_ptr<State> &state,
-                const vector<double> &rewards, EFGNode *node);
-
-        // constructor
-        [[deprecated]]
-        EFGNode(int player, const shared_ptr<State> &state,
-                const vector<double> &rewards, EFGNode *node, vector<int> list);
-
-
-        // GetAction returns a possible actions for the player in the node.
-        [[deprecated]]
-        vector<shared_ptr<Action>> GetAction();
-
-        // OldPerformAction performs the player's action.
-        [[deprecated]]
-        unique_ptr<EFGNode> OldPerformAction(const shared_ptr<Action> &action2);
-
-        // GetNumPlayers returns player on the turn (player in this node).
-        [[deprecated]]
-        inline int GetPlayer() const {
-            return player_;
-        }
-
-        // GetRewards returns rewards for all players in this node.
-        [[deprecated]]
-        inline const vector<double> &GetRewards() const {
-            return rewards_;
-        }
-
-
-        // OldGetAOH returns action-observation histories of all players.
-        [[deprecated]]
-        vector<int> OldGetAOH(int player) const;
-
-        // GetIS returns the player's information set.
-        [[deprecated]]
-        inline shared_ptr<InformationSet> GetIS() {
-            if (infset_ == nullptr)
-                infset_ = make_shared<AOH>(player_, OldGetAOH(player_));
-            return infset_;
-        }
-
-
-        // GetLast returns vector of actions' and observations' id from last state.
-        [[deprecated]]
-        inline const vector<int> &GetLast() const {
-            return last_;
-        }
-
-        [[deprecated]]
-        void PushLast(int action, int obs) {
-            last_.push_back(action);
-            last_.push_back(obs);
-        }
-
-
-    private:
-        [[deprecated]]
-        vector<double> rewards_;
-
-        [[deprecated]]
-        int player_;
-
-        [[deprecated]]
-        shared_ptr<AOH> infset_;
-
-        [[deprecated]]
-        vector<int> last_;  // last turn
     };
 
 }

@@ -1,5 +1,5 @@
 //
-// Created by rozliv on 19.10.17.
+// Created by Jakub Rozlivek on 19.10.17.
 //
 
 #ifndef GLPKLPSOLVER_H_

@@ -9,6 +9,7 @@
 
 #include "../base/base.h"
 #include <experimental/optional>
+#include <random>
 
 using std::experimental::nullopt;
 using std::experimental::optional;
@@ -42,14 +43,16 @@ namespace GTLib2 {
             vector<int> getPlayers() const override;
         };
 
+        class SeedGoofSpielDomain : public Domain {
+         public:
+          SeedGoofSpielDomain(int maxDepth, unsigned long int seed);
+          SeedGoofSpielDomain(int numberOfCards, int maxDepth, unsigned long int seed);
+          string getInfo() const override;
+          vector<int> getPlayers() const override;
+        };
+
         class GoofSpielState : public State {
         public:
-//            GoofSpielState(unordered_set<int> player1Deck, unordered_set<int> player2Deck,
-//                           unordered_set<int> natureDeck, optional<int> natureSelectedCard,
-//                           double player1CumulativeReward, double player2CumulativeReward,
-//                           vector<int> player1PlayedCards, vector<int> player2PlayedCards,
-//                           vector<int> naturePlayedCards,const GoofSpielState &previousState,int player1Card, int player2Card,
-//                           optional<int> newNatureCard,  unordered_set<int> deckx );
             GoofSpielState(unordered_set<int> player1Deck, unordered_set<int> player2Deck,
                            unordered_set<int> natureDeck, optional<int> natureSelectedCard,
                            double player1CumulativeReward, double player2CumulativeReward,
@@ -80,6 +83,24 @@ namespace GTLib2 {
             unordered_set<int> natureDeck;
             vector<int> naturePlayedCards;
             optional<int> natureSelectedCard; // Not in the deck
+
+        };
+
+        class SeedGoofSpielState : public GoofSpielState {
+         public:
+          SeedGoofSpielState(unordered_set<int> player1Deck, unordered_set<int> player2Deck,
+                  unordered_set<int> natureDeck, optional<int> natureSelectedCard,
+          double player1CumulativeReward, double player2CumulativeReward,
+                  vector<int> player1PlayedCards, vector<int> player2PlayedCards,
+                  vector<int> naturePlayedCards);
+
+          SeedGoofSpielState(const GoofSpielState& previousState, int player1Card,
+                         int player2Card, optional<int> newNatureCard,
+                         double player1CumulativeReward,
+                         double player2CumulativeReward);
+
+          OutcomeDistribution performActions(
+                  const unordered_map<int, shared_ptr<Action>> &actions) const override;
 
         };
 

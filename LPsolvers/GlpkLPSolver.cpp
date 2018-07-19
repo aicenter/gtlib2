@@ -1,5 +1,5 @@
 //
-// Created by rozliv on 19.10.17.
+// Created by Jakub Rozlivek on 19.10.17.
 //
 
 #include "GlpkLPSolver.h"
@@ -19,7 +19,7 @@ double GlpkLPSolver::SolveGame() {
 
 void GlpkLPSolver::BuildModel(int rows, int cols,
                                const vector<double>* utility_matrix,
-                               const bool OUTPUT) {
+                               const bool OUTPUT) {//TODO: zkontrolovat vytvareni constraintu
   ++cols;
   vector<int> ia = vector<int>(1+cols*rows+cols);
   vector<int> ja = vector<int>(1+cols*rows+cols);

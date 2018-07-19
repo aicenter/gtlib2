@@ -16,12 +16,12 @@ namespace GTLib2 {
 
 
 
-    EGGNodesDistribution EFGNode::performAction(shared_ptr<Action> action) const {
+    EFGNodesDistribution EFGNode::performAction(shared_ptr<Action> action) const {
 
         unordered_map<int, shared_ptr<Action>> actionsToBePerformed(performedActionsInThisRound);
         actionsToBePerformed[*currentPlayer] = action;
 
-        EGGNodesDistribution newNodes;
+        EFGNodesDistribution newNodes;
 
         if (remainingPlayersInTheRound.size() == 1) {
             //Last player in the round. So we proceed to the next state
@@ -70,10 +70,8 @@ namespace GTLib2 {
 //        std::reverse(remainingPlayers.begin(), remainingPlayers.end());
         if (!remainingPlayersInTheRound.empty()) {
             currentPlayer = *remainingPlayersInTheRound.begin();
-            player_ = *remainingPlayersInTheRound.begin();
         } else {
             currentPlayer = nullopt;
-            player_ = -1;
         }
         this->parent = parent;
         this->incomingAction = std::move(incomingAction);
@@ -113,10 +111,8 @@ namespace GTLib2 {
 
         if (!remainingPlayersInTheRound.empty()) {
             currentPlayer = *remainingPlayersInTheRound.begin();
-            player_ = *remainingPlayersInTheRound.begin();
         } else {
             currentPlayer = nullopt;
-            player_ = -1;
         }
     }
 
@@ -252,57 +248,6 @@ namespace GTLib2 {
     }
 
 
-    // Following deprecated ====================================
-
-
-    EFGNode::EFGNode() {
-        player_ = -1;
-    //    assert(false);
-        parent = nullptr;
-        incomingAction = nullptr;
-    }
-
-    EFGNode::EFGNode(int player, const shared_ptr<State> &state,
-                     const vector<double> &rewards, EFGNode *node) :
-            player_(player), state(state), rewards_(rewards), infset_(nullptr), parent(node) {}
-
-    EFGNode::EFGNode(int player, const shared_ptr<State> &state,
-                     const vector<double> &rewards, EFGNode *node,
-                     vector<int> list) :
-            player_(player), state(state), rewards_(rewards), infset_(nullptr),
-            parent(node), last_(move(list)) {}
-
-
-    vector<shared_ptr<Action>> EFGNode::GetAction() {
-        vector<shared_ptr<Action>> list = state->getAvailableActionsFor(player_);
-        return list;
-    }
-
-    unique_ptr<EFGNode> EFGNode::OldPerformAction(const shared_ptr<Action> &action2) {
-        int player = player_ + 1;
-        if (player >= rewards_.size())
-            player -= rewards_.size();
-        return MakeUnique<EFGNode>(player, state, rewards_, this);
-    }
-
-    vector<int> EFGNode::OldGetAOH(int player) const {
-        if (parent == nullptr) {
-            if (player == player_) {
-                if (!last_.empty()) {
-                    return {last_[0], last_[1]};
-                }
-            }
-            return {};
-        }
-        vector<int> list = parent->OldGetAOH(player);
-        if (player == player_) {
-            if (!last_.empty()) {
-                list.push_back(last_[0]);
-                list.push_back(last_[1]);
-            }
-        }
-        return list;
-    }
 
 
 

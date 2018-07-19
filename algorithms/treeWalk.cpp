@@ -30,24 +30,20 @@ namespace GTLib2 {
             if (depth <= 0) {
                 return;
             }
-            function(node);
+          function(node);
             const auto actions = node->availableActions();
             for (const auto &action : actions) {
                 auto newNodes = node->performAction(action); // Non-deterministic - can get multiple nodes
                 for (auto const& it : newNodes) {
                     auto newNode = it.first;
-                    if(newNode->getState()== node->getState()) {
-                        traverse(newNode, depth);
-                    } else {
-                        traverse(newNode, depth - 1);
-                    }
+                    int newDepth = newNode->getState()== node->getState() ? depth : depth -1;
+                    traverse(newNode, newDepth);
                 }
             }
         };
 
         auto rootNodes = algorithms::createRootEFGNodesFromInitialOutcomeDistribution(
                 domain.getRootStatesDistribution());
-
         for (auto nodeProb : rootNodes) {
             traverse(nodeProb.first,  maxDepth);
         }
@@ -58,7 +54,7 @@ namespace GTLib2 {
         auto countingFunction = [&nodesCounter](shared_ptr<EFGNode> node) {
             nodesCounter += 1;
 
-            if (nodesCounter % 100000 == 0) {
+            if (nodesCounter % 10000 == 0) {
                 cout << "Number of nodes: " << nodesCounter << "\n";
             }
         };

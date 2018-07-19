@@ -101,7 +101,6 @@ namespace GTLib2 {
                                        double player2CumulativeReward) : State() {
             player1Deck = previousState.player1Deck;
             player1Deck.erase(player1Card);
-
             player2Deck = previousState.player2Deck;
             player2Deck.erase(player2Card);
 
@@ -255,6 +254,123 @@ namespace GTLib2 {
             return seed;
         }
 
+
+      SeedGoofSpielDomain::SeedGoofSpielDomain(int maxDepth, unsigned long int seed):
+              SeedGoofSpielDomain(13, maxDepth, seed) {}
+
+      SeedGoofSpielDomain::SeedGoofSpielDomain(int numberOfCards, int maxDepth, unsigned long int seed):
+              Domain(maxDepth,2) {
+          auto range = vector<int>(numberOfCards);
+          std::iota(range.begin(), range.end(), 1);
+          std::default_random_engine eng{seed};
+          std::mt19937 randEng(eng());
+          std::shuffle(range.begin(), range.end(), randEng);
+          unordered_set<int> deck(range.begin(),range.end());
+
+          unordered_map<int,double> rewards;
+          rewards[1] = 0.0;
+          rewards[2] = 0.0;
+
+          auto player1Deck = deck;
+          auto player2Deck = deck;
+          auto natureDeck = deck;
+          auto firstCard = natureDeck.begin();
+          cout << *firstCard <<"prvni karta\n";
+          natureDeck.erase(firstCard);
+          vector<int> p1;
+          vector<int> p2;
+          vector<int> n = {*firstCard};
+
+          auto newState = make_shared<SeedGoofSpielState>(player1Deck,player2Deck,natureDeck,*firstCard,0.0,0.0,p1,p2,n);
+          auto player1Obs = make_shared<GoofSpielObservation>(*firstCard,nullopt,nullopt);
+          auto player2Obs = make_shared<GoofSpielObservation>(*firstCard,nullopt,nullopt);
+
+          unordered_map<int,shared_ptr<Observation>> newObservations;
+
+          newObservations[1] = player1Obs;
+          newObservations[2] = player2Obs;
+
+          Outcome outcome(newState, newObservations, rewards);
+          rootStatesDistribution.emplace_back(outcome,1.0);
+
+        }
+
+      string SeedGoofSpielDomain::getInfo() const {
+          return "Goof spiel. Max depth is: " + std::to_string(maxDepth);
+      }
+
+      vector<int> SeedGoofSpielDomain::getPlayers() const {
+          return {1,2};
+      }
+
+      SeedGoofSpielState::SeedGoofSpielState(unordered_set<int> player1Deck,
+                                             unordered_set<int> player2Deck,
+                                             unordered_set<int> natureDeck,
+                                             optional<int> natureSelectedCard,
+                                             double player1CumulativeReward,
+                                             double player2CumulativeReward,
+                                             vector<int> player1PlayedCards,
+                                             vector<int> player2PlayedCards,
+                                             vector<int> naturePlayedCards) : GoofSpielState(
+              move(player1Deck), move(player2Deck), move(natureDeck), move(natureSelectedCard), player1CumulativeReward,
+              player2CumulativeReward, move(player1PlayedCards), move(player2PlayedCards), move(naturePlayedCards)) {}
+
+      SeedGoofSpielState::SeedGoofSpielState(const GoofSpielState &previousState, int player1Card,
+                                             int player2Card, optional<int> newNatureCard,
+                                             double player1CumulativeReward,
+                                             double player2CumulativeReward) : GoofSpielState(
+              previousState, player1Card, player2Card, move(newNatureCard), player1CumulativeReward,
+              player2CumulativeReward) {}
+
+      OutcomeDistribution SeedGoofSpielState::performActions(
+              const unordered_map<int, shared_ptr<Action>> &actions) const {
+        const auto player1Action = std::dynamic_pointer_cast<GoofSpielAction>(actions.at(1));
+        const auto player2Action = std::dynamic_pointer_cast<GoofSpielAction>(actions.at(2));
+
+        const int p1Card = player1Action->cardNumber;
+        const int p2Card = player2Action->cardNumber;
+
+        OutcomeDistribution newOutcomes;
+
+        unordered_map<int,double> newRewards;
+        const double thisRoundRewardP1 = p1Card == p2Card ?
+                                         ((double) *natureSelectedCard) / 2 : p1Card > p2Card ? *natureSelectedCard : 0.0;
+
+        const double thisRoundRewardP2 = p1Card == p2Card ?
+                                         ((double) *natureSelectedCard) / 2 : p2Card > p1Card ? *natureSelectedCard : 0.0;
+
+        newRewards[1] = player1CumulativeReward + thisRoundRewardP1;
+        newRewards[2] = player2CumulativeReward + thisRoundRewardP2;
+
+        unordered_map<int, shared_ptr<Observation>> newObservations;
+        if (natureDeck.empty()) {
+          const auto newStatex = make_shared<GoofSpielState>(*this, p1Card, p2Card, nullopt,
+                                                             newRewards[1],
+                                                             newRewards[2]);
+
+          newObservations[1] = make_shared<GoofSpielObservation>(nullopt, p1Card, p2Card);
+          newObservations[2] = make_shared<GoofSpielObservation>(nullopt, p1Card, p2Card);
+
+          const auto newOutcome = Outcome(newStatex, newObservations, newRewards);
+          newOutcomes.emplace_back(newOutcome,1.0);
+
+
+        } else {
+          auto natureCard = *natureDeck.begin();
+
+          const auto newStatex = make_shared<GoofSpielState>(*this, p1Card, p2Card, natureCard,
+                                                             newRewards[1],
+                                                             newRewards[2]);
+
+          newObservations[1] = make_shared<GoofSpielObservation>(natureCard, p1Card, p2Card);
+          newObservations[2] = make_shared<GoofSpielObservation>(natureCard, p1Card, p2Card);
+
+          const auto newOutcome = Outcome(newStatex, newObservations, newRewards);
+          newOutcomes.emplace_back(newOutcome,1.0);
+        }
+
+        return newOutcomes;
+      }
 
     }
 }

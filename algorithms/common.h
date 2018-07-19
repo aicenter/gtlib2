@@ -13,20 +13,19 @@
 namespace GTLib2 {
     namespace algorithms {
 
-        EGGNodesDistribution createRootEFGNodesFromInitialOutcomeDistribution(
+        EFGNodesDistribution createRootEFGNodesFromInitialOutcomeDistribution(
                 const OutcomeDistribution &probDist);
-        BehavioralStrategy mixedStrategyToBehavioralStrategy(const vector<BehavioralStrategy> &pureStrats,
-                                                             const vector<double> &distribution,
-                                                             const Domain &domain);
 
-        //Naive implementation. Maybe iterator over the nodes would be better.
-        EGGNodesDistribution
-        gelAllNodesInTheInformationSetWithNatureProbability(const shared_ptr<AOH> &infSet,
+
+        BehavioralStrategy mixedToBehavioralStrategy(const vector<BehavioralStrategy> &pureStrats,
+                                                     int player1,
+                                                     const vector<double> &distribution,
+                                                     const Domain &domain);
+
+      //TODO:Naive implementation. Maybe iterator over the nodes would be better.
+        EFGNodesDistribution
+        getAllNodesInTheInformationSetWithNatureProbability(const shared_ptr<AOH> &infSet,
                                                             const Domain &domain);
-
-
-
-
 
     }
 }

@@ -1,5 +1,5 @@
 //
-// Created by rozliv on 16.10.17.
+// Created by Jakub Rozlivek on 16.10.17.
 //
 
 #ifndef CPLEXLPSOLVER_H_

@@ -1,5 +1,5 @@
 //
-// Created by rozliv on 07.08.2017.
+// Created by Jakub Rozlivek on 07.08.2017.
 //
 
 #pragma clang diagnostic push
@@ -115,41 +115,6 @@ namespace GTLib2 {
         size_t getHash() const;
 
         bool operator==(const Outcome &rhs) const;
-
-
-
-        // Following obsolete
-
-        [[deprecated]]
-        Outcome(shared_ptr<State> s, vector<shared_ptr<Observation>> ob,
-                vector<double> rew);
-
-        // GetState returns a new state
-        [[deprecated]]
-        inline const shared_ptr<State> &GetState() const {
-            return state;
-        }
-
-        // GetObs returns vector of observations
-        [[deprecated]]
-        inline const vector<shared_ptr<Observation>> &GetObs() {
-            return ob_;
-        }
-
-        // GetReward returns vector of rewards for each player.
-        [[deprecated]]
-        inline const vector<double> &GetReward() const {
-            return rew_;
-        }
-
-    private:
-
-        [[deprecated]]
-        vector<shared_ptr<Observation>> ob_;
-        [[deprecated]]
-        vector<double> rew_;
-
-
     };
 
 
@@ -210,29 +175,11 @@ namespace GTLib2 {
 
 
 
-    class [[deprecated]] OutcomeDistributionOld {
-    public:
-        // constructor
-
-        OutcomeDistributionOld();
-
-        explicit OutcomeDistributionOld(vector<pair<Outcome, double>> pairs);
-
-        // GetOutcomes returns a vector of all outcomes.
-        [[deprecated]]
-        vector<Outcome> GetOutcomes();
-
-        // GetProb returns vector of probabilities over outcomes.
-        [[deprecated]]
-        vector<double> GetProb();
-
-
-        vector<pair<Outcome, double>> distribution;
-    };
 
 
 
-    /**
+
+/**
  * State is an abstract class that represent states
  */
     class State {
@@ -260,25 +207,8 @@ namespace GTLib2 {
 
         virtual size_t getHash() const;
 
-
-
-
-
-
-
         // ToString returns state description
         virtual string toString(int player) const;
-
-// Following methods are obsolete
-        // OldPerformAction performs actions for all players who can play in the state.
-        [[deprecated]]
-        virtual OutcomeDistributionOld PerformAction(const vector<shared_ptr<Action>> &actions);
-
-
-        // OldGetPlayers returns who can play in this state.
-        [[deprecated]]
-        virtual const vector<bool> &OldGetPlayers() const;
-
 
         // AddString adds string s to a string in vector of strings.
         [[deprecated]]
@@ -422,61 +352,6 @@ namespace GTLib2 {
     typedef unordered_map<shared_ptr<InformationSet>, unordered_map<shared_ptr<Action>, double>> BehavioralStrategy;
 
 
-    class [[deprecated]] Strategy {
-    protected:
-        unordered_map<shared_ptr<InformationSet>,
-                vector<pair<double, shared_ptr<Action>>>> strategy;
-
-    public:
-        // constructor
-        Strategy() {
-            strategy = unordered_map<shared_ptr<InformationSet>,
-                    vector<pair<double, shared_ptr<Action>>>>();
-        }
-
-        // inserts new element into unordered_map
-        inline auto Add(const shared_ptr<InformationSet> &key,
-                        const vector<pair<double, shared_ptr<Action>>> &value)
-        -> decltype(strategy.emplace(key, value)) {
-            strategy.emplace(key, value);
-        }
-
-        // returns element with  key equivalent to key
-        inline auto Find(const shared_ptr<InformationSet> &key) const
-        -> decltype(strategy.find(key)) {
-            return strategy.find(key);
-        }
-
-        // returns end of unordered_map it is used with Find method.
-        inline auto End() const -> decltype(strategy.end()) const {
-            return strategy.end();
-        }
-
-        // returns all strategies
-        inline virtual const unordered_map<shared_ptr<InformationSet>,
-                vector<pair<double, shared_ptr<Action>>>> &GetStrategies() {
-            return strategy;
-        }
-    };
-
-
-    class [[deprecated]] PureStrategy : public Strategy {
-    public:
-        // constructor
-        PureStrategy() : Strategy() {}
-
-        // inserts new element into unordered_map
-        inline auto Add(const shared_ptr<InformationSet> &key,
-                        const shared_ptr<Action> &value)
-        -> decltype(strategy.emplace(key, vector<pair<double, shared_ptr<Action>>>
-                {std::make_pair(1, value)})) {
-            strategy.emplace(key, vector<pair<double, shared_ptr<Action>>>
-                    {std::make_pair(1, value)});
-        }
-    };
-
-
-
     /**
  * Domain is an abstract class that represent domain,
  * contains a probability distribution over root states.
@@ -508,34 +383,15 @@ namespace GTLib2 {
         virtual string getInfo() const = 0;
 
 
-        [[deprecated]]
-        inline shared_ptr<OutcomeDistributionOld> getRootStateDistributionPtr() const {
-            return rootStatesDistributionPtr;
-        }
-        // Start function to calculate an expected value for a strategy profile
-        [[deprecated]] // TODO: asi lze smazat, je to v algorithms
-        virtual double CalculateUtility(const vector<PureStrategy> &pure_strategies);
-
-        // Calculate an expected value for a strategy profile
-        [[deprecated]]
-        virtual double ComputeUtility(State *state, unsigned int depth,
-                                      unsigned int players,
-                                      const vector<PureStrategy> &pure_strategies,
-                                      const vector<vector<int>> &aoh);
-
     protected:
         int maxDepth;
         int numberOfPlayers;
         OutcomeDistribution rootStatesDistribution;
 
-
-        [[deprecated]]
-        shared_ptr<OutcomeDistributionOld> rootStatesDistributionPtr;
     };
 
 
-    [[deprecated]]
-    static Action NoA(-1);  // No Action
+
 
 }
 

@@ -34,30 +34,25 @@ namespace GTLib2 {
                         return pair<BehavioralStrategy, double>(BehavioralStrategy(), 0.0);
                     }
 
-                    if (!node->getCurrentPlayer() || depth <= 0) {
+                    if ((!node->getCurrentPlayer() || depth <= 0)) {
                         double reward = node->rewards[player];
                         auto expectedReward = reward * prob;
-
                         return pair<BehavioralStrategy, double>(BehavioralStrategy(), expectedReward);
                     };
 
                     if (*node->getCurrentPlayer() == player) {
-                        //Player's node
-
-                        auto allNodesInTheSameInfSet = gelAllNodesInTheInformationSetWithNatureProbability(
+                        // Player's node
+                       auto allNodesInTheSameInfSet = getAllNodesInTheInformationSetWithNatureProbability(
                                 node->getAOHInfSet(), domain);
 
 
                         shared_ptr<Action> bestAction;
                         double bestActionExpectedVal = -std::numeric_limits<double>::infinity();
-                        //BehavioralStrategy bestStratFromBestNode;
                         BehavioralStrategy brs;
 
                         unordered_map<shared_ptr<Action>, unordered_map<shared_ptr<EFGNode>,double>> actionNodeVal;
-
                         for (const auto &action : node->availableActions()) {
                              unordered_map<shared_ptr<EFGNode>,double> siblingsVal;
-
                             double actionExpectedValue = 0.0;
 
 
@@ -68,9 +63,10 @@ namespace GTLib2 {
                                 double seqProb = sibling->getProbabilityOfActionsSeqOfPlayer(opponent,opoStrat);
                                 double val = 0;
                                 for (auto siblingProb : sibling->performAction(action)) {
-
-                                    auto brs_val = bestResp(siblingProb.first, depth - 1,
-                                                            natureProb * seqProb * siblingProb.second);
+                                    int newDepth = siblingProb.first->getState()== sibling->getState()? depth : depth-1;
+                                    auto brs_val = bestResp(siblingProb.first, newDepth,
+                                                            natureProb * seqProb *
+                                                            siblingProb.second);
                                     val += brs_val.second;
                                     auto bestStrat = brs_val.first;
                                     brs.insert(bestStrat.begin(), bestStrat.end());
@@ -90,10 +86,8 @@ namespace GTLib2 {
                             if (actionExpectedValue > bestActionExpectedVal) {
                                 bestActionExpectedVal = actionExpectedValue;
                                 bestAction = action;
-                                //bestStratFromBestNode = brs;
                             }
                         }
-
                         brs[node->getAOHInfSet()] = {{bestAction, 1.0}};
 
                         for (const auto &siblingNatureProb : allNodesInTheSameInfSet) {
@@ -103,18 +97,20 @@ namespace GTLib2 {
                         }
 
                         auto bstVal = cache.at(node);
+
                         return bstVal;
                     } else {
                         // Opponent's node
                         double val = 0;
                         BehavioralStrategy brs;
                         auto stratAtTheNode = opoStrat.at(node->getAOHInfSet());
-                        for (const auto &action : node->availableActions()) {
+                      for (const auto &action : node->availableActions()) {
                             if (stratAtTheNode.find(action) != stratAtTheNode.end()) {
                                 double actionProb = stratAtTheNode.at(action);
                                 for (auto childProb : node->performAction(action)) {
-                                    auto brs_val = bestResp(childProb.first, depth - 1,
-                                                            prob * childProb.second * actionProb);
+                                    int newDepth =  childProb.first->getState()== node->getState()? depth : depth-1;
+                                    auto brs_val = bestResp(childProb.first, newDepth,
+                                            prob * childProb.second * actionProb);
                                     val += brs_val.second;
                                     auto bestStrat = brs_val.first;
                                     brs.insert(bestStrat.begin(), bestStrat.end());
@@ -139,6 +135,5 @@ namespace GTLib2 {
         }
         return pair<BehavioralStrategy, double>(brs, expVal);
     }
-
 
 }

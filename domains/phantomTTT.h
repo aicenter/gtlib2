@@ -1,5 +1,5 @@
 //
-// Created by Jacob on 02.11.2017.
+// Created by Jakub Rozlivek on 02.11.2017.
 //
 
 #pragma clang diagnostic push
@@ -85,33 +85,41 @@ namespace GTLib2 {
           return players_;
         }
 
-        // GetNumPlayers returns number of players who can play in this state.
-        inline int getNumberOfPlayers() const override {
-          return 1;
-        }
-
         // AddString adds string s to a string in vector of strings.
         inline void AddString(const string &s, int player) override {
           strings_[player].append(s);
         }
+
+        inline bool operator==(const State &rhs) const override {
+          auto State = dynamic_cast<const PhantomTTTState&>(rhs);
+
+          return  place_== State.place_ &&
+                  strings_ == State.strings_ &&
+                  players_ == State.players_;
+        }
+
+
+        inline size_t getHash() const override {
+          size_t seed = 0;
+          for (auto &i : place_) {
+            boost::hash_combine(seed, i);
+          }
+          for (auto &i : players_) {
+            boost::hash_combine(seed, i);
+          }
+          return seed;
+        }
+
 
         // ToString returns state description.
         inline string toString(int player) const override {
           string s;
           for (int i = 0; i < 9; ++i) {
             switch (place_[player][i]) {
-              case 0:
-                s += "_ ";
-                break;
-              case 1:
-                s += "x ";
-                break;
-              case 2:
-                s += "o ";
-                break;
-              default:
-                s += "- ";
-                break;
+              case 0: s += "_ "; break;
+              case 1: s += "x "; break;
+              case 2: s += "o "; break;
+              default: s += "- "; break;
             }
             if (i == 2 || i == 5) {
               s += "\n";

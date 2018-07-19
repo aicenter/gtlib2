@@ -11,11 +11,64 @@
 
 namespace GTLib2 {
 
+  // Following deprecated ====================================
+
+
+  OldEFGNode::OldEFGNode() {
+      player_ = -1;
+      //    assert(false);
+      parent = nullptr;
+      incomingAction = nullptr;
+  }
+
+  OldEFGNode::OldEFGNode(int player, const shared_ptr<State> &state,
+                   const vector<double> &rewards, EFGNode *node) :
+          player_(player), state(state), rewards_(rewards), infset_(nullptr), parent(node) {}
+
+  OldEFGNode::OldEFGNode(int player, const shared_ptr<State> &state,
+                   const vector<double> &rewards, EFGNode *node,
+                   vector<int> list) :
+          player_(player), state(state), rewards_(rewards), infset_(nullptr),
+          parent(node), last_(move(list)) {}
+
+
+  vector<shared_ptr<Action>> OldEFGNode::GetAction() {
+      vector<shared_ptr<Action>> list = state->getAvailableActionsFor(player_);
+      return list;
+  }
+
+  unique_ptr<OldEFGNode> OldEFGNode::OldPerformAction(const shared_ptr<Action> &action2) {
+      int player = player_ + 1;
+      if (player >= rewards_.size())
+          player -= rewards_.size();
+      return MakeUnique<EFGNode>(player, state, rewards_, this);
+  }
+
+  vector<int> OldEFGNode::OldGetAOH(int player) const {
+      if (parent == nullptr) {
+          if (player == player_) {
+              if (!last_.empty()) {
+                  return {last_[0], last_[1]};
+              }
+          }
+          return {};
+      }
+      vector<int> list = parent->OldGetAOH(player);
+      if (player == player_) {
+          if (!last_.empty()) {
+              list.push_back(last_[0]);
+              list.push_back(last_[1]);
+          }
+      }
+      return list;
+  }
+
+
     unordered_map<size_t, vector<EFGNode>> mapa;
 
     extern int countStates;  // temporary for testing treewalk
 
-    vector<double> reward;  // temporary for testing treewalk TODO: remove it
+    vector<double> reward;  // temporary for testing treewalk
 
     void OldEFGTreewalkStart(const shared_ptr<Domain> &domain,
                              std::function<void(EFGNode *)> FunctionForState,
@@ -26,7 +79,6 @@ namespace GTLib2 {
         ChanceNode chan(domain->getRootStateDistributionPtr().get(), {}, node);
         vector<unique_ptr<EFGNode>> vec = chan.GetAll();
         for (auto &j : vec) {
-            ++countStates;
             reward += j->GetRewards();
             OldEFGTreewalk(domain, j.get(), depth, 1, {}, FunctionForState);
         }
@@ -92,7 +144,6 @@ namespace GTLib2 {
                 ChanceNode chan(&prob, locallist, n);
                 vector<unique_ptr<EFGNode>> vec = chan.GetAll();
                 for (auto &j : vec) {
-                    ++countStates;
                     reward += j->GetRewards();
                     OldEFGTreewalk(domain, j.get(), depth - 1, 1, {}, FunctionForState);
                 }

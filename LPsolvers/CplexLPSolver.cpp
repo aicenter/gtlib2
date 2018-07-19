@@ -1,5 +1,5 @@
 //
-// Created by rozliv on 16.10.17.
+// Created by Jakub Rozlivek on 16.10.17.
 //
 
 #include "CplexLPSolver.h"
@@ -14,6 +14,7 @@ double CplexLPSolver::SolveGame() {
     env_.error() << "Failed to optimize LP" << std::endl;
     throw(-1);
   }
+
   return cplex_.getObjValue();
 }
 
@@ -36,10 +37,10 @@ void CplexLPSolver::BuildModel(int rows, int cols,
   prob_ = IloRange(prob == 1);
   model_.add(prob_);
 
-  for (int i=0; i < rows; ++i) {
+  for (int i=0; i < cols; ++i) {
     IloExpr sum(env_);
-    for (int j=0; j < cols; ++j) {
-      sum += utility_matrix->operator[](i*cols+j)*x_[j];
+    for (int j=0; j < rows; ++j) {
+      sum += utility_matrix->operator[](j*cols+i)*x_[j];
     }
     c_.add(IloRange(env_, 0, sum - V));
   }

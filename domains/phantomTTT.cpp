@@ -1,5 +1,5 @@
 //
-// Created by Jacob on 02.11.2017.
+// Created by Jakub Rozlivek on 02.11.2017.
 //
 
 #include "phantomTTT.h"
@@ -10,7 +10,7 @@
 #ifdef DString
 #  define D(x) x
 #else
-#  define D(x) x
+#  define DebugString(x) x
 #endif  // MyDEBUG
 
 PhantomTTTAction::PhantomTTTAction(int id, int move): Action(id), move_(move) {}
@@ -35,9 +35,11 @@ vector<shared_ptr<Action>> PhantomTTTState::getAvailableActionsFor(int player) c
   return list;
 }
 OutcomeDistribution PhantomTTTState::performActions
-    (const unordered_map<int, shared_ptr<Action>> &actions) const { // TODO: prepsat
-  auto a1 = std::dynamic_pointer_cast<PhantomTTTAction>(actions.find(0)->second);
-  auto a2 = std::dynamic_pointer_cast<PhantomTTTAction>(actions.find(1)->second);
+    (const unordered_map<int, shared_ptr<Action>> &actions) const {
+  auto action1 = actions.find(0) != actions.end() ? actions.at(0) : make_shared<PhantomTTTAction>(-1,-1);
+  auto action2 = actions.find(1) != actions.end() ? actions.at(1) : make_shared<PhantomTTTAction>(-1,-1);
+  auto a1 = std::dynamic_pointer_cast<PhantomTTTAction>(action1);
+  auto a2 = std::dynamic_pointer_cast<PhantomTTTAction>(action2);
   unordered_map<int,shared_ptr<Observation>> observations = unordered_map<int,shared_ptr<Observation>>();
   unordered_map<int,double> rewards = unordered_map<int,double>();
   int success = 0;
@@ -127,13 +129,13 @@ OutcomeDistribution PhantomTTTState::performActions
       }
     }
     s = make_shared<PhantomTTTState>(moves, pla2);
-    D(for (unsigned int j = 0; j < 2; ++j) {
+    DebugString(for (unsigned int j = 0; j < 2; ++j) {
       s->AddString(strings_[j] + "  ||  ACTION: " + actions2[j]->toString() +
                    "  | OBS: " + observations[j]->toString()+ "  ||  END OF GAME", j);
     })
   } else {
     s = make_shared<PhantomTTTState>(moves, pla2);
-    D(for (unsigned int j = 0; j < 2; ++j) {
+    DebugString(for (unsigned int j = 0; j < 2; ++j) {
       s->AddString(strings_[j] + "  ||  ACTION: " + actions2[j]->toString() +
                    "  | OBS: " + observations[j]->toString(), j);
     })

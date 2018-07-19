@@ -1,5 +1,5 @@
 //
-// Created by rozliv on 16.10.2017.
+// Created by Jakub Rozlivek on 16.10.2017.
 //
 
 #ifndef LPSOLVER_H_

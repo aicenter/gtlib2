@@ -35,10 +35,10 @@ double solveLP(const int rows, const int cols,
         IloRange prob(probExpr == 1);
         model.add(prob);
 
-        for (int i=0; i < rows; ++i) {
+        for (int i=0; i < cols; ++i) {
             IloExpr sum(env);
-            for (int j=0; j < cols; ++j) {
-                sum += utility_matrix[i*cols+j]*x[j];
+            for (int j=0; j < rows; ++j) {
+                sum += utility_matrix[j*cols+i]*x[j];
             }
             c.add(IloRange(env, 0, sum - V));
         }
@@ -50,7 +50,6 @@ double solveLP(const int rows, const int cols,
             env.error() << "Failed to optimize LP." << endl;
             throw(-1);
         }
-
         IloNumArray vals(env);
         env.out() << "Solution status = " << cplex.getStatus() << endl;
         env.out() << "Solution value = " << cplex.getObjValue() << endl;
@@ -60,7 +59,6 @@ double solveLP(const int rows, const int cols,
         for (int i=0; i<cols; ++i){
             solution[i] = vals[i];
         }
-
         return cplex.getObjValue();
 
     } catch (IloException& e) {
