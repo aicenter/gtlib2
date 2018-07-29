@@ -55,7 +55,7 @@ namespace GTLib2 {
 
         int getId() const;
 
-        virtual bool operator==(const Action &that) const;
+        virtual bool operator==(const Action &that) const;  // TODO: jak ma byt pouzivano id
 
         virtual size_t getHash() const;
 
@@ -96,6 +96,7 @@ namespace GTLib2 {
 
 
     class State;
+    class Domain;
 
 /**
  * Outcome is a class that represents outcomes,
@@ -125,7 +126,7 @@ namespace GTLib2 {
 
 
 /**
- * InfSet is an abstract class that represent information sets,
+ * InformationSet is an abstract class that represents information sets,
  *  which are identified by their hash code. TODO: Maybe rather identified by some unique id?
  */
     class InformationSet {
@@ -157,9 +158,6 @@ namespace GTLib2 {
         // Overloaded for comparing two AOHs
         bool operator==(const InformationSet &rhs) const override;
 
-        [[deprecated]]
-        AOH(int player, const vector<int> &hist);
-
         int getPlayer() const;
         int getInitialObservationId() const;
         vector<pair<int, int>> getAOHistory() const;
@@ -175,16 +173,12 @@ namespace GTLib2 {
 
 
 
-
-
-
-
 /**
- * State is an abstract class that represent states
+ * State is an abstract class that represents states
  */
     class State {
     public:
-        State();
+        explicit State(const shared_ptr<Domain> &domain);
 
         virtual ~State() = default;
 
@@ -201,22 +195,61 @@ namespace GTLib2 {
         // GetNumPlayers returns number of players who can play in this state.
         virtual int getNumberOfPlayers() const;
 
+      // ToString returns state description
         virtual string toString() const;
 
         virtual bool operator==(const State &rhs) const;
 
         virtual size_t getHash() const;
 
-        // ToString returns state description
-        virtual string toString(int player) const;
+        inline shared_ptr<Domain> getDomain() const {
+          return domain;
+        }
 
-        // AddString adds string s to a string in vector of strings.
-        [[deprecated]]
-        virtual void AddString(const string &s, int player);
-
-
+     protected:
+      shared_ptr<Domain> domain;
     };
 
+  typedef unordered_map<shared_ptr<InformationSet>, unordered_map<shared_ptr<Action>, double>> BehavioralStrategy;
+
+
+  /**
+* Domain is an abstract class that represents domain,
+* contains a probability distribution over root states.
+*/
+  class Domain {
+   public:
+    // constructor
+    Domain(int maxDepth, int numberOfPlayers);
+
+    // destructor
+    virtual ~Domain() = default;
+
+    // Returns distributions of the root states.
+    OutcomeDistribution getRootStatesDistribution() const;
+
+    virtual vector<int> getPlayers() const = 0;
+
+    // Returns number of players in the game.
+    inline int getNumberOfPlayers() const {
+      return numberOfPlayers;
+    }
+
+    // Returns default maximal depth used in algorithms.
+    inline int getMaxDepth() const {
+      return maxDepth;
+    }
+
+    // GetInfo returns string containing domain information.
+    virtual string getInfo() const = 0;
+
+
+   protected:
+    int maxDepth;
+    int numberOfPlayers;
+    OutcomeDistribution rootStatesDistribution;
+
+  };
 
 }
 
@@ -345,55 +378,6 @@ namespace std {
     };
 } // namespace std
 
-
-namespace GTLib2 {
-
-
-    typedef unordered_map<shared_ptr<InformationSet>, unordered_map<shared_ptr<Action>, double>> BehavioralStrategy;
-
-
-    /**
- * Domain is an abstract class that represent domain,
- * contains a probability distribution over root states.
- */
-    class Domain {
-    public:
-        // constructor
-        Domain(int maxDepth, int numberOfPlayers);
-
-        // destructor
-        virtual ~Domain() = default;
-
-        // Returns distributions of the root states.
-        OutcomeDistribution getRootStatesDistribution() const;
-
-        virtual vector<int> getPlayers() const = 0;
-
-        // Returns number of players in the game.
-        inline int getNumberOfPlayers() const {
-            return numberOfPlayers;
-        }
-
-        // Returns default maximal depth used in algorithms.
-        inline int getMaxDepth() const {
-            return maxDepth;
-        }
-
-        // GetInfo returns string containing domain information.
-        virtual string getInfo() const = 0;
-
-
-    protected:
-        int maxDepth;
-        int numberOfPlayers;
-        OutcomeDistribution rootStatesDistribution;
-
-    };
-
-
-
-
-}
 
 #endif  // BASE_H_
 

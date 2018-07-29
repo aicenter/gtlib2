@@ -55,7 +55,7 @@ namespace GTLib2 {
 
     class MatchingPenniesState : public State {
     public:
-        MatchingPenniesState(Move p1, Move p2);
+        MatchingPenniesState(const shared_ptr<Domain> &domain, Move p1, Move p2);
 
         vector<shared_ptr<Action>> getAvailableActionsFor(int player) const override;
 
@@ -75,13 +75,13 @@ namespace GTLib2 {
 
 
         // ToString returns state description
-        string toString(int player) const override;
+        string toString() const override;
 
     };
 
     class SimultaneousMatchingPenniesState : public State {
     public:
-        SimultaneousMatchingPenniesState(Move p1, Move p2);
+        SimultaneousMatchingPenniesState(const shared_ptr<Domain> &domain, Move p1, Move p2);
 
         vector<shared_ptr<Action>> getAvailableActionsFor(int player) const override;
 
@@ -100,7 +100,7 @@ namespace GTLib2 {
         vector<int> players;
 
         // ToString returns state description
-        string toString(int player) const override;
+        string toString() const override;
 
     };
 

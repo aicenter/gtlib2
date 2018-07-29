@@ -85,7 +85,9 @@ namespace GTLib2 {
                         if (node->getCurrentPlayer() && *node->getCurrentPlayer() == player) {
                             auto infSet = node->getAOHInfSet();
                             auto actions = node->availableActions();
-                            infSetsAndActions[infSet] = actions;
+                            if(!actions.empty()) {
+                              infSetsAndActions[infSet] = actions;
+                            }
                         }
                     };
 

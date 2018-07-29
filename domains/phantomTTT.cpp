@@ -17,8 +17,8 @@ PhantomTTTAction::PhantomTTTAction(int id, int move): Action(id), move_(move) {}
 
 PhantomTTTObservation::PhantomTTTObservation(int id) : Observation(id) {}
 
-PhantomTTTState::PhantomTTTState(const vector<vector<int>> &p,
-                                 const vector<int>& players):
+PhantomTTTState::PhantomTTTState(const shared_ptr<Domain> &domain, const vector<vector<int>> &p,
+                                 const vector<int>& players): State(domain),
   place_(p), players_(players) {
   strings_ = vector<string>(2);
 }
@@ -36,10 +36,12 @@ vector<shared_ptr<Action>> PhantomTTTState::getAvailableActionsFor(int player) c
 }
 OutcomeDistribution PhantomTTTState::performActions
     (const unordered_map<int, shared_ptr<Action>> &actions) const {
-  auto action1 = actions.find(0) != actions.end() ? actions.at(0) : make_shared<PhantomTTTAction>(-1,-1);
-  auto action2 = actions.find(1) != actions.end() ? actions.at(1) : make_shared<PhantomTTTAction>(-1,-1);
+  auto action1 = actions.find(0) != actions.end() ? actions.at(0) : nullptr;
+  auto action2 = actions.find(1) != actions.end() ? actions.at(1) : nullptr;
   auto a1 = std::dynamic_pointer_cast<PhantomTTTAction>(action1);
   auto a2 = std::dynamic_pointer_cast<PhantomTTTAction>(action2);
+  a1 = a1? a1: make_shared<PhantomTTTAction>(-1,-1);
+  a2 = a2? a2: make_shared<PhantomTTTAction>(-1,-1);
   unordered_map<int,shared_ptr<Observation>> observations = unordered_map<int,shared_ptr<Observation>>();
   unordered_map<int,double> rewards = unordered_map<int,double>();
   int success = 0;
@@ -128,16 +130,16 @@ OutcomeDistribution PhantomTTTState::performActions
         moves[1][j] = -1;
       }
     }
-    s = make_shared<PhantomTTTState>(moves, pla2);
+    s = make_shared<PhantomTTTState>(domain, moves, pla2);
     DebugString(for (unsigned int j = 0; j < 2; ++j) {
-      s->AddString(strings_[j] + "  ||  ACTION: " + actions2[j]->toString() +
-                   "  | OBS: " + observations[j]->toString()+ "  ||  END OF GAME", j);
+      s-> strings_[j].append(strings_[j] + "  ||  ACTION: " + actions2[j]->toString() +
+                   "  | OBS: " + observations[j]->toString()+ "  ||  END OF GAME");
     })
   } else {
-    s = make_shared<PhantomTTTState>(moves, pla2);
+    s = make_shared<PhantomTTTState>(domain, moves, pla2);
     DebugString(for (unsigned int j = 0; j < 2; ++j) {
-      s->AddString(strings_[j] + "  ||  ACTION: " + actions2[j]->toString() +
-                   "  | OBS: " + observations[j]->toString(), j);
+      s-> strings_[j].append(strings_[j] + "  ||  ACTION: " + actions2[j]->toString() +
+                   "  | OBS: " + observations[j]->toString());
     })
   }
   Outcome o(move(s), observations, rewards);
@@ -158,14 +160,13 @@ PhantomTTTDomain::PhantomTTTDomain(unsigned int max) :
   unordered_map<int,shared_ptr<Observation>> Obs;
   Obs[0] = make_shared<Observation>(-1);
   Obs[1] = make_shared<Observation>(-1);
-  Outcome o(make_shared<PhantomTTTState>(vec, players), Obs, rewards);
+  Outcome o(make_shared<PhantomTTTState>(make_shared<PhantomTTTDomain>(*this),vec, players), Obs, rewards);
   rootStatesDistribution.push_back(pair<Outcome,double>(move(o),1.0));
 }
 
 string PhantomTTTDomain::getInfo() const {
   return "************ Phantom Tic Tac Toe *************\n" +
-         rootStatesDistribution[0].first.state->toString(0) + "\n" +
-         rootStatesDistribution[0].first.state->toString(1) + "\n";
+         rootStatesDistribution[0].first.state->toString() + "\n";
 }
 
 #pragma clang diagnostic pop

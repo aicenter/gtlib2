@@ -53,13 +53,13 @@ namespace GTLib2 {
 
         class GoofSpielState : public State {
         public:
-            GoofSpielState(unordered_set<int> player1Deck, unordered_set<int> player2Deck,
+            GoofSpielState(const shared_ptr<Domain> &domain, unordered_set<int> player1Deck, unordered_set<int> player2Deck,
                            unordered_set<int> natureDeck, optional<int> natureSelectedCard,
                            double player1CumulativeReward, double player2CumulativeReward,
                            vector<int> player1PlayedCards, vector<int> player2PlayedCards,
                            vector<int> naturePlayedCards);
 
-            GoofSpielState(const GoofSpielState& previousState, int player1Card,
+            GoofSpielState(const shared_ptr<Domain> &domain, const GoofSpielState& previousState, int player1Card,
                            int player2Card, optional<int> newNatureCard,
                            double player1CumulativeReward,
                             double player2CumulativeReward);
@@ -88,13 +88,13 @@ namespace GTLib2 {
 
         class SeedGoofSpielState : public GoofSpielState {
          public:
-          SeedGoofSpielState(unordered_set<int> player1Deck, unordered_set<int> player2Deck,
+          SeedGoofSpielState(const shared_ptr<Domain> &domain, unordered_set<int> player1Deck, unordered_set<int> player2Deck,
                   unordered_set<int> natureDeck, optional<int> natureSelectedCard,
           double player1CumulativeReward, double player2CumulativeReward,
                   vector<int> player1PlayedCards, vector<int> player2PlayedCards,
                   vector<int> naturePlayedCards);
 
-          SeedGoofSpielState(const GoofSpielState& previousState, int player1Card,
+          SeedGoofSpielState(const shared_ptr<Domain> &domain, const GoofSpielState& previousState, int player1Card,
                          int player2Card, optional<int> newNatureCard,
                          double player1CumulativeReward,
                          double player2CumulativeReward);

@@ -69,7 +69,7 @@ namespace GTLib2 {
     class PhantomTTTState : public State {
     public:
         // Constructor
-        PhantomTTTState(const vector<vector<int>> &p, const vector<int> &players);
+        PhantomTTTState(const shared_ptr<Domain> &domain, const vector<vector<int>> &p, const vector<int> &players);
 
         // Destructor
         ~PhantomTTTState() override = default;
@@ -83,11 +83,6 @@ namespace GTLib2 {
 
         inline vector<int> getPlayers() const final {
           return players_;
-        }
-
-        // AddString adds string s to a string in vector of strings.
-        inline void AddString(const string &s, int player) override {
-          strings_[player].append(s);
         }
 
         inline bool operator==(const State &rhs) const override {
@@ -112,20 +107,31 @@ namespace GTLib2 {
 
 
         // ToString returns state description.
-        inline string toString(int player) const override {
+        inline string toString() const override {
           string s;
-          for (int i = 0; i < 9; ++i) {
-            switch (place_[player][i]) {
-              case 0: s += "_ "; break;
-              case 1: s += "x "; break;
-              case 2: s += "o "; break;
-              default: s += "- "; break;
-            }
-            if (i == 2 || i == 5) {
-              s += "\n";
+          for(int player = 0; player < place_.size(); ++player) {
+            s+="Player: " + to_string(player) + " board:\n";
+            for (int i = 0; i < 9; ++i) {
+              switch (place_[player][i]) {
+                case 0:
+                  s += "_ ";
+                  break;
+                case 1:
+                  s += "x ";
+                  break;
+                case 2:
+                  s += "o ";
+                  break;
+                default:
+                  s += "- ";
+                  break;
+              }
+              if (i == 2 || i == 5 || i == 8) {
+                s += "\n";
+              }
             }
           }
-          return "player: " + to_string(player) + " board:\n" + s + "\n";
+          return s;
         }
 
     protected:

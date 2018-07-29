@@ -11,7 +11,6 @@
 #include <numeric>
 
 #include "../base/base.h"
-#include "../base/efg.h"
 
 using std::string;
 
@@ -71,7 +70,7 @@ namespace GTLib2 {
     class PursuitObservation : public Observation {
     public:
         // constructor
-        PursuitObservation(int id, vector<int> values);
+        PursuitObservation(int id, vector<int> values); // TODO: predelat id
 
         // Returns description.
         string toString() const final;
@@ -115,10 +114,10 @@ namespace GTLib2 {
     class PursuitState : public State {
     public:
         // Constructor
-        explicit PursuitState(const vector<Pos> &p);
+        explicit PursuitState(const shared_ptr<Domain> &domain, const vector<Pos> &p);
 
         // Constructor
-        PursuitState(const vector<Pos> &p, double prob);
+        PursuitState(const shared_ptr<Domain> &domain, const vector<Pos> &p, double prob);
 
         // Destructor
         ~PursuitState() override = default;
@@ -127,23 +126,21 @@ namespace GTLib2 {
         vector<shared_ptr<Action>> getAvailableActionsFor(int player) const override;
 
         OutcomeDistribution
-        performActions(const unordered_map<int, shared_ptr<Action>> &actions) const override;
+        performActions(const unordered_map<int, shared_ptr<Action>> &actions2) const override;
 
         inline vector<int> getPlayers() const final {
           return players_;
         }
 
-        // AddString adds string s to a string in vector of strings.
-        // TODO: vyresit jinak -> AddString deprecated
-        inline void AddString(const string &s, int player) override {
-          strings_[player].append(s);
-        }
-
         // ToString returns state description.
-        inline string toString(int player) const override {
-          return "player: " + to_string(player) + ", location: " +
+        inline string toString() const override {
+          string s;
+          for(auto player = 0; player < place_.size(); ++player) {
+            s += "player: " + to_string(player) + ", location: " +
                  to_string(place_[player].x) + " " + to_string(place_[player].y) +
                  strings_[player] + "\n";
+          }
+          return s;
         }
 
       inline bool operator==(const State &rhs) const override {
@@ -190,7 +187,6 @@ namespace GTLib2 {
                           {0,  1},
                           {-1, 0},
                           {0,  -1}};  // moves
-        vector<double> probdis_ = {0.1, 0.9};  // TODO(rozlijak): temporary
         vector<string> strings_;
         vector<int> players_;
     };
@@ -203,23 +199,23 @@ namespace GTLib2 {
     class MMPursuitState : public PursuitState {
     public:
         // Constructor
-        MMPursuitState(const vector<Pos> &p, const vector<int> &players,
+        MMPursuitState(const shared_ptr<Domain> &domain, const vector<Pos> &p, const vector<int> &players,
                        vector<int> numberOfMoves);
 
         // Constructor
-        MMPursuitState(const vector<Pos> &p, const vector<int> &players,
+        MMPursuitState(const shared_ptr<Domain> &domain, const vector<Pos> &p, const vector<int> &players,
                        vector<int> numberOfMoves, int currentNOM, int currentPlayer);
 
         // Constructor
-        MMPursuitState(const vector<Pos> &p, double prob,
+        MMPursuitState(const shared_ptr<Domain> &domain, const vector<Pos> &p, double prob,
                        const vector<int> &players, vector<int> numberOfMoves);
 
         // Constructor
-        MMPursuitState(const vector<Pos> &p, double prob, const vector<int> &players,
+        MMPursuitState(const shared_ptr<Domain> &domain, const vector<Pos> &p, double prob, const vector<int> &players,
                        vector<int> numberOfMoves, int currentNOM, int currentPlayer);
 
         OutcomeDistribution
-        performActions(const unordered_map<int, shared_ptr<Action>> &actions) const override;
+        performActions(const unordered_map<int, shared_ptr<Action>> &actions2) const override;
 
       inline bool operator==(const State &rhs) const override {
         auto State = dynamic_cast<const MMPursuitState&>(rhs);
@@ -271,13 +267,13 @@ namespace GTLib2 {
     class ObsPursuitState : public PursuitState {
     public:
         // Constructor
-        explicit ObsPursuitState(const vector<Pos> &p);
+        explicit ObsPursuitState(const shared_ptr<Domain> &domain, const vector<Pos> &p);
 
         // Constructor
-        ObsPursuitState(const vector<Pos> &p, double prob);
+        ObsPursuitState(const shared_ptr<Domain> &domain, const vector<Pos> &p, double prob);
 
         OutcomeDistribution
-        performActions(const unordered_map<int, shared_ptr<Action>> &actions) const override;
+        performActions(const unordered_map<int, shared_ptr<Action>> &actions2) const override;
     };
 
 /**
@@ -290,12 +286,20 @@ namespace GTLib2 {
         PursuitDomain(unsigned int max, unsigned int numberOfPlayers,
                       const vector<Pos> &loc, int height, int width);
 
+        PursuitDomain(unsigned int max, unsigned int numberOfPlayers,
+                    const vector<Pos> &loc, int height, int width, vector<double> probability);
+
         // constructor
         PursuitDomain(unsigned int max, unsigned int numberOfPlayers,
                       const shared_ptr<MMPursuitState> &state, int height, int width);
 
         PursuitDomain(unsigned int max, unsigned int numberOfPlayers,
+                    const shared_ptr<MMPursuitState> &state, int height, int width, vector<double> probability);
+
+        PursuitDomain(unsigned int max, unsigned int numberOfPlayers,
                       const shared_ptr<ObsPursuitState> &state, int height, int width);
+        PursuitDomain(unsigned int max, unsigned int numberOfPlayers,
+                    const shared_ptr<ObsPursuitState> &state, int height, int width, vector<double> probability);
 
         // constructor
         PursuitDomain(unsigned int max, int height, int width);
@@ -308,11 +312,9 @@ namespace GTLib2 {
 
         vector<int> getPlayers() const final;
 
-        static int height_;
-        static int width_;
-    protected:
         int height;
         int width;
+        vector<double> probability;  // probability of stay or move
     };
 
 /**
@@ -325,12 +327,21 @@ namespace GTLib2 {
         PursuitDomainChance(unsigned int max, unsigned int numberOfPlayers,
                             const vector<Pos> &firstPlayerLocation,
                             const vector<Pos> &secondPlayerLocation,
-                            int height, int weight);
+                            int height, int width);
+
+        PursuitDomainChance(unsigned int max, unsigned int numberOfPlayers,
+                            const vector<Pos> &firstPlayerLocation,
+                            const vector<Pos> &secondPlayerLocation,
+                            int height, int width, vector<double> probability);
 
         // constructor
         PursuitDomainChance(unsigned int max, unsigned int numberOfPlayers,
                             const shared_ptr<MMPursuitState> &state,
-                            int height, int weight);
+                            int height, int width);
+
+        PursuitDomainChance(unsigned int max, unsigned int numberOfPlayers,
+                            const shared_ptr<MMPursuitState> &state,
+                            int height, int width, vector<double> probability);
 
     };
 }

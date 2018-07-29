@@ -79,6 +79,7 @@ namespace GTLib2 {
         // mutliple efg nodes.
         shared_ptr<State> getState() const;
 
+        string toString() const; // TODO: toString()
 
         size_t getHash() const;
 
@@ -100,7 +101,6 @@ namespace GTLib2 {
         vector<std::pair<int, int>> getAOH(int player) const;
 
         unordered_set<int> remainingPlayersInTheRound;
-        vector<int> remainingPlayers;
         unordered_map<int, shared_ptr<Action>> performedActionsInThisRound;
         unordered_map<int, shared_ptr<Action>> previousRoundActions;
         optional<int> currentPlayer = nullopt;
@@ -111,7 +111,6 @@ namespace GTLib2 {
 
         shared_ptr<EFGNode const> parent;
         shared_ptr<Action> incomingAction; // Action performed in the parent node.
-
     };
 
 }

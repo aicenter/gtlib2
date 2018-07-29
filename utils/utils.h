@@ -33,12 +33,6 @@ vector<vector<T>> CartProduct(const vector<vector<T>> &v) {
   return s;
 }
 
-// MakeUnique makes a new unique_ptr, in c++14 exists function std::make_unique
-template<typename T, typename ...Args>
-unique_ptr<T> MakeUnique(Args &&... args) {
-  return unique_ptr<T>(new T(std::forward<Args>(args)...));
-}
-
 /* CastDynamic dynamically casts vector of type T to vector of type U,
  * works only with shared_ptr, it has no problem with virtual inheritence.
  */
@@ -51,8 +45,6 @@ vector<shared_ptr<U>> CastDynamic(const vector<shared_ptr<T>>& list2) {
   return list;
 }
 
-
-// TODO: Code that uses the following function is probably wrong
 
 /* Cast statically casts vector of type T to vector of type U,
  * works only with shared_ptr, it should be a default choice.

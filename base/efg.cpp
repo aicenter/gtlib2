@@ -8,6 +8,7 @@
 #include <algorithm>
 
 #pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunknown-pragmas"
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
 
@@ -24,11 +25,18 @@ namespace GTLib2 {
         EFGNodesDistribution newNodes;
 
         if (remainingPlayersInTheRound.size() == 1) {
+            for(auto &i :state->getDomain()->getPlayers()) {
+              if (actionsToBePerformed.find(i) == actionsToBePerformed.end()){
+                auto NoAction = make_shared<Action>(-1);
+                actionsToBePerformed[i] = NoAction;
+              }
+            }
             //Last player in the round. So we proceed to the next state
             auto probDist = state->performActions(actionsToBePerformed);
-            for (auto const& outcomeProb : probDist) {
-                auto outcome = outcomeProb.first;
-                auto prob = outcomeProb.second;
+            for(auto const& [outcome, prob] : probDist) {  // works in GCC 7.3
+//            for (auto const& outcomeProb : probDist) {
+//                auto outcome = outcomeProb.first;
+//                auto prob = outcomeProb.second;
                 auto newNode = make_shared<EFGNode>(outcome.state, shared_from_this(),
                                                     outcome.observations, outcome.rewards,
                                                     actionsToBePerformed, prob * natureProbability, action);
@@ -66,10 +74,9 @@ namespace GTLib2 {
 
         auto statePlayers = state->getPlayers();
         remainingPlayersInTheRound = unordered_set<int>(statePlayers.begin(),statePlayers.end());
-        remainingPlayers = statePlayers;    // TODO : prepsat na vector<int>
 //        std::reverse(remainingPlayers.begin(), remainingPlayers.end());
         if (!remainingPlayersInTheRound.empty()) {
-            currentPlayer = *remainingPlayersInTheRound.begin();
+            currentPlayer = *remainingPlayersInTheRound.begin(); // TODO: zmenit poradi akorat
         } else {
             currentPlayer = nullopt;
         }
@@ -96,18 +103,6 @@ namespace GTLib2 {
 
         remainingPlayersInTheRound = parent->remainingPlayersInTheRound;
         remainingPlayersInTheRound.erase(lastPlayer);
-        /*
-        for(auto i = std::begin(remainingPlayers); i != std::end(remainingPlayers);++i) {
-            if(*i.base() == lastPlayer) {
-                remainingPlayers.erase(i);
-            }
-        }*/
-
-
-//        std::copy_if(parent->remainingPlayersInTheRound.begin(),
-//                     parent->remainingPlayersInTheRound.end(),
-//                     std::back_inserter(remainingPlayersInTheRound),
-//                     [&lastPlayer](int i) { return i != lastPlayer; });
 
         if (!remainingPlayersInTheRound.empty()) {
             currentPlayer = *remainingPlayersInTheRound.begin();
@@ -135,12 +130,9 @@ namespace GTLib2 {
 
     vector<std::pair<int, int>> EFGNode::getAOH(int player) const {
         auto aoh = this->parent != nullptr ? this->parent->getAOH(player) : vector<std::pair<int, int>>();
-
-        if (currentPlayer && *currentPlayer == player) {
-
+        if (remainingPlayersInTheRound.size() == 1) {
             auto action = previousRoundActions.find(player);
             auto observation = observations.find(player);
-
             if (action != previousRoundActions.end() && observation != observations.end()) {
                 auto actionId = action->second->getId();
                 auto observationId = observation->second->getId();
@@ -156,17 +148,17 @@ namespace GTLib2 {
 
     ActionSequence EFGNode::getActionsSeqOfPlayer(int player) const {
 
-        if (parent != nullptr) {
+        if (parent == nullptr) {
             return ActionSequence();
         }
 
         auto actSeq = parent->getActionsSeqOfPlayer(player);
-
-        if (*parent->getCurrentPlayer() == player && previousRoundActions.find(player) != previousRoundActions.end()) {
+        if(remainingPlayersInTheRound.size() == 1) {
+          if (previousRoundActions.find(player) != previousRoundActions.end()) {
             auto newAction = previousRoundActions.at(player);
             actSeq.push_back(newAction);
+          }
         }
-
         return actSeq;
     }
 
@@ -199,7 +191,7 @@ namespace GTLib2 {
 
         auto prob = parent->getProbabilityOfActionsSeqOfPlayer(player, strat);
 
-        if (*parent->getCurrentPlayer() == player) {
+        if (*parent->getCurrentPlayer() == player) { // TODO: i think it will not work with sequence games
             auto parentInfSet = parent->getAOHInfSet();
             auto actionsProbs = strat.at(parentInfSet);
             double actionProb = (actionsProbs.find(incomingAction) != actionsProbs.end()) ?
@@ -221,10 +213,10 @@ namespace GTLib2 {
         if (this->performedActionsInThisRound.size() != rhs.performedActionsInThisRound.size()) {
             return false;
         }
-//        for (auto const& [player, action] : this->performedActionsInThisRound) {
-        for (auto const& it : this->performedActionsInThisRound) {
-            auto player = it.first;
-            auto action = it.second;
+        for (auto const& [player, action] : this->performedActionsInThisRound) { // works in GCC 7.3
+//          for (auto const& it : this->performedActionsInThisRound) {
+//            auto player = it.first;
+//            auto action = it.second;
             if (rhs.performedActionsInThisRound.find(player) == rhs.performedActionsInThisRound.end()
                     || !(*rhs.performedActionsInThisRound.at(player) == *action)) {
                 return false;
@@ -247,10 +239,10 @@ namespace GTLib2 {
         return observations.at(*currentPlayer)->getId();
     }
 
-
-
-
-
+    string EFGNode::toString() const {
+            assert(("toString is not implemented", false));
+            return std::string();
+    }
 
 }
 

@@ -12,7 +12,7 @@
 using namespace GTLib2;
 
 MatchingPenniesDomain::MatchingPenniesDomain() : Domain(std::numeric_limits<int>::max(),2) {
-    shared_ptr<MatchingPenniesState>  rootState = make_shared<MatchingPenniesState>(Nothing,Nothing);
+    shared_ptr<MatchingPenniesState>  rootState = make_shared<MatchingPenniesState>(make_shared<MatchingPenniesDomain>(*this), Nothing,Nothing);
 
     shared_ptr<MatchingPenniesObservation> newObservationP1 = make_shared<MatchingPenniesObservation>(OtherNothing);
     shared_ptr<MatchingPenniesObservation> newObservationP2 = make_shared<MatchingPenniesObservation>(OtherNothing);
@@ -30,12 +30,6 @@ MatchingPenniesDomain::MatchingPenniesDomain() : Domain(std::numeric_limits<int>
     Outcome outcome(rootState,observations,rewards);
 
     rootStatesDistribution.push_back(pair<Outcome,double>(outcome,1.0));
-
-//    vector<pair<Outcome, double>> distr;
-//    distr.emplace_back(outcome,1.0);
-//
-//    rootStatesDistributionPtr = make_shared<OutcomeDistributionOld>(distr);
-
 }
 
 vector<int> MatchingPenniesDomain::getPlayers() const {
@@ -56,7 +50,7 @@ vector<shared_ptr<Action>> MatchingPenniesState::getAvailableActionsFor(int play
 }
 
 
-MatchingPenniesState::MatchingPenniesState(Move p1, Move p2) : State() {
+MatchingPenniesState::MatchingPenniesState(const shared_ptr<Domain> &domain, Move p1, Move p2) : State(domain) {
     player1 = p1;
     player2 = p2;
     if (player1 == Nothing && player2 == Nothing) {
@@ -88,7 +82,7 @@ OutcomeDistribution MatchingPenniesState::performActions(const unordered_map<int
     assert(player1 == Nothing || p2Action != nullptr ); //  player1 played -> player2 has to play.
 
 
-    shared_ptr<MatchingPenniesState>  newState = make_shared<MatchingPenniesState>(
+    shared_ptr<MatchingPenniesState>  newState = make_shared<MatchingPenniesState>(domain,
             p1Action == nullptr? player1 : p1Action->move, p2Action == nullptr ? Nothing : p2Action->move);
 
     const bool finalState = newState->player1 != Nothing && newState->player2 != Nothing;
@@ -123,17 +117,14 @@ OutcomeDistribution MatchingPenniesState::performActions(const unordered_map<int
     OutcomeDistribution distr;
     distr.push_back(pair<Outcome,double>(outcome,1.0));
 
-//    vector<pair<Outcome, double>> distr;
-//    distr.emplace_back(outcome,1.0);
-
     return distr;
 }
 
 
 
-string MatchingPenniesState::toString(int player) const {
+string MatchingPenniesState::toString() const {
 
-    std:: string desc = "Player 1: ";
+    string desc = "Player 1: ";
     desc += player1 == Nothing ? "Nothing" : player1 == Heads ? "Heads" : "Tails";
     desc += " Player 2: ";
     desc += player2 == Nothing ? "Nothing" : player2 == Heads ? "Heads" : "Tails";
@@ -164,7 +155,7 @@ MatchingPenniesObservation::MatchingPenniesObservation(OtherMove otherMoveParm) 
     otherMove = otherMoveParm;
 }
 
-MatchingPenniesAction::MatchingPenniesAction(Move moveParm) :
+MatchingPenniesAction::MatchingPenniesAction(Move moveParm) : // TODO: jak ma vypadat id?
     Action(static_cast<int>(moveParm)){
     move = moveParm;
 }
@@ -176,7 +167,7 @@ string MatchingPenniesAction::toString() const{
 
 
 
-SimultaneousMatchingPenniesState::SimultaneousMatchingPenniesState(Move p1, Move p2) : State() {
+SimultaneousMatchingPenniesState::SimultaneousMatchingPenniesState(const shared_ptr<Domain> &domain, Move p1, Move p2) : State(domain) {
     assert((p1 != Nothing && p2 != Nothing) || (p1 == Nothing && p2 == Nothing));
     player1 = p1;
     player2 = p2;
@@ -213,7 +204,7 @@ OutcomeDistribution SimultaneousMatchingPenniesState::performActions(const unord
     //assert(player1 == Nothing || p2Action != nullptr ); //  player1 played -> player2 has to play.
 
 
-    shared_ptr<MatchingPenniesState>  newState = make_shared<MatchingPenniesState>(
+    shared_ptr<MatchingPenniesState>  newState = make_shared<MatchingPenniesState>( domain,
             p1Action == nullptr? player1 : p1Action->move, p2Action == nullptr ? Nothing : p2Action->move);
 
     const bool finalState = newState->player1 != Nothing && newState->player2 != Nothing;
@@ -246,9 +237,6 @@ OutcomeDistribution SimultaneousMatchingPenniesState::performActions(const unord
     Outcome outcome(newState,observations,rewards);
 
     OutcomeDistribution distr;
-    //vector<pair<Outcome, double>> distr;
-    //distr.emplace_back(outcome,1.0);
-
     distr.push_back(pair<Outcome,double>(outcome,1.0));
 
     return distr;
@@ -259,7 +247,7 @@ int SimultaneousMatchingPenniesState::getNumberOfPlayers() const {
 }
 
 
-string SimultaneousMatchingPenniesState::toString(int player) const {
+string SimultaneousMatchingPenniesState::toString() const {
     std:: string desc = "Player 1: ";
     desc += player1 == Nothing ? "Nothing" : player1 == Heads ? "Heads" : "Tails";
     desc += " Player 2: ";
@@ -280,7 +268,8 @@ size_t SimultaneousMatchingPenniesState::getHash() const {
 }
 
 SimultaneousMatchingPenniesDomain::SimultaneousMatchingPenniesDomain() : Domain(std::numeric_limits<int>::max(),2) {
-    shared_ptr<SimultaneousMatchingPenniesState>  rootState = make_shared<SimultaneousMatchingPenniesState>(Nothing,Nothing);
+    shared_ptr<SimultaneousMatchingPenniesState>  rootState = make_shared<SimultaneousMatchingPenniesState>
+            (make_shared<SimultaneousMatchingPenniesDomain>(*this), Nothing,Nothing);
 
     shared_ptr<MatchingPenniesObservation> newObservationP1 = make_shared<MatchingPenniesObservation>(OtherNothing);
     shared_ptr<MatchingPenniesObservation> newObservationP2 = make_shared<MatchingPenniesObservation>(OtherNothing);
@@ -298,12 +287,6 @@ SimultaneousMatchingPenniesDomain::SimultaneousMatchingPenniesDomain() : Domain(
     Outcome outcome(rootState,observations,rewards);
 
     rootStatesDistribution.push_back(pair<Outcome,double>(outcome,1.0));
-
-//    vector<pair<Outcome, double>> distr;
-//    distr.emplace_back(outcome,1.0);
-//
-//    rootStatesDistributionPtr = make_shared<OutcomeDistributionOld>(distr);
-
 }
 
 vector<int> SimultaneousMatchingPenniesDomain::getPlayers() const {

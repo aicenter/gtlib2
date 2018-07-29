@@ -5,7 +5,7 @@
 
 //#include <cassert>
 #include "base.h"
-
+#include <utility>
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
@@ -57,12 +57,8 @@ namespace GTLib2 {
 
 
     Outcome::Outcome(shared_ptr<State> s, unordered_map<int, shared_ptr<Observation>> observations,
-                     unordered_map<int, double> rewards) {
-        state = s;
-        this->observations = observations;
-        this->rewards = rewards;
-
-    }
+                     unordered_map<int, double> rewards)
+            : state(move(s)), rewards(move(rewards)), observations(move(observations)) {}
 
     size_t Outcome::getHash() const {
         size_t seed = state->getHash();
@@ -97,25 +93,13 @@ namespace GTLib2 {
         }
         for (const auto &playerObservation : observations) {
             auto player = std::get<0>(playerObservation);
-            auto observation = std::get<1>(playerObservation);
+            const auto &observation = std::get<1>(playerObservation);
             if (rhs.observations.find(player) == rhs.observations.end() ||
                 rhs.observations.at(player) != observation) {
                 return false;
             }
         }
         return true;
-    }
-
-
-    AOH::AOH(int player, const vector<int> &hist) : player(player) {
-        for (int i = 0; i < hist.size(); i++) {
-            int actionId = hist[i];
-            i++;
-            int observationId = hist[i];
-            aoh.push_back(pair<int, int>(actionId, observationId));
-        }
-        this->initialObservationId = 1;
-        hashValue = computeHash();
     }
 
     size_t AOH::computeHash() const {
@@ -175,7 +159,7 @@ namespace GTLib2 {
     }
 
 
-    State::State() = default;
+    State::State(const shared_ptr<Domain> &domain):domain(domain) {};
 
     Domain::Domain(int maxDepth, int numberOfPlayers) :
             maxDepth(maxDepth), numberOfPlayers(numberOfPlayers) {}
@@ -185,13 +169,6 @@ namespace GTLib2 {
         return rootStatesDistribution;
     }
 
-
-
-
-    void State::AddString(const string &s, int player) {
-        assert(false);
-
-    }
 
     bool State::operator==(const State &rhs) const {
         assert(("operator == is not implemented", false));
@@ -205,10 +182,6 @@ namespace GTLib2 {
 
     int State::getNumberOfPlayers() const {
         return (int) getPlayers().size();
-    }
-
-    string State::toString(int player) const {
-        return std::string();
     }
 
     string State::toString() const {
