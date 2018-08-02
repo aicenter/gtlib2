@@ -22,7 +22,7 @@ namespace GTLib2 {
             auto node = make_shared<EFGNode>(state, nullptr,
                                              outcome.observations,
                                              outcome.rewards,
-                                             unordered_map<int, shared_ptr<Action>>(),
+                                             vector<pair<int, shared_ptr<Action>>>(),
                                              prob, nullptr,
                                              outcome.observations);
             nodes.emplace_back(node, prob);

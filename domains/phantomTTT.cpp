@@ -3,7 +3,7 @@
 //
 
 #include "phantomTTT.h"
-#include "assert.h"
+#include <cassert>
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
@@ -35,19 +35,20 @@ vector<shared_ptr<Action>> PhantomTTTState::getAvailableActionsFor(int player) c
   return list;
 }
 OutcomeDistribution PhantomTTTState::performActions
-    (const unordered_map<int, shared_ptr<Action>> &actions) const {
-  auto action1 = actions.find(0) != actions.end() ? actions.at(0) : nullptr;
-  auto action2 = actions.find(1) != actions.end() ? actions.at(1) : nullptr;
-  auto a1 = std::dynamic_pointer_cast<PhantomTTTAction>(action1);
-  auto a2 = std::dynamic_pointer_cast<PhantomTTTAction>(action2);
+    (const vector<pair<int, shared_ptr<Action>>> &actions) const {
+  auto action1 = std::find_if( actions.begin(), actions.end(),
+                               [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 0; })->second;
+  auto action2 = std::find_if( actions.begin(), actions.end(),
+                               [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 1; })->second;
+  auto a1 = dynamic_pointer_cast<PhantomTTTAction>(action1);
+  auto a2 = dynamic_pointer_cast<PhantomTTTAction>(action2);
   a1 = a1? a1: make_shared<PhantomTTTAction>(-1,-1);
   a2 = a2? a2: make_shared<PhantomTTTAction>(-1,-1);
-  unordered_map<int,shared_ptr<Observation>> observations = unordered_map<int,shared_ptr<Observation>>();
-  unordered_map<int,double> rewards = unordered_map<int,double>();
+  vector<shared_ptr<Observation>> observations(2);
+  vector<double> rewards(2);
   int success = 0;
   vector<int> pla2;
-  observations.reserve(2);
-  rewards.reserve(2);
+  //observations.reserve(2);
   vector<vector<int>> moves = place_;
   if (a1->getId() > -1) {
     if (moves[1][a1->GetMove()] == 0) {
@@ -154,12 +155,8 @@ PhantomTTTDomain::PhantomTTTDomain(unsigned int max) :
   auto vec = vector<vector<int>>{{0, 0, 0, 0, 0, 0, 0, 0, 0},
                                  {0, 0, 0, 0, 0, 0, 0, 0, 0}};
   auto players = vector<int>({0});
-  unordered_map<int,double> rewards;
-  rewards[0] = 0.0;
-  rewards[1] = 0.0;
-  unordered_map<int,shared_ptr<Observation>> Obs;
-  Obs[0] = make_shared<Observation>(-1);
-  Obs[1] = make_shared<Observation>(-1);
+  vector<double> rewards(2);
+  vector<shared_ptr<Observation>> Obs{make_shared<Observation>(-1), make_shared<Observation>(-1)};
   Outcome o(make_shared<PhantomTTTState>(make_shared<PhantomTTTDomain>(*this),vec, players), Obs, rewards);
   rootStatesDistribution.push_back(pair<Outcome,double>(move(o),1.0));
 }

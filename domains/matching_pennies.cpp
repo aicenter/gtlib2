@@ -3,7 +3,7 @@
 //
 
 #include "matching_pennies.h"
-#include <assert.h>
+#include <cassert>
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
@@ -17,15 +17,15 @@ MatchingPenniesDomain::MatchingPenniesDomain() : Domain(std::numeric_limits<int>
     shared_ptr<MatchingPenniesObservation> newObservationP1 = make_shared<MatchingPenniesObservation>(OtherNothing);
     shared_ptr<MatchingPenniesObservation> newObservationP2 = make_shared<MatchingPenniesObservation>(OtherNothing);
 
-    unordered_map<int,shared_ptr<Observation>> observations = unordered_map<int,shared_ptr<Observation>>();
+    vector<shared_ptr<Observation>> observations{newObservationP1, newObservationP2};// = unordered_map<int,shared_ptr<Observation>>();
 
-    observations[0] = newObservationP1;
-    observations[1] = newObservationP2;
+//    observations[0] = newObservationP1;
+//    observations[1] = newObservationP2;
 
-    unordered_map<int,double> rewards;
+    vector<double> rewards(2);
 
-    rewards[0] = 0;
-    rewards[1] = 0;
+//    rewards[0] = 0;
+//    rewards[1] = 0;
 
     Outcome outcome(rootState,observations,rewards);
 
@@ -68,14 +68,15 @@ int MatchingPenniesState::getNumberOfPlayers() const {
     return (int) players.size();
 }
 
-OutcomeDistribution MatchingPenniesState::performActions(const unordered_map<int, shared_ptr<Action>> &actions) const {
+OutcomeDistribution MatchingPenniesState::performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const {
 
+    auto a1 = std::find_if( actions.begin(), actions.end(),
+                                 [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 0; })->second;
+    auto a2 = std::find_if( actions.begin(), actions.end(),
+                                 [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 1; })->second;
 
-    auto a1 = actions.find(0) != actions.end() ? actions.at(0) : nullptr;
-    auto a2 = actions.find(1) != actions.end() ? actions.at(1) : nullptr;
-
-    shared_ptr<MatchingPenniesAction> p1Action = std::dynamic_pointer_cast<MatchingPenniesAction>(a1);
-    shared_ptr<MatchingPenniesAction> p2Action = std::dynamic_pointer_cast<MatchingPenniesAction>(a2);
+    shared_ptr<MatchingPenniesAction> p1Action = dynamic_pointer_cast<MatchingPenniesAction>(a1);
+    shared_ptr<MatchingPenniesAction> p2Action = dynamic_pointer_cast<MatchingPenniesAction>(a2);
 
 
     assert(p1Action == nullptr || p2Action == nullptr); // Only one action can be performed
@@ -93,12 +94,9 @@ OutcomeDistribution MatchingPenniesState::performActions(const unordered_map<int
     shared_ptr<MatchingPenniesObservation> newObservationP1 = make_shared<MatchingPenniesObservation>(p1obs);
     shared_ptr<MatchingPenniesObservation> newObservationP2 = make_shared<MatchingPenniesObservation>(p2obs);
 
-    unordered_map<int,shared_ptr<Observation>> observations = unordered_map<int,shared_ptr<Observation>>();
+    vector<shared_ptr<Observation>> observations{newObservationP1, newObservationP2};
 
-    observations[0] = newObservationP1;
-    observations[1] = newObservationP2;
-
-    unordered_map<int,double> rewards = unordered_map<int,double>();
+    vector<double> rewards(2);
     if (newState->player1 == Nothing || newState->player2 == Nothing) {
         rewards[0] = 0;
         rewards[1] = 0;
@@ -116,7 +114,6 @@ OutcomeDistribution MatchingPenniesState::performActions(const unordered_map<int
 
     OutcomeDistribution distr;
     distr.push_back(pair<Outcome,double>(outcome,1.0));
-
     return distr;
 }
 
@@ -191,13 +188,15 @@ vector<shared_ptr<Action>> SimultaneousMatchingPenniesState::getAvailableActions
 
 
 
-OutcomeDistribution SimultaneousMatchingPenniesState::performActions(const unordered_map<int, shared_ptr<Action>> &actions) const {
+OutcomeDistribution SimultaneousMatchingPenniesState::performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const {
 
-    auto a1 = actions.find(0) != actions.end() ? actions.at(0) : nullptr;
-    auto a2 = actions.find(1) != actions.end() ? actions.at(1) : nullptr;
+    auto a1 = std::find_if( actions.begin(), actions.end(),
+                            [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 0; })->second;
+    auto a2 = std::find_if( actions.begin(), actions.end(),
+                            [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 1; })->second;
 
-    shared_ptr<MatchingPenniesAction> p1Action = std::dynamic_pointer_cast<MatchingPenniesAction>(a1);
-    shared_ptr<MatchingPenniesAction> p2Action = std::dynamic_pointer_cast<MatchingPenniesAction>(a2);
+    shared_ptr<MatchingPenniesAction> p1Action = dynamic_pointer_cast<MatchingPenniesAction>(a1);
+    shared_ptr<MatchingPenniesAction> p2Action = dynamic_pointer_cast<MatchingPenniesAction>(a2);
 
 
     assert(p1Action != nullptr || p2Action != nullptr); // Both action must be performed
@@ -215,12 +214,9 @@ OutcomeDistribution SimultaneousMatchingPenniesState::performActions(const unord
     shared_ptr<MatchingPenniesObservation> newObservationP1 = make_shared<MatchingPenniesObservation>(p1obs);
     shared_ptr<MatchingPenniesObservation> newObservationP2 = make_shared<MatchingPenniesObservation>(p2obs);
 
-    unordered_map<int,shared_ptr<Observation>> observations = unordered_map<int,shared_ptr<Observation>>();
+    vector<shared_ptr<Observation>> observations{newObservationP1, newObservationP2};
 
-    observations[0] = newObservationP1;
-    observations[1] = newObservationP2;
-
-    unordered_map<int,double> rewards = unordered_map<int,double>();
+    vector<double> rewards(2);
     if (newState->player1 == Nothing || newState->player2 == Nothing) {
         rewards[0] = 0;
         rewards[1] = 0;
@@ -274,16 +270,8 @@ SimultaneousMatchingPenniesDomain::SimultaneousMatchingPenniesDomain() : Domain(
     shared_ptr<MatchingPenniesObservation> newObservationP1 = make_shared<MatchingPenniesObservation>(OtherNothing);
     shared_ptr<MatchingPenniesObservation> newObservationP2 = make_shared<MatchingPenniesObservation>(OtherNothing);
 
-    unordered_map<int,shared_ptr<Observation>> observations = unordered_map<int,shared_ptr<Observation>>();
-
-    observations[0] = newObservationP1;
-    observations[1] = newObservationP2;
-
-    unordered_map<int,double> rewards;
-
-    rewards[0] = 0;
-    rewards[1] = 0;
-
+    vector<shared_ptr<Observation>> observations{newObservationP1, newObservationP2};
+    vector<double> rewards(2);
     Outcome outcome(rootState,observations,rewards);
 
     rootStatesDistribution.push_back(pair<Outcome,double>(outcome,1.0));

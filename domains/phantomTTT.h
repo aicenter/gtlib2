@@ -78,7 +78,7 @@ namespace GTLib2 {
         vector<shared_ptr<Action>> getAvailableActionsFor(int player) const override;
 
         OutcomeDistribution
-        performActions(const unordered_map<int, shared_ptr<Action>> &actions) const override;
+        performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const override;
 
 
         inline vector<int> getPlayers() const final {

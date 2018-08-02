@@ -36,6 +36,7 @@ using std::make_shared;
 using std::make_unique;
 using std::pair;
 using std::tuple;
+using std::dynamic_pointer_cast;
 
 
 namespace GTLib2 {
@@ -55,7 +56,7 @@ namespace GTLib2 {
 
         int getId() const;
 
-        virtual bool operator==(const Action &that) const;  // TODO: jak ma byt pouzivano id
+        virtual bool operator==(const Action &that) const; // TODO: mozna radsi prepsat v kazdy domene
 
         virtual size_t getHash() const;
 
@@ -63,10 +64,6 @@ namespace GTLib2 {
         int id;
     };
 
-
-    typedef vector<shared_ptr<Action>> ActionSequence;
-
-    typedef unordered_map<shared_ptr<ActionSequence>, double> RealizationPlan;
 
 
 /**
@@ -105,12 +102,13 @@ namespace GTLib2 {
     class Outcome {
     public:
 
-        Outcome(shared_ptr<State> s, unordered_map<int, shared_ptr<Observation>> observations,
-                unordered_map<int, double> rewards);
+      Outcome(shared_ptr<State> s, vector<shared_ptr<Observation>> observations,
+              vector<double> rewards);
 
-        shared_ptr<State> state;
-        unordered_map<int, shared_ptr<Observation>> observations;
-        unordered_map<int, double> rewards;
+      shared_ptr<State> state;
+      vector<shared_ptr<Observation>> observations;
+      vector<double> rewards;
+
 
 
         size_t getHash() const;
@@ -137,6 +135,8 @@ namespace GTLib2 {
 
         // GetHash returns hash code.
         virtual size_t getHash() const = 0;
+
+        virtual string toString() const = 0;
     };
 
 
@@ -162,13 +162,15 @@ namespace GTLib2 {
         int getInitialObservationId() const;
         vector<pair<int, int>> getAOHistory() const;
 
+        string toString() const override;
+
     private:
         size_t computeHash() const;
 
-        int player;
-        int initialObservationId;
         vector<pair<int, int>> aoh; // Vector of pairs. First coordinate is action id, the second is observation id.
         size_t hashValue;
+        int player;
+        int initialObservationId;
     };
 
 
@@ -186,7 +188,8 @@ namespace GTLib2 {
         virtual vector<shared_ptr<Action>> getAvailableActionsFor(int player) const = 0;
 
         // Performs actions given by player->action map
-        virtual OutcomeDistribution performActions(const unordered_map<int, shared_ptr<Action>> &actions) const = 0;
+        virtual OutcomeDistribution performActions(
+                const vector<pair<int, shared_ptr<Action>>> &actions) const = 0;
 
         // Gets players that can play in this state
 
@@ -212,6 +215,10 @@ namespace GTLib2 {
 
   typedef unordered_map<shared_ptr<InformationSet>, unordered_map<shared_ptr<Action>, double>> BehavioralStrategy;
 
+  typedef vector<pair<shared_ptr<InformationSet>, shared_ptr<Action>>> ActionSequence;
+
+  typedef unordered_map<shared_ptr<ActionSequence>, double> RealizationPlan;
+
 
   /**
 * Domain is an abstract class that represents domain,
@@ -220,7 +227,7 @@ namespace GTLib2 {
   class Domain {
    public:
     // constructor
-    Domain(int maxDepth, int numberOfPlayers);
+    Domain(int maxDepth, unsigned int numberOfPlayers);
 
     // destructor
     virtual ~Domain() = default;
@@ -231,7 +238,7 @@ namespace GTLib2 {
     virtual vector<int> getPlayers() const = 0;
 
     // Returns number of players in the game.
-    inline int getNumberOfPlayers() const {
+    inline unsigned int getNumberOfPlayers() const {
       return numberOfPlayers;
     }
 
@@ -245,9 +252,10 @@ namespace GTLib2 {
 
 
    protected:
-    int maxDepth;
-    int numberOfPlayers;
     OutcomeDistribution rootStatesDistribution;
+    int maxDepth;
+    unsigned int numberOfPlayers;
+
 
   };
 
@@ -287,12 +295,30 @@ namespace std {
         }
     };
 
-    template<>
+
+  template<>
+  struct hash<shared_ptr<Action>> {
+    size_t operator()(const shared_ptr<Action> &p) const {
+      return p->getHash();
+    }
+  };
+
+  template<>
+  struct equal_to<shared_ptr<Action>> {
+    bool operator()(const shared_ptr<Action> &a,
+                    const shared_ptr<Action> &b) const {
+      return *a == *b;
+    }
+  };
+
+
+  template<>
     struct hash<shared_ptr<ActionSequence>> {
         size_t operator()(const shared_ptr<ActionSequence> &seq) const {
             size_t seed = 0;
             for (const auto &action : (*seq)) {
-                boost::hash_combine(seed, action);
+              boost::hash_combine(seed, action.first);
+              boost::hash_combine(seed, action.second);
             }
             return seed;
         }
@@ -315,21 +341,37 @@ namespace std {
         }
     };
 
-    template<>
-    struct hash<shared_ptr<Action>> {
-        size_t operator()(const shared_ptr<Action> &p) const {
-            return p->getHash();
-        }
-    };
+  template<>
+  struct hash<ActionSequence> {
+    size_t operator()(const ActionSequence &seq) const {
+      size_t seed = 0;
+      hash<shared_ptr<InformationSet>> hasher;
+      hash<shared_ptr<Action>> hasher2;
+      for (const auto &action : seq) {
+        boost::hash_combine(seed, hasher(action.first));
+        boost::hash_combine(seed, hasher2(action.second));
+      }
+      return seed;
+    }
+  };
 
-    template<>
-    struct equal_to<shared_ptr<Action>> {
-        bool operator()(const shared_ptr<Action> &a,
-                        const shared_ptr<Action> &b) const {
-            return *a == *b;
+  template<>
+  struct equal_to<ActionSequence> {
+    bool operator()(const ActionSequence &a,
+                    const ActionSequence &b) const {
+      hash<ActionSequence> hasher;
+      if (hasher(a) != hasher(b) || a.size() != b.size()) {
+        return false;
+      }
+      for (int i = 0; i < a.size(); i++) {
+        if (!a[i].first->operator==(*b[i].first.get()) ||
+        !a[i].second->operator==(*b[i].second.get())) {
+          return false;
         }
-    };
-
+      }
+      return true;
+    }
+  };
 
     template<>
     struct hash<shared_ptr<Observation>> {

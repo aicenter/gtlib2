@@ -20,7 +20,6 @@ using std::experimental::optional;
 namespace GTLib2 {
 
     class EFGNode;
-
     typedef pair<shared_ptr<EFGNode>,double> EFGDistEntry;
     typedef vector<EFGDistEntry> EFGNodesDistribution;
 
@@ -29,90 +28,89 @@ namespace GTLib2 {
  * which contains action-observation history, state,
  * rewards (utility) and Information set.
  */
-    class EFGNode final : public std::enable_shared_from_this<EFGNode const> {
-    public:
 
-        // Constructor for the same round node
-        EFGNode(shared_ptr<EFGNode const> parent, const unordered_map<int, shared_ptr<Action>> &performedActions,
-                int lastPlayer, shared_ptr<Action> incomingAction);
+  class EFGNode final : public std::enable_shared_from_this<EFGNode const> {
+   public:
 
-        // Constructor for the new round node
-        EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,
-                const unordered_map<int, shared_ptr<Observation>> &observations,
-                const unordered_map<int, double> &rewards,
-                const unordered_map<int, shared_ptr<Action>> &lastRoundActions,
-                double natureProbability, shared_ptr<Action> incomingAction);
+    // Constructor for the same round node
+    EFGNode(shared_ptr<EFGNode const> parent, const vector<pair<int, shared_ptr<Action>>> &performedActions,
+            shared_ptr<Action> incomingAction);
 
-        // Constructor for the new round node
-        EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,
-                const unordered_map<int, shared_ptr<Observation>> &observations,
-                const unordered_map<int, double> &rewards,
-                const unordered_map<int, shared_ptr<Action>> &lastRoundActions,
-                double natureProbability, shared_ptr<Action> incomingAction,
-                const unordered_map<int, shared_ptr<Observation>> &initialObservations);
+    // Constructor for the new round node
+    EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,
+            const vector<shared_ptr<Observation>> &observations,
+            const vector<double> &rewards,
+            const vector<pair<int, shared_ptr<Action>>> &lastRoundActions,
+            double natureProbability, shared_ptr<Action> incomingAction);
 
-
-        // Returns the sequence of actions performed by the player since the root.
-        ActionSequence getActionsSeqOfPlayer(int player) const;
-
-        double getProbabilityOfActionsSeqOfPlayer(int player, const BehavioralStrategy &strat) const;
-
-        // Returns available actions for the current player
-        vector<shared_ptr<Action>> availableActions() const;
-
-        // Perform the given action and returns the next node or nodes in case of stochastic games together with the probabilities.
-        EFGNodesDistribution performAction(shared_ptr<Action> action) const;
-
-        // Gets the information set of the node represented as ActionObservationHistory set.
-        shared_ptr<AOH> getAOHInfSet() const;
-
-        // Check if the node is in the given information set.
-        bool isContainedInInformationSet(const shared_ptr<AOH> &infSet) const;
-
-        // Gets the parent efg node.
-        shared_ptr<EFGNode const> getParent() const;
-
-        // Gets action that was performed at parent node and the result led to this node.
-        shared_ptr<Action> getIncomingAction() const;
-
-        // Returns the game state of that is represented by EFG node. Note that in simultaneous games one state corresponds to
-        // mutliple efg nodes.
-        shared_ptr<State> getState() const;
-
-        string toString() const; // TODO: toString()
-
-        size_t getHash() const;
-
-        bool operator==(const EFGNode &rhs) const;
-
-        int getDistanceFromRoot() const;
-
-        int getLastObservationIdOfCurrentPlayer() const;
+    // Constructor for the new round node
+    EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,
+            const vector<shared_ptr<Observation>> &observations,
+            const vector<double> &rewards,
+             const vector<pair<int, shared_ptr<Action>>> &lastRoundActions,
+            double natureProbability, shared_ptr<Action> incomingAction,
+            const vector<shared_ptr<Observation>> &initialObservations);
 
 
-        optional<int> getCurrentPlayer() const;
+    // Returns the sequence of actions performed by the player since the root.
+    ActionSequence getActionsSeqOfPlayer(int player) const;
 
-        unordered_map<int, double> rewards;
+    double getProbabilityOfActionsSeqOfPlayer(int player, const BehavioralStrategy &strat) const;
 
-        double natureProbability;
+    // Returns available actions for the current player
+    vector<shared_ptr<Action>> availableActions() const;
 
-    private:
+    // Perform the given action and returns the next node or nodes in case of stochastic games together with the probabilities.
+    EFGNodesDistribution performAction(shared_ptr<Action> action) const;
 
-        vector<std::pair<int, int>> getAOH(int player) const;
+    // Gets the information set of the node represented as ActionObservationHistory set.
+    shared_ptr<AOH> getAOHInfSet() const;
 
-        unordered_set<int> remainingPlayersInTheRound;
-        unordered_map<int, shared_ptr<Action>> performedActionsInThisRound;
-        unordered_map<int, shared_ptr<Action>> previousRoundActions;
-        optional<int> currentPlayer = nullopt;
-        shared_ptr<State> state;
-        unordered_map<int, shared_ptr<Observation>> initialObservations;
-        unordered_map<int, shared_ptr<Observation>> observations;
+    // Check if the node is in the given information set.
+    bool isContainedInInformationSet(const shared_ptr<AOH> &infSet) const;
+
+    // Gets the parent efg node.
+    shared_ptr<EFGNode const> getParent() const;
+
+    // Gets action that was performed at parent node and the result led to this node.
+    shared_ptr<Action> getIncomingAction() const;
+
+    // Returns the game state of that is represented by EFG node. Note that in simultaneous games one state corresponds to
+    // mutliple efg nodes.
+    shared_ptr<State> getState() const;
+
+    string toString() const;
+
+    size_t getHash() const;
+
+    bool operator==(const EFGNode &rhs) const;
+
+    int getDistanceFromRoot() const;
+
+    int getLastObservationIdOfCurrentPlayer() const;
 
 
-        shared_ptr<EFGNode const> parent;
-        shared_ptr<Action> incomingAction; // Action performed in the parent node.
-    };
+    optional<int> getCurrentPlayer() const;
 
+    vector<double> rewards;
+
+    double natureProbability;
+
+   private:
+
+    vector<std::pair<int, int>> getAOH(int player) const;
+    vector<pair<int, shared_ptr<Action>>> performedActionsInThisRound;
+    vector<pair<int, shared_ptr<Action>>> previousRoundActions;
+    vector<int> remainingPlayersInTheRound;
+
+    vector<shared_ptr<Observation>> initialObservations;
+    vector<shared_ptr<Observation>> observations;
+
+    shared_ptr<State> state;
+    shared_ptr<EFGNode const> parent;
+    shared_ptr<Action> incomingAction; // Action performed in the parent node.
+    optional<int> currentPlayer = nullopt;
+  };
 }
 
 namespace std {

@@ -12,7 +12,6 @@
 
 #include "../base/base.h"
 
-using std::string;
 
 using namespace GTLib2;
 
@@ -26,15 +25,10 @@ namespace GTLib2 {
 // moves description
     const vector<string> movedes_ = {"stay", "right", "down", "left", "up"};
 
-// eight surrounding description
+// eight surrounding description -  MooreNeighborhood
     const vector<string> eightdes_ = {"nowhere", "top left", "top", "top right",
                                       "left", "right", "bottom left", "bottom",
                                       "bottom right", "same"};
-
-    enum EightSurrounding {
-        NOWHERE, TOP_LEFT, TOP_CENTER, TOP_RIGHT, LEFT, RIGHT, BOTTOM_LEFT,
-        BOTTOM_CENTER, BOTTOM_RIGHT, SAME
-    }; // MooreNeighborhood
 
 /**
  * PursuitAction is a class that represents pursuit actions,
@@ -70,7 +64,7 @@ namespace GTLib2 {
     class PursuitObservation : public Observation {
     public:
         // constructor
-        PursuitObservation(int id, vector<int> values); // TODO: predelat id
+        PursuitObservation(int id, vector<int> values);
 
         // Returns description.
         string toString() const final;
@@ -126,7 +120,7 @@ namespace GTLib2 {
         vector<shared_ptr<Action>> getAvailableActionsFor(int player) const override;
 
         OutcomeDistribution
-        performActions(const unordered_map<int, shared_ptr<Action>> &actions2) const override;
+        performActions(const vector<pair<int, shared_ptr<Action>>> &actions2) const override;
 
         inline vector<int> getPlayers() const final {
           return players_;
@@ -170,7 +164,6 @@ namespace GTLib2 {
 
     protected:
         vector<Pos> place_;  // locations of all players
-        double prob_ = 1;  // state probability
         // eight surrounding
         vector<Pos> eight_ = {{-2, -2},
                               {-1, -1},
@@ -189,6 +182,7 @@ namespace GTLib2 {
                           {0,  -1}};  // moves
         vector<string> strings_;
         vector<int> players_;
+        double prob_ = 1;  // state probability
     };
 
 
@@ -215,7 +209,7 @@ namespace GTLib2 {
                        vector<int> numberOfMoves, int currentNOM, int currentPlayer);
 
         OutcomeDistribution
-        performActions(const unordered_map<int, shared_ptr<Action>> &actions2) const override;
+        performActions(const vector<pair<int, shared_ptr<Action>>> &actions2) const override;
 
       inline bool operator==(const State &rhs) const override {
         auto State = dynamic_cast<const MMPursuitState&>(rhs);
@@ -273,7 +267,7 @@ namespace GTLib2 {
         ObsPursuitState(const shared_ptr<Domain> &domain, const vector<Pos> &p, double prob);
 
         OutcomeDistribution
-        performActions(const unordered_map<int, shared_ptr<Action>> &actions2) const override;
+        performActions(const vector<pair<int, shared_ptr<Action>>> &actions2) const override;
     };
 
 /**
@@ -312,9 +306,10 @@ namespace GTLib2 {
 
         vector<int> getPlayers() const final;
 
+        vector<double> probability;  // probability of stay or move
         int height;
         int width;
-        vector<double> probability;  // probability of stay or move
+
     };
 
 /**

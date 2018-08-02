@@ -1,5 +1,5 @@
 //
-// Created by rozliv on 7/19/18.
+// Created by Jakub Rozlivek on 7/19/18.
 //
 
 #ifndef GTLIB2_GENERICPOKER_H
@@ -123,7 +123,7 @@ namespace GTLib2 {
     vector<shared_ptr<Action>> getAvailableActionsFor(int player) const override;
 
     OutcomeDistribution
-    performActions(const unordered_map<int, shared_ptr<Action>> &actions) const override;
+    performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const override;
 
 
     inline vector<int> getPlayers() const final {
@@ -140,7 +140,6 @@ namespace GTLib2 {
               firstPlayerReward == State.firstPlayerReward &&
               domain == State.domain &&
               natureCard_ == State.natureCard_ &&
-              strings_ == State.strings_ &&
               players_ == State.players_ &&
               lastAction == State.lastAction;
     }
@@ -172,16 +171,18 @@ namespace GTLib2 {
     }
 
    protected:
-    vector<string> strings_;
     vector<int> players_;
-    int player1Card_;
-    int player2Card_;
-    optional<int> natureCard_;
-    int round_;
     shared_ptr<GenericPokerAction> lastAction;
-    int continuousRaiseCount_;
+    optional<int> natureCard_;
     double pot;
     double firstPlayerReward;
+    int player1Card_;
+    int player2Card_;
+
+    int round_;
+
+    int continuousRaiseCount_;
+
 
   };
 
@@ -215,13 +216,13 @@ namespace GTLib2 {
       return {0,1};
     }
 
-    const unsigned int maxCardTypes;  // cisla
-    const unsigned int maxCardsOfEachType; // barvy
-    const unsigned int maxRaisesInRow;
     vector<int> betsFirstRound;
     vector<int> raisesFirstRound;
     vector<int> betsSecondRound;
     vector<int> raisesSecondRound;
+    const unsigned int maxCardTypes;  // cisla
+    const unsigned int maxCardsOfEachType; // barvy
+    const unsigned int maxRaisesInRow;
     int maxUtility;
     const unsigned int ante;
     const int TERMINAL_ROUND = 4;

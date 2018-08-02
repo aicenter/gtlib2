@@ -1,5 +1,5 @@
 //
-// Created by rozliv on 7/19/18.
+// Created by Jakub Rozlivek on 7/19/18.
 //
 
 #include "genericPoker.h"
@@ -44,9 +44,7 @@ namespace GTLib2 {
     maxUtility = ante + betsFirstRound.back() + maxRaisesInRow * raisesFirstRound.back()
             + betsSecondRound.back()+ maxRaisesInRow * raisesSecondRound.back();
 
-    unordered_map<int,double> rewards;
-    rewards[0] = 0.0;
-    rewards[1] = 0.0;
+    vector<double> rewards(2);
     int size = maxCardTypes*maxCardTypes;
     auto next_players = vector<int>{0};
     for(int p1card = 0; p1card < maxCardTypes; ++p1card) {
@@ -55,10 +53,10 @@ namespace GTLib2 {
           --size;
           continue;
         }
-        auto newState = make_shared<GenericPokerState>(make_shared<GenericPokerDomain>(*this), p1card, p2card, nullopt, ante, next_players);
-        unordered_map<int, shared_ptr<Observation>> newObservations;
-        newObservations[0] = make_shared<GenericPokerObservation>(3+p1card, PlayCard, p1card);
-        newObservations[1] = make_shared<GenericPokerObservation>(3+p2card, PlayCard, p2card);
+        auto newState = make_shared<GenericPokerState>(make_shared<GenericPokerDomain>(*this),
+                p1card, p2card, nullopt, ante, next_players);
+        vector<shared_ptr<Observation>> newObservations{make_shared<GenericPokerObservation>
+                (3+p1card, PlayCard, p1card), make_shared<GenericPokerObservation>(3+p2card, PlayCard, p2card)};
         Outcome outcome(newState, newObservations, rewards);
 
         rootStatesDistribution.emplace_back(outcome,1.0/(size));
@@ -80,28 +78,28 @@ namespace GTLib2 {
   string GenericPokerDomain::getInfo() const {
 
     std::stringstream bets1;
-    std::copy(betsFirstRound.begin(), betsFirstRound.end(), std::ostream_iterator<int>(bets1, " "));
+    std::copy(betsFirstRound.begin(), betsFirstRound.end(), std::ostream_iterator<int>(bets1, ", "));
     std::stringstream bets2;
-    std::copy(betsFirstRound.begin(), betsFirstRound.end(), std::ostream_iterator<int>(bets2, " "));
+    std::copy(betsSecondRound.begin(), betsSecondRound.end(), std::ostream_iterator<int>(bets2, ", "));
     std::stringstream raises1;
-    std::copy(betsFirstRound.begin(), betsFirstRound.end(), std::ostream_iterator<int>(raises1, " "));
+    std::copy(raisesFirstRound.begin(), raisesFirstRound.end(), std::ostream_iterator<int>(raises1, ", "));
     std::stringstream raises2;
-    std::copy(betsFirstRound.begin(), betsFirstRound.end(), std::ostream_iterator<int>(raises2, " "));
+    std::copy(raisesSecondRound.begin(), raisesSecondRound.end(), std::ostream_iterator<int>(raises2, ", "));
     return "Generic Poker:\nMax card types: " + to_string(maxCardTypes) +
            "\nMax cards of each type: "+to_string(maxCardsOfEachType) +
            "\nMax raises in row: " + to_string(maxRaisesInRow) +
            "\nMax utility: " + to_string(maxUtility) + "\nBets first round: [" +
-           bets1.str().substr(0, bets1.str().length()-1) + "]\nBets second round: [" +
-           bets2.str().substr(0, bets2.str().length()-1) + "]\nRaises first round: [" +
-           raises1.str().substr(0, raises1.str().length()-1) + "]\nRaises second round: [" +
-           raises2.str().substr(0, raises2.str().length()-1) + "]\n";
+           bets1.str().substr(0, bets1.str().length()-2) + "]\nBets second round: [" +
+           bets2.str().substr(0, bets2.str().length()-2) + "]\nRaises first round: [" +
+           raises1.str().substr(0, raises1.str().length()-2) + "]\nRaises second round: [" +
+           raises2.str().substr(0, raises2.str().length()-2) + "]\n";
   }
 
 
   vector<shared_ptr<Action>> GenericPokerState::getAvailableActionsFor(int player) const {
     auto list = vector<shared_ptr<Action>>();
     int count = 0;
-    auto pokerDomain = std::dynamic_pointer_cast<GenericPokerDomain>(domain);
+    auto pokerDomain = dynamic_pointer_cast<GenericPokerDomain>(domain);
     if(round_ == pokerDomain->TERMINAL_ROUND) {
       return list;
     }
@@ -140,16 +138,18 @@ namespace GTLib2 {
   }
 
   OutcomeDistribution
-  GenericPokerState::performActions(const unordered_map<int, shared_ptr<Action>> &actions) const {
-    auto action1 = actions.find(0) != actions.end() ? actions.at(0) : nullptr;
-    auto action2 = actions.find(1) != actions.end() ? actions.at(1) : nullptr;
-    auto pokerDomain = std::dynamic_pointer_cast<GenericPokerDomain>(domain);
-    auto a1 = std::dynamic_pointer_cast<GenericPokerAction>(action1);
-    auto a2 = std::dynamic_pointer_cast<GenericPokerAction>(action2);
+  GenericPokerState::performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const {
+    auto action1 = std::find_if( actions.begin(), actions.end(),
+                                [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 0; })->second;
+    auto action2 = std::find_if( actions.begin(), actions.end(),
+                                 [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 1; })->second;
+    auto pokerDomain = dynamic_pointer_cast<GenericPokerDomain>(domain);
+    auto a1 = dynamic_pointer_cast<GenericPokerAction>(action1);
+    auto a2 = dynamic_pointer_cast<GenericPokerAction>(action2);
     a1 = a1? a1: make_shared<GenericPokerAction>(-1,-1,-1);
     a2 = a2? a2: make_shared<GenericPokerAction>(-1,-1,-1);
-    auto observations = unordered_map<int,shared_ptr<Observation>>();
-    auto rewards = unordered_map<int,double>();
+    auto observations = vector<shared_ptr<Observation>>(2);
+    auto rewards = vector<double>(2);
     OutcomeDistribution newOutcomes;
     vector<int> next_players = vector<int>(1);
     observations.reserve(2);
@@ -237,8 +237,6 @@ namespace GTLib2 {
                   newFirstPlayerReward, new_pot, next_players, new_round+1, newLastAction, 0);
           observations[0] = make_shared<GenericPokerObservation>(3+i, PlayCard, i);
           observations[1] = make_shared<GenericPokerObservation>(3+i, PlayCard, i);
-          rewards[0] = 0;
-          rewards[1] = 0;
           Outcome outcome(newState, observations, rewards);
           newOutcomes.emplace_back(outcome,1.0/size);
         }
@@ -246,6 +244,9 @@ namespace GTLib2 {
       }
       newLastAction = a1;
       next_players[0] = 1;
+      if(new_round == pokerDomain->TERMINAL_ROUND) {
+        next_players.clear();
+      }
       newState = make_shared<GenericPokerState>(domain, player1Card_, player2Card_, natureCard_,
               newFirstPlayerReward, new_pot, next_players, new_round, newLastAction, newContinuousRaiseCount);
       observations[0] = make_shared<GenericPokerObservation>(-1,-1, -1);
@@ -327,14 +328,15 @@ namespace GTLib2 {
                   new_pot, next_players, new_round+1, newLastAction, 0);
           observations[0] = make_shared<GenericPokerObservation>(3+i, PlayCard, i);
           observations[1] = make_shared<GenericPokerObservation>(3+i, PlayCard, i);
-          rewards[0] = 0;
-          rewards[1] = 0;
           Outcome outcome(newState, observations, rewards);
           newOutcomes.emplace_back(outcome,1.0/size);
         }
         return newOutcomes;
       }
       next_players[0] =0;
+      if(new_round == pokerDomain->TERMINAL_ROUND) {
+        next_players.clear();
+      }
       newLastAction = a2;
       newState = make_shared<GenericPokerState>(domain, player1Card_, player2Card_, natureCard_, newFirstPlayerReward,
               new_pot, next_players, new_round, newLastAction, newContinuousRaiseCount);
@@ -342,10 +344,7 @@ namespace GTLib2 {
       observations[1] = make_shared<GenericPokerObservation>(-1,-1,-1);
     }
 
-    if(new_round < 4) {
-      rewards[0] = 0;
-      rewards[1] = 0;
-    } else {
+    if(new_round == 4) {
       if (newLastAction->GetType() == Fold) {
         if(a1->getId() > -1) {
           rewards[0] = -new_pot;

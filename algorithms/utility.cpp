@@ -127,7 +127,7 @@ namespace GTLib2 {
         }
 
 
-        tuple<vector<double>,int,int> constructUtilityMatrixFor(const Domain &domain, const int player,
+        tuple<vector<double>,unsigned int,unsigned int> constructUtilityMatrixFor(const Domain &domain, const int player,
                                                                 const vector<BehavioralStrategy> &player1PureStrats,
                                                                 const vector<BehavioralStrategy> &player2PureStrats){
 
@@ -136,8 +136,8 @@ namespace GTLib2 {
 
 
 
-            auto numberOfRows = player1PureStrats.size();
-            auto numberOfColls = player2PureStrats.size();
+            const auto numberOfRows = player1PureStrats.size();
+            const auto numberOfColls = player2PureStrats.size();
 
             vector<double> matrix(numberOfRows * numberOfColls, 0.0);
             int row = 0;
@@ -151,7 +151,7 @@ namespace GTLib2 {
                 }
                 row++;
             }
-            return tuple<vector<double>,int,int>(matrix, numberOfRows, numberOfColls);
+            return tuple<vector<double>,unsigned int, unsigned int>(matrix, numberOfRows, numberOfColls);
         }
 
     }

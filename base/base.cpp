@@ -3,7 +3,7 @@
 //
 
 
-//#include <cassert>
+#include <cassert>
 #include "base.h"
 #include <utility>
 
@@ -55,20 +55,17 @@ namespace GTLib2 {
         return h(id);
     }
 
-
-    Outcome::Outcome(shared_ptr<State> s, unordered_map<int, shared_ptr<Observation>> observations,
-                     unordered_map<int, double> rewards)
-            : state(move(s)), rewards(move(rewards)), observations(move(observations)) {}
+  Outcome::Outcome(shared_ptr<State> s, vector<shared_ptr<Observation>> observations,
+                   vector<double> rewards)
+          : state(move(s)), rewards(move(rewards)), observations(move(observations)) {}
 
     size_t Outcome::getHash() const {
         size_t seed = state->getHash();
         for (const auto &playerObservation : observations) {
-            boost::hash_combine(seed, std::get<0>(playerObservation));
-            boost::hash_combine(seed, std::get<1>(playerObservation));
+            boost::hash_combine(seed, playerObservation);
         }
         for (const auto &playerReward : rewards) {
-            boost::hash_combine(seed, std::get<0>(playerReward));
-            boost::hash_combine(seed, std::get<1>(playerReward));
+            boost::hash_combine(seed, playerReward);
         }
         return seed;
     }
@@ -83,23 +80,10 @@ namespace GTLib2 {
         if (!(state == rhs.state)) {
             return false;
         }
-        for (const auto &playerReward : rewards) {
-            auto player = std::get<0>(playerReward);
-            auto reward = std::get<1>(playerReward);
-            if (rhs.rewards.find(player) == rhs.rewards.end() ||
-                    rhs.rewards.at(player) != reward) {
-                return false;
-            }
+        if(rewards != rhs.rewards) {
+            return false;
         }
-        for (const auto &playerObservation : observations) {
-            auto player = std::get<0>(playerObservation);
-            const auto &observation = std::get<1>(playerObservation);
-            if (rhs.observations.find(player) == rhs.observations.end() ||
-                rhs.observations.at(player) != observation) {
-                return false;
-            }
-        }
-        return true;
+        return !(observations != rhs.observations);
     }
 
     size_t AOH::computeHash() const {
@@ -124,7 +108,6 @@ namespace GTLib2 {
 
     bool AOH::operator==(const InformationSet &rhs) const {
         const auto rhsAOH = dynamic_cast<const AOH*>(&rhs);
-
         if (rhsAOH != nullptr) {
             if (player != rhsAOH->player ||
                 getHash() != rhsAOH->getHash() ||
@@ -158,10 +141,20 @@ namespace GTLib2 {
         return player;
     }
 
+  string AOH::toString() const {
+      string s = "Player: " + to_string(player) + ",  init observation:" +
+              to_string(initialObservationId) + ", hash value: " +
+              to_string(hashValue) + "\n";
+    for (const auto &i : aoh) {
+      s+= "Action: " + to_string(std::get<0>(i)) + ", Obs: " + to_string(std::get<1>(i)) + " | ";
+    }
+    return s;
+  }
 
-    State::State(const shared_ptr<Domain> &domain):domain(domain) {};
 
-    Domain::Domain(int maxDepth, int numberOfPlayers) :
+  State::State(const shared_ptr<Domain> &domain):domain(domain) {};
+
+    Domain::Domain(int maxDepth, unsigned int numberOfPlayers) :
             maxDepth(maxDepth), numberOfPlayers(numberOfPlayers) {}
 
 

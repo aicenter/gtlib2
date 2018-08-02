@@ -19,10 +19,11 @@ namespace GTLib2 {
 
         class GoofSpielAction : public Action {
         public:
-            explicit GoofSpielAction(int card);
+            explicit GoofSpielAction(int id, int card);
             string toString() const override;
 
             int cardNumber;
+            int id;
         };
 
         class GoofSpielObservation : public Observation {
@@ -66,23 +67,24 @@ namespace GTLib2 {
 
             vector<shared_ptr<Action>> getAvailableActionsFor(int player) const override;
             OutcomeDistribution performActions(
-                    const unordered_map<int, shared_ptr<Action>> &actions) const override;
+                    const vector<pair<int, shared_ptr<Action>>> &actions) const override;
             vector<int> getPlayers() const override ;
             string toString() const override;
             bool operator==(const State &rhs) const override ;
 
             size_t getHash() const override;
 
+          unordered_set<int> player1Deck;
+          unordered_set<int> player2Deck;
+          unordered_set<int> natureDeck;
+          vector<int> player1PlayedCards;
+          vector<int> player2PlayedCards;
+          vector<int> naturePlayedCards;
+          optional<int> natureSelectedCard; // Not in the deck
             double player1CumulativeReward;
             double player2CumulativeReward;
 
-            unordered_set<int> player1Deck;
-            vector<int> player1PlayedCards;
-            unordered_set<int> player2Deck;
-            vector<int> player2PlayedCards;
-            unordered_set<int> natureDeck;
-            vector<int> naturePlayedCards;
-            optional<int> natureSelectedCard; // Not in the deck
+
 
         };
 
@@ -100,7 +102,7 @@ namespace GTLib2 {
                          double player2CumulativeReward);
 
           OutcomeDistribution performActions(
-                  const unordered_map<int, shared_ptr<Action>> &actions) const override;
+                  const vector<pair<int, shared_ptr<Action>>> &actions) const override;
 
         };
 

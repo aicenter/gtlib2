@@ -36,11 +36,11 @@ namespace GTLib2 {
             explicit NormalFormLP(shared_ptr<Domain> _game,
                                   shared_ptr<LPSolver> _lp_solver);
 
-            explicit NormalFormLP(const int _p1_actions, const int _p2_actions,
+            explicit NormalFormLP(const unsigned int _p1_actions, const unsigned int _p2_actions,
                                   const vector<double> &_utilities,
                                   shared_ptr<LPSolver> _lp_solver);
 
-            explicit NormalFormLP(const int _p1_actions, const int _p2_actions,
+            explicit NormalFormLP(const unsigned int _p1_actions, const unsigned int _p2_actions,
                                   const vector<vector<double>> &_utilities,
                                   shared_ptr<LPSolver> _lp_solver);
 
@@ -66,8 +66,8 @@ namespace GTLib2 {
         protected:
             shared_ptr<LPSolver> lp_solver;
 
-            int rows_;
-            int cols_;
+            unsigned int rows_;
+            unsigned int cols_;
             const bool OUTPUT = true;
 
             double value_of_the_game_ = NAN;

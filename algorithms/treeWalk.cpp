@@ -14,7 +14,7 @@ using std::tuple;
 
 namespace GTLib2 {
     void algorithms::treeWalkEFG(const Domain &domain, std::function<void(shared_ptr<EFGNode>)> function) {
-        algorithms::treeWalkEFG(domain,function,domain.getMaxDepth());
+        algorithms::treeWalkEFG(domain, move(function),domain.getMaxDepth());
     }
 
     void algorithms::treeWalkEFG(const Domain &domain, std::function<void(shared_ptr<EFGNode>)> function,
@@ -51,30 +51,42 @@ namespace GTLib2 {
 
     int algorithms::countNodes(const Domain &domain) {
         int nodesCounter = 0;
-        auto sequences = unordered_map<int,std::set<ActionSequence>>();
-        sequences[0] = std::set<ActionSequence>();
-        sequences[1] = std::set<ActionSequence>();
+        auto sequences = unordered_map<int,unordered_set<ActionSequence>>();
+        sequences[domain.getPlayers()[0]] = unordered_set<ActionSequence>();
+        sequences[domain.getPlayers()[1]] = unordered_set<ActionSequence>();
         int statesCounter = 0;
+        int st = 0;
+        int st2 = 0;
         auto infSets = unordered_set<shared_ptr<AOH>>();
-        auto countingFunction = [&nodesCounter, &sequences, &infSets, &statesCounter](shared_ptr<EFGNode> node) {
+        auto countingFunction = [&nodesCounter, &sequences, &infSets, &statesCounter, &domain, &st, &st2](shared_ptr<EFGNode> node) {
 
-            int currentPlayer = *node->getCurrentPlayer();
-            ++nodesCounter;
-            auto infSet = node->getAOHInfSet();
-            infSets.emplace(infSet);
-            auto seq = node->getActionsSeqOfPlayer(currentPlayer);
-            sequences[currentPlayer].emplace(seq);
+            if(node->getCurrentPlayer()) {
+              ++nodesCounter;
+              int currentPlayer = *node->getCurrentPlayer();
+              if(currentPlayer == domain.getPlayers()[0]) ++st;
+              else ++st2;
+              auto infSet = node->getAOHInfSet();
+              infSets.emplace(infSet);
+              for(auto &player : domain.getPlayers()) {
+                  auto seq = node->getActionsSeqOfPlayer(player);
+                  sequences[player].emplace(seq);
+              }
+              if (nodesCounter % 10000 == 0) {
+                cout << "Number of nodes: " << nodesCounter << "\n";
+              }
+            }
+
             if(!node->getParent() || node->getParent()->getState() != node->getState()) {
               ++statesCounter;
             }
-            if (nodesCounter % 10000 == 0) {
-                cout << "Number of nodes: " << nodesCounter << "\n";
-            }
+
         };
         algorithms::treeWalkEFG(domain, countingFunction, domain.getMaxDepth());
-        cout << sequences.at(0).size() <<" " << sequences.at(1).size() <<"\n";
-        cout << "Number of IS: " << infSets.size()  <<"\n";
         cout << "Number of states: " << statesCounter <<"\n";
+        cout << "Number of nodes of P1: " << st <<"\n";
+        cout << "Number of nodes of P2: " << st2 <<"\n";
+        cout << "Number of IS: " << infSets.size()  <<"\n";
+        cout << sequences.at(domain.getPlayers()[0]).size() <<" " << sequences.at(domain.getPlayers()[1]).size() <<"\n";
         return nodesCounter;
     }
 }

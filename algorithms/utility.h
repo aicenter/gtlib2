@@ -14,7 +14,7 @@ namespace GTLib2 {
         pair<double,double> computeUtilityTwoPlayersGame(const Domain &domain, const BehavioralStrategy &player1Strat,
         const BehavioralStrategy &player2Strat, int player1, int player2);
 
-        tuple<vector<double>,int,int> constructUtilityMatrixFor(const Domain &domain, int player,
+        tuple<vector<double>, unsigned int, unsigned int> constructUtilityMatrixFor(const Domain &domain, int player,
                                                                 const vector<BehavioralStrategy> &player1PureStrats,
                                                                 const vector<BehavioralStrategy> &player2PureStrats);
 
