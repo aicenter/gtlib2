@@ -28,23 +28,22 @@ namespace GTLib2 {
  * which contains action-observation history, state,
  * rewards (utility) and Information set.
  */
-
   class EFGNode final : public std::enable_shared_from_this<EFGNode const> {
    public:
 
     // Constructor for the same round node
-    EFGNode(shared_ptr<EFGNode const> parent, const vector<pair<int, shared_ptr<Action>>> &performedActions,
+    EFGNode(const EFGNode* parent, const vector<pair<int, shared_ptr<Action>>> &performedActions,
             shared_ptr<Action> incomingAction);
 
     // Constructor for the new round node
-    EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,
+    EFGNode(shared_ptr<State> newState, const EFGNode* parent,
             const vector<shared_ptr<Observation>> &observations,
             const vector<double> &rewards,
             const vector<pair<int, shared_ptr<Action>>> &lastRoundActions,
             double natureProbability, shared_ptr<Action> incomingAction);
 
     // Constructor for the new round node
-    EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,
+    EFGNode(shared_ptr<State> newState, const EFGNode* parent,
             const vector<shared_ptr<Observation>> &observations,
             const vector<double> &rewards,
              const vector<pair<int, shared_ptr<Action>>> &lastRoundActions,
@@ -70,7 +69,7 @@ namespace GTLib2 {
     bool isContainedInInformationSet(const shared_ptr<AOH> &infSet) const;
 
     // Gets the parent efg node.
-    shared_ptr<EFGNode const> getParent() const;
+    const EFGNode* getParent() const;
 
     // Gets action that was performed at parent node and the result led to this node.
     shared_ptr<Action> getIncomingAction() const;
@@ -93,7 +92,8 @@ namespace GTLib2 {
     optional<int> getCurrentPlayer() const;
 
     vector<double> rewards;
-
+    vector<shared_ptr<Observation>> initialObservations;
+    vector<shared_ptr<Observation>> observations;
     double natureProbability;
 
    private:
@@ -103,11 +103,10 @@ namespace GTLib2 {
     vector<pair<int, shared_ptr<Action>>> previousRoundActions;
     vector<int> remainingPlayersInTheRound;
 
-    vector<shared_ptr<Observation>> initialObservations;
-    vector<shared_ptr<Observation>> observations;
+
 
     shared_ptr<State> state;
-    shared_ptr<EFGNode const> parent;
+    const EFGNode* parent;
     shared_ptr<Action> incomingAction; // Action performed in the parent node.
     optional<int> currentPlayer = nullopt;
   };

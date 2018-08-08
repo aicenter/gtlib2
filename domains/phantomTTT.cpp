@@ -1,3 +1,5 @@
+#include <utility>
+
 //
 // Created by Jakub Rozlivek on 02.11.2017.
 //
@@ -17,9 +19,9 @@ PhantomTTTAction::PhantomTTTAction(int id, int move): Action(id), move_(move) {}
 
 PhantomTTTObservation::PhantomTTTObservation(int id) : Observation(id) {}
 
-PhantomTTTState::PhantomTTTState(const shared_ptr<Domain> &domain, const vector<vector<int>> &p,
-                                 const vector<int>& players): State(domain),
-  place_(p), players_(players) {
+PhantomTTTState::PhantomTTTState(Domain* domain, vector<vector<int>> p,
+                                 vector<int> players): State(domain),
+  place_(move(p)), players_(move(players)) {
   strings_ = vector<string>(2);
 }
 
@@ -36,21 +38,17 @@ vector<shared_ptr<Action>> PhantomTTTState::getAvailableActionsFor(int player) c
 }
 OutcomeDistribution PhantomTTTState::performActions
     (const vector<pair<int, shared_ptr<Action>>> &actions) const {
-  auto action1 = std::find_if( actions.begin(), actions.end(),
-                               [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 0; })->second;
-  auto action2 = std::find_if( actions.begin(), actions.end(),
-                               [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 1; })->second;
-  auto a1 = dynamic_pointer_cast<PhantomTTTAction>(action1);
-  auto a2 = dynamic_pointer_cast<PhantomTTTAction>(action2);
-  a1 = a1? a1: make_shared<PhantomTTTAction>(-1,-1);
-  a2 = a2? a2: make_shared<PhantomTTTAction>(-1,-1);
+  auto a1 = dynamic_pointer_cast<PhantomTTTAction>(std::find_if( actions.begin(), actions.end(),
+          [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 0; })->second);
+  auto a2 = dynamic_pointer_cast<PhantomTTTAction>(std::find_if( actions.begin(), actions.end(),
+          [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 1; })->second);
   vector<shared_ptr<Observation>> observations(2);
   vector<double> rewards(2);
   int success = 0;
   vector<int> pla2;
   //observations.reserve(2);
   vector<vector<int>> moves = place_;
-  if (a1->getId() > -1) {
+  if (a1) {
     if (moves[1][a1->GetMove()] == 0) {
       moves[0][a1->GetMove()] = 1;
       success = 1;
@@ -121,7 +119,6 @@ OutcomeDistribution PhantomTTTState::performActions
       rewards[1] = +1;
     }
   }
-  auto actions2 = vector<shared_ptr<PhantomTTTAction>>{a1,a2};
   if (rewards[0] != 0) {
     for (int j = 0; j < 9; ++j) {
       if (moves[0][j] == 0) {
@@ -132,16 +129,16 @@ OutcomeDistribution PhantomTTTState::performActions
       }
     }
     s = make_shared<PhantomTTTState>(domain, moves, pla2);
-    DebugString(for (unsigned int j = 0; j < 2; ++j) {
-      s-> strings_[j].append(strings_[j] + "  ||  ACTION: " + actions2[j]->toString() +
-                   "  | OBS: " + observations[j]->toString()+ "  ||  END OF GAME");
-    })
+    DebugString(s-> strings_[0].append(strings_[0] + "  ||  ACTION: " + a1->toString() + // TODO: nullptr problem
+    "  | OBS: " + observations[0]->toString()+ "  ||  END OF GAME");
+    s-> strings_[1].append(strings_[1] + "  ||  ACTION: " + a2->toString() +
+    "  | OBS: " + observations[1]->toString()+ "  ||  END OF GAME");)
   } else {
     s = make_shared<PhantomTTTState>(domain, moves, pla2);
-    DebugString(for (unsigned int j = 0; j < 2; ++j) {
-      s-> strings_[j].append(strings_[j] + "  ||  ACTION: " + actions2[j]->toString() +
-                   "  | OBS: " + observations[j]->toString());
-    })
+    DebugString(s-> strings_[0].append(strings_[0] + "  ||  ACTION: " + a1->toString() +
+    "  | OBS: " + observations[0]->toString());
+    s-> strings_[1].append(strings_[1] + "  ||  ACTION: " + a2->toString() +
+    "  | OBS: " + observations[1]->toString());)
   }
   Outcome o(move(s), observations, rewards);
   OutcomeDistribution prob;
@@ -157,7 +154,7 @@ PhantomTTTDomain::PhantomTTTDomain(unsigned int max) :
   auto players = vector<int>({0});
   vector<double> rewards(2);
   vector<shared_ptr<Observation>> Obs{make_shared<Observation>(-1), make_shared<Observation>(-1)};
-  Outcome o(make_shared<PhantomTTTState>(make_shared<PhantomTTTDomain>(*this),vec, players), Obs, rewards);
+  Outcome o(make_shared<PhantomTTTState>(this,vec, players), Obs, rewards);
   rootStatesDistribution.push_back(pair<Outcome,double>(move(o),1.0));
 }
 

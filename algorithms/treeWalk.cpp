@@ -20,8 +20,7 @@ namespace GTLib2 {
     void algorithms::treeWalkEFG(const Domain &domain, std::function<void(shared_ptr<EFGNode>)> function,
                                  int maxDepth) {
 
-        std::function<void(const shared_ptr<EFGNode>&, int)> traverse = [&function,&domain, &traverse](
-                const shared_ptr<EFGNode>& node, int depth) {
+        auto traverse = [&function,&domain](const shared_ptr<EFGNode>& node, int depth, const auto& traverse) {
 
             // Call the provided function on the current node.
             // Prob is the probability that this node is reached due to nature, given that the players played
@@ -35,9 +34,9 @@ namespace GTLib2 {
           for (const auto &action : actions) {
             auto newNodes = node->performAction(action); // Non-deterministic - can get multiple nodes
             for (auto const& it : newNodes) {
-                auto newNode = it.first;
-                int newDepth = newNode->getState()== node->getState() ? depth : depth -1;
-                traverse(newNode, newDepth);
+//                auto newNode = it.first;
+                int newDepth = it.first->getState()== node->getState() ? depth : depth -1;
+                traverse(it.first, newDepth, traverse);
             }
           }
         };
@@ -45,7 +44,7 @@ namespace GTLib2 {
         auto rootNodes = algorithms::createRootEFGNodesFromInitialOutcomeDistribution(
                 domain.getRootStatesDistribution());
         for (auto nodeProb : rootNodes) {
-            traverse(nodeProb.first,  maxDepth);
+            traverse(nodeProb.first,  maxDepth, traverse);
         }
     }
 
@@ -58,8 +57,8 @@ namespace GTLib2 {
         int st = 0;
         int st2 = 0;
         auto infSets = unordered_set<shared_ptr<AOH>>();
-        auto countingFunction = [&nodesCounter, &sequences, &infSets, &statesCounter, &domain, &st, &st2](shared_ptr<EFGNode> node) {
-
+        auto countingFunction = [&nodesCounter, &sequences, &infSets, &statesCounter, &domain, &st, &st2]
+                (shared_ptr<EFGNode> node) {
             if(node->getCurrentPlayer()) {
               ++nodesCounter;
               int currentPlayer = *node->getCurrentPlayer();
@@ -71,9 +70,9 @@ namespace GTLib2 {
                   auto seq = node->getActionsSeqOfPlayer(player);
                   sequences[player].emplace(seq);
               }
-              if (nodesCounter % 10000 == 0) {
-                cout << "Number of nodes: " << nodesCounter << "\n";
-              }
+//              if (nodesCounter % 10000 == 0) {
+//                cout << "Number of nodes: " << nodesCounter << "\n";
+//              }
             }
 
             if(!node->getParent() || node->getParent()->getState() != node->getState()) {

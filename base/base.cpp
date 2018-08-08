@@ -89,14 +89,12 @@ namespace GTLib2 {
     size_t AOH::computeHash() const {
         size_t seed = 0;
         for (auto actionObservation : aoh) {
+//            seed ^=  std::get<0>(actionObservation) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+//            seed ^=  std::get<1>(actionObservation) + 0x9e3779b9 + (seed<<6) + (seed>>2);
             boost::hash_combine(seed, std::get<0>(actionObservation));
             boost::hash_combine(seed, std::get<1>(actionObservation));
             }
         return seed;
-    }
-
-    size_t AOH::getHash() const {
-        return hashValue;
     }
 
     AOH::AOH(int player, int initialObservation, const vector<pair<int, int>> &aoHistory) {
@@ -107,10 +105,10 @@ namespace GTLib2 {
     }
 
     bool AOH::operator==(const InformationSet &rhs) const {
-        const auto rhsAOH = dynamic_cast<const AOH*>(&rhs);
+        const auto rhsAOH = dynamic_cast<const AOH *>(&rhs);
         if (rhsAOH != nullptr) {
             if (player != rhsAOH->player ||
-                getHash() != rhsAOH->getHash() ||
+                hashValue != rhsAOH->hashValue ||
                 aoh.size() != rhsAOH->aoh.size() ||
                 initialObservationId != rhsAOH->initialObservationId) {
                 return false;
@@ -129,18 +127,6 @@ namespace GTLib2 {
         return (int) aoh.size();
     }
 
-    vector<pair<int, int>> AOH::getAOHistory() const {
-        return aoh;
-    }
-
-    int AOH::getInitialObservationId() const {
-        return initialObservationId;
-    }
-
-    int AOH::getPlayer() const {
-        return player;
-    }
-
   string AOH::toString() const {
       string s = "Player: " + to_string(player) + ",  init observation:" +
               to_string(initialObservationId) + ", hash value: " +
@@ -152,7 +138,7 @@ namespace GTLib2 {
   }
 
 
-  State::State(const shared_ptr<Domain> &domain):domain(domain) {};
+  State::State(Domain* domain):domain(domain) {};
 
     Domain::Domain(int maxDepth, unsigned int numberOfPlayers) :
             maxDepth(maxDepth), numberOfPlayers(numberOfPlayers) {}

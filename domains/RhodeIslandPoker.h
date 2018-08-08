@@ -1,13 +1,16 @@
 //
-// Created by Jakub Rozlivek on 7/19/18.
+// Created by Jakub Rozlivek on 8/1/18.
 //
 
-#ifndef GTLIB2_GENERICPOKER_H
-#define GTLIB2_GENERICPOKER_H
+#ifndef GTLIB2_RHODEISLANDPOKER_H
+#define GTLIB2_RHODEISLANDPOKER_H
+
+
 
 
 #include "../base/base.h"
 #include <experimental/optional>
+
 
 
 using std::experimental::nullopt;
@@ -15,19 +18,21 @@ using std::experimental::optional;
 
 using namespace GTLib2;
 
+// TODO: first version -> needs a check
+
 namespace GTLib2 {
   enum MOVES {
     Check, Call, Fold, Bet, Raise, PlayCard
   };
 
 /**
- * GenericPokerAction is a class that represents Generic Poker actions,
+ * RhodeIslandAction is a class that represents Rhode Island Poker actions,
  * which are identified by their id and contain card number or move.
  */
-  class GenericPokerAction : public Action {
+  class RhodeIslandPokerAction : public Action {
    public:
     // constructor
-    GenericPokerAction(int id,int type, int value);
+    RhodeIslandPokerAction(int id,int type, int value);
 
     // Returns move description.
     inline string toString() const final {
@@ -58,16 +63,17 @@ namespace GTLib2 {
 
 
 /**
- * GenericPokerObservation is a class that represents Generic Poker observations,
+ * RhodeIslandPokerObservation is a class that represents Rhode Island Poker observations,
  * which are identified by their id and contain an integer value
  * indicating if an action was successful(1) or not (0).
  */
-  class GenericPokerObservation : public Observation {
+  class RhodeIslandPokerObservation : public Observation { //TODO: predelat
    public:
     // constructor
-    explicit GenericPokerObservation(int id, int type, int value);
+    explicit RhodeIslandPokerObservation(int id, int type, int value, int color);
     /**
-     * id: 0 - check; 1 - call; 2 - fold; from 3 to 3+maxCardTypes - played cards;
+     * id: 0 - check; 1 - call; 2 - fold; from 3 to 3+maxCardTypes - first played cards;
+     * then next maxCardTypes numbers - second played cards
      * then next BetsFirstRound.size() numbers - bets in first round
      * then next BetsSecondRound.size() numbers - bets in second round
      * then next RaisesFirstRound.size() numbers - raises in first round
@@ -79,7 +85,7 @@ namespace GTLib2 {
       if (id == -1)
         return "NoOb";
       switch (type_) {
-        case PlayCard: return "Card number is " + to_string(value_);
+        case PlayCard: return "Card is " + to_string(value_) + " " + to_string(color_);
         case Check: return "Check";
         case Bet: return "Bet:"+ to_string(value_);
         case Call: return "Call";
@@ -99,25 +105,29 @@ namespace GTLib2 {
    private:
     int value_;
     int type_;
+    int color_;
 
   };
 
 /**
- * GenericPokerState is a class that represents Generic Poker states,
+ * RhodeIslandPokerState is a class that represents Rhode Island Poker states,
  * which contains players' board - what they can see,
  * and who can play in the turn.
  */
-  class GenericPokerState : public State {
+  class RhodeIslandPokerState : public State {
    public:
     // Constructor
-    GenericPokerState(Domain* domain, int p1card, int p2card, optional<int> natureCard, double firstPlayerReward,
-                      double pot, vector<int> players, int round, shared_ptr<GenericPokerAction> lastAction, int continuousRaiseCount);
+    RhodeIslandPokerState(Domain* domain, pair<int, int> p1card,
+            pair<int, int> p2card, optional<pair<int, int>> natureCard1,
+            optional<pair<int, int>> natureCard2, double firstPlayerReward,
+            double pot, vector<int> players, int round,
+            shared_ptr<RhodeIslandPokerAction> lastAction, int continuousRaiseCount);
 
-    GenericPokerState(Domain* domain, int p1card, int p2card, optional<int> natureCard,
-                      unsigned int ante, vector<int> players);
+    RhodeIslandPokerState(Domain* domain, pair<int, int> p1card, pair<int, int> p2card,
+            optional<pair<int, int>> natureCard1, optional<pair<int, int>> natureCard2, unsigned int ante, vector<int> players);
 
     // Destructor
-    ~GenericPokerState() override = default;
+    ~RhodeIslandPokerState() override = default;
 
     // GetActions returns possible actions for a player in the state.
     vector<shared_ptr<Action>> getAvailableActionsFor(int player) const override;
@@ -131,14 +141,16 @@ namespace GTLib2 {
     }
 
     inline bool operator==(const State &rhs) const override {
-      auto State = dynamic_cast<const GenericPokerState&>(rhs);
+      auto State = dynamic_cast<const RhodeIslandPokerState&>(rhs);
 
       return  player1Card_ == State.player1Card_&&
               player2Card_ == State.player2Card_ &&
               round_ == State.round_ &&
               pot == State.pot &&
               firstPlayerReward == State.firstPlayerReward &&
-              natureCard_ == State.natureCard_ &&
+              domain == State.domain &&
+              natureCard1_ == State.natureCard1_ &&
+              natureCard2_ == State.natureCard2_ &&
               players_ == State.players_ &&
               lastAction == State.lastAction;
     }
@@ -150,7 +162,8 @@ namespace GTLib2 {
       }
       boost::hash_combine(seed, player1Card_);
       boost::hash_combine(seed, player2Card_);
-      boost::hash_combine(seed, *natureCard_);
+      boost::hash_combine(seed, *natureCard1_);
+      boost::hash_combine(seed, *natureCard2_);
       boost::hash_combine(seed, round_);
       boost::hash_combine(seed, continuousRaiseCount_);
       boost::hash_combine(seed, pot);
@@ -161,25 +174,31 @@ namespace GTLib2 {
     }
 
     inline string toString() const override {
-      return "Player 1 card: " + to_string(player1Card_) + "\nPlayer 2 card: " +
-              to_string(player2Card_) + "\nNature card: " + to_string(natureCard_.value_or(-1)) +
-              "\nPlayer on move: " + to_string(players_[0]) + "\nPot: " + to_string(pot) +
-              "\nReward for first player: " + to_string(firstPlayerReward) +
-              "\nLast action: " + lastAction->toString() + "\nRound: " + to_string(round_) +
-              "Continuous raise count: " + to_string(continuousRaiseCount_) +  "\n";
+      string s = "Player 1 card: " + to_string(player1Card_.first) + " " + to_string(player1Card_.second)
+      + "\nPlayer 2 card: " + to_string(player2Card_.first) + " " + to_string(player2Card_.second) +
+      "\nNature cards: ";
+      if(natureCard1_) {
+        s += to_string(natureCard1_.value().first) + " " + to_string(natureCard1_.value().second) + "  |  ";
+        if(natureCard2_) {
+          s+= to_string(natureCard2_.value().first) + " " + to_string(natureCard2_.value().second);
+        }
+      }
+      return  s + "\nPlayer on move: " + to_string(players_[0]) + "\nPot: " + to_string(pot) +
+      "\nReward for first player: " + to_string(firstPlayerReward) + "\nLast action: " +
+      lastAction->toString() + "\nRound: " + to_string(round_) + "Continuous raise count: " +
+      to_string(continuousRaiseCount_) +  "\n";
     }
 
    protected:
     vector<int> players_;
-    shared_ptr<GenericPokerAction> lastAction;
-    optional<int> natureCard_;
+    shared_ptr<RhodeIslandPokerAction> lastAction;
+    optional<pair<int, int>> natureCard1_; // first number, second color (type)
+    optional<pair<int, int>> natureCard2_;
     double pot;
     double firstPlayerReward;
-    int player1Card_;
-    int player2Card_;
-
+    pair<int, int> player1Card_; // first number, second color (type)
+    pair<int, int> player2Card_;
     int round_;
-
     int continuousRaiseCount_;
 
 
@@ -187,26 +206,26 @@ namespace GTLib2 {
 
 
 /**
- * GenericPokerDomain is a class that represents Generic Poker domain,
+ * RhodeIslandPokerDomain is a class that represents Rhode Island Poker domain,
  * which contain static height and static width.
  */
-  class GenericPokerDomain : public Domain {
+  class RhodeIslandPokerDomain : public Domain {
    public:
     // constructor
-    GenericPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes,
-                                unsigned int maxRaisesInRow, unsigned int maxDifferentBets,
-                                unsigned int maxDifferentRaises, unsigned int ante);
+    RhodeIslandPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes,
+                       unsigned int maxRaisesInRow, unsigned int maxDifferentBets,
+                       unsigned int maxDifferentRaises, unsigned int ante);
 
-    GenericPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes,
+    RhodeIslandPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes,
                        unsigned int maxRaisesInRow, unsigned int maxDifferentBets,
                        unsigned int maxDifferentRaises);
 
-    GenericPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes);
+    RhodeIslandPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes);
 
-    GenericPokerDomain();
+    RhodeIslandPokerDomain();
 
     // destructor
-    ~GenericPokerDomain() override = default;
+    ~RhodeIslandPokerDomain() override = default;
 
     // GetInfo returns string containing domain information.
     string getInfo() const final;
@@ -219,6 +238,8 @@ namespace GTLib2 {
     vector<int> raisesFirstRound;
     vector<int> betsSecondRound;
     vector<int> raisesSecondRound;
+    vector<int> betsThirdRound;
+    vector<int> raisesThirdRound;
     const unsigned int maxCardTypes;  // cisla
     const unsigned int maxCardsOfEachType; // barvy
     const unsigned int maxRaisesInRow;
@@ -226,10 +247,12 @@ namespace GTLib2 {
     const unsigned int maxDifferentRaises;
     int maxUtility;
     const unsigned int ante;
-    const int TERMINAL_ROUND = 4;
+    const int TERMINAL_ROUND = 6;
 
   };
 
 
 }
-#endif //GTLIB2_GENERICPOKER_H
+
+
+#endif //GTLIB2_RHODEISLANDPOKER_H

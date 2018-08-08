@@ -56,7 +56,7 @@ namespace GTLib2 {
 
         int getId() const;
 
-        virtual bool operator==(const Action &that) const; // TODO: mozna radsi prepsat v kazdy domene
+        virtual bool operator==(const Action &that) const;
 
         virtual size_t getHash() const;
 
@@ -137,6 +137,9 @@ namespace GTLib2 {
         virtual size_t getHash() const = 0;
 
         virtual string toString() const = 0;
+
+     protected:
+
     };
 
 
@@ -153,14 +156,22 @@ namespace GTLib2 {
         int getNumberOfActions() const;
 
         // GetHash returns hash code.
-        size_t getHash() const final;
+        inline size_t getHash() const final {
+          return hashValue;
+        }
 
         // Overloaded for comparing two AOHs
         bool operator==(const InformationSet &rhs) const override;
 
-        int getPlayer() const;
-        int getInitialObservationId() const;
-        vector<pair<int, int>> getAOHistory() const;
+        inline int getPlayer() const {
+          return player;
+        }
+        inline int getInitialObservationId() const {
+          return initialObservationId;
+        }
+        inline vector<pair<int, int>> getAOHistory() const {
+          return aoh;
+        }
 
         string toString() const override;
 
@@ -180,7 +191,7 @@ namespace GTLib2 {
  */
     class State {
     public:
-        explicit State(const shared_ptr<Domain> &domain);
+        explicit State(Domain* domain);
 
         virtual ~State() = default;
 
@@ -205,12 +216,12 @@ namespace GTLib2 {
 
         virtual size_t getHash() const;
 
-        inline shared_ptr<Domain> getDomain() const {
+        inline Domain* getDomain() const {
           return domain;
         }
 
      protected:
-      shared_ptr<Domain> domain;
+      Domain* domain;
     };
 
   typedef unordered_map<shared_ptr<InformationSet>, unordered_map<shared_ptr<Action>, double>> BehavioralStrategy;
@@ -255,10 +266,7 @@ namespace GTLib2 {
     OutcomeDistribution rootStatesDistribution;
     int maxDepth;
     unsigned int numberOfPlayers;
-
-
   };
-
 }
 
 

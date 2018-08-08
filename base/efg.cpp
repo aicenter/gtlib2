@@ -16,29 +16,18 @@
 
 namespace GTLib2 {
 
-
-
-
-
-
-
-
-
-
   EFGNodesDistribution EFGNode::performAction(shared_ptr<Action> action) const {
 
     vector<pair<int, shared_ptr<Action>>> actionsToBePerformed(performedActionsInThisRound);
     actionsToBePerformed.emplace_back(*currentPlayer,action);
 
     EFGNodesDistribution newNodes;
-
     if (remainingPlayersInTheRound.size() == 1) {
       for(auto &i :state->getDomain()->getPlayers()) {
         auto action2 = std::find_if( actionsToBePerformed.begin(), actionsToBePerformed.end(),
                 [&i](pair<int, shared_ptr<Action>> const & elem) { return elem.first == i; });
         if (action2 == actionsToBePerformed.end()){
-          auto NoAction = make_shared<Action>(-1);
-          actionsToBePerformed.emplace_back(i, NoAction);
+          actionsToBePerformed.emplace_back(i, make_shared<Action>(-1));
         }
       }
       //Last player in the round. So we proceed to the next state
@@ -47,30 +36,30 @@ namespace GTLib2 {
 //            for (auto const& outcomeProb : probDist) {
 //                auto outcome = outcomeProb.first;
 //                auto prob = outcomeProb.second;
-        auto newNode = make_shared<EFGNode>(outcome.state, shared_from_this(),
+        auto newNode = make_shared<EFGNode>(outcome.state, this,
                                             outcome.observations, outcome.rewards,
                                             actionsToBePerformed, prob * natureProbability, action);
         newNodes.emplace_back(newNode,prob);
       }
     } else {
-      auto newNode = make_shared<EFGNode>(shared_from_this(), actionsToBePerformed, action);
+      auto newNode = make_shared<EFGNode>(this, actionsToBePerformed, move(action));
       newNodes.emplace_back(newNode,1.0);
     }
     return newNodes;
   }
 
-  EFGNode::EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,
+  EFGNode::EFGNode(shared_ptr<State> newState,const EFGNode* parent,
                    const vector<shared_ptr<Observation>> &observations,
                    const vector<double> &rewards,
                    const vector<pair<int, shared_ptr<Action>>> &lastRoundActions,
                    double natureProbability, shared_ptr<Action> incomingAction,
                    const vector<shared_ptr<Observation>> &initialObservations) :
-          EFGNode(std::move(newState), std::move(parent), observations,
+          EFGNode(std::move(newState), parent, observations,
                   rewards, lastRoundActions, natureProbability, std::move(incomingAction)) {
     this->initialObservations = initialObservations;
   }
 
-  EFGNode::EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,
+  EFGNode::EFGNode(shared_ptr<State> newState, const EFGNode* parent,
                    const vector<shared_ptr<Observation>> &observations,
                    const  vector<double> &rewards,
                    const vector<pair<int, shared_ptr<Action>>> &lastRoundActions,
@@ -97,7 +86,7 @@ namespace GTLib2 {
 
   }
 
-  EFGNode::EFGNode(shared_ptr<EFGNode const> parent, const vector<pair<int, shared_ptr<Action>>> &performedActions,
+  EFGNode::EFGNode(const EFGNode* parent, const vector<pair<int, shared_ptr<Action>>> &performedActions,
           shared_ptr<Action> incomingAction) {
     this->state = parent->getState();
     this->observations = parent->observations;
@@ -132,10 +121,9 @@ namespace GTLib2 {
       if(remainingPlayersInTheRound.size() > 1 || !parent) {
         auto action = std::find_if( previousRoundActions.begin(), previousRoundActions.end(),
                                     [this](pair<int, shared_ptr<Action>> const & elem) { return elem.first == *currentPlayer; });
-        auto observation = observations[*currentPlayer];
         if (action != previousRoundActions.end()) {
           auto actionId = action->second->getId();
-          auto observationId = observation->getId();
+          auto observationId = observations[*currentPlayer]->getId();
           aoh.emplace_back(actionId, observationId);
         }
       }
@@ -151,10 +139,9 @@ namespace GTLib2 {
     if(remainingPlayersInTheRound.size() == 1) {
       auto action = std::find_if( previousRoundActions.begin(), previousRoundActions.end(),
                                   [&player](pair<int, shared_ptr<Action>> const & elem) { return elem.first == player; });
-      auto observation = observations[player];
       if (action != previousRoundActions.end()){
         auto actionId = action->second->getId();
-        auto observationId = observation->getId();
+        auto observationId = observations[player]->getId();
         aoh.emplace_back(actionId, observationId);
       }
     }
@@ -173,7 +160,7 @@ namespace GTLib2 {
     return actSeq;
   }
 
-  shared_ptr<EFGNode const> EFGNode::getParent() const {
+  const EFGNode* EFGNode::getParent() const {
     return parent;
   }
 
@@ -235,17 +222,14 @@ namespace GTLib2 {
         return false;
       }
     }
-    bool remainingPlayersSame = this->remainingPlayersInTheRound == rhs.remainingPlayersInTheRound;
-    bool innerStateSame = *(this->state) == *(rhs.state);
-    return remainingPlayersSame && innerStateSame;
+    return  this->remainingPlayersInTheRound == rhs.remainingPlayersInTheRound &&
+            *(this->state) == *(rhs.state);
   }
 
   int EFGNode::getDistanceFromRoot() const {
-    if (parent == nullptr) {
+    if (parent == nullptr)
       return 0;
-    } else {
-      return 1 + parent->getDistanceFromRoot();
-    }
+    return 1 + parent->getDistanceFromRoot();
   }
 
   int EFGNode::getLastObservationIdOfCurrentPlayer() const {

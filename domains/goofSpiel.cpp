@@ -53,7 +53,7 @@ namespace GTLib2 {
 
                 natureDeck.erase(i);
 
-                auto newState = make_shared<GoofSpielState>(make_shared<GoofSpielDomain>(*this), player1Deck,player2Deck,natureDeck,i,0.0,0.0,p1,p2,n);
+                auto newState = make_shared<GoofSpielState>(this, player1Deck,player2Deck,natureDeck,i,0.0,0.0,p1,p2,n);
                 auto player1Obs = make_shared<GoofSpielObservation>(i,nullopt,nullopt);
                 auto player2Obs = make_shared<GoofSpielObservation>(i,nullopt,nullopt);
 
@@ -74,7 +74,7 @@ namespace GTLib2 {
             return {0,1};
         }
 
-        GoofSpielState::GoofSpielState(const shared_ptr<Domain> &domain,
+        GoofSpielState::GoofSpielState(Domain* domain,
                                        unordered_set<int> player1Deck, unordered_set<int> player2Deck,
                                         unordered_set<int> natureDeck, optional<int> natureSelectedCard,
                                         double player1CumulativeReward, double player2CumulativeReward,
@@ -92,7 +92,7 @@ namespace GTLib2 {
 
         }
 
-        GoofSpielState::GoofSpielState(const shared_ptr<Domain> &domain, const GoofSpielState &previousState, int player1Card, int player2Card,
+        GoofSpielState::GoofSpielState(Domain* domain, const GoofSpielState &previousState, int player1Card, int player2Card,
                                        optional<int> newNatureCard, double player1CumulativeReward,
                                        double player2CumulativeReward) : State(domain) {
             player1Deck = previousState.player1Deck;
@@ -139,12 +139,10 @@ namespace GTLib2 {
 
         OutcomeDistribution
         GoofSpielState::performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const {
-            auto action1 = std::find_if( actions.begin(), actions.end(),
-                                       [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 0; })->second;
-            auto action2 = std::find_if( actions.begin(), actions.end(),
-                                       [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 1; })->second;
-            const auto player1Action = dynamic_pointer_cast<GoofSpielAction>(action1);
-            const auto player2Action = dynamic_pointer_cast<GoofSpielAction>(action2);
+            const auto player1Action = dynamic_pointer_cast<GoofSpielAction>(std::find_if( actions.begin(), actions.end(),
+                    [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 0; })->second);
+            const auto player2Action = dynamic_pointer_cast<GoofSpielAction>(std::find_if( actions.begin(), actions.end(),
+                    [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 1; })->second);
             const int p1Card = player1Action->cardNumber;
             const int p2Card = player2Action->cardNumber;
 
@@ -266,7 +264,7 @@ namespace GTLib2 {
           vector<int> p2;
           vector<int> n = {firstCard};
 
-          auto newState = make_shared<SeedGoofSpielState>(make_shared<SeedGoofSpielDomain>(*this), player1Deck, player2Deck, natureDeck,
+          auto newState = make_shared<SeedGoofSpielState>(this, player1Deck, player2Deck, natureDeck,
                                                           firstCard, 0.0, 0.0, p1, p2, n);
           auto player1Obs = make_shared<GoofSpielObservation>(firstCard, nullopt, nullopt);
           auto player2Obs = make_shared<GoofSpielObservation>(firstCard, nullopt, nullopt);
@@ -285,7 +283,7 @@ namespace GTLib2 {
           return {0,1};
       }
 
-      SeedGoofSpielState::SeedGoofSpielState(const shared_ptr<Domain> &domain,
+      SeedGoofSpielState::SeedGoofSpielState(Domain* domain,
               unordered_set<int> player1Deck, unordered_set<int> player2Deck,
               unordered_set<int> natureDeck, optional<int> natureSelectedCard,
               double player1CumulativeReward, double player2CumulativeReward,
@@ -294,19 +292,17 @@ namespace GTLib2 {
               move(player1Deck), move(player2Deck), move(natureDeck), move(natureSelectedCard), player1CumulativeReward,
               player2CumulativeReward, move(player1PlayedCards), move(player2PlayedCards), move(naturePlayedCards)) {}
 
-      SeedGoofSpielState::SeedGoofSpielState(const shared_ptr<Domain> &domain, const GoofSpielState &previousState,
+      SeedGoofSpielState::SeedGoofSpielState(Domain* domain, const GoofSpielState &previousState,
               int player1Card, int player2Card, optional<int> newNatureCard, double player1CumulativeReward,
                                              double player2CumulativeReward) : GoofSpielState(domain,
               previousState, player1Card, player2Card, move(newNatureCard), player1CumulativeReward,
               player2CumulativeReward) {}
 
       OutcomeDistribution SeedGoofSpielState::performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const {
-        auto action1 = std::find_if( actions.begin(), actions.end(),
-                                     [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 0; })->second;
-        auto action2 = std::find_if( actions.begin(), actions.end(),
-                                     [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 1; })->second;
-        const auto player1Action = dynamic_pointer_cast<GoofSpielAction>(action1);
-        const auto player2Action = dynamic_pointer_cast<GoofSpielAction>(action2);
+        const auto player1Action = dynamic_pointer_cast<GoofSpielAction>(std::find_if( actions.begin(), actions.end(),
+                [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 0; })->second);
+        const auto player2Action = dynamic_pointer_cast<GoofSpielAction>(std::find_if( actions.begin(), actions.end(),
+                [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 1; })->second);
 
         const int p1Card = player1Action->cardNumber;
         const int p2Card = player2Action->cardNumber;

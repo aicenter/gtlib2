@@ -69,7 +69,7 @@ namespace GTLib2 {
     class PhantomTTTState : public State {
     public:
         // Constructor
-        PhantomTTTState(const shared_ptr<Domain> &domain, const vector<vector<int>> &p, const vector<int> &players);
+        PhantomTTTState(Domain* domain, vector<vector<int>> p, vector<int> players);
 
         // Destructor
         ~PhantomTTTState() override = default;

@@ -108,10 +108,10 @@ namespace GTLib2 {
     class PursuitState : public State {
     public:
         // Constructor
-        explicit PursuitState(const shared_ptr<Domain> &domain, const vector<Pos> &p);
+        explicit PursuitState(Domain* domain, const vector<Pos> &p);
 
         // Constructor
-        PursuitState(const shared_ptr<Domain> &domain, const vector<Pos> &p, double prob);
+        PursuitState(Domain* domain, const vector<Pos> &p, double prob);
 
         // Destructor
         ~PursuitState() override = default;
@@ -193,19 +193,19 @@ namespace GTLib2 {
     class MMPursuitState : public PursuitState {
     public:
         // Constructor
-        MMPursuitState(const shared_ptr<Domain> &domain, const vector<Pos> &p, const vector<int> &players,
+        MMPursuitState(Domain* domain, const vector<Pos> &p, const vector<int> &players,
                        vector<int> numberOfMoves);
 
         // Constructor
-        MMPursuitState(const shared_ptr<Domain> &domain, const vector<Pos> &p, const vector<int> &players,
+        MMPursuitState(Domain* domain, const vector<Pos> &p, const vector<int> &players,
                        vector<int> numberOfMoves, int currentNOM, int currentPlayer);
 
         // Constructor
-        MMPursuitState(const shared_ptr<Domain> &domain, const vector<Pos> &p, double prob,
+        MMPursuitState(Domain* omain, const vector<Pos> &p, double prob,
                        const vector<int> &players, vector<int> numberOfMoves);
 
         // Constructor
-        MMPursuitState(const shared_ptr<Domain> &domain, const vector<Pos> &p, double prob, const vector<int> &players,
+        MMPursuitState(Domain* domain, const vector<Pos> &p, double prob, const vector<int> &players,
                        vector<int> numberOfMoves, int currentNOM, int currentPlayer);
 
         OutcomeDistribution
@@ -261,10 +261,10 @@ namespace GTLib2 {
     class ObsPursuitState : public PursuitState {
     public:
         // Constructor
-        explicit ObsPursuitState(const shared_ptr<Domain> &domain, const vector<Pos> &p);
+        explicit ObsPursuitState(Domain* domain, const vector<Pos> &p);
 
         // Constructor
-        ObsPursuitState(const shared_ptr<Domain> &domain, const vector<Pos> &p, double prob);
+        ObsPursuitState(Domain* domain, const vector<Pos> &p, double prob);
 
         OutcomeDistribution
         performActions(const vector<pair<int, shared_ptr<Action>>> &actions2) const override;

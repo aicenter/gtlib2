@@ -12,21 +12,13 @@
 using namespace GTLib2;
 
 MatchingPenniesDomain::MatchingPenniesDomain() : Domain(std::numeric_limits<int>::max(),2) {
-    shared_ptr<MatchingPenniesState>  rootState = make_shared<MatchingPenniesState>(make_shared<MatchingPenniesDomain>(*this), Nothing,Nothing);
+    shared_ptr<MatchingPenniesState>  rootState = make_shared<MatchingPenniesState>(this, Nothing,Nothing);
 
     shared_ptr<MatchingPenniesObservation> newObservationP1 = make_shared<MatchingPenniesObservation>(OtherNothing);
     shared_ptr<MatchingPenniesObservation> newObservationP2 = make_shared<MatchingPenniesObservation>(OtherNothing);
 
-    vector<shared_ptr<Observation>> observations{newObservationP1, newObservationP2};// = unordered_map<int,shared_ptr<Observation>>();
-
-//    observations[0] = newObservationP1;
-//    observations[1] = newObservationP2;
-
+    vector<shared_ptr<Observation>> observations{newObservationP1, newObservationP2};
     vector<double> rewards(2);
-
-//    rewards[0] = 0;
-//    rewards[1] = 0;
-
     Outcome outcome(rootState,observations,rewards);
 
     rootStatesDistribution.push_back(pair<Outcome,double>(outcome,1.0));
@@ -50,7 +42,7 @@ vector<shared_ptr<Action>> MatchingPenniesState::getAvailableActionsFor(int play
 }
 
 
-MatchingPenniesState::MatchingPenniesState(const shared_ptr<Domain> &domain, Move p1, Move p2) : State(domain) {
+MatchingPenniesState::MatchingPenniesState(Domain* domain, Move p1, Move p2) : State(domain) {
     player1 = p1;
     player2 = p2;
     if (player1 == Nothing && player2 == Nothing) {
@@ -70,13 +62,11 @@ int MatchingPenniesState::getNumberOfPlayers() const {
 
 OutcomeDistribution MatchingPenniesState::performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const {
 
-    auto a1 = std::find_if( actions.begin(), actions.end(),
-                                 [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 0; })->second;
-    auto a2 = std::find_if( actions.begin(), actions.end(),
-                                 [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 1; })->second;
+    shared_ptr<MatchingPenniesAction> p1Action = dynamic_pointer_cast<MatchingPenniesAction>(std::find_if( actions.begin(), actions.end(),
+            [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 0; })->second);
+    shared_ptr<MatchingPenniesAction> p2Action = dynamic_pointer_cast<MatchingPenniesAction>(std::find_if( actions.begin(), actions.end(),
+            [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 1; })->second);
 
-    shared_ptr<MatchingPenniesAction> p1Action = dynamic_pointer_cast<MatchingPenniesAction>(a1);
-    shared_ptr<MatchingPenniesAction> p2Action = dynamic_pointer_cast<MatchingPenniesAction>(a2);
 
 
     assert(p1Action == nullptr || p2Action == nullptr); // Only one action can be performed
@@ -152,7 +142,7 @@ MatchingPenniesObservation::MatchingPenniesObservation(OtherMove otherMoveParm) 
     otherMove = otherMoveParm;
 }
 
-MatchingPenniesAction::MatchingPenniesAction(Move moveParm) : // TODO: jak ma vypadat id?
+MatchingPenniesAction::MatchingPenniesAction(Move moveParm) :
     Action(static_cast<int>(moveParm)){
     move = moveParm;
 }
@@ -164,7 +154,7 @@ string MatchingPenniesAction::toString() const{
 
 
 
-SimultaneousMatchingPenniesState::SimultaneousMatchingPenniesState(const shared_ptr<Domain> &domain, Move p1, Move p2) : State(domain) {
+SimultaneousMatchingPenniesState::SimultaneousMatchingPenniesState(Domain* domain, Move p1, Move p2) : State(domain) {
     assert((p1 != Nothing && p2 != Nothing) || (p1 == Nothing && p2 == Nothing));
     player1 = p1;
     player2 = p2;
@@ -189,14 +179,10 @@ vector<shared_ptr<Action>> SimultaneousMatchingPenniesState::getAvailableActions
 
 
 OutcomeDistribution SimultaneousMatchingPenniesState::performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const {
-
-    auto a1 = std::find_if( actions.begin(), actions.end(),
-                            [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 0; })->second;
-    auto a2 = std::find_if( actions.begin(), actions.end(),
-                            [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 1; })->second;
-
-    shared_ptr<MatchingPenniesAction> p1Action = dynamic_pointer_cast<MatchingPenniesAction>(a1);
-    shared_ptr<MatchingPenniesAction> p2Action = dynamic_pointer_cast<MatchingPenniesAction>(a2);
+    shared_ptr<MatchingPenniesAction> p1Action = dynamic_pointer_cast<MatchingPenniesAction>(std::find_if( actions.begin(), actions.end(),
+            [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 0; })->second);
+    shared_ptr<MatchingPenniesAction> p2Action = dynamic_pointer_cast<MatchingPenniesAction>(std::find_if( actions.begin(), actions.end(),
+            [](pair<int, shared_ptr<Action>> const & elem) { return elem.first == 1; })->second);
 
 
     assert(p1Action != nullptr || p2Action != nullptr); // Both action must be performed
@@ -265,7 +251,7 @@ size_t SimultaneousMatchingPenniesState::getHash() const {
 
 SimultaneousMatchingPenniesDomain::SimultaneousMatchingPenniesDomain() : Domain(std::numeric_limits<int>::max(),2) {
     shared_ptr<SimultaneousMatchingPenniesState>  rootState = make_shared<SimultaneousMatchingPenniesState>
-            (make_shared<SimultaneousMatchingPenniesDomain>(*this), Nothing,Nothing);
+            (this, Nothing,Nothing);
 
     shared_ptr<MatchingPenniesObservation> newObservationP1 = make_shared<MatchingPenniesObservation>(OtherNothing);
     shared_ptr<MatchingPenniesObservation> newObservationP2 = make_shared<MatchingPenniesObservation>(OtherNothing);

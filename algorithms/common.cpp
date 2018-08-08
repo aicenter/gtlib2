@@ -11,20 +11,17 @@ namespace GTLib2 {
 
     EFGNodesDistribution
     algorithms::createRootEFGNodesFromInitialOutcomeDistribution(const OutcomeDistribution &probDist) {
-        //auto dummyChanceNodeAboveRootNodes = make_shared<EFGNode>();
-
         EFGNodesDistribution nodes;
 
         for (auto outcomeProb: probDist) {
             auto outcome = outcomeProb.first;
             auto prob = outcomeProb.second;
-            auto state = outcome.state;
-            auto node = make_shared<EFGNode>(state, nullptr,
-                                             outcome.observations,
+            auto node = make_shared<EFGNode>(move(outcome.state), nullptr,
+                                             move(outcome.observations),
                                              outcome.rewards,
                                              vector<pair<int, shared_ptr<Action>>>(),
                                              prob, nullptr,
-                                             outcome.observations);
+                                             move(outcome.observations));
             nodes.emplace_back(node, prob);
         }
         return nodes;
