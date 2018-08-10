@@ -28,7 +28,7 @@ namespace GTLib2 {
  * which contains action-observation history, state,
  * rewards (utility) and Information set.
  */
-  class EFGNode final : public std::enable_shared_from_this<EFGNode const> {
+  class EFGNode {
    public:
 
     // Constructor for the same round node
@@ -88,7 +88,6 @@ namespace GTLib2 {
 
     int getLastObservationIdOfCurrentPlayer() const;
 
-
     optional<int> getCurrentPlayer() const;
 
     vector<double> rewards;
@@ -102,9 +101,6 @@ namespace GTLib2 {
     vector<pair<int, shared_ptr<Action>>> performedActionsInThisRound;
     vector<pair<int, shared_ptr<Action>>> previousRoundActions;
     vector<int> remainingPlayersInTheRound;
-
-
-
     shared_ptr<State> state;
     const EFGNode* parent;
     shared_ptr<Action> incomingAction; // Action performed in the parent node.

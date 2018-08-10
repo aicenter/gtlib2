@@ -155,18 +155,17 @@ namespace GTLib2 {
       boost::hash_combine(seed, continuousRaiseCount_);
       boost::hash_combine(seed, pot);
       boost::hash_combine(seed, firstPlayerReward);
-      boost::hash_combine(seed, domain);
       boost::hash_combine(seed, lastAction);
       return seed;
     }
 
     inline string toString() const override {
-      return "Player 1 card: " + to_string(player1Card_) + "\nPlayer 2 card: " +
+      return "Player 0 card: " + to_string(player1Card_) + "\nPlayer 1 card: " +
               to_string(player2Card_) + "\nNature card: " + to_string(natureCard_.value_or(-1)) +
               "\nPlayer on move: " + to_string(players_[0]) + "\nPot: " + to_string(pot) +
               "\nReward for first player: " + to_string(firstPlayerReward) +
-              "\nLast action: " + lastAction->toString() + "\nRound: " + to_string(round_) +
-              "Continuous raise count: " + to_string(continuousRaiseCount_) +  "\n";
+              "\nLast action: " + (lastAction? lastAction->toString() : "Nothing") + "\nRound: " + to_string(round_) +
+              "\nContinuous raise count: " + to_string(continuousRaiseCount_) +  "\n";
     }
 
    protected:
@@ -177,12 +176,8 @@ namespace GTLib2 {
     double firstPlayerReward;
     int player1Card_;
     int player2Card_;
-
     int round_;
-
     int continuousRaiseCount_;
-
-
   };
 
 
