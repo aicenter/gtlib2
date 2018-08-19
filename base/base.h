@@ -87,8 +87,12 @@ namespace GTLib2 {
 
         virtual size_t getHash() const;
 
+        virtual std::unique_ptr<Observation> clone() const;
+
     protected:
         int id;
+        Observation(const Observation&) = default;
+        Observation& operator=(const Observation&) = default;
     };
 
 
@@ -151,7 +155,7 @@ namespace GTLib2 {
     class AOH : public InformationSet {
     public:
 
-        AOH(int player, int initialObservation, const vector<pair<int, int>> &aoHistory);
+        AOH(int player, const vector<pair<int, int>> &aoHistory);
 
         int getNumberOfActions() const;
 
@@ -167,7 +171,7 @@ namespace GTLib2 {
           return player;
         }
         inline int getInitialObservationId() const {
-          return initialObservationId;
+          return aoh.front().second;
         }
         inline vector<pair<int, int>> getAOHistory() const {
           return aoh;
@@ -181,7 +185,6 @@ namespace GTLib2 {
         vector<pair<int, int>> aoh; // Vector of pairs. First coordinate is action id, the second is observation id.
         size_t hashValue;
         int player;
-        int initialObservationId;
     };
 
 
@@ -244,7 +247,7 @@ namespace GTLib2 {
     virtual ~Domain() = default;
 
     // Returns distributions of the root states.
-    OutcomeDistribution getRootStatesDistribution() const;
+    const OutcomeDistribution& getRootStatesDistribution() const;
 
     virtual vector<int> getPlayers() const = 0;
 
@@ -258,6 +261,10 @@ namespace GTLib2 {
       return maxDepth;
     }
 
+    inline int getMaxUtility() const {
+      return maxUtility;
+    }
+
     // GetInfo returns string containing domain information.
     virtual string getInfo() const = 0;
 
@@ -266,6 +273,8 @@ namespace GTLib2 {
     OutcomeDistribution rootStatesDistribution;
     int maxDepth;
     unsigned int numberOfPlayers;
+    int maxUtility;
+
   };
 }
 
@@ -287,6 +296,21 @@ namespace std {
             return *a == *b;
         }
     };
+
+  template<>
+  struct hash<InformationSet*> {
+    size_t operator()(InformationSet const *p) const {
+      return p->getHash();
+    }
+  };
+
+  template<>
+  struct equal_to<InformationSet*> {
+    bool operator()(InformationSet  *a,
+                    InformationSet  *b) const {
+      return *a == *b;
+    }
+  };
 
     template<>
     struct hash<shared_ptr<AOH>> {

@@ -69,9 +69,9 @@ vector<shared_ptr<Action>> PursuitState::getAvailableActionsFor(int player) cons
   auto purDomain = dynamic_cast<PursuitDomain*>(domain);
   int count = 0;
   for (int i = 1; i < 5; ++i) {  // verifies whether moves are correct
-    if ((place_[player].x + m_[i].x) >= 0 && (place_[player].x + m_[i].x)
+    if ((place_[player].x + pursuitMoves[i].x) >= 0 && (place_[player].x + pursuitMoves[i].x)
                                              < purDomain->width &&
-        (place_[player].y + m_[i].y) >= 0 && (place_[player].y + m_[i].y)
+        (place_[player].y + pursuitMoves[i].y) >= 0 && (place_[player].y + pursuitMoves[i].y)
                                              < purDomain->height) {
 
         list.push_back(make_shared<PursuitAction>(count, i));
@@ -108,8 +108,8 @@ OutcomeDistribution PursuitState::performActions(const vector<pair<int, shared_p
     for (unsigned int i = 0; i < actionssize; ++i) {
       if ((k >> i & 1) == 1) {
         if (actions[i]->getId() > -1) {
-          moves[i].x = m_[actions[i]->GetMove()].x + place_[i].x;
-          moves[i].y = m_[actions[i]->GetMove()].y + place_[i].y;
+          moves[i].x = pursuitMoves[actions[i]->GetMove()].x + place_[i].x;
+          moves[i].y = pursuitMoves[actions[i]->GetMove()].y + place_[i].y;
         }
         probability *= purDomain->probability[1];
       } else {
@@ -145,16 +145,16 @@ OutcomeDistribution PursuitState::performActions(const vector<pair<int, shared_p
         }
         index = 0;
         int id2 = 1;
-        for (unsigned int l = 1; l < eight_.size(); ++l) {
-          if ((s->place_[m].x + eight_[l].x) >= 0 && (s->place_[m].x + eight_[l].x)
+        for (unsigned int l = 1; l < pursuitEightSurrounding.size(); ++l) {
+          if ((s->place_[m].x + pursuitEightSurrounding[l].x) >= 0 && (s->place_[m].x + pursuitEightSurrounding[l].x)
                                                      < purDomain->width &&
-              (s->place_[m].y + eight_[l].y) >= 0 && (s->place_[m].y + eight_[l].y)
+              (s->place_[m].y + pursuitEightSurrounding[l].y) >= 0 && (s->place_[m].y + pursuitEightSurrounding[l].y)
                                                      < purDomain->height) {
             id2++;
           }
 
-          if (s->place_[m].x + eight_[l].x == s->place_[i].x &&
-              s->place_[m].y + eight_[l].y == s->place_[i].y) {
+          if (s->place_[m].x + pursuitEightSurrounding[l].x == s->place_[i].x &&
+              s->place_[m].y + pursuitEightSurrounding[l].y == s->place_[i].y) {
             index = l;
           }
         }
@@ -165,7 +165,7 @@ OutcomeDistribution PursuitState::performActions(const vector<pair<int, shared_p
       id += (k >> m & 1) * maximum;
       ob.push_back((k >> m & 1));
 //      ob.push_back(1);
-      observations[m] = std::make_unique<PursuitObservation>(id, ob);
+      observations[m] = std::make_shared<PursuitObservation>(id, ob);
       ob.clear();
     }
     DebugString(for (unsigned int j = 0; j < size; ++j) {
@@ -220,8 +220,8 @@ MMPursuitState::performActions(const vector<pair<int, shared_ptr<Action>>> &acti
     vector<Pos> moves = place_;
     for (int i = 0; i < actionssize; ++i) {
       if (actions[i]->getId() > -1) {
-        moves[i].x = m_[actions[i]->GetMove()].x + place_[i].x;
-        moves[i].y = m_[actions[i]->GetMove()].y + place_[i].y;
+        moves[i].x = pursuitMoves[actions[i]->GetMove()].x + place_[i].x;
+        moves[i].y = pursuitMoves[actions[i]->GetMove()].y + place_[i].y;
       }
     }
     shared_ptr<MMPursuitState> s;
@@ -250,7 +250,7 @@ MMPursuitState::performActions(const vector<pair<int, shared_ptr<Action>>> &acti
     ob.reserve(size+1);
     for (int m = 0, pom = 0; m < size; ++m, ++pom) {  // making observations
       if (actions[m]->getId() == -1 /*&& movecount_ > 1*/) {
-        observations[m] = std::make_unique<Observation>(-1);
+        observations[m] = std::make_shared<Observation>(-1);
         --pom;
         continue;
       }
@@ -263,16 +263,16 @@ MMPursuitState::performActions(const vector<pair<int, shared_ptr<Action>>> &acti
         }
         index = 0;
         int id2 = 1;
-        for (unsigned int l = 1; l < eight_.size(); ++l) {
-          if ((s->place_[m].x + eight_[l].x) >= 0 && (s->place_[m].x + eight_[l].x)
+        for (unsigned int l = 1; l < pursuitEightSurrounding.size(); ++l) {
+          if ((s->place_[m].x + pursuitEightSurrounding[l].x) >= 0 && (s->place_[m].x + pursuitEightSurrounding[l].x)
                                                      < purDomain->width &&
-              (s->place_[m].y + eight_[l].y) >= 0 && (s->place_[m].y + eight_[l].y)
+              (s->place_[m].y + pursuitEightSurrounding[l].y) >= 0 && (s->place_[m].y + pursuitEightSurrounding[l].y)
                                                      < purDomain->height) {
             id2++;
           }
 
-          if (s->place_[m].x + eight_[l].x == s->place_[i].x &&
-              s->place_[m].y + eight_[l].y == s->place_[i].y) {
+          if (s->place_[m].x + pursuitEightSurrounding[l].x == s->place_[i].x &&
+              s->place_[m].y + pursuitEightSurrounding[l].y == s->place_[i].y) {
             index = l;
           }
         }
@@ -280,7 +280,7 @@ MMPursuitState::performActions(const vector<pair<int, shared_ptr<Action>>> &acti
         id += index * pow(id2, p);  // counting observation id
       }
       ob.push_back(1);
-      observations[m] = std::make_unique<PursuitObservation>(id, ob);
+      observations[m] = std::make_shared<PursuitObservation>(id, ob);
       ob.clear();
     }
       DebugString(for (int j = 0; j < size; ++j) {
@@ -327,8 +327,8 @@ ObsPursuitState::performActions(const vector<pair<int, shared_ptr<Action>>> &act
     for (int i = 0; i < actionssize; ++i) {
       if (((k >> i) & 1) == 1) {
         if (actions[i]->getId() > -1) {
-          moves[i].x = m_[actions[i]->GetMove()].x + place_[i].x;
-          moves[i].y = m_[actions[i]->GetMove()].y + place_[i].y;
+          moves[i].x = pursuitMoves[actions[i]->GetMove()].x + place_[i].x;
+          moves[i].y = pursuitMoves[actions[i]->GetMove()].y + place_[i].y;
         }
         probability *= purDomain->probability[1];
       } else {
@@ -368,7 +368,7 @@ ObsPursuitState::performActions(const vector<pair<int, shared_ptr<Action>>> &act
       }
       ob.push_back({((k >> m) & 1), -1});
       id += ((k >> m) & 1) * ob.size();
-      observations[m] = std::make_unique<PursuitObservationLoc>(id, ob);
+      observations[m] = std::make_shared<PursuitObservationLoc>(id, ob);
       ob.clear();
     }
     DebugString(for (int j = 0; j < size; ++j) {

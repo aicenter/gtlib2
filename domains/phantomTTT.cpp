@@ -36,6 +36,7 @@ vector<shared_ptr<Action>> PhantomTTTState::getAvailableActionsFor(int player) c
   }
   return list;
 }
+
 OutcomeDistribution PhantomTTTState::performActions
     (const vector<pair<int, shared_ptr<Action>>> &actions) const {
   auto a1 = dynamic_pointer_cast<PhantomTTTAction>(std::find_if( actions.begin(), actions.end(),
@@ -57,8 +58,8 @@ OutcomeDistribution PhantomTTTState::performActions
       moves[0][a1->GetMove()] = 2;
       pla2.emplace_back(0);
     }
-    observations[0]=make_unique<PhantomTTTObservation>(success);
-    observations[1]= make_unique<Observation>(-1);
+    observations[0]=make_shared<PhantomTTTObservation>(success);
+    observations[1]= make_shared<Observation>(-1);
   } else {
     if (moves[0][a2->GetMove()] == 0) {
       moves[1][a2->GetMove()] = 1;
@@ -68,8 +69,8 @@ OutcomeDistribution PhantomTTTState::performActions
       moves[1][a2->GetMove()] = 2;
       pla2.emplace_back(1);
     }
-    observations[0] = make_unique<Observation>(-1);
-    observations[1] = make_unique<PhantomTTTObservation>(success);
+    observations[0] = make_shared<Observation>(-1);
+    observations[1] = make_shared<PhantomTTTObservation>(success);
   }
   auto board = moves[0];
   for (int i = 0; i < 9; ++i) {
@@ -129,15 +130,15 @@ OutcomeDistribution PhantomTTTState::performActions
       }
     }
     s = make_shared<PhantomTTTState>(domain, moves, pla2);
-    DebugString(s-> strings_[0].append(strings_[0] + "  ||  ACTION: " + a1->toString() + // TODO: nullptr problem
+    DebugString(s-> strings_[0].append(strings_[0] + "  ||  ACTION: " + (a1? a1->toString() : "NoA") +
     "  | OBS: " + observations[0]->toString()+ "  ||  END OF GAME");
-    s-> strings_[1].append(strings_[1] + "  ||  ACTION: " + a2->toString() +
+    s-> strings_[1].append(strings_[1] + "  ||  ACTION: " + (a2? a2->toString() : "Nothing") +
     "  | OBS: " + observations[1]->toString()+ "  ||  END OF GAME");)
   } else {
     s = make_shared<PhantomTTTState>(domain, moves, pla2);
-    DebugString(s-> strings_[0].append(strings_[0] + "  ||  ACTION: " + a1->toString() +
+    DebugString(s-> strings_[0].append(strings_[0] + "  ||  ACTION: " + (a1? a1->toString() : "NoA") +
     "  | OBS: " + observations[0]->toString());
-    s-> strings_[1].append(strings_[1] + "  ||  ACTION: " + a2->toString() +
+    s-> strings_[1].append(strings_[1] + "  ||  ACTION: " + (a2? a2->toString() : "NoA") +
     "  | OBS: " + observations[1]->toString());)
   }
   Outcome o(move(s), observations, rewards);

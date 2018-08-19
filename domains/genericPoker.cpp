@@ -12,6 +12,17 @@ namespace GTLib2 {
   GenericPokerAction::GenericPokerAction(int id, int type, int value):
           Action(id), type_(type), value_(value) {}
 
+  size_t GenericPokerAction::getHash() const {
+    size_t seed = 0;
+    boost::hash_combine(seed, type_);
+    boost::hash_combine(seed, value_);
+    return seed;
+  }
+  bool GenericPokerAction::operator==(const Action &that) const {
+    const auto rhsAction = dynamic_cast<const GenericPokerAction*>(&that);
+    return this->type_ == rhsAction->type_ && this->value_ == rhsAction->value_;
+  }
+
   GenericPokerObservation::GenericPokerObservation(int id, int type, int value):
           Observation(id), type_(type), value_(value) {}
 
@@ -64,7 +75,7 @@ namespace GTLib2 {
                 (3+p1card, PlayCard, p1card), make_shared<GenericPokerObservation>(3+p2card, PlayCard, p2card)};
         Outcome outcome(newState, newObservations, rewards);
 
-        rootStatesDistribution.emplace_back(outcome,prob);
+        rootStatesDistribution.emplace_back(move(outcome),prob);
       }
     }
   }
@@ -236,7 +247,7 @@ namespace GTLib2 {
           Outcome outcome(newState, vector<shared_ptr<Observation>>
           {make_shared<GenericPokerObservation>(3+i, PlayCard, i),
                   make_shared<GenericPokerObservation>(3+i, PlayCard, i)}, vector<double>(2));
-          newOutcomes.emplace_back(outcome,prob);
+          newOutcomes.emplace_back(move(outcome),prob);
         }
         return newOutcomes;
       }
@@ -247,7 +258,7 @@ namespace GTLib2 {
       }
       newState = make_shared<GenericPokerState>(domain, player1Card_, player2Card_, natureCard_,
               newFirstPlayerReward, new_pot, next_players, new_round, newLastAction, newContinuousRaiseCount);
-      observations[0] = make_shared<GenericPokerObservation>(-1,-1,-1);
+      observations[0] = make_shared<Observation>(-1);
       observations[1] = make_shared<GenericPokerObservation>(id, a1->GetType(), a1->GetValue());
     } else if (a2) {
       switch (a2->GetType()) {
@@ -332,7 +343,7 @@ namespace GTLib2 {
           Outcome outcome(newState, vector<shared_ptr<Observation>>
                   {make_shared<GenericPokerObservation>(3+i, PlayCard, i),
                    make_shared<GenericPokerObservation>(3+i, PlayCard, i)}, vector<double>(2));
-          newOutcomes.emplace_back(outcome, prob);
+          newOutcomes.emplace_back(move(outcome), prob);
         }
         return newOutcomes;
       }
@@ -344,7 +355,7 @@ namespace GTLib2 {
       newState = make_shared<GenericPokerState>(domain, player1Card_, player2Card_, natureCard_, newFirstPlayerReward,
               new_pot, next_players, new_round, newLastAction, newContinuousRaiseCount);
       observations[0] = make_shared<GenericPokerObservation>(id, a2->GetType(), a2->GetValue());
-      observations[1] = make_shared<GenericPokerObservation>(-1,-1,-1);
+      observations[1] = make_shared<Observation>(-1);
     }
     vector<double> rewards(2);
     if(new_round == pokerDomain->TERMINAL_ROUND) {
@@ -361,18 +372,18 @@ namespace GTLib2 {
         rewards = vector<double>{-newFirstPlayerReward, newFirstPlayerReward};
       }
     }
-    Outcome outcome(newState, observations, rewards);
-    newOutcomes.emplace_back(outcome,1.0);
+    Outcome outcome(newState, move(observations), rewards);
+    newOutcomes.emplace_back(move(outcome),1.0);
 
     return newOutcomes;
   }
 
   GenericPokerState::GenericPokerState(Domain* domain, int p1card, int p2card, optional<int> natureCard,
                                        double firstPlayerReward, double pot, vector<int> players, int round,
-           shared_ptr<GenericPokerAction> lastAction, int continuousRaiseCount):
+                                       shared_ptr<GenericPokerAction> lastAction, int continuousRaiseCount):
           State(domain) , player1Card_(p1card), player2Card_(p2card), natureCard_(move(natureCard)), pot(pot), firstPlayerReward(firstPlayerReward),
-          players_(move(players)), round_(round), continuousRaiseCount_(continuousRaiseCount), lastAction(
-          move(lastAction)) {}
+          players_(move(players)), round_(round), continuousRaiseCount_(continuousRaiseCount),
+          lastAction(move(lastAction)) {}
 
   GenericPokerState::GenericPokerState(Domain* domain, int p1card, int p2card,
                                        optional<int> natureCard, unsigned int ante, vector<int> players):

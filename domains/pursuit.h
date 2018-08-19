@@ -22,13 +22,21 @@ namespace GTLib2 {
         int x;
     };
 
-// moves description
-    const vector<string> movedes_ = {"stay", "right", "down", "left", "up"};
+  // Moore neighborhood for observations
+  static std::array<Pos, 10> pursuitEightSurrounding = {{{-2, -2}, {-1, -1}, {0,-1}, {1, -1},
+                        {-1,  0}, {1,  0}, {-1,  1}, {0,  1}, {1,  1}, {0,  0}}};
 
-// eight surrounding description -  MooreNeighborhood
-    const vector<string> eightdes_ = {"nowhere", "top left", "top", "top right",
-                                      "left", "right", "bottom left", "bottom",
-                                      "bottom right", "same"};
+  // eight surrounding description
+  static std::array<string,10> eightdes_ = {"nowhere", "top left", "top", "top right",
+                                            "left", "right", "bottom left", "bottom",
+                                            "bottom right", "same"};
+
+  // moves
+  static std::array<Pos,5> pursuitMoves = {{{0,  0}, {1,  0}, {0,  1}, {-1, 0}, {0,  -1}}};
+
+  // moves description
+  static std::array<string,5> movedes_ = {"stay", "right", "down", "left", "up"};
+
 
 /**
  * PursuitAction is a class that represents pursuit actions,
@@ -165,21 +173,6 @@ namespace GTLib2 {
     protected:
         vector<Pos> place_;  // locations of all players
         // eight surrounding
-        vector<Pos> eight_ = {{-2, -2},
-                              {-1, -1},
-                              {0,-1},
-                              {1, -1},
-                              {-1,  0},
-                              {1,  0},
-                              {-1,  1},
-                              {0,  1},
-                              {1,  1},
-                              {0,  0}};
-        vector<Pos> m_ = {{0,  0},
-                          {1,  0},
-                          {0,  1},
-                          {-1, 0},
-                          {0,  -1}};  // moves
         vector<string> strings_;
         vector<int> players_;
         double prob_ = 1;  // state probability

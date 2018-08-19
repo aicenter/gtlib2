@@ -28,28 +28,19 @@ namespace GTLib2 {
  * which contains action-observation history, state,
  * rewards (utility) and Information set.
  */
-  class EFGNode {
+  class EFGNode final : public std::enable_shared_from_this<EFGNode const>  {
    public:
 
     // Constructor for the same round node
-    EFGNode(const EFGNode* parent, const vector<pair<int, shared_ptr<Action>>> &performedActions,
+    EFGNode(shared_ptr<EFGNode const> parent, const vector<pair<int, shared_ptr<Action>>> &performedActions,
             shared_ptr<Action> incomingAction);
 
     // Constructor for the new round node
-    EFGNode(shared_ptr<State> newState, const EFGNode* parent,
+    EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,
             const vector<shared_ptr<Observation>> &observations,
             const vector<double> &rewards,
             const vector<pair<int, shared_ptr<Action>>> &lastRoundActions,
             double natureProbability, shared_ptr<Action> incomingAction);
-
-    // Constructor for the new round node
-    EFGNode(shared_ptr<State> newState, const EFGNode* parent,
-            const vector<shared_ptr<Observation>> &observations,
-            const vector<double> &rewards,
-             const vector<pair<int, shared_ptr<Action>>> &lastRoundActions,
-            double natureProbability, shared_ptr<Action> incomingAction,
-            const vector<shared_ptr<Observation>> &initialObservations);
-
 
     // Returns the sequence of actions performed by the player since the root.
     ActionSequence getActionsSeqOfPlayer(int player) const;
@@ -60,7 +51,7 @@ namespace GTLib2 {
     vector<shared_ptr<Action>> availableActions() const;
 
     // Perform the given action and returns the next node or nodes in case of stochastic games together with the probabilities.
-    EFGNodesDistribution performAction(shared_ptr<Action> action) const;
+    EFGNodesDistribution performAction(const shared_ptr<Action>& action) const;
 
     // Gets the information set of the node represented as ActionObservationHistory set.
     shared_ptr<AOH> getAOHInfSet() const;
@@ -69,7 +60,7 @@ namespace GTLib2 {
     bool isContainedInInformationSet(const shared_ptr<AOH> &infSet) const;
 
     // Gets the parent efg node.
-    const EFGNode* getParent() const;
+    shared_ptr<EFGNode const> getParent() const;
 
     // Gets action that was performed at parent node and the result led to this node.
     shared_ptr<Action> getIncomingAction() const;
@@ -88,21 +79,21 @@ namespace GTLib2 {
 
     int getLastObservationIdOfCurrentPlayer() const;
 
+    int getNumberOfRemainingPlayers() const;
+
     optional<int> getCurrentPlayer() const;
 
     vector<double> rewards;
-    vector<shared_ptr<Observation>> initialObservations;
     vector<shared_ptr<Observation>> observations;
+    vector<pair<int, shared_ptr<Action>>> performedActionsInThisRound;
     double natureProbability;
 
    private:
-
     vector<std::pair<int, int>> getAOH(int player) const;
-    vector<pair<int, shared_ptr<Action>>> performedActionsInThisRound;
     vector<pair<int, shared_ptr<Action>>> previousRoundActions;
     vector<int> remainingPlayersInTheRound;
     shared_ptr<State> state;
-    const EFGNode* parent;
+    shared_ptr<EFGNode const> parent;
     shared_ptr<Action> incomingAction; // Action performed in the parent node.
     optional<int> currentPlayer = nullopt;
   };
@@ -123,6 +114,21 @@ namespace std {
             return *a == *b;
         }
     };
+
+  template<>
+  struct hash<EFGNode*> {
+    size_t operator()(const EFGNode *p) const {
+      return p->getHash();
+    }
+  };
+
+  template<>
+  struct equal_to<EFGNode*> {
+    bool operator()(const EFGNode* a,
+                    const EFGNode* b) const {
+      return *a == *b;
+    }
+  };
 }
 
 

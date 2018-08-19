@@ -55,6 +55,10 @@ namespace GTLib2 {
         return h(id);
     }
 
+  std::unique_ptr<Observation> Observation::clone() const {
+        return std::unique_ptr<Observation>(new Observation(*this));
+  }
+
   Outcome::Outcome(shared_ptr<State> s, vector<shared_ptr<Observation>> observations,
                    vector<double> rewards)
           : state(move(s)), rewards(move(rewards)), observations(move(observations)) {}
@@ -89,18 +93,15 @@ namespace GTLib2 {
     size_t AOH::computeHash() const {
         size_t seed = 0;
         for (auto actionObservation : aoh) {
-//            seed ^=  std::get<0>(actionObservation) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-//            seed ^=  std::get<1>(actionObservation) + 0x9e3779b9 + (seed<<6) + (seed>>2);
             boost::hash_combine(seed, std::get<0>(actionObservation));
             boost::hash_combine(seed, std::get<1>(actionObservation));
             }
         return seed;
     }
 
-    AOH::AOH(int player, int initialObservation, const vector<pair<int, int>> &aoHistory) {
+    AOH::AOH(int player, const vector<pair<int, int>> &aoHistory) {
         aoh = aoHistory;
         this->player = player;
-        this->initialObservationId = initialObservation;
         hashValue = computeHash();
     }
 
@@ -109,8 +110,7 @@ namespace GTLib2 {
         if (rhsAOH != nullptr) {
             if (player != rhsAOH->player ||
                 hashValue != rhsAOH->hashValue ||
-                aoh.size() != rhsAOH->aoh.size() ||
-                initialObservationId != rhsAOH->initialObservationId) {
+                aoh.size() != rhsAOH->aoh.size()) {
                 return false;
             }
             for (int i = 0; i < aoh.size(); i++) {
@@ -124,12 +124,12 @@ namespace GTLib2 {
     }
 
     int AOH::getNumberOfActions() const {
-        return (int) aoh.size();
+        return (int) aoh.size()-1;
     }
 
   string AOH::toString() const {
       string s = "Player: " + to_string(player) + ",  init observation:" +
-              to_string(initialObservationId) + ", hash value: " +
+              to_string(aoh.front().second) + ", hash value: " +
               to_string(hashValue) + "\n";
     for (const auto &i : aoh) {
       s+= "Action: " + to_string(std::get<0>(i)) + ", Obs: " + to_string(std::get<1>(i)) + " | ";
@@ -141,10 +141,10 @@ namespace GTLib2 {
   State::State(Domain* domain):domain(domain) {};
 
     Domain::Domain(int maxDepth, unsigned int numberOfPlayers) :
-            maxDepth(maxDepth), numberOfPlayers(numberOfPlayers) {}
+            maxDepth(maxDepth), numberOfPlayers(numberOfPlayers), maxUtility(0) {}
 
 
-    OutcomeDistribution Domain::getRootStatesDistribution() const {
+    const OutcomeDistribution& Domain::getRootStatesDistribution() const {
         return rootStatesDistribution;
     }
 

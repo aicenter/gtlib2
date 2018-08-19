@@ -21,13 +21,14 @@ namespace GTLib2 {
         public:
             GoofSpielAction(int id, int card);
             string toString() const override;
-
+            bool operator==(const Action &that) const override;
+            size_t getHash() const override;
             int cardNumber;
         };
 
         class GoofSpielObservation : public Observation {
         public:
-            GoofSpielObservation(optional<int> newBid,optional<int> player1LastCard,
+            GoofSpielObservation(int id, optional<int> newBid,optional<int> player1LastCard,
                                  optional<int> player2LastCard);
 
             optional<int> newBid;
@@ -35,21 +36,36 @@ namespace GTLib2 {
             optional<int> player2LastCard;
         };
 
+      class IIGoofSpielObservation : public Observation {
+       public:
+        IIGoofSpielObservation(int id, optional<int> newBid, optional<int> myLastCard,
+                optional<int> result);
+
+        optional<int> newBid;
+        optional<int> myLastCard;
+        optional<int> result;
+      };
+
         class GoofSpielDomain : public Domain {
         public:
-            explicit GoofSpielDomain(int maxDepth);
-            GoofSpielDomain(int numberOfCards, int maxDepth);
+            GoofSpielDomain(int maxDepth, optional<unsigned long int> seed);
+            GoofSpielDomain(int numberOfCards, int maxDepth, optional<unsigned long int> seed);
             string getInfo() const override;
             vector<int> getPlayers() const override;
+            const int numberOfCards;
+            const int seed;
         };
 
-        class SeedGoofSpielDomain : public Domain {
-         public:
-          SeedGoofSpielDomain(int maxDepth, unsigned long int seed);
-          SeedGoofSpielDomain(int numberOfCards, int maxDepth, unsigned long int seed);
-          string getInfo() const override;
-          vector<int> getPlayers() const override;
-        };
+      class IIGoofSpielDomain : public Domain {
+       public:
+        IIGoofSpielDomain(int maxDepth, optional<unsigned long int> seed);
+        IIGoofSpielDomain(int numberOfCards, int maxDepth, optional<unsigned long int> seed);
+        string getInfo() const override;
+        vector<int> getPlayers() const override;
+        const int numberOfCards;
+        const int seed;
+      };
+
 
         class GoofSpielState : public State {
         public:
@@ -80,30 +96,26 @@ namespace GTLib2 {
           vector<int> player2PlayedCards;
           vector<int> naturePlayedCards;
           optional<int> natureSelectedCard; // Not in the deck
-            double player1CumulativeReward;
-            double player2CumulativeReward;
-
-
-
+          double player1CumulativeReward;
+          double player2CumulativeReward;
         };
 
-        class SeedGoofSpielState : public GoofSpielState {
-         public:
-          SeedGoofSpielState(Domain* domain, unordered_set<int> player1Deck, unordered_set<int> player2Deck,
-                  unordered_set<int> natureDeck, optional<int> natureSelectedCard,
-          double player1CumulativeReward, double player2CumulativeReward,
-                  vector<int> player1PlayedCards, vector<int> player2PlayedCards,
-                  vector<int> naturePlayedCards);
+      class IIGoofSpielState : public GoofSpielState {
+       public:
+        IIGoofSpielState(Domain* domain, unordered_set<int> player1Deck, unordered_set<int> player2Deck,
+                           unordered_set<int> natureDeck, optional<int> natureSelectedCard,
+                           double player1CumulativeReward, double player2CumulativeReward,
+                           vector<int> player1PlayedCards, vector<int> player2PlayedCards,
+                           vector<int> naturePlayedCards);
 
-          SeedGoofSpielState(Domain* domain, const GoofSpielState& previousState, int player1Card,
-                         int player2Card, optional<int> newNatureCard,
-                         double player1CumulativeReward,
-                         double player2CumulativeReward);
+        IIGoofSpielState(Domain* domain, const GoofSpielState& previousState, int player1Card,
+                           int player2Card, optional<int> newNatureCard,
+                           double player1CumulativeReward,
+                           double player2CumulativeReward);
 
-          OutcomeDistribution performActions(
-                  const vector<pair<int, shared_ptr<Action>>> &actions) const override;
-
-        };
+        OutcomeDistribution performActions(
+                const vector<pair<int, shared_ptr<Action>>> &actions) const final;
+      };
 
     }
 }

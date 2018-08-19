@@ -28,6 +28,8 @@ namespace GTLib2 {
    public:
     // constructor
     GenericPokerAction(int id,int type, int value);
+    bool operator==(const Action &that) const override;
+    size_t getHash() const override;
 
     // Returns move description.
     inline string toString() const final {
@@ -96,6 +98,10 @@ namespace GTLib2 {
       return type_;
     }
 
+    inline std::unique_ptr<Observation> clone() const override {
+      return std::unique_ptr<Observation>(new GenericPokerObservation(*this));
+    }
+
    private:
     int value_;
     int type_;
@@ -133,7 +139,18 @@ namespace GTLib2 {
     inline bool operator==(const State &rhs) const override {
       auto State = dynamic_cast<const GenericPokerState&>(rhs);
 
-      return  player1Card_ == State.player1Card_&&
+      if (lastAction && State.lastAction) {
+//        cout << lastAction->getId() << " " << State.lastAction->getId() <<  "  blablabla\n";
+        return lastAction->getId() == State.lastAction->getId() &&
+               player1Card_ == State.player1Card_ &&
+               player2Card_ == State.player2Card_ &&
+               round_ == State.round_ &&
+               pot == State.pot &&
+               firstPlayerReward == State.firstPlayerReward &&
+               natureCard_ == State.natureCard_ &&
+               players_ == State.players_;
+      }
+      return  player1Card_ == State.player1Card_ &&
               player2Card_ == State.player2Card_ &&
               round_ == State.round_ &&
               pot == State.pot &&
@@ -155,7 +172,9 @@ namespace GTLib2 {
       boost::hash_combine(seed, continuousRaiseCount_);
       boost::hash_combine(seed, pot);
       boost::hash_combine(seed, firstPlayerReward);
-      boost::hash_combine(seed, lastAction);
+      if(lastAction) {
+        boost::hash_combine(seed, lastAction->getId());
+      }
       return seed;
     }
 
@@ -219,12 +238,8 @@ namespace GTLib2 {
     const unsigned int maxRaisesInRow;
     const unsigned int maxDifferentBets;
     const unsigned int maxDifferentRaises;
-    int maxUtility;
     const unsigned int ante;
     const int TERMINAL_ROUND = 4;
-
   };
-
-
 }
 #endif //GTLIB2_GENERICPOKER_H

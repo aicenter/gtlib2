@@ -13,16 +13,15 @@ namespace GTLib2 {
     algorithms::createRootEFGNodesFromInitialOutcomeDistribution(const OutcomeDistribution &probDist) {
         EFGNodesDistribution nodes;
 
-        for (auto outcomeProb: probDist) {
-            auto outcome = outcomeProb.first;
+        for (auto &outcomeProb: probDist) {
+            auto &outcome = outcomeProb.first;
             auto prob = outcomeProb.second;
-            auto node = make_shared<EFGNode>(move(outcome.state), nullptr,
-                                             move(outcome.observations),
+            auto node = make_shared<EFGNode>(outcome.state, nullptr,
+                                             outcome.observations,
                                              outcome.rewards,
                                              vector<pair<int, shared_ptr<Action>>>(),
-                                             prob, nullptr,
-                                             move(outcome.observations));
-            nodes.emplace_back(node, prob);
+                                             prob, nullptr);
+            nodes.emplace_back(move(node), prob);
         }
         return nodes;
     }
@@ -62,8 +61,7 @@ namespace GTLib2 {
     //TODO: Write a test
     EFGNodesDistribution
     algorithms::getAllNodesInTheInformationSetWithNatureProbability(const shared_ptr<AOH> &infSet,
-                                                                    const Domain &domain) {
-
+                                                                    const Domain &domain) { // TODO: not working in Generic Poker
 
         vector<pair<shared_ptr<EFGNode>, double>> nodes;
 
@@ -131,9 +129,8 @@ namespace GTLib2 {
 
 
         for (const auto &rootNode : rootNodes) {
-            traverse(rootNode.first, 0, infSet->getInitialObservationId());
+            traverse(rootNode.first, 1, infSet->getInitialObservationId());
         }
-
 
         return nodes;
     }

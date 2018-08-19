@@ -6,6 +6,7 @@
 #include "treeWalk.h"
 #include "common.h"
 #include "utility.h"
+#include "bestResponse.h"
 
 
 namespace GTLib2 {
@@ -35,20 +36,20 @@ namespace GTLib2 {
         }
       };
       algorithms::treeWalkEFG(domain, getStrategy, domain.getMaxDepth());
-      return move(strategy);
+      return strategy;
     }
 
     pair<double, double>
-    CFRiterations(const Domain &domain, int iterations) { // TODO: second function with time
+    CFRiterations(const Domain &domain, int iterations) {
       auto regrets = unordered_map<shared_ptr<InformationSet>,
               pair<vector<double>, vector<double>>>();
       int nbSamples = 0;
       bool firstIteration = true;
-      auto efgnodes = unordered_map<shared_ptr<EFGNode>, unordered_map<shared_ptr<Action>,
+      auto efgnodes = unordered_map<EFGNode*, unordered_map<shared_ptr<Action>,
               EFGNodesDistribution>>();
 
       const auto iteration = [&regrets, &efgnodes, &nbSamples, &firstIteration](
-              shared_ptr<EFGNode> node, double pi1, double pi2, int player, const auto &iteration) {
+              EFGNode* node, double pi1, double pi2, int player, const auto &iteration) {
         if (pi1 == 0 && pi2 == 0) {
           return 0.0;
         }
@@ -92,10 +93,10 @@ namespace GTLib2 {
             double new_p2 = player == 0 ? pi2 * newNode.second : pi2;
             if (currentplayer == 0) {
               tmpV[i] += newNode.second *
-                         iteration(newNode.first, new_p1 * rmProbs[i], new_p2, player, iteration);
+                         iteration(newNode.first.get(), new_p1 * rmProbs[i], new_p2, player, iteration);
             } else {
               tmpV[i] += newNode.second *
-                         iteration(newNode.first, new_p1, rmProbs[i] * new_p2, player, iteration);
+                         iteration(newNode.first.get(), new_p1, rmProbs[i] * new_p2, player, iteration);
             }
           }
           ev += rmProbs[i] * tmpV[i];
@@ -122,31 +123,31 @@ namespace GTLib2 {
       for (int i = 0; i < iterations; ++i) {
         double v1 = 0, v2 = 0;
         for (const auto &nodeProb : rootNodes) {
-          v1 += nodeProb.second * iteration(nodeProb.first, 1, nodeProb.second, 0, iteration);
+          v1 += nodeProb.second * iteration(nodeProb.first.get(), 1, nodeProb.second, 0, iteration);
         }
         firstIteration = false;
         for (const auto &nodeProb : rootNodes) {
-          v2 += nodeProb.second * iteration(nodeProb.first, nodeProb.second, 1, 1, iteration);
+          v2 += nodeProb.second * iteration(nodeProb.first.get(), nodeProb.second, 1, 1, iteration);
         }
         cout << v1 << " " << v2 << "\n";
       }
       auto strat1 = getStrategyFor(domain, 0, regrets);
+      cout << algorithms::bestResponseToPrunning(strat1, 0, 1, domain).second << "\n";
       auto strat2 = getStrategyFor(domain, 1, regrets);
+      cout << algorithms::bestResponseToPrunning(strat2, 1, 0, domain).second << "\n";
       return algorithms::computeUtilityTwoPlayersGame(domain, strat1, strat2, 0, 1);
       ;
     }
 
-
     pair<double, double>
-    CFRiterationsAOH(const Domain &domain, int iterations) { // TODO: second function with time
+    CFRiterationsAOH(const Domain &domain, int iterations) { // TODO: not working for second player in Goofspiel
       auto regrets = unordered_map<shared_ptr<InformationSet>, pair<vector<double>, vector<double>>>();
       int nbSamples = 0;
       bool firstIteration = true;
-      auto aoh1 = vector<int>();
-      auto aoh2 = vector<int>();
+      auto aoh1 = vector<pair<int,int>>();
+      auto aoh2 = vector<pair<int,int>>();
       auto efgnodes = unordered_map<shared_ptr<EFGNode>, unordered_map<shared_ptr<Action>, EFGNodesDistribution>>();
-
-      const auto iteration = [&regrets, &efgnodes, &nbSamples, &aoh1, &aoh2, &firstIteration](
+      const auto iteration = [&regrets, &efgnodes,&x, &domain, &nbSamples, &aoh1, &aoh2, &firstIteration](
               shared_ptr<EFGNode> node, double pi1, double pi2, int player, const auto &iteration) {
         if (pi1 == 0 && pi2 == 0) {
           return 0.0;
@@ -158,18 +159,9 @@ namespace GTLib2 {
         }
         const int currentplayer = *node->getCurrentPlayer();
         const auto K = static_cast<const unsigned int>(actions.size());
-        vector<pair<int, int>> aohistory{};
-        if (currentplayer == 0) {
-          for (int i = 0; i < aoh1.size(); i += 2) {
-            aohistory.emplace_back(aoh1[i], aoh1[i + 1]);
-          }
-        } else {
-          for (int i = 0; i < aoh2.size(); i += 2) {
-            aohistory.emplace_back(aoh2[i], aoh2[i + 1]);
-          }
-        }
-        auto is = make_shared<AOH>(currentplayer, node->initialObservations[currentplayer]->getId(),
-                                   aohistory);
+        auto is = make_shared<AOH>(currentplayer,
+                currentplayer == 0? aoh1 : aoh2);
+
         if (firstIteration && regrets.find(is) == regrets.end()) {
           regrets[is] = make_pair(vector<double>(K), vector<double>(K));
         }
@@ -200,18 +192,24 @@ namespace GTLib2 {
           }
 
           auto newNodes = newNodesMap.at(action);
-          if (currentplayer == 0) {
-            aoh1.push_back(action->getId());
-            aoh2.push_back(-1);
-          } else {
-            aoh1.push_back(-1);
-            aoh2.push_back(action->getId());
-          }
           for (const auto &newNode : newNodes) {
             double new_p1 = player == 1 ? pi1 * newNode.second : pi1;
             double new_p2 = player == 0 ? pi2 * newNode.second : pi2;
-            aoh1.push_back(newNode.first->observations[0]->getId());
-            aoh2.push_back(newNode.first->observations[1]->getId());
+
+            if(node->getNumberOfRemainingPlayers() == 1) {
+              if (node->performedActionsInThisRound.empty()) {
+                if (currentplayer == 0) {
+                  aoh1.emplace_back(action->getId(), newNode.first->observations[0]->getId());
+                  aoh2.emplace_back(-1, newNode.first->observations[1]->getId());
+                } else {
+                  aoh1.emplace_back(-1, newNode.first->observations[0]->getId());
+                  aoh2.emplace_back(action->getId(), newNode.first->observations[1]->getId());
+                }
+              } else {
+                aoh1.emplace_back(node->getIncomingAction()->getId(), newNode.first->observations[0]->getId());
+                aoh2.emplace_back(action->getId(), newNode.first->observations[1]->getId());
+              }
+            }
             if (currentplayer == 0) {
               tmpV[i] += newNode.second *
                          iteration(newNode.first, new_p1 * rmProbs[i], new_p2, player, iteration);
@@ -219,18 +217,18 @@ namespace GTLib2 {
               tmpV[i] += newNode.second *
                          iteration(newNode.first, new_p1, rmProbs[i] * new_p2, player, iteration);
             }
-            aoh1.pop_back();
-            aoh2.pop_back();
+            if(node->getNumberOfRemainingPlayers() == 1) {
+              aoh1.pop_back();
+              aoh2.pop_back();
+            }
           }
           ev += rmProbs[i] * tmpV[i];
-          aoh1.pop_back();
-          aoh2.pop_back();
         }
         if (currentplayer == player) {
-          for (int j = 0; j != K; j++) {
+          for (int j = 0; j != K; ++j) {
             r[j] += (player == 0 ? pi2 : pi1) * (tmpV[j] - ev);
           }
-          for (int j = 0; j != K; j++) {
+          for (int j = 0; j != K; ++j) {
             mp[j] += (player == 0 ? pi1 : pi2) * rmProbs[j];
           }
           regrets[is] = make_pair(r, mp);
@@ -248,16 +246,25 @@ namespace GTLib2 {
       for (int i = 0; i < iterations; ++i) {
         double v1 = 0, v2 = 0;
         for (const auto &nodeProb : rootNodes) {
+          aoh1.emplace_back(-1, nodeProb.first->observations[0]->getId());
+          aoh2.emplace_back(-1, nodeProb.first->observations[1]->getId());
           v1 += nodeProb.second * iteration(nodeProb.first, 1, nodeProb.second, 0, iteration);
+          aoh1.pop_back();
+          aoh2.pop_back();
         }
-        firstIteration = false;
         for (const auto &nodeProb : rootNodes) {
+          aoh1.emplace_back(-1, nodeProb.first->observations[0]->getId());
+          aoh2.emplace_back(-1, nodeProb.first->observations[1]->getId());
           v2 += nodeProb.second * iteration(nodeProb.first, nodeProb.second, 1, 1, iteration);
+          aoh1.pop_back();
+          aoh2.pop_back();
         }
         cout << v1 << " " << v2 << "\n";
       }
       auto strat1 = getStrategyFor(domain, 0, regrets);
+      cout << "bestResp1: " << algorithms::bestResponseToPrunning(strat1, 0, 1, domain).second << "\n";
       auto strat2 = getStrategyFor(domain, 1, regrets);
+      cout << "bestResp2: "<< algorithms::bestResponseToPrunning(strat2, 1, 0, domain).second << "\n";
       return algorithms::computeUtilityTwoPlayersGame(domain, strat1, strat2, 0, 1);
     }
   }

@@ -23,7 +23,7 @@ namespace GTLib2 {
     /**
      * The main function for CFR iteration.
      * Implementation based on Algorithm 1 in M. Lanctot PhD thesis.
-     * AOhistory created in iterations, not in nodes.
+     * AOhistory created in iterations, not in nodes. It should be a first choice.
      */
     pair<double,double> CFRiterationsAOH(const Domain &domain, int iterations);
   }
