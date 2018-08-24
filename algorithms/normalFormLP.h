@@ -4,8 +4,8 @@
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
-#ifndef NORMALFORMLP_H_
-#define NORMALFORMLP_H_
+#ifndef ALGORITHMS_NORMALFORMLP_H_
+#define ALGORITHMS_NORMALFORMLP_H_
 
 #include <cassert>
 #include <iostream>
@@ -16,12 +16,11 @@
 #include "utility.h"
 #include "common.h"
 
-
 using std::vector;
 using std::shared_ptr;
 
 namespace GTLib2 {
-    namespace algorithms {
+namespace algorithms {
 /**
  * This class represents the algorithm for solving two-player zero-sum game
  * using a linear program (LP) and normal form.
@@ -31,64 +30,63 @@ namespace GTLib2 {
  * and directly builds the LP.
  * The class also rebuilds the LP whenever there is a change to the utility matrix.
  */
-        class NormalFormLP {
-        public:
-            explicit NormalFormLP(shared_ptr<Domain> _game,
-                                  shared_ptr<LPSolver> _lp_solver);
+class NormalFormLP {
+ public:
+  explicit NormalFormLP(shared_ptr<Domain> _game,
+                        unique_ptr<LPSolver> _lp_solver);
 
-            explicit NormalFormLP(const unsigned int _p1_actions, const unsigned int _p2_actions,
-                                  const vector<double> &_utilities,
-                                  shared_ptr<LPSolver> _lp_solver);
+  explicit NormalFormLP(const unsigned int _p1_actions, const unsigned int _p2_actions,
+                        const vector<double> &_utilities,
+                        unique_ptr<LPSolver> _lp_solver);
 
-            explicit NormalFormLP(const unsigned int _p1_actions, const unsigned int _p2_actions,
-                                  const vector<vector<double>> &_utilities,
-                                  shared_ptr<LPSolver> _lp_solver);
+  explicit NormalFormLP(const unsigned int _p1_actions, const unsigned int _p2_actions,
+                        const vector<vector<double>> &_utilities,
+                        unique_ptr<LPSolver> _lp_solver);
 
-            virtual ~NormalFormLP();
+  virtual ~NormalFormLP();
 
-            double SolveGame();
+  double SolveGame();
 
-            void AddActions(const int _player,
-                            const vector<vector<double>> &_utility_for_opponent);
+  void AddActions(const int _player,
+                  const vector<vector<double>> &_utility_for_opponent);
 
-            void ChangeOutcome(const int _action_for_p1, const int _action_for_p2,
-                               double _new_utility);
+  void ChangeOutcome(const int _action_for_p1, const int _action_for_p2,
+                     double _new_utility);
 
-            shared_ptr<vector<double>> GetStrategy(int _player);
+  shared_ptr<vector<double>> GetStrategy(int _player);
 
-            void UpdateUtilityMatrix(const vector<double> &_utilities);
+  void UpdateUtilityMatrix(const vector<double> &_utilities);
 
-            void UpdateUtilityMatrix(const vector<vector<double>> &_utilities);
+  void UpdateUtilityMatrix(const vector<vector<double>> &_utilities);
 
-            void SaveLP(const char *_file);
+  void SaveLP(const char *_file);
 
+ protected:
+  unique_ptr<LPSolver> lp_solver;
 
-        protected:
-            shared_ptr<LPSolver> lp_solver;
+  unsigned int rows_;
+  unsigned int cols_;
+  const bool OUTPUT = true;
 
-            unsigned int rows_;
-            unsigned int cols_;
-            const bool OUTPUT = true;
+  double value_of_the_game_ = NAN;
 
-            double value_of_the_game_ = NAN;
+  bool model_ready_ = false;
+  bool model_solved_ = false;
 
-            bool model_ready_ = false;
-            bool model_solved_ = false;
+  void CleanModel();
 
-            void CleanModel();
+  void BuildModel(const vector<double> *_utility_matrix);
 
-            void BuildModel(const vector<double> *_utility_matrix);
+  bool ValidateInput(const int _p1_actions, const int _p2_actions,
+                     const vector<double> &_utilities);
 
-            bool ValidateInput(const int _p1_actions, const int _p2_actions,
-                               const vector<double> &_utilities);
+  void AddRows(const vector<vector<double>> &_utility_for_cols);
 
-            void AddRows(const vector<vector<double>> &_utility_for_cols);
+  void AddCols(const vector<vector<double>> &_utility_for_rows);
+};
+}  // namespace algorithms
+}  // namespace GTLib2
 
-            void AddCols(const vector<vector<double>> &_utility_for_rows);
-        };
-    }
-}
-
-#endif  // NORMALFORMLP_H_
+#endif  // ALGORITHMS_NORMALFORMLP_H_
 
 #pragma clang diagnostic pop

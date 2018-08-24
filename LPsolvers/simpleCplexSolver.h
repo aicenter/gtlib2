@@ -2,8 +2,8 @@
 // Created by Pavel Rytir on 22/01/2018.
 //
 
-#ifndef GTLIB2_CPLEXSOLVER_H
-#define GTLIB2_CPLEXSOLVER_H
+#ifndef LPSOLVERS_SIMPLECPLEXSOLVER_H_
+#define LPSOLVERS_SIMPLECPLEXSOLVER_H_
 #include <vector>
 
 using std::vector;
@@ -12,4 +12,4 @@ double solveLP(int rows, int cols,
                const vector<double> &utility_matrix,
                vector<double> &solution);
 
-#endif //GTLIB2_CPLEXSOLVER_H
+#endif  // LPSOLVERS_SIMPLECPLEXSOLVER_H_

@@ -2,15 +2,14 @@
 // Created by Jakub Rozlivek on 16.10.17.
 //
 
-#ifndef CPLEXLPSOLVER_H_
-#define CPLEXLPSOLVER_H_
+#ifndef LPSOLVERS_CPLEXLPSOLVER_H_
+#define LPSOLVERS_CPLEXLPSOLVER_H_
 
 #define IL_STD
 
 #include <ilcplex/ilocplex.h>
+#include <vector>
 #include "LPSolver.h"
-
-
 
 class CplexLPSolver : public LPSolver {
  public:
@@ -22,22 +21,19 @@ class CplexLPSolver : public LPSolver {
 
   double SolveGame() final;
 
-  void BuildModel(int rows, int cols, const vector<double>* utility_matrix,
-                  bool OUTPUT) final;
+  void BuildModel(int rows, int cols, const vector<double> *utility_matrix, bool OUTPUT) final;
 
   double const GetValue(int index) const final;
 
   double const GetDual(int index) const final;
 
-  void SaveLP(const char* file) final;
+  void SaveLP(const char *file) final;
 
-  void SetConstraintCoefForVariable(int constraint, int variable,
-                                    double new_utility) final;
+  void SetConstraintCoefForVariable(int constraint, int variable, double new_utility) final;
 
-  void AddRows(int cols, const vector<vector<double>>& utility_for_cols) final;
+  void AddRows(int cols, const vector<vector<double>> &utility_for_cols) final;
 
-  void AddCols(int rows, const vector<vector<double>>& utility_for_rows) final;
-
+  void AddCols(int rows, const vector<vector<double>> &utility_for_rows) final;
 
  protected:
   IloEnv env_;
@@ -49,4 +45,4 @@ class CplexLPSolver : public LPSolver {
   IloRange prob_;
 };
 
-#endif  // CPLEXLPSOLVER_H_
+#endif  // LPSOLVERS_CPLEXLPSOLVER_H_

@@ -4,32 +4,30 @@
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
-#ifndef PURSUIT_COMMON_H
-#define PURSUIT_COMMON_H
+#ifndef ALGORITHMS_COMMON_H_
+#define ALGORITHMS_COMMON_H_
 
 #include "../base/base.h"
 #include "../base/efg.h"
 
 namespace GTLib2 {
-    namespace algorithms {
+namespace algorithms {
 
-        EFGNodesDistribution createRootEFGNodesFromInitialOutcomeDistribution(
-                const OutcomeDistribution &probDist);
+EFGNodesDistribution createRootEFGNodesFromInitialOutcomeDistribution(
+    const OutcomeDistribution &probDist);
 
+BehavioralStrategy mixedToBehavioralStrategy(const vector<BehavioralStrategy> &pureStrats,
+                                             int player1,
+                                             const vector<double> &distribution,
+                                             const Domain &domain);
 
-        BehavioralStrategy mixedToBehavioralStrategy(const vector<BehavioralStrategy> &pureStrats,
-                                                     int player1,
-                                                     const vector<double> &distribution,
-                                                     const Domain &domain);
+EFGNodesDistribution
+getAllNodesInTheInformationSetWithNatureProbability(const shared_ptr<AOH> &infSet,
+                                                    const Domain &domain);
 
-      //TODO:Naive implementation. Maybe iterator over the nodes would be better.
-        EFGNodesDistribution
-        getAllNodesInTheInformationSetWithNatureProbability(const shared_ptr<AOH> &infSet,
-                                                            const Domain &domain);
+}  // namespace algorithms
+}  // namespace GTLib2
 
-    }
-}
-
-#endif //PURSUIT_COMMON_H
+#endif  // ALGORITHMS_COMMON_H_
 
 #pragma clang diagnostic pop
