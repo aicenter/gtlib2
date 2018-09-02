@@ -90,10 +90,10 @@ vector<shared_ptr<Action>> PursuitState::getAvailableActionsFor(int player) cons
 
 OutcomeDistribution
 PursuitState::performActions(const vector<pair<int, shared_ptr<Action>>> &actions2) const {
-  vector<shared_ptr<PursuitAction>> actions(actions2.size());
-  auto purDomain = dynamic_cast<PursuitDomain *>(domain);
+  vector<PursuitAction*> actions(actions2.size());
+  auto purDomain = static_cast<PursuitDomain *>(domain);
   for (auto &i : actions2) {
-    actions[i.first] = dynamic_pointer_cast<PursuitAction>(i.second);
+    actions[i.first] = dynamic_cast<PursuitAction*>(i.second.get());
   }
   // number of all combinations
   auto actionssize = static_cast<unsigned int>(actions.size());
@@ -234,10 +234,10 @@ MMPursuitState::MMPursuitState(Domain *domain, const vector<Pos> &p, double prob
 
 OutcomeDistribution  // TODO: upravit vice tahu vice hracu - zjistit princip
 MMPursuitState::performActions(const vector<pair<int, shared_ptr<Action>>> &actions2) const {
-  vector<shared_ptr<PursuitAction>> actions(actions2.size());
-  auto purDomain = dynamic_cast<PursuitDomain *>(domain);
+  vector<PursuitAction*> actions(actions2.size());
+  auto purDomain = static_cast<PursuitDomain *>(domain);
   for (auto &i : actions2) {
-    actions[i.first] = dynamic_pointer_cast<PursuitAction>(i.second);
+    actions[i.first] = dynamic_cast<PursuitAction*>(i.second.get());
   }
   // unsigned int count = 2;
   auto actionssize = static_cast<unsigned int>(actions.size());
@@ -374,10 +374,10 @@ ObsPursuitState::ObsPursuitState(Domain *domain, const vector<Pos> &p,
 
 OutcomeDistribution
 ObsPursuitState::performActions(const vector<pair<int, shared_ptr<Action>>> &actions2) const {
-  vector<shared_ptr<PursuitAction>> actions(actions2.size());
-  auto purDomain = dynamic_cast<PursuitDomain *>(domain);
+  vector<PursuitAction*> actions(actions2.size());
+  auto purDomain = static_cast<PursuitDomain *>(domain);
   for (auto &i : actions2) {
-    actions[i.first] = dynamic_pointer_cast<PursuitAction>(i.second);
+    actions[i.first] = dynamic_cast<PursuitAction*>(i.second.get());
   }
   // number of all combinations
   auto actionssize = static_cast<unsigned int>(actions.size());
@@ -388,7 +388,7 @@ ObsPursuitState::performActions(const vector<pair<int, shared_ptr<Action>>> &act
   }
   int count = 1 << powsize;
   OutcomeDistribution prob;
-  prob.reserve(static_cast<unsigned long>(count));
+  prob.reserve(static_cast<size_t>(count));
   for (int k = 0; k < count; ++k) {
     vector<shared_ptr<Observation>> observations(place_.size());
     vector<double> rewards(place_.size());

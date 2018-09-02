@@ -118,7 +118,7 @@ string GenericPokerDomain::getInfo() const {
 vector<shared_ptr<Action>> GenericPokerState::getAvailableActionsFor(int player) const {
   auto list = vector<shared_ptr<Action>>();
   int count = 0;
-  auto pokerDomain = dynamic_cast<GenericPokerDomain *>(domain);
+  auto pokerDomain = static_cast<GenericPokerDomain *>(domain);
   if (round_ == pokerDomain->TERMINAL_ROUND) {
     return list;
   }
@@ -158,11 +158,9 @@ vector<shared_ptr<Action>> GenericPokerState::getAvailableActionsFor(int player)
 
 OutcomeDistribution
 GenericPokerState::performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const {
-  auto pokerDomain = dynamic_cast<GenericPokerDomain *>(domain);
-  auto a1 = dynamic_pointer_cast<GenericPokerAction>(std::find_if(actions.begin(), actions.end(),
-      [](pair<int, shared_ptr<Action>> const &elem) { return elem.first == 0; })->second);
-  auto a2 = dynamic_pointer_cast<GenericPokerAction>(std::find_if(actions.begin(), actions.end(),
-      [](pair<int, shared_ptr<Action>> const &elem) { return elem.first == 1; })->second);
+  const auto pokerDomain = static_cast<GenericPokerDomain *>(domain);
+  const auto a1 = dynamic_pointer_cast<GenericPokerAction>(actions[0].second);
+  const auto a2 = dynamic_pointer_cast<GenericPokerAction>(actions[1].second);
   OutcomeDistribution newOutcomes;
   vector<int> next_players = vector<int>(1);
   auto newLastAction = lastAction;
@@ -198,7 +196,7 @@ GenericPokerState::performActions(const vector<pair<int, shared_ptr<Action>>> &a
         new_pot += bet;
         break;
 
-      case Call:id = Call;
+      case Call: id = Call;
         newContinuousRaiseCount = 0;
         new_round = round_ + 1;
         bet = lastAction->GetValue();  // 2 *(pot - firstPlayerReward) - pot;
@@ -207,7 +205,7 @@ GenericPokerState::performActions(const vector<pair<int, shared_ptr<Action>>> &a
 
       case Check: id = Check;
         break;
-      case Bet:bet = a1->GetValue();
+      case Bet: bet = a1->GetValue();
         new_pot += bet;
         id = 3 + pokerDomain->maxCardTypes;
         if (round_ == 1) {
@@ -227,7 +225,7 @@ GenericPokerState::performActions(const vector<pair<int, shared_ptr<Action>>> &a
           }
         }
         break;
-      case Fold:id = Fold;
+      case Fold: id = Fold;
         newFirstPlayerReward = pot - firstPlayerReward;
         new_round = pokerDomain->TERMINAL_ROUND;
         break;

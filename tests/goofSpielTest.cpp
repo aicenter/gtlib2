@@ -7,6 +7,7 @@
 #include "../algorithms/bestResponse.h"
 #include "../algorithms/common.h"
 #include "../algorithms/equilibrium.h"
+#include "../algorithms/cfr.h"
 #include "../domains/goofSpiel.h"
 #include "../algorithms/utility.h"
 
@@ -108,7 +109,7 @@ BOOST_AUTO_TEST_CASE(bestResponseFullDepthCard4) {
 
   auto player1BestResponse = algorithms::bestResponseTo(opponentStrat, opponent, player1, gsd);
   cout << player1BestResponse.second << "\n";
-  // Value of the best response should be 7.625. TODO: Double check this
+  // Value of the best response should be 7.625.
   BOOST_CHECK(std::abs(player1BestResponse.second - 7.625) <= 0.001);
 }
 
@@ -139,7 +140,7 @@ BOOST_AUTO_TEST_CASE(bestResponseDepth2Card4) {
   BOOST_CHECK(std::abs(player1BestResponse.second - 5) <= 0.001);
 }
 
-BOOST_AUTO_TEST_CASE(bestResponseDepth2Card13) {
+BOOST_AUTO_TEST_CASE(bestResponseDepth1Card13) {
   domains::GoofSpielDomain gsd(1, nullopt);
 
   int player1 = gsd.getPlayers()[1];
@@ -162,32 +163,30 @@ BOOST_AUTO_TEST_CASE(bestResponseDepth2Card13) {
 }
 
 BOOST_AUTO_TEST_CASE(numberOfFirstAndRootLevelNodes) {
-  domains::GoofSpielDomain gsd(1, nullopt);
+  domains::GoofSpielDomain domain(1, nullopt);
 
-  int numberOfNodes = algorithms::countNodes(gsd);
+  int numberOfNodes = algorithms::countNodes(domain);
 
   // 13 root state + 13*13 next level states
   BOOST_CHECK(numberOfNodes == 182);
 }
 
 BOOST_AUTO_TEST_CASE(numberOfSecondAndFirstAndRootLevelNodes) {
-  domains::GoofSpielDomain gsd(2, nullopt);
+  domains::GoofSpielDomain domain(2, nullopt);
 
-  int numberOfNodes = algorithms::countNodes(gsd);
-
-  // 182 previous levels + (13*13)*13*12 ====
-  // 13*13 previous level nodes 13 player2 choices and 12 nature choices
-  BOOST_CHECK(numberOfNodes == 26546);
+  int numberOfNodes = algorithms::countNodes(domain);
+  // 182 previous levels + (13*13)*13*13*12 ====
+  // 13*13 previous level nodes 13 player1 choices, 13 player2 choices and 12 nature choices
+  BOOST_CHECK(numberOfNodes == 342914);
 }
 
-BOOST_AUTO_TEST_CASE(numberOfInformationSetsDepth3) {  // TODO: check number of InfSets
-  domains::GoofSpielDomain domain(3, nullopt);
+BOOST_AUTO_TEST_CASE(numberOfInformationSetsDepth2) {
+  domains::GoofSpielDomain domain(2, nullopt);
 
   int player1 = domain.getPlayers()[0];
   int player2 = domain.getPlayers()[1];
   auto player1InfSetsAndActions =
       algorithms::generateInformationSetsAndAvailableActions(domain, player1);
-  cout << player1InfSetsAndActions.size() <<"\n";
   auto player2InfSetsAndActions =
       algorithms::generateInformationSetsAndAvailableActions(domain, player2);
 
@@ -199,14 +198,30 @@ BOOST_AUTO_TEST_CASE(numberOfInformationSetsDepth3) {  // TODO: check number of 
   BOOST_CHECK(numOfInfSetsPlayer1 == 26377 && numOfInfSetsPlayer2 == 26377);
 }
 
-BOOST_AUTO_TEST_CASE(depth4numberOfNodes) {  // TODO: check number of Nodes
-  domains::GoofSpielDomain gsd(4, nullopt);
-
-  // Long test!!! 10 mins
-  // [(13*13)*13*12] * [12*12*11]
-
-  int numberOfNodes = algorithms::countNodes(gsd);
-  BOOST_CHECK(numberOfNodes == 42103490);
+BOOST_AUTO_TEST_CASE(FulldepthCard4CFR20iter) {
+  domains::GoofSpielDomain gsd(4, 4, nullopt);
+  double utility = algorithms::CFRiterationsAOH(gsd, 20).first;
+  BOOST_CHECK(std::abs(utility - 4.97946) <= 0.001);
 }
+
+
+BOOST_AUTO_TEST_CASE(FullDepthCard5ActionSequences) {
+  domains::GoofSpielDomain domain(5, 5, nullopt);
+  auto sequences = unordered_map<int, unordered_set<ActionSequence>>();
+  sequences[domain.getPlayers()[0]] = unordered_set<ActionSequence>();
+  sequences[domain.getPlayers()[1]] = unordered_set<ActionSequence>();
+  auto countingFunction = [&sequences, &domain](shared_ptr<EFGNode> node) {
+    if (node->getCurrentPlayer()) {
+      for (auto &player : domain.getPlayers()) {
+        auto seq = node->getActionsSeqOfPlayer(player);
+        sequences[player].emplace(seq);
+      }
+    }
+  };
+  algorithms::treeWalkEFG(domain, countingFunction, domain.getMaxDepth());
+  BOOST_CHECK(sequences[domain.getPlayers()[0]].size() == 2666026);
+  BOOST_CHECK(sequences[domain.getPlayers()[1]].size() == 938026);
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()

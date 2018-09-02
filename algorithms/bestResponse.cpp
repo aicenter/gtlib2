@@ -57,12 +57,11 @@ pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStr
             for (const auto &siblingNatureProb : allNodesInTheSameInfSet) {
               double natureProb = siblingNatureProb.second;
               const auto &sibling = siblingNatureProb.first;
-              double seqProb = sibling->getProbabilityOfActionsSeqOfPlayer(opponent,
-                                                                           opoStrat);
+              double seqProb = sibling->getProbabilityOfActionsSeqOfPlayer(opponent, opoStrat);
               double val = 0;
               for (auto siblingProb : sibling->performAction(action)) {
                 auto brs_val = bestResp(siblingProb.first,
-                                        siblingProb.first->getState() == sibling->getState() ?
+                                        siblingProb.first->getDepth() == sibling->getDepth() ?
                                         depth : depth - 1,
                                         natureProb * seqProb * siblingProb.second);
                 val += brs_val.second;
@@ -100,7 +99,7 @@ pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStr
               double actionProb = stratAtTheNode.at(action);
               for (auto childProb : node->performAction(action)) {
                 auto brs_val = bestResp(childProb.first,
-                                        childProb.first->getState() == node->getState() ?
+                                        childProb.first->getDepth() == node->getDepth() ?
                                         depth : depth - 1,
                                         prob * childProb.second * actionProb);
                 val += brs_val.second;
@@ -148,7 +147,7 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(
     const Domain &domain, const int maxDepth) {
   unordered_map<shared_ptr<EFGNode>, pair<BehavioralStrategy, double>> cache;
   unordered_map<shared_ptr<InformationSet>, EFGNodesDistribution> nodesInInfSet;
-  
+
   std::function<pair<BehavioralStrategy, double>(shared_ptr<EFGNode>, int, double)> bestResp =
       [&player, &opponent, &domain, &bestResp, &nodesInInfSet, &opoStrat, &cache]
           (shared_ptr<EFGNode> node, int depth, double prob) {
@@ -206,8 +205,8 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(
               double val = 0;
               for (auto siblingProb : sibling->performAction(action)) {
                 auto brs_val = bestResp(siblingProb.first,
-                                        siblingProb.first->getState() ==
-                                            sibling->getState() ? depth : depth - 1,
+                                        siblingProb.first->getDepth() ==
+                                        sibling->getDepth() ? depth : depth - 1,
                                         natureProb * seqProb * siblingProb.second);
                 val += brs_val.second;
                 brs.insert(brs_val.first.begin(), brs_val.first.end());
@@ -246,8 +245,8 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(
               double actionProb = stratAtTheNode.at(action);
               for (auto childProb : node->performAction(action)) {
                 auto brs_val = bestResp(childProb.first,
-                                        childProb.first->getState() ==
-                                            node->getState() ? depth : depth - 1,
+                                        childProb.first->getDepth() ==
+                                        node->getDepth() ? depth : depth - 1,
                                         prob * childProb.second * actionProb);
                 val += brs_val.second;
                 brs.insert(brs_val.first.begin(), brs_val.first.end());

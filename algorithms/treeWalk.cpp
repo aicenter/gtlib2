@@ -20,14 +20,14 @@ void treeWalkEFG(const Domain &domain,
 
 void treeWalkEFG(const Domain &domain,
                  std::function<void(shared_ptr<EFGNode>)> function, int maxDepth) {
-  auto traverse = [&function, &domain]
-      (const shared_ptr<EFGNode> &node, int depth, const auto &traverse) {
+  auto traverse = [&function, &domain, maxDepth]
+      (const shared_ptr<EFGNode> &node, const auto &traverse) {
     // Call the provided function on the current node.
     // Prob is the probability that this node is reached due to nature,
     // given that the players played
     // the required actions to reach this node.
 
-    if (depth <= 0) {
+    if (node->getDepth() == maxDepth) {
       return;
     }
     function(node);
@@ -35,8 +35,7 @@ void treeWalkEFG(const Domain &domain,
     for (const auto &action : actions) {
       auto newNodes = node->performAction(action);  // Non-deterministic - can get multiple nodes
       for (auto const &it : newNodes) {
-        int newDepth = it.first->getState() == node->getState() ? depth : depth - 1;
-        traverse(it.first, newDepth, traverse);
+        traverse(it.first, traverse);
       }
     }
   };
@@ -44,11 +43,11 @@ void treeWalkEFG(const Domain &domain,
   auto rootNodes = createRootEFGNodesFromInitialOutcomeDistribution(
       domain.getRootStatesDistribution());
   for (auto nodeProb : rootNodes) {
-    traverse(nodeProb.first, maxDepth, traverse);
+    traverse(nodeProb.first, traverse);
   }
 }
 
-int countNodes(const Domain &domain) {
+int countNodesInfSetsSequencesStates(const Domain &domain) {
   int nodesCounter = 0;
   auto sequences = unordered_map<int, unordered_set<ActionSequence>>();
   sequences[domain.getPlayers()[0]] = unordered_set<ActionSequence>();
@@ -72,12 +71,9 @@ int countNodes(const Domain &domain) {
         auto seq = node->getActionsSeqOfPlayer(player);
         sequences[player].emplace(seq);
       }
-//              if (nodesCounter % 10000 == 0) {
-//                cout << "Number of nodes: " << nodesCounter << "\n";
-//              }
     }
 
-    if (!node->getParent() || node->getParent()->getState() != node->getState()) {
+    if (!node->getParent() || node->getParent()->getDepth() != node->getDepth()) {
       ++statesCounter;
     }
   };
@@ -90,6 +86,21 @@ int countNodes(const Domain &domain) {
        " " << sequences.at(domain.getPlayers()[1]).size() << "\n";
   return nodesCounter;
 }
+
+int countNodes(const Domain &domain) {
+  int numberOfNodes = 0;
+  auto countingFunction = [&numberOfNodes, &domain](shared_ptr<EFGNode> node) {
+    if (node->getCurrentPlayer()) {
+      ++numberOfNodes;
+      if (numberOfNodes % 10000 == 0) {
+        cout << numberOfNodes <<"\n";
+      }
+    }
+  };
+  algorithms::treeWalkEFG(domain, countingFunction, domain.getMaxDepth());
+  return numberOfNodes;
+}
+
 }  // namespace algorithms
 }  // namespace GTLib2
 

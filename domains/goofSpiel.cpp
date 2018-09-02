@@ -43,13 +43,14 @@ IIGoofSpielObservation::IIGoofSpielObservation(int id, optional<int> newBid,
     Observation(id), newBid(move(newBid)), myLastCard(move(myLastCard)),
     result(move(result)) {}
 
-GoofSpielDomain::GoofSpielDomain(int maxDepth, optional<unsigned long int> seed) : GoofSpielDomain(
-    13,
-    maxDepth,
-    move(seed)) {}
+GoofSpielDomain::GoofSpielDomain(unsigned int maxDepth, optional<unsigned long int> seed) :
+    GoofSpielDomain(
+        13,
+        maxDepth,
+        move(seed)) {}
 
-GoofSpielDomain::GoofSpielDomain(int numberOfCards, int maxDepth, optional<unsigned long int> seed)
-    :
+GoofSpielDomain::GoofSpielDomain(int numberOfCards, unsigned int maxDepth,
+                                 optional<unsigned long int> seed) :
     Domain(maxDepth, 2), numberOfCards(numberOfCards), seed(seed ? 1 : 0) {
   if (seed) {
     auto range = vector<int>(static_cast<unsigned int>(numberOfCards));
@@ -189,13 +190,9 @@ vector<shared_ptr<Action>> GoofSpielState::getAvailableActionsFor(const int play
 
 OutcomeDistribution
 GoofSpielState::performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const {
-  const auto goofdomain = dynamic_cast<GoofSpielDomain *>(domain);
-  const auto player1Action =
-      dynamic_pointer_cast<GoofSpielAction>(std::find_if(actions.begin(), actions.end(),
-          [](pair<int, shared_ptr<Action>> const &elem) { return elem.first == 0; })->second);
-  const auto player2Action =
-      dynamic_pointer_cast<GoofSpielAction>(std::find_if(actions.begin(), actions.end(),
-              [](pair<int, shared_ptr<Action>> const &elem) { return elem.first == 1; })->second);
+  const auto goofdomain = static_cast<GoofSpielDomain *>(domain);
+  const auto player1Action = dynamic_cast<GoofSpielAction*>(actions[0].second.get());
+  const auto player2Action = dynamic_cast<GoofSpielAction*>(actions[1].second.get());
   const int p1Card = player1Action->cardNumber;
   const int p2Card = player2Action->cardNumber;
 
@@ -327,11 +324,11 @@ size_t GoofSpielState::getHash() const {
   return seed;
 }
 
-IIGoofSpielDomain::IIGoofSpielDomain(int maxDepth, optional<unsigned long int> seed) :
+IIGoofSpielDomain::IIGoofSpielDomain(unsigned int maxDepth, optional<unsigned long int> seed) :
     IIGoofSpielDomain(13, maxDepth, move(seed)) {}
 
 IIGoofSpielDomain::IIGoofSpielDomain(int numberOfCards,
-                                     int maxDepth,
+                                     unsigned int maxDepth,
                                      optional<unsigned long int> seed) :
     Domain(maxDepth, 2), numberOfCards(numberOfCards), seed(seed ? 1 : 0) {
   if (seed) {
@@ -416,13 +413,9 @@ IIGoofSpielState::IIGoofSpielState(Domain *domain, const GoofSpielState &previou
 
 OutcomeDistribution
 IIGoofSpielState::performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const {
-  const auto goofdomain = dynamic_cast<IIGoofSpielDomain *>(domain);
-  const auto player1Action =
-      dynamic_pointer_cast<GoofSpielAction>(std::find_if(actions.begin(), actions.end(),
-          [](pair<int, shared_ptr<Action>> const &elem) { return elem.first == 0; })->second);
-  const auto player2Action =
-      dynamic_pointer_cast<GoofSpielAction>(std::find_if(actions.begin(), actions.end(),
-          [](pair<int, shared_ptr<Action>> const &elem) { return elem.first == 1; })->second);
+  const auto goofdomain = static_cast<IIGoofSpielDomain *>(domain);
+  const auto player1Action = dynamic_cast<GoofSpielAction*>(actions[0].second.get());
+  const auto player2Action = dynamic_cast<GoofSpielAction*>(actions[1].second.get());
 
   const int p1Card = player1Action->cardNumber;
   const int p2Card = player2Action->cardNumber;

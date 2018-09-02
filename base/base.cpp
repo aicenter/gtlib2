@@ -54,10 +54,6 @@ size_t Observation::getHash() const {
   return h(id);
 }
 
-std::unique_ptr<Observation> Observation::clone() const {
-  return std::unique_ptr<Observation>(new Observation(*this));
-}
-
 Outcome::Outcome(shared_ptr<State> s, vector<shared_ptr<Observation>> observations,
                  vector<double> rewards)
     : state(move(s)), rewards(move(rewards)), observations(move(observations)) {}
@@ -138,7 +134,7 @@ string AOH::toString() const {
 
 State::State(Domain *domain) : domain(domain) {}
 
-Domain::Domain(int maxDepth, unsigned int numberOfPlayers) :
+Domain::Domain(unsigned int maxDepth, unsigned int numberOfPlayers) :
     maxDepth(maxDepth), numberOfPlayers(numberOfPlayers), maxUtility(0) {}
 
 const OutcomeDistribution &Domain::getRootStatesDistribution() const {

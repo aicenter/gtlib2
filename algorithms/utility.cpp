@@ -18,17 +18,17 @@ pair<double, double> computeUtilityTwoPlayersGame(const Domain &domain,
                                                   const int player1,
                                                   const int player2) {
   // Inner function
-  std::function<pair<double, double>(shared_ptr<EFGNode>, double, int)> calculate =
-      [&player1Strat, &player2Strat, &player1, &player2, &calculate]
-          (shared_ptr<EFGNode> node, double prob, int depth) {
+  std::function<pair<double, double>(shared_ptr<EFGNode>, double)> calculate =
+      [&player1Strat, &player2Strat, &player1, &player2, &domain, &calculate]
+          (shared_ptr<EFGNode> node, double prob) {
         auto findActionProb = [](const shared_ptr<AOH> &infSet,
-                                 const BehavioralStrategy &strat, const shared_ptr<Action> &action)
-            -> double {
+                                 const BehavioralStrategy &strat,
+                                 const shared_ptr<Action> &action) -> double {
           return (strat.at(infSet).find(action) != strat.at(infSet).end()) ?
                  strat.at(infSet).at(action) : 0.0;
         };
 
-        if (depth <= 0 || !node->getCurrentPlayer()) {
+        if (node->getDepth() == domain.getMaxDepth() || !node->getCurrentPlayer()) {
           return pair<double, double>(node->rewards[player1] * prob,
                                       node->rewards[player2] * prob);
         }
@@ -45,9 +45,7 @@ pair<double, double> computeUtilityTwoPlayersGame(const Domain &domain,
             auto newNodes = node->performAction(action);
             for (auto newNodeProb : newNodes) {
               auto util = calculate(newNodeProb.first,
-                                    actionStratProb * newNodeProb.second * prob,
-                                    newNodeProb.first->getState() == node->getState() ?
-                                    depth : depth - 1);
+                                    actionStratProb * newNodeProb.second * prob);
               p1Util += util.first;
               p2Util += util.second;
             }
@@ -62,7 +60,7 @@ pair<double, double> computeUtilityTwoPlayersGame(const Domain &domain,
   auto rootNodes = createRootEFGNodesFromInitialOutcomeDistribution(
       domain.getRootStatesDistribution());
   for (auto nodeProb : rootNodes) {
-    auto utility = calculate(nodeProb.first, nodeProb.second, domain.getMaxDepth());
+    auto utility = calculate(nodeProb.first, nodeProb.second);
     player1Utility += utility.first;
     player2Utility += utility.second;
   }

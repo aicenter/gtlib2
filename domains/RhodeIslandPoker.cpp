@@ -161,7 +161,7 @@ string RhodeIslandPokerDomain::getInfo() const {
 vector<shared_ptr<Action>> RhodeIslandPokerState::getAvailableActionsFor(int player) const {
   auto list = vector<shared_ptr<Action>>();
   int count = 0;
-  auto pokerDomain = dynamic_cast<RhodeIslandPokerDomain *>(domain);
+  auto pokerDomain = static_cast<RhodeIslandPokerDomain *>(domain);
   if (round_ == pokerDomain->TERMINAL_ROUND) {
     return list;
   }
@@ -211,13 +211,9 @@ vector<shared_ptr<Action>> RhodeIslandPokerState::getAvailableActionsFor(int pla
 
 OutcomeDistribution
 RhodeIslandPokerState::performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const {
-  auto pokerDomain = dynamic_cast<RhodeIslandPokerDomain *>(domain);
-  auto
-      a1 = dynamic_pointer_cast<RhodeIslandPokerAction>(std::find_if(actions.begin(), actions.end(),
-          [](pair<int, shared_ptr<Action>> const &elem) { return elem.first == 0; })->second);
-  auto
-      a2 = dynamic_pointer_cast<RhodeIslandPokerAction>(std::find_if(actions.begin(), actions.end(),
-          [](pair<int, shared_ptr<Action>> const &elem) { return elem.first == 1; })->second);
+  auto pokerDomain = static_cast<RhodeIslandPokerDomain *>(domain);
+  auto a1 = dynamic_pointer_cast<RhodeIslandPokerAction>(actions[0].second);
+  auto a2 = dynamic_pointer_cast<RhodeIslandPokerAction>(actions[1].second);
   auto observations = vector<shared_ptr<Observation>>(2);
   OutcomeDistribution newOutcomes;
   vector<int> next_players = vector<int>(1);
@@ -584,8 +580,8 @@ RhodeIslandPokerState::performActions(const vector<pair<int, shared_ptr<Action>>
   if (new_round == pokerDomain->TERMINAL_ROUND) {  // TODO: check it
     if (newLastAction->GetType() == Fold) {
       rewards =
-          a1 ? vector{-newFirstPlayerReward, newFirstPlayerReward} : vector{newFirstPlayerReward,
-                                                                            -newFirstPlayerReward};
+          a1 ? vector{-newFirstPlayerReward, newFirstPlayerReward} :
+          vector{newFirstPlayerReward, -newFirstPlayerReward};
     } else if (natureCard1_.value().second == natureCard2_.value().second &&
         natureCard2_.value().first + 1 == natureCard1_.value().first) {
       if (natureCard2_.value().second == player1Card_.second &&

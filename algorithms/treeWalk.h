@@ -19,6 +19,8 @@ void treeWalkEFG(const Domain &domain, std::function<void(shared_ptr<EFGNode>)> 
 // Counts the number of nodes of the game given by the domain parameter.
 // Does not include the initial dummy chance node above the root states.
 int countNodes(const Domain &domain);
+
+int countNodesInfSetsSequencesStates(const Domain &domain);
 }  // namespace algorithms
 }  // namespace GTLib2
 #endif  // ALGORITHMS_TREEWALK_H_

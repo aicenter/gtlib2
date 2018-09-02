@@ -82,12 +82,8 @@ class Observation {
 
   virtual size_t getHash() const;
 
-  virtual std::unique_ptr<Observation> clone() const;
-
  protected:
   int id;
-  Observation(const Observation &) = default;
-  Observation &operator=(const Observation &) = default;
 };
 
 class State;
@@ -221,7 +217,7 @@ typedef unordered_map<shared_ptr<ActionSequence>, double> RealizationPlan;
 class Domain {
  public:
   // constructor
-  Domain(int maxDepth, unsigned int numberOfPlayers);
+  Domain(unsigned int maxDepth, unsigned int numberOfPlayers);
 
   // destructor
   virtual ~Domain() = default;
@@ -237,7 +233,7 @@ class Domain {
   }
 
   // Returns default maximal depth used in algorithms.
-  inline int getMaxDepth() const {
+  inline unsigned int getMaxDepth() const {
     return maxDepth;
   }
 
@@ -250,7 +246,7 @@ class Domain {
 
  protected:
   OutcomeDistribution rootStatesDistribution;
-  int maxDepth;
+  unsigned int maxDepth;
   unsigned int numberOfPlayers;
   int maxUtility;
 };

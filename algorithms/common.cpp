@@ -22,8 +22,7 @@ createRootEFGNodesFromInitialOutcomeDistribution(const OutcomeDistribution &prob
     auto node = make_shared<EFGNode>(outcome.state, nullptr,
                                      outcome.observations,
                                      outcome.rewards,
-                                     vector<pair<int, shared_ptr<Action>>>(),
-                                     prob, nullptr);
+                                     prob, nullptr, 0);
     nodes.emplace_back(move(node), prob);
   }
   return nodes;
@@ -69,7 +68,7 @@ getAllNodesInTheInformationSetWithNatureProbability(const shared_ptr<AOH> &infSe
   std::function<void(shared_ptr<EFGNode>, int, int)> traverse =
       [&nodes, &aoh, &player, &traverse, &infSet](shared_ptr<EFGNode> node,
                                                   int actionIndex, int observationIdToCheck) {
-        if (node->getNumberOfRemainingPlayers() == 1 && node->performedActionsInThisRound.empty()) {
+        if (node->getNumberOfRemainingPlayers() == 1 && node->noActionPerformedInThisRound()) {
           if (node->getCurrentPlayer() && *node->getCurrentPlayer() == player) {
             if (observationIdToCheck == node->getLastObservationIdOfCurrentPlayer()) {
               if (actionIndex >= aoh.size()) {
@@ -130,7 +129,7 @@ getAllNodesInTheInformationSetWithNatureProbability(const shared_ptr<AOH> &infSe
           }
         }
       };
-  
+
 //        auto checkAndAdd = [&infSet, &nodes](shared_ptr<EFGNode> node) {
 //            if (node->isContainedInInformationSet(infSet)) {
 //                nodes.emplace_back(node,node->natureProbability);

@@ -97,10 +97,6 @@ class GenericPokerObservation : public Observation {
     return type_;
   }
 
-  inline std::unique_ptr<Observation> clone() const override {
-    return std::unique_ptr<Observation>(new GenericPokerObservation(*this));
-  }
-
  private:
   int value_;
   int type_;

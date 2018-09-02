@@ -12,8 +12,8 @@ using std::make_pair;
 
 namespace GTLib2 {
 namespace algorithms {
-BehavioralStrategy getStrategyFor(const Domain &domain, int player, const unordered_map
-    <shared_ptr<InformationSet>, pair<vector<double>, vector<double>>> &allMP) {
+BehavioralStrategy getStrategyFor(const Domain &domain, int player,
+    const unordered_map<shared_ptr<InformationSet>, pair<vector<double>, vector<double>>> &allMP) {
   auto strategy = BehavioralStrategy();
   auto processed = unordered_set<shared_ptr<InformationSet>>();
   processed.reserve(allMP.size());
@@ -49,15 +49,14 @@ CFRiterations(const Domain &domain, int iterations) {
   auto efgnodes = unordered_map<shared_ptr<EFGNode>, unordered_map<shared_ptr<Action>,
                                                                    EFGNodesDistribution>>();
 
-  const auto iteration = [&regrets, &efgnodes, &nbSamples, &firstIteration](
-      shared_ptr<EFGNode> node, double pi1, double pi2, int player,
-      int depth, const auto &iteration) {
+  const auto iteration = [&regrets, &efgnodes, &domain, &nbSamples, &firstIteration](
+      shared_ptr<EFGNode> node, double pi1, double pi2, int player, const auto &iteration) {
     if (pi1 == 0 && pi2 == 0) {
       return 0.0;
     }
 
     auto actions = node->availableActions();
-    if (actions.empty() || depth == 0) {
+    if (actions.empty() || node->getDepth() == domain.getMaxDepth()) {
       return node->rewards[player];
     }
     const int currentplayer = *node->getCurrentPlayer();
@@ -94,21 +93,11 @@ CFRiterations(const Domain &domain, int iterations) {
         double new_p1 = player == 1 ? pi1 * newNode.second : pi1;
         double new_p2 = player == 0 ? pi2 * newNode.second : pi2;
         if (currentplayer == 0) {
-          tmpV[i] += newNode.second * iteration(newNode.first,
-                                                new_p1 * rmProbs[i],
-                                                new_p2,
-                                                player,
-                                                newNode.first->getState() == node->getState()
-                                                ? depth : depth - 1,
-                                                iteration);
+          tmpV[i] += newNode.second *
+              iteration(newNode.first, new_p1 * rmProbs[i], new_p2, player, iteration);
         } else {
-          tmpV[i] += newNode.second * iteration(newNode.first,
-                                                new_p1,
-                                                rmProbs[i] * new_p2,
-                                                player,
-                                                newNode.first->getState() == node->getState()
-                                                ? depth : depth - 1,
-                                                iteration);
+          tmpV[i] += newNode.second *
+              iteration(newNode.first, new_p1, rmProbs[i] * new_p2, player, iteration);
         }
       }
       ev += rmProbs[i] * tmpV[i];
@@ -135,13 +124,11 @@ CFRiterations(const Domain &domain, int iterations) {
   for (int i = 0; i < iterations; ++i) {
     double v1 = 0, v2 = 0;
     for (const auto &nodeProb : rootNodes) {
-      v1 += nodeProb.second * iteration(nodeProb.first, 1, nodeProb.second, 0,
-                                        domain.getMaxDepth(), iteration);
+      v1 += nodeProb.second * iteration(nodeProb.first, 1, nodeProb.second, 0, iteration);
     }
     firstIteration = false;
     for (const auto &nodeProb : rootNodes) {
-      v2 += nodeProb.second * iteration(nodeProb.first, nodeProb.second, 1, 1,
-                                        domain.getMaxDepth(), iteration);
+      v2 += nodeProb.second * iteration(nodeProb.first, nodeProb.second, 1, 1, iteration);
     }
     cout << v1 << " " << v2 << "\n";
   }
@@ -160,17 +147,19 @@ CFRiterationsAOH(const Domain &domain, int iterations) {
   bool firstIteration = true;
   auto aoh1 = vector<pair<int, int>>();
   auto aoh2 = vector<pair<int, int>>();
+  aoh1.reserve(domain.getMaxDepth());
+  aoh2.reserve(domain.getMaxDepth());
   auto efgnodes = unordered_map<shared_ptr<EFGNode>,
                                 unordered_map<shared_ptr<Action>, EFGNodesDistribution>>();
   const auto iteration = [&regrets, &efgnodes, &domain, &nbSamples, &aoh1, &aoh2,
       &firstIteration](shared_ptr<EFGNode> node, double pi1, double pi2,
-                       int player, int depth, const auto &iteration) {
+                       int player, const auto &iteration) {
     if (pi1 == 0 && pi2 == 0) {
       return 0.0;
     }
 
     auto actions = node->availableActions();
-    if (actions.empty() || depth == 0) {
+    if (actions.empty() || node->getDepth() == domain.getMaxDepth()) {
       return node->rewards[player];
     }
     const int currentplayer = *node->getCurrentPlayer();
@@ -213,7 +202,7 @@ CFRiterationsAOH(const Domain &domain, int iterations) {
         double new_p2 = player == 0 ? pi2 * newNode.second : pi2;
 
         if (node->getNumberOfRemainingPlayers() == 1) {
-          if (node->performedActionsInThisRound.empty()) {
+          if (node->noActionPerformedInThisRound()) {
             if (currentplayer == 0) {
               aoh1.emplace_back(action->getId(), newNode.first->getLastObservationOfPlayer(0));
               aoh2.emplace_back(-1, newNode.first->getLastObservationOfPlayer(1));
@@ -222,27 +211,17 @@ CFRiterationsAOH(const Domain &domain, int iterations) {
               aoh2.emplace_back(action->getId(), newNode.first->getLastObservationOfPlayer(1));
             }
           } else {
-            aoh1.emplace_back(node->getIncomingAction()->getId(),
+            aoh1.emplace_back(node->getIncomingActionId(),
                               newNode.first->getLastObservationOfPlayer(0));
             aoh2.emplace_back(action->getId(), newNode.first->getLastObservationOfPlayer(1));
           }
         }
         if (currentplayer == 0) {
-          tmpV[i] += newNode.second * iteration(newNode.first,
-                                                new_p1 * rmProbs[i],
-                                                new_p2,
-                                                player,
-                                                newNode.first->getState() == node->getState()
-                                                ? depth : depth - 1,
-                                                iteration);
+          tmpV[i] += newNode.second
+              * iteration(newNode.first, new_p1 * rmProbs[i], new_p2, player, iteration);
         } else {
-          tmpV[i] += newNode.second * iteration(newNode.first,
-                                                new_p1,
-                                                rmProbs[i] * new_p2,
-                                                player,
-                                                newNode.first->getState() == node->getState()
-                                                ? depth : depth - 1,
-                                                iteration);
+          tmpV[i] += newNode.second
+              * iteration(newNode.first, new_p1, rmProbs[i] * new_p2, player, iteration);
         }
         if (node->getNumberOfRemainingPlayers() == 1) {
           aoh1.pop_back();
@@ -273,8 +252,7 @@ CFRiterationsAOH(const Domain &domain, int iterations) {
     for (const auto &nodeProb : rootNodes) {
       aoh1.emplace_back(-1, nodeProb.first->getLastObservationOfPlayer(0));
       aoh2.emplace_back(-1, nodeProb.first->getLastObservationOfPlayer(1));
-      v1 += nodeProb.second * iteration(nodeProb.first, 1, nodeProb.second, 0,
-                                        domain.getMaxDepth(), iteration);
+      v1 += nodeProb.second * iteration(nodeProb.first, 1, nodeProb.second, 0, iteration);
       aoh1.pop_back();
       aoh2.pop_back();
     }
@@ -282,17 +260,16 @@ CFRiterationsAOH(const Domain &domain, int iterations) {
     for (const auto &nodeProb : rootNodes) {
       aoh1.emplace_back(-1, nodeProb.first->getLastObservationOfPlayer(0));
       aoh2.emplace_back(-1, nodeProb.first->getLastObservationOfPlayer(1));
-      v2 += nodeProb.second * iteration(nodeProb.first, nodeProb.second, 1, 1,
-                                        domain.getMaxDepth(), iteration);
+      v2 += nodeProb.second * iteration(nodeProb.first, nodeProb.second, 1, 1, iteration);
       aoh1.pop_back();
       aoh2.pop_back();
     }
     cout << v1 << " " << v2 << "\n";
   }
   auto strat1 = getStrategyFor(domain, 0, regrets);
-  cout << "bestResp1: " << bestResponseTo(strat1, 0, 1, domain).second << "\n";
+//  cout << "bestResp1: " << bestResponseTo(strat1, 0, 1, domain).second << "\n";
   auto strat2 = getStrategyFor(domain, 1, regrets);
-  cout << "bestResp2: " << bestResponseTo(strat2, 1, 0, domain).second << "\n";
+//  cout << "bestResp2: " << bestResponseTo(strat2, 1, 0, domain).second << "\n";
   return computeUtilityTwoPlayersGame(domain, strat1, strat2, 0, 1);
 }
 }  // namespace algorithms

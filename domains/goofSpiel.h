@@ -52,8 +52,8 @@ class IIGoofSpielObservation : public Observation {
 
 class GoofSpielDomain : public Domain {
  public:
-  GoofSpielDomain(int maxDepth, optional<unsigned long int> seed);
-  GoofSpielDomain(int numberOfCards, int maxDepth, optional<unsigned long int> seed);
+  GoofSpielDomain(unsigned int maxDepth, optional<unsigned long int> seed);
+  GoofSpielDomain(int numberOfCards, unsigned int maxDepth, optional<unsigned long int> seed);
   string getInfo() const override;
   vector<int> getPlayers() const override;
   const int numberOfCards;
@@ -62,8 +62,8 @@ class GoofSpielDomain : public Domain {
 
 class IIGoofSpielDomain : public Domain {
  public:
-  IIGoofSpielDomain(int maxDepth, optional<unsigned long int> seed);
-  IIGoofSpielDomain(int numberOfCards, int maxDepth, optional<unsigned long int> seed);
+  IIGoofSpielDomain(unsigned int maxDepth, optional<unsigned long int> seed);
+  IIGoofSpielDomain(int numberOfCards, unsigned int maxDepth, optional<unsigned long int> seed);
   string getInfo() const override;
   vector<int> getPlayers() const override;
   const int numberOfCards;

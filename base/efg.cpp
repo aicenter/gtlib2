@@ -23,13 +23,17 @@ EFGNodesDistribution EFGNode::performAction(const shared_ptr<Action> &action) co
 
   EFGNodesDistribution newNodes;
   if (remainingPlayersInTheRound.size() == 1) {
+    std::sort(actionsToBePerformed.begin(), actionsToBePerformed.end(),
+              [](const pair<int, shared_ptr<Action>> &a, const pair<int, shared_ptr<Action>> &b) {
+                return (a.first < b.first);
+              });
     for (auto &i : state->getDomain()->getPlayers()) {
       auto action2 = std::find_if(actionsToBePerformed.begin(), actionsToBePerformed.end(),
                                   [&i](pair<int, shared_ptr<Action>> const &elem) {
                                     return elem.first == i;
                                   });
       if (action2 == actionsToBePerformed.end()) {
-        actionsToBePerformed.emplace_back(i, make_shared<Action>(-1));
+        actionsToBePerformed.emplace(actionsToBePerformed.begin()+i, i, make_shared<Action>(-1));
       }
     }
     // Last player in the round. So we proceed to the next state
@@ -40,11 +44,12 @@ EFGNodesDistribution EFGNode::performAction(const shared_ptr<Action> &action) co
 //                auto prob = outcomeProb.second;
       auto newNode = make_shared<EFGNode>(outcome.state, shared_from_this(),
                                           outcome.observations, outcome.rewards,
-                                          actionsToBePerformed, prob * natureProbability, action);
+                                          prob * natureProbability,
+                                          action, depth + 1);
       newNodes.emplace_back(newNode, prob);
     }
   } else {
-    auto newNode = make_shared<EFGNode>(shared_from_this(), actionsToBePerformed, action);
+    auto newNode = make_shared<EFGNode>(shared_from_this(), actionsToBePerformed, action, depth);
     newNodes.emplace_back(newNode, 1.0);
   }
   return newNodes;
@@ -53,14 +58,12 @@ EFGNodesDistribution EFGNode::performAction(const shared_ptr<Action> &action) co
 EFGNode::EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,
                  const vector<shared_ptr<Observation>> &observations,
                  const vector<double> &rewards,
-                 const vector<pair<int, shared_ptr<Action>>> &lastRoundActions,
-                 double natureProbability, shared_ptr<Action> incomingAction) {
+                 double natureProbability, shared_ptr<Action> incomingAction, int depth) {
   this->state = move(newState);
   this->observations = observations;
-  this->previousRoundActions = lastRoundActions;
   this->rewards = rewards;
   this->natureProbability = natureProbability;
-
+  this->depth = depth;
   remainingPlayersInTheRound = state->getPlayers();
   std::reverse(remainingPlayersInTheRound.begin(), remainingPlayersInTheRound.end());
   if (!remainingPlayersInTheRound.empty()) {
@@ -68,23 +71,20 @@ EFGNode::EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,
   } else {
     currentPlayer = nullopt;
   }
-
   this->parent = move(parent);
   this->incomingAction = move(incomingAction);
 }
 
 EFGNode::EFGNode(shared_ptr<EFGNode const> parent,
                  const vector<pair<int, shared_ptr<Action>>> &performedActions,
-                 shared_ptr<Action> incomingAction) {
-  this->state = parent->getState();
+                 shared_ptr<Action> incomingAction, int depth) {
+  this->state = parent->state;
   this->observations = parent->observations;
   this->rewards = parent->rewards;
   this->natureProbability = parent->natureProbability;
-  this->previousRoundActions = parent->previousRoundActions;
   this->incomingAction = move(incomingAction);
-
+  this->depth = depth;
   this->performedActionsInThisRound = performedActions;
-
   remainingPlayersInTheRound = parent->remainingPlayersInTheRound;
   remainingPlayersInTheRound.pop_back();
   if (!remainingPlayersInTheRound.empty()) {
@@ -97,7 +97,7 @@ EFGNode::EFGNode(shared_ptr<EFGNode const> parent,
 
 vector<shared_ptr<Action>> EFGNode::availableActions() const {
   if (currentPlayer) {
-    return move(state->getAvailableActionsFor(*currentPlayer));
+    return state->getAvailableActionsFor(*currentPlayer);
   }
   return vector<shared_ptr<Action>>();
 }
@@ -105,15 +105,6 @@ vector<shared_ptr<Action>> EFGNode::availableActions() const {
 shared_ptr<AOH> EFGNode::getAOHInfSet() const {
   if (currentPlayer) {
     auto aoh = getAOH(*currentPlayer);
-    if (remainingPlayersInTheRound.size() > 1 || !parent) {
-      auto action = std::find_if(previousRoundActions.begin(), previousRoundActions.end(),
-                                 [this](pair<int, shared_ptr<Action>> const &elem) {
-                                   return elem.first == *currentPlayer;
-                                 });
-      if (action != previousRoundActions.end()) {
-        aoh.emplace_back(action->second->getId(), observations[*currentPlayer]->getId());
-      }
-    }
     return make_shared<AOH>(*currentPlayer, aoh);
   } else {
     return nullptr;
@@ -121,17 +112,25 @@ shared_ptr<AOH> EFGNode::getAOHInfSet() const {
 }
 
 vector<std::pair<int, int>> EFGNode::getAOH(int player) const {
-  auto aoh = this->parent ? this->parent->getAOH(player) : vector<std::pair<int, int>>{
-      std::make_pair(-1, this->observations[player]->getId())};
-  if (remainingPlayersInTheRound.size() == 1) {
-    auto action = std::find_if(previousRoundActions.begin(), previousRoundActions.end(),
+  if (!parent) {
+    return vector<std::pair<int, int>>{std::make_pair(-1, this->observations[player]->getId())};
+  }
+  auto aoh = this->parent->getAOH(player);
+  if (parent->depth != depth) {
+    auto action = std::find_if(parent->performedActionsInThisRound.begin(),
+                               parent->performedActionsInThisRound.end(),
                                [&player](pair<int, shared_ptr<Action>> const &elem) {
                                  return elem.first == player;
                                });
-    if (action != previousRoundActions.end()) {
+    if (action != parent->performedActionsInThisRound.end()) {
       aoh.emplace_back(action->second->getId(), observations[player]->getId());
-    }  // TODO: try to rewrite it with incomingAction
+    } else if (*parent->currentPlayer == player) {
+      aoh.emplace_back(incomingAction->getId(), observations[player]->getId());
+    } else {
+      aoh.emplace_back(-1, observations[player]->getId());
+    }
   }
+
   return aoh;
 }
 
@@ -163,7 +162,7 @@ bool EFGNode::isContainedInInformationSet(const shared_ptr<AOH> &infSet) const {
   return *mySet == *infSet;
 }
 
-shared_ptr<Action> EFGNode::getIncomingAction() const {
+const shared_ptr<Action>& EFGNode::getIncomingAction() const {
   return incomingAction;
 }
 
@@ -186,15 +185,51 @@ double EFGNode::getProbabilityOfActionsSeqOfPlayer(int player,
   }
 }
 
+size_t EFGNode::getHashedAOHs() const {
+  if (hashAOH > 0) {
+    return hashAOH;
+  }
+  if (parent) {
+    hashAOH = parent->getHashedAOHs();
+    boost::hash_combine(hashAOH, incomingAction->getId());
+  }
+  if (!parent || depth != parent->depth) {
+    for (auto &i : observations) {
+      boost::hash_combine(hashAOH, i->getId());
+    }
+  }
+  return hashAOH;
+}
+
 size_t EFGNode::getHash() const {
-  auto seed = state->getHash();
+  auto seed = getHashedAOHs();
   boost::hash_combine(seed, performedActionsInThisRound.size());
   boost::hash_combine(seed, remainingPlayersInTheRound.size());
   return seed;
 }
 
+bool EFGNode::compareAOH(const EFGNode &rhs) const {
+  if (!this->parent && !rhs.parent) {
+    for (int i = 0; i < observations.size(); ++i) {
+      if (observations[i]->getId() != rhs.observations[i]->getId()) {
+        return false;
+      }
+    }
+    return true;
+  }
+  if (depth != parent->depth) {
+    for (int i = 0; i < observations.size(); ++i) {
+      if (observations[i]->getId() != rhs.observations[i]->getId()) {
+        return false;
+      }
+    }
+  }
+  return *incomingAction == *rhs.incomingAction && parent->compareAOH(*rhs.parent);
+}
+
 bool EFGNode::operator==(const EFGNode &rhs) const {
-  if (this->performedActionsInThisRound.size() != rhs.performedActionsInThisRound.size()) {
+  if (this->performedActionsInThisRound.size() != rhs.performedActionsInThisRound.size() ||
+  this->observations.size() != rhs.observations.size()) {
     return false;
   }
   for (auto const&[player, action] : this->performedActionsInThisRound) {  // works in GCC 7.3
@@ -211,9 +246,8 @@ bool EFGNode::operator==(const EFGNode &rhs) const {
       return false;
     }
   }
-  // TODO: maybe AOHs are enouqh or change to something faster
-  return this->remainingPlayersInTheRound == rhs.remainingPlayersInTheRound &&
-      *(this->state) == *(rhs.state) && getAOH(0) == rhs.getAOH(0) && getAOH(1) == rhs.getAOH(1);
+  return depth == rhs.depth && this->remainingPlayersInTheRound == rhs.remainingPlayersInTheRound
+    && hashAOH == rhs.hashAOH && compareAOH(rhs);
 }
 
 int EFGNode::getDistanceFromRoot() const {
@@ -256,6 +290,16 @@ int EFGNode::getNumberOfRemainingPlayers() const {
 int EFGNode::getLastObservationOfPlayer(int player) const {
   return observations[player]->getId();
 }
+int EFGNode::getDepth() const {
+  return depth;
+}
+int EFGNode::getIncomingActionId() const {
+  return incomingAction->getId();
+}
+bool EFGNode::noActionPerformedInThisRound() const {
+  return performedActionsInThisRound.empty();
+}
+
 }  // namespace GTLib2
 
 #pragma clang diagnostic pop

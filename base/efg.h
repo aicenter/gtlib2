@@ -35,14 +35,13 @@ class EFGNode final : public std::enable_shared_from_this<EFGNode const> {
   // Constructor for the same round node
   EFGNode(shared_ptr<EFGNode const> parent,
           const vector<pair<int, shared_ptr<Action>>> &performedActions,
-          shared_ptr<Action> incomingAction);
+          shared_ptr<Action> incomingAction, int depth);
 
   // Constructor for the new round node
   EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,
           const vector<shared_ptr<Observation>> &observations,
           const vector<double> &rewards,
-          const vector<pair<int, shared_ptr<Action>>> &lastRoundActions,
-          double natureProbability, shared_ptr<Action> incomingAction);
+          double natureProbability, shared_ptr<Action> incomingAction, int depth);
 
   // Returns the sequence of actions performed by the player since the root.
   ActionSequence getActionsSeqOfPlayer(int player) const;
@@ -66,15 +65,23 @@ class EFGNode final : public std::enable_shared_from_this<EFGNode const> {
   shared_ptr<EFGNode const> getParent() const;
 
   // Gets action that was performed at parent node and the result led to this node.
-  shared_ptr<Action> getIncomingAction() const;
+  const shared_ptr<Action>& getIncomingAction() const;
+
+  // Gets id of action that was performed at parent node and the result led to this node.
+  int getIncomingActionId() const;
 
   // Returns the game state of that is represented by EFG node.
-  // Note that in simultaneous games one state corresponds to mutliple efg nodes.
+  // Note that in simultaneous games one state corresponds to multiple efg nodes.
   shared_ptr<State> getState() const;
+
+  // Check if NO actions were played in this round
+  bool noActionPerformedInThisRound() const;
 
   string toString() const;
 
   size_t getHash() const;
+
+  int getDepth() const;
 
   bool operator==(const EFGNode &rhs) const;
 
@@ -89,18 +96,22 @@ class EFGNode final : public std::enable_shared_from_this<EFGNode const> {
   optional<int> getCurrentPlayer() const;
 
   vector<double> rewards;
-  vector<pair<int, shared_ptr<Action>>> performedActionsInThisRound;
+
   double natureProbability;
 
  private:
-  vector<std::pair<int, int>> getAOH(int player) const;
-  vector<pair<int, shared_ptr<Action>>> previousRoundActions;
+  vector<pair<int, int>> getAOH(int player) const;
+  bool compareAOH(const EFGNode &rhs) const;
+  size_t getHashedAOHs() const;
   vector<shared_ptr<Observation>> observations;
+  vector<pair<int, shared_ptr<Action>>> performedActionsInThisRound;
   vector<int> remainingPlayersInTheRound;
   shared_ptr<State> state;
   shared_ptr<EFGNode const> parent;
   shared_ptr<Action> incomingAction;  // Action performed in the parent node.
   optional<int> currentPlayer = nullopt;
+  mutable size_t hashAOH = 0;
+  int depth;
 };
 }  // namespace GTLib2
 

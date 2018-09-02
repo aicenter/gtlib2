@@ -50,10 +50,8 @@ vector<shared_ptr<Action>> PhantomTTTState::getAvailableActionsFor(int player) c
 
 OutcomeDistribution PhantomTTTState::performActions
     (const vector<pair<int, shared_ptr<Action>>> &actions) const {
-  auto a1 = dynamic_pointer_cast<PhantomTTTAction>(std::find_if(actions.begin(), actions.end(),
-      [](pair<int, shared_ptr<Action>> const &elem) { return elem.first == 0; })->second);
-  auto a2 = dynamic_pointer_cast<PhantomTTTAction>(std::find_if(actions.begin(), actions.end(),
-      [](pair<int, shared_ptr<Action>> const &elem) { return elem.first == 1; })->second);
+  auto a1 = dynamic_cast<PhantomTTTAction*>(actions[0].second.get());
+  auto a2 = dynamic_cast<PhantomTTTAction*>(actions[1].second.get());
   vector<shared_ptr<Observation>> observations(2);
   vector<double> rewards(2);
   int success = 0;

@@ -4,6 +4,7 @@
 
 #include "matching_pennies.h"
 #include <cassert>
+#include <limits>
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
@@ -56,12 +57,8 @@ int MatchingPenniesState::getNumberOfPlayers() const {
 
 OutcomeDistribution
 MatchingPenniesState::performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const {
-  shared_ptr<MatchingPenniesAction> p1Action =
-      dynamic_pointer_cast<MatchingPenniesAction>(std::find_if(actions.begin(), actions.end(),
-          [](pair<int, shared_ptr<Action>> const &elem) { return elem.first == 0; })->second);
-  shared_ptr<MatchingPenniesAction> p2Action =
-      dynamic_pointer_cast<MatchingPenniesAction>(std::find_if(actions.begin(), actions.end(),
-          [](pair<int, shared_ptr<Action>> const &elem) { return elem.first == 1; })->second);
+  auto p1Action = dynamic_cast<MatchingPenniesAction*>(actions[0].second.get());
+  auto p2Action = dynamic_cast<MatchingPenniesAction*>(actions[1].second.get());
 
   assert(p1Action == nullptr || p2Action == nullptr);  // Only one action can be performed
   assert(player1 == Nothing || p2Action != nullptr);  //  player1 played -> player2 has to play.
@@ -182,12 +179,8 @@ OutcomeDistribution
 SimultaneousMatchingPenniesState::performActions(const vector<pair<int,
                                                                    shared_ptr<Action>>> &actions)
 const {
-  shared_ptr<MatchingPenniesAction> p1Action =
-      dynamic_pointer_cast<MatchingPenniesAction>(std::find_if(actions.begin(), actions.end(),
-          [](pair<int, shared_ptr<Action>> const &elem) { return elem.first == 0; })->second);
-  shared_ptr<MatchingPenniesAction> p2Action =
-      dynamic_pointer_cast<MatchingPenniesAction>(std::find_if(actions.begin(), actions.end(),
-          [](pair<int, shared_ptr<Action>> const &elem) { return elem.first == 1; })->second);
+  auto p1Action = dynamic_cast<MatchingPenniesAction*>(actions[0].second.get());
+  auto p2Action = dynamic_cast<MatchingPenniesAction*>(actions[1].second.get());
 
   assert(p1Action != nullptr || p2Action != nullptr);  // Both action must be performed
   // assert(player1 == Nothing || p2Action != nullptr ); //  player1 played -> player2 has to play.
