@@ -36,18 +36,26 @@ BehavioralStrategy getStrategyFor(const Domain &domain, int player,
       }
     }
   };
-  algorithms::treeWalkEFG(domain, getStrategy, domain.getMaxDepth());
+  treeWalkEFG(domain, getStrategy, domain.getMaxDepth());
   return strategy;
 }
 
-pair<double, double>
+pair<double, double> CFR(const Domain &domain, int iterations) {
+  auto regrets = CFRiterations(domain, iterations);
+  auto strat1 = getStrategyFor(domain, 0, regrets);
+  auto strat2 = getStrategyFor(domain, 1, regrets);
+  return computeUtilityTwoPlayersGame(domain, strat1, strat2, 0, 1);
+}
+
+
+unordered_map<shared_ptr<InformationSet>, pair<vector<double>, vector<double>>>
 CFRiterations(const Domain &domain, int iterations) {
   auto regrets = unordered_map<shared_ptr<InformationSet>,
                                pair<vector<double>, vector<double>>>();
   int nbSamples = 0;
   bool firstIteration = true;
-  auto efgnodes = unordered_map<shared_ptr<EFGNode>, unordered_map<shared_ptr<Action>,
-                                                                   EFGNodesDistribution>>();
+  auto efgnodes = unordered_map<shared_ptr<EFGNode>, pair<shared_ptr<AOH>,
+      unordered_map<shared_ptr<Action>, EFGNodesDistribution>>>();
 
   const auto iteration = [&regrets, &efgnodes, &domain, &nbSamples, &firstIteration](
       shared_ptr<EFGNode> node, double pi1, double pi2, int player, const auto &iteration) {
@@ -61,7 +69,11 @@ CFRiterations(const Domain &domain, int iterations) {
     }
     const int currentplayer = *node->getCurrentPlayer();
     const auto K = static_cast<const unsigned int>(actions.size());
-    auto is = node->getAOHInfSet();
+    if (firstIteration) {
+      efgnodes[node] = make_pair(node->getAOHInfSet(),
+          unordered_map<shared_ptr<Action>, EFGNodesDistribution>());
+    }
+    auto[is, newNodesMap] = efgnodes.at(node);
     if (firstIteration && regrets.find(is) == regrets.end()) {
       regrets[is] = make_pair(vector<double>(K), vector<double>(K));
     }
@@ -78,10 +90,6 @@ CFRiterations(const Domain &domain, int iterations) {
     auto tmpV = vector<double>(K);
     double ev = 0;
     int i = -1;
-    if (firstIteration) {
-      efgnodes[node] = unordered_map<shared_ptr<Action>, EFGNodesDistribution>();
-    }
-    auto newNodesMap = efgnodes.at(node);
     for (const auto &action : actions) {
       i++;
       if (firstIteration) {
@@ -113,7 +121,7 @@ CFRiterations(const Domain &domain, int iterations) {
       nbSamples++;
     }
     if (firstIteration) {
-      efgnodes[node] = newNodesMap;
+      efgnodes[node] = make_pair(is, newNodesMap);
     }
 
     return ev;
@@ -132,14 +140,10 @@ CFRiterations(const Domain &domain, int iterations) {
     }
     cout << v1 << " " << v2 << "\n";
   }
-  auto strat1 = getStrategyFor(domain, 0, regrets);
-  cout << bestResponseToPrunning(strat1, 0, 1, domain).second << "\n";
-  auto strat2 = getStrategyFor(domain, 1, regrets);
-  cout << bestResponseToPrunning(strat2, 1, 0, domain).second << "\n";
-  return computeUtilityTwoPlayersGame(domain, strat1, strat2, 0, 1);;
+  return regrets;
 }
 
-pair<double, double>
+unordered_map<shared_ptr<InformationSet>, pair<vector<double>, vector<double>>>
 CFRiterationsAOH(const Domain &domain, int iterations) {
   auto regrets = unordered_map<shared_ptr<InformationSet>,
                                pair<vector<double>, vector<double>>>();
@@ -164,8 +168,7 @@ CFRiterationsAOH(const Domain &domain, int iterations) {
     }
     const int currentplayer = *node->getCurrentPlayer();
     const auto K = static_cast<const unsigned int>(actions.size());
-    auto is = make_shared<AOH>(currentplayer,
-                               currentplayer == 0 ? aoh1 : aoh2);
+    auto is =   make_shared<AOH>(currentplayer, currentplayer == 0 ? aoh1 : aoh2);
 
     if (firstIteration && regrets.find(is) == regrets.end()) {
       regrets[is] = make_pair(vector<double>(K), vector<double>(K));
@@ -266,11 +269,7 @@ CFRiterationsAOH(const Domain &domain, int iterations) {
     }
     cout << v1 << " " << v2 << "\n";
   }
-  auto strat1 = getStrategyFor(domain, 0, regrets);
-//  cout << "bestResp1: " << bestResponseTo(strat1, 0, 1, domain).second << "\n";
-  auto strat2 = getStrategyFor(domain, 1, regrets);
-//  cout << "bestResp2: " << bestResponseTo(strat2, 1, 0, domain).second << "\n";
-  return computeUtilityTwoPlayersGame(domain, strat1, strat2, 0, 1);
+  return regrets;
 }
 }  // namespace algorithms
 }  // namespace GTLib2

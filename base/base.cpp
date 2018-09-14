@@ -101,21 +101,21 @@ AOH::AOH(int player, const vector<pair<int, int>> &aoHistory) {
 }
 
 bool AOH::operator==(const InformationSet &rhs) const {
-  const auto rhsAOH = dynamic_cast<const AOH *>(&rhs);
-  if (rhsAOH != nullptr) {
+  if (typeid(rhs) == typeid(*this)) {
+    const auto rhsAOH = static_cast<const AOH *>(&rhs);
     if (player != rhsAOH->player ||
         hashValue != rhsAOH->hashValue ||
         aoh.size() != rhsAOH->aoh.size()) {
       return false;
     }
-    for (int i = 0; i < aoh.size(); i++) {
-      if (std::get<0>(aoh[i]) != std::get<0>(rhsAOH->aoh[i]) ||
-          std::get<1>(aoh[i]) != std::get<1>(rhsAOH->aoh[i])) {
+    for (int i = 0; i < aoh.size(); ++i) {
+      if (aoh[i] != rhsAOH->aoh[i]) {
         return false;
       }
     }
+    return true;
   }
-  return true;
+  return false;
 }
 
 int AOH::getNumberOfActions() const {

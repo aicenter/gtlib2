@@ -15,8 +15,11 @@ RhodeIslandPokerAction::RhodeIslandPokerAction(int id, int type, int value) :
     Action(id), type_(type), value_(value) {}
 
 bool RhodeIslandPokerAction::operator==(const Action &that) const {
-  const auto rhsAction = dynamic_cast<const RhodeIslandPokerAction *>(&that);
-  return this->type_ == rhsAction->type_ && this->value_ == rhsAction->value_;
+  if (typeid(*this) == typeid(that)) {
+    const auto rhsAction = static_cast<const RhodeIslandPokerAction *>(&that);
+    return this->type_ == rhsAction->type_ && this->value_ == rhsAction->value_;
+  }
+  return false;
 }
 
 size_t RhodeIslandPokerAction::getHash() const {

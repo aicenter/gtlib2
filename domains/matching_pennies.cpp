@@ -143,8 +143,11 @@ string MatchingPenniesAction::toString() const {
 }
 
 bool MatchingPenniesAction::operator==(const Action &that) const {
-  const auto rhsAction = dynamic_cast<const MatchingPenniesAction *>(&that);
-  return this->move == rhsAction->move;
+  if (typeid(*this) == typeid(that)) {
+    const auto rhsAction = static_cast<const MatchingPenniesAction *>(&that);
+    return this->move == rhsAction->move;
+  }
+  return false;
 }
 
 size_t MatchingPenniesAction::getHash() const {

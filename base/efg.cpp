@@ -130,7 +130,6 @@ vector<std::pair<int, int>> EFGNode::getAOH(int player) const {
       aoh.emplace_back(-1, observations[player]->getId());
     }
   }
-
   return aoh;
 }
 
@@ -209,22 +208,22 @@ size_t EFGNode::getHash() const {
 }
 
 bool EFGNode::compareAOH(const EFGNode &rhs) const {
-  if (!this->parent && !rhs.parent) {
-    for (int i = 0; i < observations.size(); ++i) {
-      if (observations[i]->getId() != rhs.observations[i]->getId()) {
-        return false;
+  if (this->parent) {
+    if (depth != parent->depth) {
+      for (int i = 0; i < observations.size(); ++i) {
+        if (observations[i]->getId() != rhs.observations[i]->getId()) {
+          return false;
+        }
       }
     }
-    return true;
+    return *incomingAction == *rhs.incomingAction && parent->compareAOH(*rhs.parent);
   }
-  if (depth != parent->depth) {
-    for (int i = 0; i < observations.size(); ++i) {
-      if (observations[i]->getId() != rhs.observations[i]->getId()) {
-        return false;
-      }
+  for (int i = 0; i < observations.size(); ++i) {
+    if (observations[i]->getId() != rhs.observations[i]->getId()) {
+      return false;
     }
   }
-  return *incomingAction == *rhs.incomingAction && parent->compareAOH(*rhs.parent);
+  return true;
 }
 
 bool EFGNode::operator==(const EFGNode &rhs) const {
@@ -246,8 +245,8 @@ bool EFGNode::operator==(const EFGNode &rhs) const {
       return false;
     }
   }
-  return depth == rhs.depth && this->remainingPlayersInTheRound == rhs.remainingPlayersInTheRound
-    && hashAOH == rhs.hashAOH && compareAOH(rhs);
+  return depth == rhs.depth && hashAOH == rhs.hashAOH
+  && this->remainingPlayersInTheRound == rhs.remainingPlayersInTheRound && compareAOH(rhs);
 }
 
 int EFGNode::getDistanceFromRoot() const {

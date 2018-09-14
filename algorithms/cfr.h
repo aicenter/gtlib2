@@ -16,17 +16,25 @@ BehavioralStrategy getStrategyFor(const Domain &domain, int player,
                                                       pair<vector<double>, vector<double>>> &allMP);
 
 /**
- * The main function for CFR iteration.
- * Implementation based on Algorithm 1 in M. Lanctot PhD thesis.
+ * The main function for CFR algorithm returning utility.
  */
-pair<double, double> CFRiterations(const Domain &domain, int iterations);
+pair<double, double> CFR(const Domain &domain, int iterations);
 
 /**
- * The main function for CFR iteration.
+ * The function for CFR iteration.
  * Implementation based on Algorithm 1 in M. Lanctot PhD thesis.
- * AOhistory created in iterations, not in nodes. It should be a first choice.
+ * It should be a first choice.
  */
-pair<double, double> CFRiterationsAOH(const Domain &domain, int iterations);
+unordered_map<shared_ptr<InformationSet>, pair<vector<double>, vector<double>>>  
+CFRiterations(const Domain &domain, int iterations);
+
+/**
+ * The function for CFR iteration.
+ * Implementation based on Algorithm 1 in M. Lanctot PhD thesis.
+ * AOhistory created in iterations, not in nodes.
+ */
+unordered_map<shared_ptr<InformationSet>, pair<vector<double>, vector<double>>>  
+CFRiterationsAOH(const Domain &domain, int iterations);
 }  // namespace algorithms
 }  // namespace GTLib2
 

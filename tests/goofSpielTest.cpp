@@ -200,9 +200,20 @@ BOOST_AUTO_TEST_CASE(numberOfInformationSetsDepth2) {
 
 BOOST_AUTO_TEST_CASE(FulldepthCard4CFR20iter) {
   domains::GoofSpielDomain gsd(4, 4, nullopt);
-  double utility = algorithms::CFRiterationsAOH(gsd, 20).first;
-  BOOST_CHECK(std::abs(utility - 4.97946) <= 0.001);
+  auto regrets = algorithms::CFRiterations(gsd, 20);
+  auto strat1 = algorithms::getStrategyFor(gsd, gsd.getPlayers()[0], regrets);
+  auto strat2 = algorithms::getStrategyFor(gsd, gsd.getPlayers()[1], regrets);
+  auto bestResp1 =
+      algorithms::bestResponseTo(strat2, gsd.getPlayers()[1], gsd.getPlayers()[0], gsd).second;
+  auto bestResp2 =
+      algorithms::bestResponseTo(strat1, gsd.getPlayers()[0], gsd.getPlayers()[1], gsd).second;
+  double utility =  algorithms::computeUtilityTwoPlayersGame(gsd, strat1, strat2,
+      gsd.getPlayers()[0], gsd.getPlayers()[1]).first;
+  BOOST_CHECK(std::abs(utility - 4.97946) <= 0.0001);
+  BOOST_CHECK(std::abs(bestResp1 - 5.19062) <= 0.0001);
+  BOOST_CHECK(std::abs(bestResp2 - 5.16801) <= 0.0001);
 }
+
 
 
 BOOST_AUTO_TEST_CASE(FullDepthCard5ActionSequences) {

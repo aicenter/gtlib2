@@ -18,8 +18,11 @@ namespace domains {
 PursuitAction::PursuitAction(int id, int move) : Action(id), move_(move) {}
 
 bool PursuitAction::operator==(const Action &that) const {
-  const auto rhsAction = dynamic_cast<const PursuitAction *>(&that);
-  return this->move_ == rhsAction->move_;
+  if (typeid(*this) == typeid(that)) {
+    const auto rhsAction = static_cast<const PursuitAction *>(&that);
+    return this->move_ == rhsAction->move_;
+  }
+  return false;
 }
 
 size_t PursuitAction::getHash() const {
@@ -74,7 +77,7 @@ PursuitState::PursuitState(Domain *domain, const vector<Pos> &p, double prob) :
 
 vector<shared_ptr<Action>> PursuitState::getAvailableActionsFor(int player) const {
   auto list = vector<shared_ptr<Action>>();
-  auto purDomain = dynamic_cast<PursuitDomain *>(domain);
+  auto purDomain = static_cast<PursuitDomain *>(domain);
   int count = 0;
   for (int i = 1; i < 5; ++i) {  // verifies whether moves are correct
     if ((place_[player].x + pursuitMoves[i].x) >= 0 && (place_[player].x + pursuitMoves[i].x)

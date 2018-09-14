@@ -21,10 +21,11 @@ pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStr
                                                 const int maxDepth) {
   unordered_map<shared_ptr<EFGNode>, pair<BehavioralStrategy, double>> cache;
   unordered_map<shared_ptr<InformationSet>, EFGNodesDistribution> nodesInSameInfSet;
-
+  int nodes = 0;
   std::function<pair<BehavioralStrategy, double>(shared_ptr<EFGNode>, int, double)> bestResp =
-      [&player, &opponent, &domain, &bestResp, &nodesInSameInfSet, &opoStrat, &cache]
+      [&player, &opponent, &domain, &nodes, &bestResp, &nodesInSameInfSet, &opoStrat, &cache]
           (shared_ptr<EFGNode> node, int depth, double prob) {
+        ++nodes;
         if (cache.find(node) != cache.end()) {
           return cache.at(node);
         }
@@ -48,7 +49,6 @@ pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStr
           shared_ptr<Action> bestAction;
           double bestActionExpectedVal = -std::numeric_limits<double>::infinity();
           BehavioralStrategy brs;
-
           unordered_map<shared_ptr<Action>, unordered_map<shared_ptr<EFGNode>, double>>
               actionNodeVal;
           for (const auto &action : node->availableActions()) {
@@ -133,6 +133,7 @@ pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStr
     expVal += bestStratVal.second;
     brs.insert(bestStratVal.first.begin(), bestStratVal.first.end());
   }
+  cout << "Number of nodes: " << nodes <<"\n";
   return pair<BehavioralStrategy, double>(brs, expVal);
 }
 
@@ -147,10 +148,12 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(
     const Domain &domain, const int maxDepth) {
   unordered_map<shared_ptr<EFGNode>, pair<BehavioralStrategy, double>> cache;
   unordered_map<shared_ptr<InformationSet>, EFGNodesDistribution> nodesInInfSet;
-
-  std::function<pair<BehavioralStrategy, double>(shared_ptr<EFGNode>, int, double)> bestResp =
-      [&player, &opponent, &domain, &bestResp, &nodesInInfSet, &opoStrat, &cache]
-          (shared_ptr<EFGNode> node, int depth, double prob) {
+  int nodes = 0;
+  std::function<pair<BehavioralStrategy, double>(shared_ptr<EFGNode>, int, double, double)>
+      bestResp =
+      [&player, &opponent, &domain, &bestResp, &nodesInInfSet, &nodes, &opoStrat, &cache]
+          (shared_ptr<EFGNode> node, int depth, double prob, double lowerBound) {
+        ++nodes;
         if (cache.find(node) != cache.end()) {
           return cache.at(node);
         }
@@ -162,7 +165,6 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(
           return pair<BehavioralStrategy, double>(BehavioralStrategy(),
                                                   node->rewards[player] * prob);
         }
-
         auto infSet = node->getAOHInfSet();
         if (*node->getCurrentPlayer() == player) {
           // Player's node
@@ -196,20 +198,27 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(
             for (const auto &siblingNatureProb : allNodesInTheSameInfSet) {
               double natureProb = siblingNatureProb.second;
               const auto &sibling = siblingNatureProb.first;
-              if (remainingNodesProb * domain.getMaxUtility() +
-                  actionExpectedValue < bestActionExpectedVal) {
+              if (std::max(lowerBound, bestActionExpectedVal) > remainingNodesProb *
+              domain.getMaxUtility() + actionExpectedValue) {  // TODO: not prunning
+                siblingsVal[sibling] = 0;
                 break;
               }
+              double newLowerBound = bestActionExpectedVal - actionExpectedValue -
+                  (remainingNodesProb - natureProb) * domain.getMaxUtility();
               double seqProb =
                   sibling->getProbabilityOfActionsSeqOfPlayer(opponent, opoStrat);
+              if (newLowerBound > seqProb*natureProb * domain.getMaxUtility()) {
+                break;
+              }
               double val = 0;
               for (auto siblingProb : sibling->performAction(action)) {
-                auto brs_val = bestResp(siblingProb.first,
-                                        siblingProb.first->getDepth() ==
-                                        sibling->getDepth() ? depth : depth - 1,
-                                        natureProb * seqProb * siblingProb.second);
-                val += brs_val.second;
-                brs.insert(brs_val.first.begin(), brs_val.first.end());
+                  auto brs_val = bestResp(siblingProb.first,
+                                          siblingProb.first->getDepth() ==
+                                              sibling->getDepth() ? depth : depth - 1,
+                                          natureProb * seqProb * siblingProb.second,
+                                          newLowerBound);
+                  val += brs_val.second;
+                  brs.insert(brs_val.first.begin(), brs_val.first.end());
               }
               remainingNodesProb -= natureProb;
               actionExpectedValue += val;
@@ -247,7 +256,8 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(
                 auto brs_val = bestResp(childProb.first,
                                         childProb.first->getDepth() ==
                                         node->getDepth() ? depth : depth - 1,
-                                        prob * childProb.second * actionProb);
+                                        prob * childProb.second * actionProb,
+                                        lowerBound);
                 val += brs_val.second;
                 brs.insert(brs_val.first.begin(), brs_val.first.end());
               }
@@ -275,10 +285,11 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(
   for (auto nodeProb : initNodesProb) {
     auto node = nodeProb.first;
     auto prob = nodeProb.second;
-    auto bestStratVal = bestResp(node, maxDepth, prob);
+    auto bestStratVal = bestResp(node, maxDepth, prob, -domain.getMaxUtility());
     expVal += bestStratVal.second;
     brs.insert(bestStratVal.first.begin(), bestStratVal.first.end());
   }
+  cout << "Number of nodes: " << nodes <<"\n";
   return pair<BehavioralStrategy, double>(brs, expVal);
 }
 }  // namespace algorithms

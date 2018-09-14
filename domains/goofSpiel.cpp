@@ -24,8 +24,11 @@ size_t GoofSpielAction::getHash() const {
 }
 
 bool GoofSpielAction::operator==(const Action &that) const {
-  const auto rhsAction = dynamic_cast<const GoofSpielAction *>(&that);
-  return this->cardNumber == rhsAction->cardNumber;
+  if (typeid(that) == typeid(*this)) {
+    const auto rhsAction = static_cast<const GoofSpielAction *>(&that);
+    return this->cardNumber == rhsAction->cardNumber;
+  }
+  return false;
 }
 
 GoofSpielObservation::GoofSpielObservation(int id,

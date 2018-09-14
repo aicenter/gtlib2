@@ -18,8 +18,11 @@ size_t GenericPokerAction::getHash() const {
   return seed;
 }
 bool GenericPokerAction::operator==(const Action &that) const {
-  const auto rhsAction = dynamic_cast<const GenericPokerAction *>(&that);
-  return this->type_ == rhsAction->type_ && this->value_ == rhsAction->value_;
+  if (typeid(*this) == typeid(that)) {
+    const auto rhsAction = static_cast<const GenericPokerAction *>(&that);
+    return this->type_ == rhsAction->type_ && this->value_ == rhsAction->value_;
+  }
+  return false;
 }
 
 GenericPokerObservation::GenericPokerObservation(int id, int type, int value) :

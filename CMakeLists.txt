@@ -4,19 +4,7 @@ project(GTLib2)
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_STANDARD 17)
 
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release)
-endif()
-
-set(CMAKE_CXX_FLAGS_RELEASE "-msse2 -O3 -ffast-math -fvectorize")
-
-#set(CMAKE_C_COMPILER "gcc-7")
-#set(CMAKE_CXX_COMPILER "g++-7")
-
-# directories with googletest files used for unit tests
-#add_subdirectory(lib/googletest)
-#include_directories(lib/googletest/googletest/include)
-#include_directories(lib/googletest/googlemock/include)
+set(CMAKE_CXX_FLAGS_RELEASE "-msse2 -O3 -ffast-math")
 
 # link pthread library
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
@@ -36,60 +24,75 @@ if( CPLEX_FOUND )
     file(GLOB CPLEX_FILES
             "LPsolvers/CplexLPSolver.h"
             "LPsolvers/CplexLPSolver.cpp"
+            "LPsolvers/simpleCplexSolver.cpp"
+            "LPsolvers/simpleCplexSolver.h"
             )
     set(CPLEXLIB ilocplex)
 endif()
 
-# boost
-#set(Boost_INCLUDE_DIR /usr/local/Cellar/boost/1.66.0/include)
-#set(Boost_LIBRARY_DIR /usr/local/Cellar/boost/1.66.0/lib)
-
-
-
-
-#set(Boost_USE_STATIC_LIBS OFF)
-#set(Boost_USE_MULTITHREADED ON)
-#set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost COMPONENTS unit_test_framework system REQUIRED)
 
 include_directories(${Boost_INCLUDE_DIR})
 
 
-
-
 FIND_PATH(GLPK_INCLUDE_DIR NAMES glpk.h PATHS
-        ${GLPK_DIR}/src
+        ${GLPK_DIR}/basics/glpk/include
+        ${GLPK_DIR}/include
         NO_DEFAULT_PATH
         )
 
-FIND_PATH(GLPK_LIB_DIR  NAMES libglpk.so PATHS
-        ${GLPK_DIR}/src/.libs
+FIND_PATH(GLPK_LIBRARY  NAMES libglpk.a PATHS
+        ${GLPK_DIR}/basics/glpk/lib
+        ${GLPK_DIR}/lib
         NO_DEFAULT_PATH
         )
 
-if (GLPK_INCLUDE_DIR AND GLPK_LIB_DIR)
-    set(GLPKLIB glpk)
+message(${GLPK_INCLUDE_DIR})#set(CMAKE_C_COMPILER "gcc-7")
+#set(CMAKE_CXX_COMPILER "g++-7")
+
+# directories with googletest files used for unit tests
+#add_subdirectory(lib/googletest)
+#include_directories(lib/googletest/googletest/include)
+#include_directories(lib/googletest/googlemock/include)
+message(${GLPK_LIBRARY})
+
+if (GLPK_INCLUDE_DIR AND GLPK_LIBRARY)
+
+
+#if (GLPK_FOUND)
+    include_directories(${GLPK_INCLUDE_DIR})
+    link_libraries(${GLPK_LIBRARY})
+    message("bla")
     file(GLOB GLPK_FILES
-            "glpkfiles/*.h"
-            "glpkfiles/*.cpp"
+            "LPsolvers/GlpkLPSolver.h"
+            "LPsolvers/GlpkLPSolver.cpp"
             )
+    set(GLPKLIB glpk)
 endif()
 
 
-set(SOURCE_FILES domains/pursuit.h
-        base/base.cpp base/base.h
-        domains/pursuit.cpp base/efg.cpp base/efg.h utils/utils.h LPsolvers/LPSolver.cpp LPsolvers/LPSolver.h
-        algorithms/normalFormLP.cpp algorithms/normalFormLP.h domains/phantomTTT.cpp domains/phantomTTT.h domains/matching_pennies.cpp domains/matching_pennies.h algorithms/treeWalk.cpp algorithms/treeWalk.h base/efg_old.cpp base/efg_old.h base/base_old.cpp base/base_old.h algorithms/bestResponse.cpp algorithms/bestResponse.h algorithms/common.cpp algorithms/common.h algorithms/utility.cpp algorithms/utility.h algorithms/equilibrium.cpp algorithms/equilibrium.h LPsolvers/simpleCplexSolver.cpp LPsolvers/simpleCplexSolver.h domains/goofSpiel.cpp domains/goofSpiel.h)
-add_executable(main  main.cpp ${SOURCE_FILES} ${CPLEX_FILES} ${GLPK_FILES})
+set(SOURCE_FILES base/base.cpp base/base.h base/efg.cpp base/efg.h
+        utils/utils.h LPsolvers/LPSolver.cpp LPsolvers/LPSolver.h
+        algorithms/normalFormLP.cpp algorithms/normalFormLP.h
+        algorithms/treeWalk.cpp algorithms/treeWalk.h
+        algorithms/bestResponse.cpp algorithms/bestResponse.h
+        algorithms/common.cpp algorithms/common.h
+        algorithms/cfr.cpp algorithms/cfr.h
+        algorithms/utility.cpp algorithms/utility.h
+        algorithms/equilibrium.cpp algorithms/equilibrium.h
+        domains/pursuit.h domains/pursuit.cpp domains/phantomTTT.cpp domains/phantomTTT.h
+        domains/matching_pennies.cpp domains/matching_pennies.h domains/goofSpiel.cpp domains/goofSpiel.h
+        domains/genericPoker.cpp domains/genericPoker.h
+        domains/RhodeIslandPoker.cpp domains/RhodeIslandPoker.h
+        )
+add_executable(main main.cpp ${SOURCE_FILES} ${CPLEX_FILES} ${GLPK_FILES} )
 
-target_link_libraries(main
-        ${CPLEXLIB}
-        ${CMAKE_THREAD_LIBS_INIT} ${GLPKLIB} ${Boost_LIBRARIES})
+target_link_libraries(main ${CPLEXLIB} ${CMAKE_THREAD_LIBS_INIT} ${GLPKLIB} ${Boost_LIBRARIES})
 
 
 
 #testing stuff
-add_executable(tester tests/matchingPenniesTest.cpp ${SOURCE_FILES} ${CPLEX_FILES} ${GLPK_FILES} tests/goofSpielTest.cpp)
+add_executable(tester tests/matchingPenniesTest.cpp ${SOURCE_FILES} ${CPLEX_FILES} ${GLPK_FILES} tests/goofSpielTest.cpp tests/genericPokerTest.cpp)
 target_link_libraries(tester ${CPLEXLIB}
         ${CMAKE_THREAD_LIBS_INIT} ${GLPKLIB} ${Boost_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(tester tester)

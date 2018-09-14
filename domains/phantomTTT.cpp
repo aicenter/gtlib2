@@ -19,8 +19,11 @@ namespace domains {
 PhantomTTTAction::PhantomTTTAction(int id, int move) : Action(id), move_(move) {}
 
 bool PhantomTTTAction::operator==(const Action &that) const {
-  const auto rhsAction = dynamic_cast<const PhantomTTTAction *>(&that);
-  return this->move_ == rhsAction->move_;
+  if (typeid(*this) == typeid(that)) {
+    const auto rhsAction = static_cast<const PhantomTTTAction *>(&that);
+    return this->move_ == rhsAction->move_;
+  }
+  return false;
 }
 
 size_t PhantomTTTAction::getHash() const {
