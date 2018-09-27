@@ -15,4 +15,8 @@ set(WIN86_DIR "C:/Program Files (x86)/IBM/ILOG")
 
 # Path to GLPK, there is not default location
 # so it is necessary to set your library location
-set(GLPK_DIR /home/rozliv/Documents/glpk-4.63)
+set(GLPK_DIR /usr/local)
+
+# Path to GUROBI, there is not default location  (but /opt is recommended)
+# so it is necessary to set your library location
+set(GUROBI_DIR /opt/gurobi801/linux64)
