@@ -2,7 +2,7 @@
 // Created by Jakub Rozlivek on 02.08.2017.
 //
 
-#include "pursuit.h"
+#include "domains/pursuit.h"
 #include <cassert>
 
 #pragma clang diagnostic push
@@ -77,6 +77,11 @@ PursuitState::PursuitState(Domain *domain, const vector<Pos> &p, double prob) :
 
 vector<shared_ptr<Action>> PursuitState::getAvailableActionsFor(int player) const {
   auto list = vector<shared_ptr<Action>>();
+  for (int i = 1; i < players_.size(); ++i) {
+    if (place_[players_[0]].x == place_[players_[i]].x && place_[0].y == place_[players_[i]].y) {
+      return list;
+    }
+  }
   auto purDomain = static_cast<PursuitDomain *>(domain);
   int count = 0;
   for (int i = 1; i < 5; ++i) {  // verifies whether moves are correct
@@ -108,7 +113,7 @@ PursuitState::performActions(const vector<pair<int, shared_ptr<Action>>> &action
   int count = (1 << powsize);
   OutcomeDistribution prob;
   prob.reserve(static_cast<unsigned long>(count));
-  count = 1;
+//  count = 1;
   for (unsigned int k = 0; k < count; ++k) {
     double probability = prob_;
     vector<shared_ptr<Observation>> observations(place_.size());
@@ -235,7 +240,7 @@ MMPursuitState::MMPursuitState(Domain *domain, const vector<Pos> &p, double prob
     PursuitState(domain, p, prob), players_(players), numberOfMoves_(move(numberOfMoves)),
     currentNOM_(currentNOM), currentPlayer_(currentPlayer) {}
 
-OutcomeDistribution  // TODO: upravit vice tahu vice hracu - zjistit princip
+OutcomeDistribution
 MMPursuitState::performActions(const vector<pair<int, shared_ptr<Action>>> &actions2) const {
   vector<PursuitAction*> actions(actions2.size());
   auto purDomain = static_cast<PursuitDomain *>(domain);
@@ -260,19 +265,19 @@ MMPursuitState::performActions(const vector<pair<int, shared_ptr<Action>>> &acti
       }
     }
     shared_ptr<MMPursuitState> s;
-    //   if (currentNOM_ == 1) {
-    //   vector<int> pla2 = {k};
-
-//      s = make_shared<MMPursuitState>(moves, probability, pla2, (k >> 1) + 1);
-    //   } else {
-    s = make_shared<MMPursuitState>(domain,
-                                    moves,
-                                    probability,
-                                    players_,
-                                    numberOfMoves_,
-                                    currentNOM_ - 1,
-                                    currentPlayer_);
-    // }
+    if (currentNOM_ == 1) {
+      int newPlayer = (currentPlayer_+1)%players_.size();
+      s = make_shared<MMPursuitState>(domain, moves, probability, players_, numberOfMoves_,
+          numberOfMoves_[newPlayer], newPlayer);
+    } else {
+      s = make_shared<MMPursuitState>(domain,
+                                      moves,
+                                      probability,
+                                      players_,
+                                      numberOfMoves_,
+                                      currentNOM_ - 1,
+                                      currentPlayer_);
+     }
     auto size = static_cast<unsigned int>(s->place_.size());
     moves.clear();
     // detection if first has caught the others
@@ -290,7 +295,7 @@ MMPursuitState::performActions(const vector<pair<int, shared_ptr<Action>>> &acti
     vector<int> ob = vector<int>();
     ob.reserve(size + 1);
     for (int m = 0, pom = 0; m < size; ++m, ++pom) {  // making observations
-      if (actions[m]->getId() == -1 /*&& movecount_ > 1*/) {
+      if (actions[m]->getId() == -1 && currentNOM_ > 1) {
         observations[m] = std::make_shared<Observation>(-1);
         --pom;
         continue;
@@ -562,40 +567,6 @@ PursuitDomainChance::PursuitDomainChance(unsigned int max,
         .push_back(pair<Outcome, double>(move(o), 1.0 / firstPlayerLocation.size()));
   }
 }
-
-PursuitDomainChance::PursuitDomainChance(unsigned int max,
-                                         unsigned int numberOfPlayers,
-                                         const shared_ptr<MMPursuitState> &state,
-                                         int height, int width, vector<double> probability)
-    : PursuitDomain(max,
-                    numberOfPlayers,
-                    state,
-                    height,
-                    width,
-                    move(probability)) {  // TODO: rozlisit MMPursuitState od normalniho
-  vector<Pos> start1 = {{0, 0}, {0, 1}};
-  vector<Pos> start2 = {{1, 0}, {1, 1}};
-  for (int i = 0; i < start1.size(); ++i) {
-    auto new_state = make_shared<PursuitState>(this, vector<Pos>{start1[i], start2[i]});
-    vector<double> rewards(numberOfPlayers);
-    vector<shared_ptr<Observation>> Obs;
-    for (int j = 0; j < numberOfPlayers; ++j) {
-      Obs.push_back(make_shared<Observation>(-1));
-    }
-
-    Outcome o(new_state, Obs, rewards);
-    rootStatesDistribution.push_back(pair<Outcome, double>(move(o), 1.0 / start1.size()));
-  }
-}
-
-PursuitDomainChance::PursuitDomainChance(unsigned int max, unsigned int numberOfPlayers,
-                                         const shared_ptr<MMPursuitState> &state, int height,
-                                         int width) : PursuitDomain(max,
-                                                                    numberOfPlayers,
-                                                                    state,
-                                                                    height,
-                                                                    width,
-                                                                    vector<double>{0.1, 0.9}) {}
 
 PursuitDomainChance::PursuitDomainChance(unsigned int max, unsigned int numberOfPlayers,
                                          const vector<Pos> &firstPlayerLocation,

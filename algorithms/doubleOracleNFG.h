@@ -5,8 +5,8 @@
 #ifndef ALGORITHMS_DOUBLEORACLENFG_H_
 #define ALGORITHMS_DOUBLEORACLENFG_H_
 
-#include "normalFormLP.h"
-#include "../base/base.h"
+#include "algorithms/normalFormLP.h"
+#include "base/base.h"
 
 class DoubleOracleNFG {
   explicit DoubleOracleNFG(const int _p1_actions, const int _p2_actions, shared_ptr<Domain> _game);

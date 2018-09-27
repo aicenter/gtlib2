@@ -2,9 +2,7 @@
 // Created by bbosansky on 8/11/17.
 //
 
-#include "normalFormLP.h"
-#include <map>
-#include <unordered_map>
+#include "algorithms/normalFormLP.h"
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"

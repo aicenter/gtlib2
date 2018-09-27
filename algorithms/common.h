@@ -7,8 +7,9 @@
 #ifndef ALGORITHMS_COMMON_H_
 #define ALGORITHMS_COMMON_H_
 
-#include "../base/base.h"
-#include "../base/efg.h"
+#include <vector>
+#include "base/base.h"
+#include "base/efg.h"
 
 namespace GTLib2 {
 namespace algorithms {

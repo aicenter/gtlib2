@@ -8,32 +8,24 @@
 #define BASE_BASE_H_
 
 #include <functional>
-#include <iostream>
 #include <utility>
 #include <vector>
-#include <cmath>
 #include <memory>
-#include <ctime>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
-#include <tuple>
 #include <boost/functional/hash.hpp>
-#include "../utils/utils.h"
+#include "utils/utils.h"
 
 using std::string;
-using std::cout;
 using std::vector;
 using std::move;
 using std::unique_ptr;
 using std::shared_ptr;
 using std::to_string;
 using std::unordered_map;
-using std::unordered_set;
 using std::make_shared;
 using std::make_unique;
 using std::pair;
-using std::tuple;
 using std::dynamic_pointer_cast;
 
 namespace GTLib2 {
@@ -111,8 +103,7 @@ typedef pair<Outcome, double> distributionEntry;
 typedef vector<distributionEntry> OutcomeDistribution;
 
 /**
- * InformationSet is an abstract class that represents information sets,
- *  which are identified by their hash code. TODO: Maybe rather identified by some unique id?
+ * InformationSet is an abstract class that represents information sets.
  */
 class InformationSet {
  public:

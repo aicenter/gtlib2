@@ -5,9 +5,9 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
-#include "utility.h"
-#include "common.h"
-#include "treeWalk.h"
+#include "algorithms/utility.h"
+#include "algorithms/common.h"
+#include "algorithms/treeWalk.h"
 
 namespace GTLib2 {
 namespace algorithms {

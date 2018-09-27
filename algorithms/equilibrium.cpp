@@ -5,12 +5,18 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
-#include <tuple>
 #include <vector>
-#include "equilibrium.h"
-#include "utility.h"
-#include "../LPsolvers/simpleCplexSolver.h"
-#include "common.h"
+#include "algorithms/equilibrium.h"
+#include "algorithms/utility.h"
+#include "algorithms/common.h"
+#if GUROBIFOUND == 1
+#include "LPsolvers/GurobiLPSolver.h"
+#elif CPLEXFOUND == 1
+#include "LPsolvers/CplexLPSolver.h"
+#elif GLPKFOUND == 1
+#include "LPsolvers/GlpkLPSolver.h"
+#endif
+
 
 namespace GTLib2 {
 namespace algorithms {

@@ -2,9 +2,8 @@
 // Created by Jakub Rozlivek on 07.08.2017.
 //
 
-#include "base.h"
+#include "base/base.h"
 #include <cassert>
-#include <utility>
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
@@ -158,6 +157,6 @@ int State::getNumberOfPlayers() const {
 string State::toString() const {
   return std::string();
 }
-} // namespace GTLib2
+}  // namespace GTLib2
 
 #pragma clang diagnostic pop

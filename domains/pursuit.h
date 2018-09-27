@@ -10,8 +10,8 @@
 #include <utility>
 #include <numeric>
 #include <vector>
-
-#include "../base/base.h"
+#include <string>
+#include "base/base.h"
 
 namespace GTLib2 {
 namespace domains {
@@ -171,7 +171,7 @@ class MMPursuitState : public PursuitState {
                  vector<int> numberOfMoves, int currentNOM, int currentPlayer);
 
   // Constructor
-  MMPursuitState(Domain *omain, const vector<Pos> &p, double prob,
+  MMPursuitState(Domain *domain, const vector<Pos> &p, double prob,
                  const vector<int> &players, vector<int> numberOfMoves);
 
   // Constructor
@@ -291,3 +291,5 @@ class PursuitDomainChance : public PursuitDomain {
 #endif  // DOMAINS_PURSUIT_H_
 
 #pragma clang diagnostic pop
+
+

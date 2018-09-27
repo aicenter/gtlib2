@@ -2,7 +2,7 @@
 // Created by Jakub Rozlivek on 19.10.17.
 //
 
-#include "GlpkLPSolver.h"
+#include "LPsolvers/GlpkLPSolver.h"
 
 void GlpkLPSolver::CleanModel() {
   glp_delete_prob(lp);
@@ -17,44 +17,46 @@ double GlpkLPSolver::SolveGame() {
   return glp_get_obj_val(lp);
 }
 
-void GlpkLPSolver::BuildModel(int rows, int cols,
+void GlpkLPSolver::BuildModel(unsigned int rows, unsigned int cols,
                               const vector<double> *utility_matrix,
-                              const bool OUTPUT) {  // TODO: check creating constraints
-  ++cols;
-  vector<int> ia = vector<int>(1 + cols * rows + cols);
-  vector<int> ja = vector<int>(1 + cols * rows + cols);
-  vector<double> ar = vector<double>(1 + cols * rows + cols);
+                              bool OUTPUT) {
+  const unsigned int new_cols = rows +1;
+  const unsigned int new_rows = cols +1;
+
+  vector<int> ia = vector<int>(1 + new_cols * new_rows);
+  vector<int> ja = vector<int>(1 + new_cols * new_rows);
+  vector<double> ar = vector<double>(1 + new_cols * new_rows);
   lp = glp_create_prob();
   glp_set_obj_dir(lp, GLP_MAX);
-  glp_add_rows(lp, rows + 1);
-  glp_add_cols(lp, cols);
+  glp_add_rows(lp, new_rows);
+  glp_add_cols(lp, new_cols);
 
-  for (int i = 2; i <= rows + 1; ++i) {
+  for (int i = 2; i <= new_rows; ++i) {
     glp_set_row_bnds(lp, i, GLP_LO, 0.0, 0.0);
   }
 
-  for (int i = 1; i <= cols; ++i) {
+  for (int i = 1; i <= new_cols; ++i) {
     glp_set_col_bnds(lp, i, GLP_DB, 0.0, 1.0);
   }
   glp_set_obj_coef(lp, 1, 1);
   glp_set_col_bnds(lp, 1, GLP_FR, 0.0, 1.0);
 
-  for (int i = 1; i <= cols; ++i) {
+  for (int i = 1; i <= new_cols; ++i) {
     ar[i] = 1;
     ja[i] = i;
     ia[i] = 1;
   }
   ar[1] = 0;
-
-  for (int i = cols + 1, j = 0; i <= cols * rows + cols; ++i, ++j) {
-    if ((i - 1) % cols == 0) {
+  for (int i = new_cols + 1, j = 0, k = -1; i <= new_cols * new_rows; ++i, ++j) {
+    if ((i - 1) % new_cols == 0) {
       ar[i] = -1;
-      --j;
+      j = -1;
+      ++k;
     } else {
-      ar[i] = utility_matrix->operator[](j);
+      ar[i] = utility_matrix->operator[](j*cols+k);
     }
-    ia[i] = (i - 1) / cols + 1;
-    ja[i] = (i - 1) % cols + 1;
+    ia[i] = (i - 1) / new_cols + 1;
+    ja[i] = (i - 1) % new_cols + 1;
   }
   glp_set_row_bnds(lp, 1, GLP_FX, 1.0, 1.0);
 
@@ -62,7 +64,7 @@ void GlpkLPSolver::BuildModel(int rows, int cols,
   int *b = &ja[0];
   double *c = &ar[0];
 
-  glp_load_matrix(lp, cols * rows + cols, a, b, c);
+  glp_load_matrix(lp, new_cols * new_rows, a, b, c);
 }
 
 double const GlpkLPSolver::GetValue(int index) const {
@@ -82,7 +84,7 @@ void GlpkLPSolver::SetConstraintCoefForVariable(int constraint, int variable, do
   constraint += 2;
   variable += 2;
   int ind[cols + 1];
-  int count = glp_get_mat_row(lp, constraint, NULL, NULL);
+  int count = glp_get_mat_row(lp, constraint, nullptr, nullptr);
   int ac[count + 1];
   double ab[count + 1];
   glp_get_mat_row(lp, constraint, ac, ab);
@@ -104,10 +106,7 @@ void GlpkLPSolver::SetConstraintCoefForVariable(int constraint, int variable, do
       }
     }
   }
-
-  int *AC = &aC[0];
-  double *AB = &aB[0];
-  glp_set_mat_row(lp, constraint, cols, AC, AB);
+  glp_set_mat_row(lp, constraint, cols, &aC[0], &aB[0]);
 }
 
 void GlpkLPSolver::AddRows(int cols, const vector<vector<double>> &utility_for_cols) {

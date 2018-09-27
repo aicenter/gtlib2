@@ -2,7 +2,7 @@
 // Created by Jakub Rozlivek on 02.11.2017.
 //
 
-#include "phantomTTT.h"
+#include "domains/phantomTTT.h"
 #include <cassert>
 
 #pragma clang diagnostic push

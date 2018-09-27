@@ -7,11 +7,12 @@
 
 #include <vector>
 #include <utility>
-#include "../base/base.h"
+#include "base/base.h"
 
 namespace GTLib2 {
 namespace algorithms {
-BehavioralStrategy getStrategyFor(const Domain &domain, int player,
+BehavioralStrategy getStrategyFor(const Domain &domain,
+                                  int player,
                                   const unordered_map<shared_ptr<InformationSet>,
                                                       pair<vector<double>, vector<double>>> &allMP);
 
@@ -25,7 +26,7 @@ pair<double, double> CFR(const Domain &domain, int iterations);
  * Implementation based on Algorithm 1 in M. Lanctot PhD thesis.
  * It should be a first choice.
  */
-unordered_map<shared_ptr<InformationSet>, pair<vector<double>, vector<double>>>  
+unordered_map<shared_ptr<InformationSet>, pair<vector<double>, vector<double>>>
 CFRiterations(const Domain &domain, int iterations);
 
 /**
@@ -33,7 +34,7 @@ CFRiterations(const Domain &domain, int iterations);
  * Implementation based on Algorithm 1 in M. Lanctot PhD thesis.
  * AOhistory created in iterations, not in nodes.
  */
-unordered_map<shared_ptr<InformationSet>, pair<vector<double>, vector<double>>>  
+unordered_map<shared_ptr<InformationSet>, pair<vector<double>, vector<double>>>
 CFRiterationsAOH(const Domain &domain, int iterations);
 }  // namespace algorithms
 }  // namespace GTLib2

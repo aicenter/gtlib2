@@ -6,7 +6,7 @@
 #define ALGORITHMS_BESTRESPONSE_H_
 
 #include <utility>
-#include "../base/base.h"
+#include "base/base.h"
 
 
 namespace GTLib2 {

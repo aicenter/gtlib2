@@ -8,11 +8,10 @@
 #define DOMAINS_GOOFSPIEL_H_
 
 #include <experimental/optional>
-#include <random>
 #include <vector>
 #include <string>
 #include <utility>
-#include "../base/base.h"
+#include "base/base.h"
 
 
 using std::experimental::nullopt;

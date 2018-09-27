@@ -2,10 +2,14 @@
 // Created by Pavel Rytir on 1/21/18.
 //
 
-#include "../base/efg.h"
-#include "bestResponse.h"
-#include "common.h"
-#include "treeWalk.h"
+#include <limits>
+#include <algorithm>
+#include "algorithms/bestResponse.h"
+#include "base/efg.h"
+#include "algorithms/common.h"
+#include "algorithms/treeWalk.h"
+
+using std::cout;
 
 namespace GTLib2 {
 namespace algorithms {
@@ -133,7 +137,7 @@ pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStr
     expVal += bestStratVal.second;
     brs.insert(bestStratVal.first.begin(), bestStratVal.first.end());
   }
-  cout << "Number of nodes: " << nodes <<"\n";
+  cout << "Number of nodes: " << nodes << "\n";
   return pair<BehavioralStrategy, double>(brs, expVal);
 }
 
@@ -199,7 +203,7 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(
               double natureProb = siblingNatureProb.second;
               const auto &sibling = siblingNatureProb.first;
               if (std::max(lowerBound, bestActionExpectedVal) > remainingNodesProb *
-              domain.getMaxUtility() + actionExpectedValue) {  // TODO: not prunning
+                  domain.getMaxUtility() + actionExpectedValue) {  // TODO: not prunning
                 siblingsVal[sibling] = 0;
                 break;
               }
@@ -207,18 +211,18 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(
                   (remainingNodesProb - natureProb) * domain.getMaxUtility();
               double seqProb =
                   sibling->getProbabilityOfActionsSeqOfPlayer(opponent, opoStrat);
-              if (newLowerBound > seqProb*natureProb * domain.getMaxUtility()) {
+              if (newLowerBound > seqProb * natureProb * domain.getMaxUtility()) {
                 break;
               }
               double val = 0;
               for (auto siblingProb : sibling->performAction(action)) {
-                  auto brs_val = bestResp(siblingProb.first,
-                                          siblingProb.first->getDepth() ==
-                                              sibling->getDepth() ? depth : depth - 1,
-                                          natureProb * seqProb * siblingProb.second,
-                                          newLowerBound);
-                  val += brs_val.second;
-                  brs.insert(brs_val.first.begin(), brs_val.first.end());
+                auto brs_val = bestResp(siblingProb.first,
+                                        siblingProb.first->getDepth() ==
+                                            sibling->getDepth() ? depth : depth - 1,
+                                        natureProb * seqProb * siblingProb.second,
+                                        newLowerBound);
+                val += brs_val.second;
+                brs.insert(brs_val.first.begin(), brs_val.first.end());
               }
               remainingNodesProb -= natureProb;
               actionExpectedValue += val;
@@ -255,7 +259,7 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(
               for (auto childProb : node->performAction(action)) {
                 auto brs_val = bestResp(childProb.first,
                                         childProb.first->getDepth() ==
-                                        node->getDepth() ? depth : depth - 1,
+                                            node->getDepth() ? depth : depth - 1,
                                         prob * childProb.second * actionProb,
                                         lowerBound);
                 val += brs_val.second;
@@ -289,7 +293,7 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(
     expVal += bestStratVal.second;
     brs.insert(bestStratVal.first.begin(), bestStratVal.first.end());
   }
-  cout << "Number of nodes: " << nodes <<"\n";
+  cout << "Number of nodes: " << nodes << "\n";
   return pair<BehavioralStrategy, double>(brs, expVal);
 }
 }  // namespace algorithms

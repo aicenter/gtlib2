@@ -6,10 +6,10 @@
 #define LPSOLVERS_GLPKLPSOLVER_H_
 
 
-
-#include "LPSolver.h"
 #include <glpk.h>
 #include <vector>
+#include <cmath>
+#include "LPsolvers/LPSolver.h"
 
 class GlpkLPSolver : public LPSolver {
  public:
@@ -21,7 +21,10 @@ class GlpkLPSolver : public LPSolver {
 
   double SolveGame() final;
 
-  void BuildModel(int rows, int cols, const vector<double> *utility_matrix, bool OUTPUT) final;
+  void BuildModel(unsigned int rows,
+                  unsigned int cols,
+                  const vector<double> *utility_matrix,
+                  bool OUTPUT) final;
 
   double const GetValue(int index) const final;
 
@@ -36,7 +39,78 @@ class GlpkLPSolver : public LPSolver {
   void AddCols(int rows, const vector<vector<double>> &utility_for_rows) final;
 
  protected:
-  glp_prob *lp;
+  glp_prob *lp = nullptr;
 };
+
+inline double solveLP(const unsigned int rows,
+                      const unsigned int cols,
+                      const vector<double> &utility_matrix,
+                      vector<double> &solution) {
+  // Matrix's rows are indexed by player1. Cols are indexed by player2
+  // Utility matrix is for player1. It's zero sum, so utility matrix of player2 is -utility_matrix
+
+  try {
+    const unsigned int new_cols = cols +1;
+    const unsigned int new_rows = rows +1;
+    vector<int> ia = vector<int>(1 + new_cols * new_rows);
+    vector<int> ja = vector<int>(1 + new_cols * new_rows);
+    vector<double> ar = vector<double>(1 + new_cols * new_rows);
+    glp_prob *lp = glp_create_prob();
+    glp_set_obj_dir(lp, GLP_MAX);
+    glp_add_rows(lp, new_rows);
+    glp_add_cols(lp, new_cols);
+
+    for (int i = 2; i <= new_rows; ++i) {
+      glp_set_row_bnds(lp, i, GLP_LO, 0.0, 0.0);
+    }
+
+    for (int i = 1; i <= new_cols; ++i) {
+      glp_set_col_bnds(lp, i, GLP_DB, 0.0, 1.0);
+    }
+    glp_set_obj_coef(lp, 1, 1);
+    glp_set_col_bnds(lp, 1, GLP_FR, 0.0, 1.0);
+
+    for (int i = 1; i <= new_cols; ++i) {
+      ar[i] = 1;
+      ja[i] = i;
+      ia[i] = 1;
+    }
+    ar[1] = 0;
+    for (int i = new_cols + 1, j = 0, k = -1; i <= new_cols * new_rows; ++i, ++j) {
+      if ((i - 1) % new_cols == 0) {
+        ar[i] = -1;
+        j = -1;
+        ++k;
+      } else {
+        ar[i] = utility_matrix[j*cols+k];
+      }
+      ia[i] = (i - 1) / new_cols + 1;
+      ja[i] = (i - 1) % new_cols + 1;
+    }
+    glp_set_row_bnds(lp, 1, GLP_FX, 1.0, 1.0);
+
+    int *a = &ia[0];
+    int *b = &ja[0];
+    double *c = &ar[0];
+
+    glp_load_matrix(lp, new_cols * new_rows, a, b, c);
+
+    if (glp_simplex(lp, nullptr)) {
+      glp_error("Failed to optimize LP");
+      throw(-1);
+    }
+    std::cout << "Solution status = " << glp_get_status(lp) << "\n";
+    std::cout << "Solution value = " << glp_get_obj_val(lp) << "\n";
+
+    for (int i = 0; i < cols; ++i) {
+      solution[i] = glp_get_col_prim(lp, i + 2);
+    }
+    glp_write_lp(lp, nullptr, "e.lp");
+    return glp_get_obj_val(lp);
+  } catch (glp_errfunc &e) {
+    std::cerr << "GLPK exception caught: " << e << "\n";
+    return NAN;
+  }
+}
 
 #endif  // LPSOLVERS_GLPKLPSOLVER_H_

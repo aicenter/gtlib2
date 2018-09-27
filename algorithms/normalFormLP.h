@@ -11,10 +11,10 @@
 #include <iostream>
 #include <vector>
 #include <memory>
-#include "../base/efg.h"
-#include "../LPsolvers/LPSolver.h"
-#include "utility.h"
-#include "common.h"
+#include "base/efg.h"
+#include "LPsolvers/LPSolver.h"
+#include "algorithms/utility.h"
+#include "algorithms/common.h"
 
 using std::vector;
 using std::shared_ptr;

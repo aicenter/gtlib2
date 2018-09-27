@@ -2,10 +2,9 @@
 // Created by Pavel Rytir on 1/21/18.
 //
 
-#include <vector>
 #include <utility>
-#include "common.h"
-#include "treeWalk.h"
+#include "algorithms/common.h"
+#include "algorithms/treeWalk.h"
 
 
 #pragma clang diagnostic push

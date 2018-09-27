@@ -22,7 +22,7 @@ class LPSolver {
 
   virtual double SolveGame() = 0;
 
-  virtual void BuildModel(int rows, int cols,
+  virtual void BuildModel(unsigned int rows, unsigned int cols,
                           const vector<double> *utility_matrix,
                           bool OUTPUT) = 0;
 

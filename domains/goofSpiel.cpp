@@ -3,7 +3,7 @@
 //
 
 #include <random>
-#include "goofSpiel.h"
+#include "domains/goofSpiel.h"
 #include "boost/range/irange.hpp"
 
 #pragma clang diagnostic push

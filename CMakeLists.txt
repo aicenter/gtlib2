@@ -4,7 +4,7 @@ project(GTLib2)
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_STANDARD 17)
 
-set(CMAKE_CXX_FLAGS_RELEASE "-msse2 -O3 -ffast-math")
+set(CMAKE_CXX_FLAGS_RELEASE "-m64 -msse2 -O3 -ffast-math")
 
 # link pthread library
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
@@ -13,19 +13,20 @@ if(CMAKE_USE_PTHREADS_INIT)
     set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-pthread")
 endif()
 
+include_directories(${CMAKE_SOURCE_DIR})
+
 # try to find cplex library with FindCPLEX.cmake code
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/modules")
 find_package(CPLEX)
 
 # if found link libraries and add all .h and .cpp files
 if( CPLEX_FOUND )
+    add_definitions(-DCPLEXFOUND=1)
     include_directories(${CPLEX_INCLUDE_DIR})
     link_libraries(${CPLEX_LIBRARY})
     file(GLOB CPLEX_FILES
             "LPsolvers/CplexLPSolver.h"
             "LPsolvers/CplexLPSolver.cpp"
-            "LPsolvers/simpleCplexSolver.cpp"
-            "LPsolvers/simpleCplexSolver.h"
             )
     set(CPLEXLIB ilocplex)
 endif()
@@ -47,22 +48,10 @@ FIND_PATH(GLPK_LIBRARY  NAMES libglpk.a PATHS
         NO_DEFAULT_PATH
         )
 
-message(${GLPK_INCLUDE_DIR})#set(CMAKE_C_COMPILER "gcc-7")
-#set(CMAKE_CXX_COMPILER "g++-7")
-
-# directories with googletest files used for unit tests
-#add_subdirectory(lib/googletest)
-#include_directories(lib/googletest/googletest/include)
-#include_directories(lib/googletest/googlemock/include)
-message(${GLPK_LIBRARY})
-
 if (GLPK_INCLUDE_DIR AND GLPK_LIBRARY)
-
-
-#if (GLPK_FOUND)
+    add_definitions(-DGLPKFOUND=1)
     include_directories(${GLPK_INCLUDE_DIR})
     link_libraries(${GLPK_LIBRARY})
-    message("bla")
     file(GLOB GLPK_FILES
             "LPsolvers/GlpkLPSolver.h"
             "LPsolvers/GlpkLPSolver.cpp"
@@ -70,9 +59,30 @@ if (GLPK_INCLUDE_DIR AND GLPK_LIBRARY)
     set(GLPKLIB glpk)
 endif()
 
+FIND_PATH(GUROBI_INCLUDE_DIR NAMES gurobi_c++.h PATHS
+        ${GUROBI_DIR}/include
+        NO_DEFAULT_PATH
+        )
+
+find_PATH(GUROBI_LIBRARY NAMES gurobi80 PATHS
+        ${GUROBI_DIR}/lib
+        NO_DEFAULT_PATH
+        )
+
+if (GUROBI_INCLUDE_DIR AND GUROBI_LIBRARY)
+    add_definitions(-DGUROBIFOUND=1)
+    include_directories(${GUROBI_INCLUDE_DIR})
+    file(GLOB GUROBI_FILES
+            "LPsolvers/GurobiLPSolver.h"
+            "LPsolvers/GurobiLPSolver.cpp"
+            )
+    set(GUROBILIB "-L${GUROBI_LIBRARY} -lgurobi_c++ -lgurobi80")
+endif()
+
+
 
 set(SOURCE_FILES base/base.cpp base/base.h base/efg.cpp base/efg.h
-        utils/utils.h LPsolvers/LPSolver.cpp LPsolvers/LPSolver.h
+        utils/utils.h LPsolvers/LPSolver.h
         algorithms/normalFormLP.cpp algorithms/normalFormLP.h
         algorithms/treeWalk.cpp algorithms/treeWalk.h
         algorithms/bestResponse.cpp algorithms/bestResponse.h
@@ -85,14 +95,17 @@ set(SOURCE_FILES base/base.cpp base/base.h base/efg.cpp base/efg.h
         domains/genericPoker.cpp domains/genericPoker.h
         domains/RhodeIslandPoker.cpp domains/RhodeIslandPoker.h
         )
-add_executable(main main.cpp ${SOURCE_FILES} ${CPLEX_FILES} ${GLPK_FILES} )
+add_executable(main main.cpp ${SOURCE_FILES} ${CPLEX_FILES} ${GLPK_FILES} ${GUROBI_FILES})
 
-target_link_libraries(main ${CPLEXLIB} ${CMAKE_THREAD_LIBS_INIT} ${GLPKLIB} ${Boost_LIBRARIES})
+target_link_libraries(main ${GUROBILIB} ${CPLEXLIB} ${CMAKE_THREAD_LIBS_INIT} ${GLPKLIB}
+        ${Boost_LIBRARIES})
 
 
 
 #testing stuff
-add_executable(tester tests/matchingPenniesTest.cpp ${SOURCE_FILES} ${CPLEX_FILES} ${GLPK_FILES} tests/goofSpielTest.cpp tests/genericPokerTest.cpp)
+add_executable(tester tests/matchingPenniesTest.cpp ${SOURCE_FILES} ${CPLEX_FILES} ${GLPK_FILES}
+        ${GUROBI_FILES} tests/goofSpielTest.cpp tests/genericPokerTest.cpp)
 target_link_libraries(tester ${CPLEXLIB}
-        ${CMAKE_THREAD_LIBS_INIT} ${GLPKLIB} ${Boost_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+        ${CMAKE_THREAD_LIBS_INIT} ${GLPKLIB} ${GUROBILIB} ${Boost_LIBRARIES}
+        ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(tester tester)

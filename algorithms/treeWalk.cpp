@@ -2,11 +2,12 @@
 // Created by Pavel Rytir on 1/13/18.
 //
 
-#include "treeWalk.h"
-#include <tuple>
-#include "common.h"
+#include <unordered_set>
+#include "algorithms/treeWalk.h"
+#include "algorithms/common.h"
 
-using std::tuple;
+using std::unordered_set;
+using std::cout;
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"

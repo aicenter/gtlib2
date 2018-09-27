@@ -10,8 +10,9 @@
 #include <tuple>
 #include <utility>
 #include <vector>
-#include "../base/base.h"
+#include "base/base.h"
 
+using std::tuple;
 
 namespace GTLib2 {
 namespace algorithms {

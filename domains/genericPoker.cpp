@@ -3,8 +3,11 @@
 //
 
 
+#include "domains/genericPoker.h"
 #include "genericPoker.h"
+
 #include <iterator>
+#include <algorithm>
 
 namespace GTLib2 {
 namespace domains {
@@ -401,19 +404,8 @@ GenericPokerState::performActions(const vector<pair<int, shared_ptr<Action>>> &a
   }
   vector<double> rewards(2);
   if (new_round == pokerDomain->TERMINAL_ROUND) {
-    if (newLastAction->GetType() == Fold) {
-      rewards = a1 ? vector{-newFirstPlayerReward, newFirstPlayerReward} :
-                vector{newFirstPlayerReward, -newFirstPlayerReward};
-    } else if (player1Card_ == player2Card_) {
-    } else if (player1Card_ == natureCard_) {
-      rewards = vector<double>{newFirstPlayerReward, -newFirstPlayerReward};
-    } else if (player2Card_ == natureCard_) {
-      rewards = vector<double>{-newFirstPlayerReward, newFirstPlayerReward};
-    } else if (player1Card_ - player2Card_ > 0) {
-      rewards = vector<double>{newFirstPlayerReward, -newFirstPlayerReward};
-    } else {
-      rewards = vector<double>{-newFirstPlayerReward, newFirstPlayerReward};
-    }
+    int result = hasPlayerOneWon(newLastAction, a1? -1:1);
+    rewards = vector<double>{result*newFirstPlayerReward, -result*newFirstPlayerReward};
   }
   Outcome outcome(newState, move(observations), rewards);
   newOutcomes.emplace_back(move(outcome), 1.0);
@@ -477,6 +469,23 @@ size_t GenericPokerState::getHash() const {
     boost::hash_combine(seed, lastAction->getHash());
   }
   return seed;
+}
+
+int GenericPokerState::hasPlayerOneWon(const shared_ptr<GenericPokerAction> & lastAction,
+    int player) const {
+  if (lastAction->GetType() == Fold) {
+    return player;
+  } else if (player1Card_ == player2Card_) {
+    return 0;
+  } else if (player1Card_ == natureCard_) {
+    return 1;
+  } else if (player2Card_ == natureCard_) {
+    return -1;
+  } else if (player1Card_ - player2Card_ > 0) {
+    return 1;
+  } else {
+    return -1;
+  }
 }
 }  // namespace domains
 }  // namespace GTLib2

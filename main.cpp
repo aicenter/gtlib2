@@ -3,9 +3,13 @@
 //
 
 #include <chrono>
+#if GUROBIFOUND == 1
+#include "LPsolvers/GurobiLPSolver.h"
+#elif CPLEXFOUND == 1
 #include "LPsolvers/CplexLPSolver.h"
-// #include "LPsolvers/GlpkLPSolver.h"
-#include "LPsolvers/simpleCplexSolver.h"
+#elif GLPKFOUND == 1
+#include "LPsolvers/GlpkLPSolver.h"
+#endif
 #include "base/efg.h"
 #include "algorithms/utility.h"
 #include "algorithms/cfr.h"
@@ -21,16 +25,14 @@
 #include "domains/RhodeIslandPoker.h"
 #include "domains/genericPoker.h"
 
-
-
 // #include <boost/test/unit_test.hpp>
 
 using std::endl;
-
+using std::cout;
 using namespace GTLib2;
 
 void bestRespAndEqui() {
-  domains::IIGoofSpielDomain domain(3, 3, nullopt);
+  domains::IIGoofSpielDomain domain(6, 1, 1);
   int player1 = domain.getPlayers()[0];
   int player2 = domain.getPlayers()[1];
   auto player1InfSetsAndActions =
@@ -43,24 +45,23 @@ void bestRespAndEqui() {
   cout << player1InfSetsAndActions.size() << "  " << player1PureStrats.size() << "\n";
   auto player2PureStrats = algorithms::generateAllPureStrategies(player2InfSetsAndActions);
   cout << player2InfSetsAndActions.size() << "  " << player2PureStrats.size() << "\n";
-  for (auto &i : player2PureStrats) {
-    auto x = algorithms::bestResponseToPrunning(i, player2, player1, domain);
-    cout << "Value is: " << x.second << "\n";
-  }
+//  for (auto &i : player2PureStrats) {
+//    auto x = algorithms::bestResponseToPrunning(i, player2, player1, domain);
+//    cout << "Value is: " << x.second << "\n";
+//  }
   auto vysl = algorithms::findEquilibriumTwoPlayersZeroSum(domain);
-  cout << std::get<0>(vysl);
-  cout << "\n";
-  for (auto &j : std::get<1>(vysl)) {
-    auto aoh = std::dynamic_pointer_cast<AOH>(j.first);
-    cout << aoh->getInitialObservationId() << "   ";
-    for (auto &x : aoh->getAOHistory()) {
-      cout << x.first << " " << x.second << "   ";
-    }
-    for (auto &k : j.second) {
-      cout << k.first->toString() << ", prob: " << k.second << "  |  ";
-    }
-    cout << "\n";
-  }
+//  cout << std::get<0>(vysl);
+//  cout << "\n";
+//  for (auto &j : std::get<1>(vysl)) {
+//    auto aoh = std::dynamic_pointer_cast<AOH>(j.first);
+//    for (auto &x : aoh->getAOHistory()) {
+//      cout << x.first << " " << x.second << "   ";
+//    }
+//    for (auto &k : j.second) {
+//      cout << k.first->toString() << ", prob: " << k.second << "  |  ";
+//    }
+//    cout << "\n";
+//  }
 }
 
 void goofSpiel5() {
@@ -125,16 +126,23 @@ void goofSpiel2() {
 
 int main(int argc, char *argv[]) {
   auto start = std::chrono::high_resolution_clock::now();
-  auto domain2 = domains::GenericPokerDomain(6, 3, 2, 2, 2);
+  auto domain = domains::GenericPokerDomain(5, 3, 1, 2, 2);
+//  auto domain2 = domains::PursuitDomain(2, 2, 2);
+//  cout << algorithms::countNodes(domain2) <<"\n";
 //  auto domain2 = domains::GoofSpielDomain(4, 4, nullopt);
 //  cout << domain2.getMaxUtility() <<"\n";
 //  domains::GoofSpielDomain domain2(3,3, nullopt);
-  cout << algorithms::CFR(domain2, 20).first << "\n";
-//  cout << algorithms::countNodes(domain2) <<"\n";
+  auto regrets = algorithms::CFRiterations(domain, 20);
+  auto strat1 = algorithms::getStrategyFor(domain, domain.getPlayers()[0], regrets);
+  auto strat2 = algorithms::getStrategyFor(domain, domain.getPlayers()[1], regrets);
+  cout << algorithms::bestResponseToPrunning(strat1, domain.getPlayers()[0],
+      domain.getPlayers()[1], domain).second <<"\n";
+  cout << algorithms::bestResponseToPrunning(strat2, domain.getPlayers()[1],
+      domain.getPlayers()[0], domain).second <<"\n";
+//  cout << algorithms::computeUtilityTwoPlayersGame(domain, strat1, strat2, 0, 1).first <<"\n";
 //  bestRespAndEqui();
-//  cout << algorithms::countNodesInfSetsSequencesStates(domain2) <<"\n";
   auto end = std::chrono::high_resolution_clock::now();
   using ms = std::chrono::duration<int, std::milli>;
-  cout << "hotovo: time " << std::chrono::duration_cast<ms>(end - start).count() << " ms" << '\n';
+  cout << "Time " << std::chrono::duration_cast<ms>(end - start).count() << " ms" << '\n';
   return 0;
 }

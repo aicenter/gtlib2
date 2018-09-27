@@ -2,14 +2,11 @@
 // Created by Jakub Rozlivek on 14.08.2017.
 //
 
-#include "efg.h"
+#include "base/efg.h"
 
-#include <utility>
 #include <algorithm>
 #include <sstream>
 #include <iterator>
-#include <vector>
-#include <string>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunknown-pragmas"

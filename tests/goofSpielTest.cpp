@@ -2,20 +2,21 @@
 // Created by Pavel Rytir on 30/01/2018.
 //
 
-
-#include "../algorithms/treeWalk.h"
-#include "../algorithms/bestResponse.h"
-#include "../algorithms/common.h"
-#include "../algorithms/equilibrium.h"
-#include "../algorithms/cfr.h"
-#include "../domains/goofSpiel.h"
-#include "../algorithms/utility.h"
+#include <unordered_set>
+#include "algorithms/treeWalk.h"
+#include "algorithms/bestResponse.h"
+#include "algorithms/common.h"
+#include "algorithms/equilibrium.h"
+#include "algorithms/cfr.h"
+#include "domains/goofSpiel.h"
+#include "algorithms/utility.h"
 
 #define BOOST_TEST_DYN_LINK  // For linking with dynamic libraries.
 
 #include <boost/test/unit_test.hpp>
 
 using namespace GTLib2;
+using std::unordered_set;
 
 BOOST_AUTO_TEST_SUITE(GoofSpiel)
 
@@ -72,10 +73,8 @@ BOOST_AUTO_TEST_CASE(computeUtilityFullDepthCard4) {
 
   auto utility =
       algorithms::computeUtilityTwoPlayersGame(gsd, player2Strat, player1Strat, player2, player1);
-  cout << utility.second << "\n";
   // Value of the utility should be 5.
   BOOST_CHECK(std::abs(utility.second - 5) <= 0.001);
-
 }
 
 BOOST_AUTO_TEST_CASE(bestResponseFullDepthCard4) {
@@ -108,7 +107,6 @@ BOOST_AUTO_TEST_CASE(bestResponseFullDepthCard4) {
   algorithms::treeWalkEFG(gsd, setAction);
 
   auto player1BestResponse = algorithms::bestResponseTo(opponentStrat, opponent, player1, gsd);
-  cout << player1BestResponse.second << "\n";
   // Value of the best response should be 7.625.
   BOOST_CHECK(std::abs(player1BestResponse.second - 7.625) <= 0.001);
 }

@@ -2,7 +2,7 @@
 // Created by Pavel Rytir on 08/01/2018.
 //
 
-#include "matching_pennies.h"
+#include "domains/matching_pennies.h"
 #include <cassert>
 #include <limits>
 

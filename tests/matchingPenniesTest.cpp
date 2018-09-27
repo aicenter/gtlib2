@@ -2,13 +2,13 @@
 // Created by Pavel Rytir on 09/01/2018.
 //
 
-#include "../domains/matching_pennies.h"
-#include "../algorithms/treeWalk.h"
-#include "../algorithms/bestResponse.h"
-#include "../algorithms/common.h"
-#include "../algorithms/equilibrium.h"
-#include "../domains/goofSpiel.h"
-#include "../algorithms/utility.h"
+#include "domains/matching_pennies.h"
+#include "algorithms/treeWalk.h"
+#include "algorithms/bestResponse.h"
+#include "algorithms/common.h"
+#include "algorithms/equilibrium.h"
+#include "domains/goofSpiel.h"
+#include "algorithms/utility.h"
 
 #define BOOST_TEST_DYN_LINK  // For linking with dynamic libraries.
 

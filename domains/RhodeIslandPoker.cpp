@@ -2,10 +2,13 @@
 // Created by Jakub Rozlivek on 8/1/18.
 //
 
+#include "domains/RhodeIslandPoker.h"
 #include "RhodeIslandPoker.h"
+
 #include <random>
 #include <iterator>
 #include <sstream>
+#include <algorithm>
 
 using std::make_pair;
 
@@ -318,7 +321,7 @@ RhodeIslandPokerState::performActions(const vector<pair<int, shared_ptr<Action>>
               || (player2Card_.first == i && player2Card_.second == j)) {
             continue;
           }
-          newLastAction = a1.get();
+          newLastAction = a1;
           next_players[0] = 0;
           newState = make_shared<RhodeIslandPokerState>(domain,
                                                         player1Card_,
@@ -353,7 +356,7 @@ RhodeIslandPokerState::performActions(const vector<pair<int, shared_ptr<Action>>
               || (natureCard1_.value().first == i && natureCard1_.value().second == j)) {
             continue;
           }
-          newLastAction = a1.get();
+          newLastAction = a1;
           next_players[0] = 0;
           newState = make_shared<RhodeIslandPokerState>(domain, player1Card_, player2Card_,
                                                         natureCard1_, make_pair(i, j),
@@ -373,7 +376,7 @@ RhodeIslandPokerState::performActions(const vector<pair<int, shared_ptr<Action>>
       }
       return newOutcomes;
     }
-    newLastAction = a1.get();
+    newLastAction = a1;
     next_players[0] = 1;
     if (new_round == pokerDomain->TERMINAL_ROUND) {
       next_players.clear();
@@ -491,7 +494,7 @@ RhodeIslandPokerState::performActions(const vector<pair<int, shared_ptr<Action>>
               || (player2Card_.first == i && player2Card_.second == j)) {
             continue;
           }
-          newLastAction = a2.get();
+          newLastAction = a2;
           next_players[0] = 0;
           newState = make_shared<RhodeIslandPokerState>(domain,
                                                         player1Card_,
@@ -528,7 +531,7 @@ RhodeIslandPokerState::performActions(const vector<pair<int, shared_ptr<Action>>
               || (natureCard1_.value().first == i && natureCard1_.value().second == j)) {
             continue;
           }
-          newLastAction = a2.get();
+          newLastAction = a2;
           next_players[0] = 0;
 
           newState = make_shared<RhodeIslandPokerState>(domain,
@@ -561,7 +564,7 @@ RhodeIslandPokerState::performActions(const vector<pair<int, shared_ptr<Action>>
     if (new_round == pokerDomain->TERMINAL_ROUND) {
       next_players.clear();
     }
-    newLastAction = a2.get();
+    newLastAction = a2;
     newState = make_shared<RhodeIslandPokerState>(domain,
                                                   player1Card_,
                                                   player2Card_,
@@ -580,73 +583,9 @@ RhodeIslandPokerState::performActions(const vector<pair<int, shared_ptr<Action>>
 
   vector<double> rewards(2);
 
-  if (new_round == pokerDomain->TERMINAL_ROUND) {  // TODO: check it
-    if (newLastAction->GetType() == Fold) {
-      rewards =
-          a1 ? vector{-newFirstPlayerReward, newFirstPlayerReward} :
-          vector{newFirstPlayerReward, -newFirstPlayerReward};
-    } else if (natureCard1_.value().second == natureCard2_.value().second &&
-        natureCard2_.value().first + 1 == natureCard1_.value().first) {
-      if (natureCard2_.value().second == player1Card_.second &&
-          (natureCard2_.value().first + 1 == player1Card_.first
-              || natureCard1_.value().first - 1 == player1Card_.first)) {
-        rewards = vector<double>{newFirstPlayerReward, -newFirstPlayerReward};
-      } else if (natureCard2_.value().second == player2Card_.second &&
-          (natureCard2_.value().first + 1 == player2Card_.first
-              || natureCard1_.value().first - 1 == player2Card_.first)) {
-        rewards = vector<double>{-newFirstPlayerReward, newFirstPlayerReward};
-      }
-    } else if (natureCard1_.value().second == natureCard2_.value().second &&
-        natureCard2_.value().first - 1 == natureCard1_.value().first) {
-      if (natureCard2_.value().second == player1Card_.second &&
-          (natureCard2_.value().first - 1 == player1Card_.first
-              || natureCard1_.value().first + 1 == player1Card_.first)) {
-        rewards = vector<double>{newFirstPlayerReward, -newFirstPlayerReward};
-      } else if (natureCard2_.value().second == player2Card_.second &&
-          (natureCard2_.value().first - 1 == player2Card_.first
-              || natureCard1_.value().first + 1 == player2Card_.first)) {
-        rewards = vector<double>{-newFirstPlayerReward, newFirstPlayerReward};
-      }
-    } else if (natureCard2_.value().first == natureCard1_.value().first) {
-      if (natureCard2_.value().first == player1Card_.first) {
-        rewards = vector<double>{newFirstPlayerReward, -newFirstPlayerReward};
-      } else if (natureCard2_.value().first == player2Card_.first) {
-        rewards = vector<double>{-newFirstPlayerReward, newFirstPlayerReward};
-      }
-    } else if (natureCard2_.value().first + 1 == natureCard1_.value().first) {
-      if (natureCard2_.value().first + 1 == player1Card_.first
-          || natureCard1_.value().first - 1 == player1Card_.first) {
-        rewards = vector<double>{newFirstPlayerReward, -newFirstPlayerReward};
-      } else if (natureCard2_.value().first + 1 == player2Card_.first
-          || natureCard1_.value().first - 1 == player2Card_.first) {
-        rewards = vector<double>{-newFirstPlayerReward, newFirstPlayerReward};
-      }
-    } else if (natureCard2_.value().first - 1 == natureCard1_.value().first) {
-      if (natureCard2_.value().first - 1 == player1Card_.first
-          || natureCard1_.value().first + 1 == player1Card_.first) {
-        rewards = vector<double>{newFirstPlayerReward, -newFirstPlayerReward};
-      } else if (natureCard2_.value().first - 1 == player2Card_.first
-          || natureCard1_.value().first + 1 == player2Card_.first) {
-        rewards = vector<double>{-newFirstPlayerReward, newFirstPlayerReward};
-      }
-    } else if (natureCard2_.value().second == natureCard1_.value().second) {
-      if (natureCard2_.value().second == player1Card_.second) {
-        rewards = vector<double>{newFirstPlayerReward, -newFirstPlayerReward};
-      } else if (natureCard2_.value().second == player2Card_.second) {
-        rewards = vector<double>{-newFirstPlayerReward, newFirstPlayerReward};
-      }
-    } else if (player1Card_.first == player2Card_.first) {
-    } else if (player1Card_.first == natureCard1_.value().first
-        || player1Card_.first == natureCard2_.value().first) {
-      rewards = vector<double>{newFirstPlayerReward, -newFirstPlayerReward};
-    } else if (player2Card_.first == natureCard1_.value().first
-        || player2Card_.first == natureCard2_.value().first) {
-      rewards = vector<double>{-newFirstPlayerReward, newFirstPlayerReward};
-    } else if (player1Card_.first - player2Card_.first > 0) {
-      rewards = vector<double>{newFirstPlayerReward, -newFirstPlayerReward};
-    } else {
-      rewards = vector<double>{-newFirstPlayerReward, newFirstPlayerReward};
-    }
+  if (new_round == pokerDomain->TERMINAL_ROUND) {
+    int result = hasPlayerOneWon(newLastAction, a1? -1:1);
+    rewards = vector<double>{result*newFirstPlayerReward, -result*newFirstPlayerReward};
   }
   Outcome outcome(newState, observations, rewards);
   newOutcomes.emplace_back(outcome, 1.0);
@@ -663,7 +602,7 @@ RhodeIslandPokerState::RhodeIslandPokerState(Domain *domain,
                                              double pot,
                                              vector<int> players,
                                              int round,
-                                             RhodeIslandPokerAction *lastAction,
+                                             shared_ptr<RhodeIslandPokerAction> lastAction,
                                              int continuousRaiseCount) :
     State(domain),
     player1Card_(move(p1card)),
@@ -675,7 +614,7 @@ RhodeIslandPokerState::RhodeIslandPokerState(Domain *domain,
     players_(move(players)),
     round_(round),
     continuousRaiseCount_(continuousRaiseCount),
-    lastAction(lastAction) {}
+    lastAction(move(lastAction)) {}
 
 RhodeIslandPokerState::RhodeIslandPokerState(Domain *domain,
                                              pair<int, int> p1card,
@@ -716,5 +655,74 @@ bool RhodeIslandPokerState::operator==(const State &rhs) const {
         players_ == State.players_ &&
         lastAction == State.lastAction;
 }
+int RhodeIslandPokerState::hasPlayerOneWon(const shared_ptr<RhodeIslandPokerAction> &lastAction,
+                                           int player) const {
+  if (lastAction->GetType() == Fold) {
+    return player;
+  } else if (natureCard1_.value().second == natureCard2_.value().second &&
+      natureCard2_.value().first + 1 == natureCard1_.value().first) {
+    if (natureCard2_.value().second == player1Card_.second &&
+        (natureCard2_.value().first - 1 == player1Card_.first
+            || natureCard1_.value().first + 1 == player1Card_.first)) {
+      return 1;
+    } else if (natureCard2_.value().second == player2Card_.second &&
+        (natureCard2_.value().first - 1 == player2Card_.first
+            || natureCard1_.value().first + 1 == player2Card_.first)) {
+      return -1;
+    }
+  } else if (natureCard1_.value().second == natureCard2_.value().second &&
+      natureCard2_.value().first - 1 == natureCard1_.value().first) {
+    if (natureCard2_.value().second == player1Card_.second &&
+        (natureCard2_.value().first + 1 == player1Card_.first
+            || natureCard1_.value().first - 1 == player1Card_.first)) {
+      return 1;
+    } else if (natureCard2_.value().second == player2Card_.second &&
+        (natureCard2_.value().first + 1 == player2Card_.first
+            || natureCard1_.value().first - 1 == player2Card_.first)) {
+      return -1;
+    }
+  } else if (natureCard2_.value().first == natureCard1_.value().first) {
+    if (natureCard2_.value().first == player1Card_.first) {
+      return 1;
+    } else if (natureCard2_.value().first == player2Card_.first) {
+      return -1;
+    }
+  } else if (natureCard2_.value().first + 1 == natureCard1_.value().first) {
+    if (natureCard2_.value().first - 1 == player1Card_.first
+        || natureCard1_.value().first + 1 == player1Card_.first) {
+      return 1;
+    } else if (natureCard2_.value().first - 1 == player2Card_.first
+        || natureCard1_.value().first + 1 == player2Card_.first) {
+      return -1;
+    }
+  } else if (natureCard2_.value().first - 1 == natureCard1_.value().first) {
+    if (natureCard2_.value().first + 1 == player1Card_.first
+        || natureCard1_.value().first - 1 == player1Card_.first) {
+      return 1;
+    } else if (natureCard2_.value().first + 1 == player2Card_.first
+        || natureCard1_.value().first - 1 == player2Card_.first) {
+      return -1;
+    }
+  } else if (natureCard2_.value().second == natureCard1_.value().second) {
+    if (natureCard2_.value().second == player1Card_.second) {
+      return 1;
+    } else if (natureCard2_.value().second == player2Card_.second) {
+      return -1;
+    }
+  } else if (player1Card_.first == player2Card_.first) {
+    return 0;
+  } else if (player1Card_.first == natureCard1_.value().first
+      || player1Card_.first == natureCard2_.value().first) {
+    return 1;
+  } else if (player2Card_.first == natureCard1_.value().first
+      || player2Card_.first == natureCard2_.value().first) {
+    return -1;
+  } else if (player1Card_.first - player2Card_.first > 0) {
+    return 1;
+  } else {
+    return -1;
+  }
+}
+
 }  // namespace domains
 }  // namespace GTLib2

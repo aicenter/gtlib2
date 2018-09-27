@@ -7,8 +7,10 @@
 
 #include <experimental/optional>
 #include <utility>
-#include "../base/base.h"
-#include "genericPoker.h"
+#include <string>
+#include <vector>
+#include "base/base.h"
+#include "domains/genericPoker.h"
 
 using std::experimental::nullopt;
 using std::experimental::optional;
@@ -59,10 +61,9 @@ class RhodeIslandPokerAction : public Action {
 
 /**
  * RhodeIslandPokerObservation is a class that represents Rhode Island Poker observations,
- * which are identified by their id and contain an integer value
- * indicating if an action was successful(1) or not (0).
+ * which are identified by their id and contain a move type with value and color in case of card.
  */
-class RhodeIslandPokerObservation : public Observation {  // TODO: predelat
+class RhodeIslandPokerObservation : public Observation {
  public:
   // constructor
   explicit RhodeIslandPokerObservation(int id, int type, int value, int color);
@@ -71,8 +72,10 @@ class RhodeIslandPokerObservation : public Observation {  // TODO: predelat
    * then next maxCardTypes numbers - second played cards
    * then next BetsFirstRound.size() numbers - bets in first round
    * then next BetsSecondRound.size() numbers - bets in second round
+   * then next BetsThirdRound.size() numbers - bets in third round
    * then next RaisesFirstRound.size() numbers - raises in first round
    * then next RaisesSecondRound.size() numbers - raises in second round
+   * then next RaisesThirdRound.size() numbers - raises in third round
    */
 
   // Returns description.
@@ -105,8 +108,7 @@ class RhodeIslandPokerObservation : public Observation {  // TODO: predelat
 
 /**
  * RhodeIslandPokerState is a class that represents Rhode Island Poker states,
- * which contains players' board - what they can see,
- * and who can play in the turn.
+ * which contains nature cards, pot, round etc. and who can play in the turn.
  */
 class RhodeIslandPokerState : public State {
  public:
@@ -115,7 +117,7 @@ class RhodeIslandPokerState : public State {
                         pair<int, int> p2card, optional<pair<int, int>> natureCard1,
                         optional<pair<int, int>> natureCard2, double firstPlayerReward,
                         double pot, vector<int> players, int round,
-                        RhodeIslandPokerAction *lastAction, int continuousRaiseCount);
+                        shared_ptr<RhodeIslandPokerAction> lastAction, int continuousRaiseCount);
 
   RhodeIslandPokerState(Domain *domain,
                         pair<int, int> p1card,
@@ -137,6 +139,8 @@ class RhodeIslandPokerState : public State {
   inline vector<int> getPlayers() const final {
     return players_;
   }
+
+  int hasPlayerOneWon(const shared_ptr<RhodeIslandPokerAction> & lastAction, int player) const;
 
   bool operator==(const State &rhs) const override;
 
@@ -163,7 +167,7 @@ class RhodeIslandPokerState : public State {
 
  protected:
   vector<int> players_;
-  RhodeIslandPokerAction *lastAction;
+  shared_ptr<RhodeIslandPokerAction> lastAction;
   optional<pair<int, int>> natureCard1_;  // first number, second color (type)
   optional<pair<int, int>> natureCard2_;
   double pot;
@@ -176,7 +180,8 @@ class RhodeIslandPokerState : public State {
 
 /**
  * RhodeIslandPokerDomain is a class that represents Rhode Island Poker domain,
- * which contain static height and static width.
+ * which contain possible bets and raises, max card types, max cards of each type, max different
+ * bets and raises and Max utility.
  */
 class RhodeIslandPokerDomain : public Domain {
  public:

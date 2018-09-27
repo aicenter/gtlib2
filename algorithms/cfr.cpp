@@ -2,13 +2,15 @@
 // Created by Jakub Rozlivek on 8/8/18.
 //
 
-#include "cfr.h"
-#include "treeWalk.h"
-#include "common.h"
-#include "utility.h"
-#include "bestResponse.h"
+#include <unordered_set>
+#include "algorithms/cfr.h"
+#include "algorithms/treeWalk.h"
+#include "algorithms/common.h"
+#include "algorithms/utility.h"
 
 using std::make_pair;
+using std::unordered_set;
+using std::cout;
 
 namespace GTLib2 {
 namespace algorithms {
@@ -73,11 +75,11 @@ CFRiterations(const Domain &domain, int iterations) {
       efgnodes[node] = make_pair(node->getAOHInfSet(),
           unordered_map<shared_ptr<Action>, EFGNodesDistribution>());
     }
-    auto[is, newNodesMap] = efgnodes.at(node);
-    if (firstIteration && regrets.find(is) == regrets.end()) {
-      regrets[is] = make_pair(vector<double>(K), vector<double>(K));
+    auto[infSet, newNodesMap] = efgnodes.at(node);
+    if (firstIteration && regrets.find(infSet) == regrets.end()) {
+      regrets[infSet] = make_pair(vector<double>(K), vector<double>(K));
     }
-    auto[r, mp] = regrets.at(is);
+    auto[r, mp] = regrets.at(infSet);
     double R = 0;
     for (double ri : r) {
       R += ri > 0 ? ri : 0;
@@ -117,11 +119,11 @@ CFRiterations(const Domain &domain, int iterations) {
       for (int j = 0; j != K; j++) {
         mp[j] += (player == 0 ? pi1 : pi2) * rmProbs[j];
       }
-      regrets[is] = make_pair(r, mp);
+      regrets[infSet] = make_pair(r, mp);
       nbSamples++;
     }
     if (firstIteration) {
-      efgnodes[node] = make_pair(is, newNodesMap);
+      efgnodes[node] = make_pair(infSet, newNodesMap);
     }
 
     return ev;

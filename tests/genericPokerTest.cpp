@@ -2,20 +2,21 @@
 // Created by Jakub Rozlivek on 30/08/18.
 //
 
-
-#include "../algorithms/treeWalk.h"
-#include "../algorithms/bestResponse.h"
-#include "../algorithms/common.h"
-#include "../algorithms/equilibrium.h"
-#include "../algorithms/cfr.h"
-#include "../domains/genericPoker.h"
-#include "../algorithms/utility.h"
+#include <unordered_set>
+#include "algorithms/treeWalk.h"
+#include "algorithms/bestResponse.h"
+#include "algorithms/common.h"
+#include "algorithms/equilibrium.h"
+#include "algorithms/cfr.h"
+#include "domains/genericPoker.h"
+#include "algorithms/utility.h"
 
 #define BOOST_TEST_DYN_LINK  // For linking with dynamic libraries.
 
 #include <boost/test/unit_test.hpp>
 
 using namespace GTLib2;
+using std::unordered_set;
 
 BOOST_AUTO_TEST_SUITE(GenericPoker)
 
