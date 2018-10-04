@@ -7,8 +7,20 @@
 
 #include <vector>
 #include <iostream>
+#include <cassert>
+#include <cmath>
 
 using std::vector;
+
+#if SOLVERNOTFOUND
+inline double solveLP(const unsigned int rows,
+                      const unsigned int cols,
+                      const vector<double> &utility_matrix,
+                      vector<double> &solution) {
+  assert(("No LP solver included to project", false));
+  return NAN;
+}
+#endif
 
 class LPSolver {
  public:
@@ -38,5 +50,4 @@ class LPSolver {
 
   virtual void AddCols(int rows, const vector<vector<double>> &utility_for_rows) = 0;
 };
-
 #endif  // LPSOLVERS_LPSOLVER_H_
