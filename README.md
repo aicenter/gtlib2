@@ -7,3 +7,13 @@ We also need boost:
 ```
 sudo apt-get install libboost-dev libboost-test-dev libboost-system-dev
 ```
+
+
+Follow the standard cmake build:
+
+```
+cd <project directory>
+mkdir build && cd build
+cmake ..
+make
+```
