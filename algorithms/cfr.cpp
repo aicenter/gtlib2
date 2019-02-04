@@ -75,11 +75,11 @@ CFRiterations(const Domain &domain, int iterations) {
       efgnodes[node] = make_pair(node->getAOHInfSet(),
           unordered_map<shared_ptr<Action>, EFGNodesDistribution>());
     }
-    auto[infSet, newNodesMap] = efgnodes.at(node);
+    auto&[infSet, newNodesMap] = efgnodes.at(node);
     if (firstIteration && regrets.find(infSet) == regrets.end()) {
       regrets[infSet] = make_pair(vector<double>(K), vector<double>(K));
     }
-    auto[r, mp] = regrets.at(infSet);
+    auto&[r, mp] = regrets.at(infSet);
     double R = 0;
     for (double ri : r) {
       R += ri > 0 ? ri : 0;
@@ -140,7 +140,7 @@ CFRiterations(const Domain &domain, int iterations) {
     for (const auto &nodeProb : rootNodes) {
       v2 += nodeProb.second * iteration(nodeProb.first, nodeProb.second, 1, 1, iteration);
     }
-    cout << v1 << " " << v2 << "\n";
+//    cout << v1 << " " << v2 << "\n";
   }
   return regrets;
 }
