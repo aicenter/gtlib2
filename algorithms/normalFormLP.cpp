@@ -83,28 +83,27 @@ void NormalFormLP::BuildModel(const vector<double> *_utility_matrix) {
   model_ready_ = true;
 }
 
-shared_ptr<vector<double>> NormalFormLP::GetStrategy(int _player) {
+vector<double> NormalFormLP::GetStrategy(int _player) {
   assert(_player == 0 || _player == 1);
-
+  vector<double> result;
   if (!model_solved_) {
     if (SolveGame() == NAN) {
-      return nullptr;
+      return result;
     }
   }
 
   if (_player == 0) {
-    vector<double> result(cols_);
+    result.reserve(cols_);
     for (int i = 0; i < cols_; ++i) {
-      result[i] = lp_solver->GetValue(i);
+      result.emplace_back(lp_solver->GetValue(i));
     }
-    return make_shared<vector<double>>(result);
   } else {
-    vector<double> result(rows_);
+    result.reserve(rows_);
     for (int i = 0; i < rows_; ++i) {
-      result[i] = -lp_solver->GetDual(i);
+      result.emplace_back(-lp_solver->GetDual(i));
     }
-    return make_shared<vector<double>>(result);
   }
+  return result;
 }
 
 void NormalFormLP::AddActions(const int _player,

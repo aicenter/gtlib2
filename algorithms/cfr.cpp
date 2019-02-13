@@ -11,6 +11,7 @@
 using std::make_pair;
 using std::unordered_set;
 using std::cout;
+using std::make_tuple;
 
 namespace GTLib2 {
 namespace algorithms {
@@ -56,26 +57,33 @@ CFRiterations(const Domain &domain, int iterations) {
                                pair<vector<double>, vector<double>>>();
   int nbSamples = 0;
   bool firstIteration = true;
-  auto efgnodes = unordered_map<shared_ptr<EFGNode>, pair<shared_ptr<AOH>,
-      unordered_map<shared_ptr<Action>, EFGNodesDistribution>>>();
+  auto efgnodes = unordered_map<shared_ptr<EFGNode>, tuple<shared_ptr<AOH>,
+      vector<shared_ptr<Action>>, vector<EFGNodesDistribution>>>();
 
   const auto iteration = [&regrets, &efgnodes, &domain, &nbSamples, &firstIteration](
       shared_ptr<EFGNode> node, double pi1, double pi2, int player, const auto &iteration) {
     if (pi1 == 0 && pi2 == 0) {
       return 0.0;
     }
+    const int currentplayer = *node->getCurrentPlayer();
 
-    auto actions = node->availableActions();
-    if (actions.empty() || node->getDepth() == domain.getMaxDepth()) {
+    if (node->getCurrentPlayer() == nullopt || node->getDepth() == domain.getMaxDepth()) {
       return node->rewards[player];
     }
-    const int currentplayer = *node->getCurrentPlayer();
-    const auto K = static_cast<const unsigned int>(actions.size());
+
     if (firstIteration) {
-      efgnodes[node] = make_pair(node->getAOHInfSet(),
-          unordered_map<shared_ptr<Action>, EFGNodesDistribution>());
+      auto actions = node->availableActions();
+      auto efgDist = vector<EFGNodesDistribution>();
+      for (const auto &action : actions) {
+          efgDist.emplace_back(node->performAction(action));
+      }
+      efgnodes[node] = make_tuple(node->getAOHInfSet(), move(actions), move(efgDist));
     }
-    auto&[infSet, newNodesMap] = efgnodes.at(node);
+    auto&[infSet, actions, newNodesVec] = efgnodes.at(node);
+    if (actions.empty()) {
+      return node->rewards[player];
+    }
+    const auto K = static_cast<const unsigned int>(actions.size());
     if (firstIteration && regrets.find(infSet) == regrets.end()) {
       regrets[infSet] = make_pair(vector<double>(K), vector<double>(K));
     }
@@ -92,13 +100,8 @@ CFRiterations(const Domain &domain, int iterations) {
     auto tmpV = vector<double>(K);
     double ev = 0;
     int i = -1;
-    for (const auto &action : actions) {
+    for (const auto &newNodes : newNodesVec) {
       i++;
-      if (firstIteration) {
-        newNodesMap[action] = node->performAction(action);
-      }
-
-      auto newNodes = newNodesMap.at(action);
       for (const auto &newNode : newNodes) {
         double new_p1 = player == 1 ? pi1 * newNode.second : pi1;
         double new_p2 = player == 0 ? pi2 * newNode.second : pi2;
@@ -119,13 +122,8 @@ CFRiterations(const Domain &domain, int iterations) {
       for (int j = 0; j != K; j++) {
         mp[j] += (player == 0 ? pi1 : pi2) * rmProbs[j];
       }
-      regrets[infSet] = make_pair(r, mp);
       nbSamples++;
     }
-    if (firstIteration) {
-      efgnodes[node] = make_pair(infSet, newNodesMap);
-    }
-
     return ev;
   };
   auto rootNodes = createRootEFGNodesFromInitialOutcomeDistribution(
@@ -147,8 +145,7 @@ CFRiterations(const Domain &domain, int iterations) {
 
 unordered_map<shared_ptr<InformationSet>, pair<vector<double>, vector<double>>>
 CFRiterationsAOH(const Domain &domain, int iterations) {
-  auto regrets = unordered_map<shared_ptr<InformationSet>,
-                               pair<vector<double>, vector<double>>>();
+  auto regrets = unordered_map<shared_ptr<InformationSet>, pair<vector<double>, vector<double>>>();
   int nbSamples = 0;
   bool firstIteration = true;
   auto aoh1 = vector<pair<int, int>>();
@@ -156,7 +153,7 @@ CFRiterationsAOH(const Domain &domain, int iterations) {
   aoh1.reserve(domain.getMaxDepth());
   aoh2.reserve(domain.getMaxDepth());
   auto efgnodes = unordered_map<shared_ptr<EFGNode>,
-                                unordered_map<shared_ptr<Action>, EFGNodesDistribution>>();
+      pair<vector<shared_ptr<Action>>, vector<EFGNodesDistribution>>>();
   const auto iteration = [&regrets, &efgnodes, &domain, &nbSamples, &aoh1, &aoh2,
       &firstIteration](shared_ptr<EFGNode> node, double pi1, double pi2,
                        int player, const auto &iteration) {
@@ -164,23 +161,28 @@ CFRiterationsAOH(const Domain &domain, int iterations) {
       return 0.0;
     }
 
-    auto actions = node->availableActions();
-    if (actions.empty() || node->getDepth() == domain.getMaxDepth()) {
+    const int currentplayer = *node->getCurrentPlayer();
+
+    if (node->getCurrentPlayer() == nullopt || node->getDepth() == domain.getMaxDepth()) {
       return node->rewards[player];
     }
-    const int currentplayer = *node->getCurrentPlayer();
+
+    if (firstIteration) {
+      auto actions = node->availableActions();
+      auto efgDist = vector<EFGNodesDistribution>();
+      for (const auto &action : actions) {
+        efgDist.emplace_back(node->performAction(action));
+      }
+      efgnodes[node] = make_pair(move(actions), move(efgDist));
+    }
+    auto&[actions, newNodesVec] = efgnodes.at(node);
     const auto K = static_cast<const unsigned int>(actions.size());
-    auto is =   make_shared<AOH>(currentplayer, currentplayer == 0 ? aoh1 : aoh2);
+    auto is =  make_shared<AOH>(currentplayer, currentplayer == 0 ? aoh1 : aoh2);
 
     if (firstIteration && regrets.find(is) == regrets.end()) {
       regrets[is] = make_pair(vector<double>(K), vector<double>(K));
     }
-    auto[r, mp] = regrets.at(is);
-    if (firstIteration) {
-      efgnodes[node] = unordered_map<shared_ptr<Action>, EFGNodesDistribution>();
-    }
-
-    auto newNodesMap = efgnodes.at(node);
+    auto&[r, mp] = regrets.at(is);
     double R = 0;
     for (double ri : r) {
       R += ri > 0 ? ri : 0;
@@ -196,29 +198,25 @@ CFRiterationsAOH(const Domain &domain, int iterations) {
     double ev = 0;
 
     int i = -1;
-    for (const auto &action : actions) {
+    for (auto k = 0; k < K; ++k) {
       i++;
-      if (firstIteration) {
-        newNodesMap[action] = node->performAction(action);
-      }
-      auto newNodes = newNodesMap.at(action);
-      for (const auto &newNode : newNodes) {
+      for (const auto &newNode : newNodesVec[k]) {
         double new_p1 = player == 1 ? pi1 * newNode.second : pi1;
         double new_p2 = player == 0 ? pi2 * newNode.second : pi2;
 
         if (node->getNumberOfRemainingPlayers() == 1) {
           if (node->noActionPerformedInThisRound()) {
             if (currentplayer == 0) {
-              aoh1.emplace_back(action->getId(), newNode.first->getLastObservationOfPlayer(0));
+              aoh1.emplace_back(actions[k]->getId(), newNode.first->getLastObservationOfPlayer(0));
               aoh2.emplace_back(-1, newNode.first->getLastObservationOfPlayer(1));
             } else {
               aoh1.emplace_back(-1, newNode.first->getLastObservationOfPlayer(0));
-              aoh2.emplace_back(action->getId(), newNode.first->getLastObservationOfPlayer(1));
+              aoh2.emplace_back(actions[k]->getId(), newNode.first->getLastObservationOfPlayer(1));
             }
           } else {
             aoh1.emplace_back(node->getIncomingActionId(),
                               newNode.first->getLastObservationOfPlayer(0));
-            aoh2.emplace_back(action->getId(), newNode.first->getLastObservationOfPlayer(1));
+            aoh2.emplace_back(actions[k]->getId(), newNode.first->getLastObservationOfPlayer(1));
           }
         }
         if (currentplayer == 0) {
@@ -240,13 +238,8 @@ CFRiterationsAOH(const Domain &domain, int iterations) {
         r[j] += (player == 0 ? pi2 : pi1) * (tmpV[j] - ev);
         mp[j] += (player == 0 ? pi1 : pi2) * rmProbs[j];
       }
-      regrets[is] = make_pair(r, mp);
       nbSamples++;
     }
-    if (firstIteration) {
-      efgnodes[node] = newNodesMap;
-    }
-
     return ev;
   };
   auto rootNodes = createRootEFGNodesFromInitialOutcomeDistribution(
@@ -269,7 +262,7 @@ CFRiterationsAOH(const Domain &domain, int iterations) {
       aoh1.pop_back();
       aoh2.pop_back();
     }
-    cout << v1 << " " << v2 << "\n";
+//    cout << v1 << " " << v2 << "\n";
   }
   return regrets;
 }

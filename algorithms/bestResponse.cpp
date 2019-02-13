@@ -97,7 +97,7 @@ pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStr
           // Opponent's node
           double val = 0;
           BehavioralStrategy brs;
-          auto stratAtTheNode = opoStrat.at(infSet);
+          auto &stratAtTheNode = opoStrat.at(infSet);
           for (const auto &action : node->availableActions()) {
             if (stratAtTheNode.find(action) != stratAtTheNode.end()) {
               double actionProb = stratAtTheNode.at(action);
@@ -252,7 +252,7 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(
           // Opponent's node
           double val = 0;
           BehavioralStrategy brs;
-          auto stratAtTheNode = opoStrat.at(infSet);
+          auto &stratAtTheNode = opoStrat.at(infSet);
           for (const auto &action : node->availableActions()) {
             if (stratAtTheNode.find(action) != stratAtTheNode.end()) {
               double actionProb = stratAtTheNode.at(action);

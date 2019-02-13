@@ -53,7 +53,7 @@ class NormalFormLP {
   void ChangeOutcome(const int _action_for_p1, const int _action_for_p2,
                      double _new_utility);
 
-  shared_ptr<vector<double>> GetStrategy(int _player);
+  vector<double> GetStrategy(int _player);
 
   void UpdateUtilityMatrix(const vector<double> &_utilities);
 
