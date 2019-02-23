@@ -5,12 +5,15 @@
 #include "LPsolvers/CplexLPSolver.h"
 
 CplexLPSolver::~CplexLPSolver() {
-  model_.end();
-  env_->end();
+  if (model_.isValid()) {
+    model_.end();
+    env_->end();
+  }
   delete env_;
 }
 
 void CplexLPSolver::CleanModel() {
+  model_.end();
   env_->end();
 }
 

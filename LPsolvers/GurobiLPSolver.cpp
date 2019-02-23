@@ -60,11 +60,11 @@ void GurobiLPSolver::BuildModel(unsigned int rows,
 }
 
 double const GurobiLPSolver::GetValue(int index) const {
-  return model_.getVar(index).get(GRB_DoubleAttr_X);
+  return model_.getVar(index+1).get(GRB_DoubleAttr_X);
 }
 
 double const GurobiLPSolver::GetDual(int index) const {
-  return model_.getConstr(index).get(GRB_DoubleAttr_X);
+  return model_.getConstr(index+1).get(GRB_DoubleAttr_Pi);
 }
 
 void GurobiLPSolver::SaveLP(const char *file) {
