@@ -1203,8 +1203,8 @@ namespace GTLib2 {
                                                                                                                           "Figure 1: " + p1->toString() + "\r\n";
                     string s2 = "Position 2: " + to_string(p2->getPosition().x) + ", " + to_string(p2->getPosition().y) + "\r\n"
                                                                                                                           "Figure 2: " + p2->toString() + "\r\n";
-                    cout << s1;
-                    cout << s2;
+                    std::cout << s1;
+                    std::cout << s2;
                     throw std::invalid_argument("wrong figures");
                 }
                 squares.push_back(newPos);
