@@ -67,7 +67,7 @@ CFRiterations(const Domain &domain, int iterations) {
     }
     const int currentplayer = *node->getCurrentPlayer();
 
-    if (node->getCurrentPlayer() == nullopt || node->getDepth() == domain.getMaxDepth()) {
+    if (node->isTerminal()) {
       return node->rewards[player];
     }
 

@@ -26,9 +26,17 @@ typedef pair<shared_ptr<EFGNode>, double> EFGDistEntry;
 typedef vector<EFGDistEntry> EFGNodesDistribution;
 
 /**
- * EFGNode is a class that represents node in an extensive form game,
- * which contains action-observation history, state,
- * rewards (utility) and Information set.
+ * EFGNode is a class that represents node in an extensive form game (EFG),
+ * which contains
+ * - action-observation history,
+ * - state,
+ * - rewards (utility) and
+ * - information set.
+ *
+ * There are three types of EFGNodes:
+ * - Player (inner) nodes
+ * - Chance/nature (inner) nodes
+ * - Terminal nodes
  */
 class EFGNode final : public std::enable_shared_from_this<EFGNode const> {
  public:
@@ -76,6 +84,9 @@ class EFGNode final : public std::enable_shared_from_this<EFGNode const> {
 
   // Check if NO actions were played in this round
   bool noActionPerformedInThisRound() const;
+
+  // Return if this node is terminal (leaf)
+  bool isTerminal() const;
 
   string toString() const;
 

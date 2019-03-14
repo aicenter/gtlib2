@@ -295,6 +295,9 @@ int EFGNode::getIncomingActionId() const {
 bool EFGNode::noActionPerformedInThisRound() const {
   return performedActionsInThisRound.empty();
 }
+bool EFGNode::isTerminal() const {
+  return getCurrentPlayer() == nullopt || getDepth() >= getState()->getDomain()->getMaxDepth();
+}
 
 }  // namespace GTLib2
 
