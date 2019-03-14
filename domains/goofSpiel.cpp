@@ -201,13 +201,9 @@ GoofSpielState::performActions(const vector<pair<int, shared_ptr<Action>>> &acti
 
   OutcomeDistribution newOutcomes;
 
-  const double thisRoundRewardP1 = p1Card == p2Card ?
-                                   *natureSelectedCard / 2.0 : p1Card > p2Card ? *natureSelectedCard
-                                                                               : 0.0;
-
-  const double thisRoundRewardP2 = p1Card == p2Card ?
-                                   *natureSelectedCard / 2.0 : p2Card > p1Card ? *natureSelectedCard
-                                                                               : 0.0;
+  const double thisRoundRewardP1 = p1Card == p2Card ? 0.0
+      : p1Card > p2Card ? *natureSelectedCard : -*natureSelectedCard;
+  const double thisRoundRewardP2 = -thisRoundRewardP1;
 
   vector<double> newRewards
       {player1CumulativeReward + thisRoundRewardP1, player2CumulativeReward + thisRoundRewardP2};
