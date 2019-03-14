@@ -2,10 +2,9 @@
 // Created by suxon on 9/25/2018.
 //
 
-#include "../domains/kriegspiel.h"
+#include "domains/kriegspiel.h"
 
 #define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE test
 
 #include <boost/test/unit_test.hpp>
 
