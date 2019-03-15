@@ -49,3 +49,7 @@ mkdir build && cd build
 cmake ..
 make
 ```
+
+# Contributing
+
+Please check the [CONTRIBUTING.md](CONTRIBUTING.md) file to understand how to contribute code to this repository. 
