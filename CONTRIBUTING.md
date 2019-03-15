@@ -4,6 +4,17 @@ This file describes setup necessary to contribute to the `master` branch of the 
 
 Please submit pull requests to gitlab/github.
 
+<!--
+todo:
+There is a CI pipeline which checks tests, they must first pass before the pull request can be merged to master.
+
+At least one additional thumbs up must be made by another maintainer of the library to approve the pull request and subsequent merge to master.
+  
+- https://docs.gitlab.com/ee/ci/quick_start/README.html
+- http://ghostlyrics.net/building-and-deploying-a-c-library-with-gitlab.html
+- https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html
+-->
+ 
 ## Development guide
 
 Your code should read like a book. If it doesn't, do it again.
@@ -45,12 +56,32 @@ Use indentation of 4 spaces.
 
 In CLion, turn on
 
-- Reformat code (only if you have used the ^^ code style!)
-- Rearrange code
-- Optimize imports
-- Perform code analysis
+- [x] Reformat code (only if you have used the ^^ code style!)
+- [x] Rearrange code
+- [x] Optimize imports
+- [x] Perform code analysis
 
 Especially, deal with the problems that turn up with code analysis! 
+
+### Linter
+
+cpplint - cpplint.py is a tool that reads a source file and identifies many (Google c++) style errors. It is not perfect, and has both false positives and false negatives, but it is still a valuable tool. False positives can be ignored by putting // NOLINT at the end of the line or // NOLINTNEXTLINE in the previous line. You can install it via pip: 
+
+    pip install cpplint
+    
+Then just call
+
+    cpplint source_file.cpp
+    
+Setup CLion to use the linter automatically:
+
+https://plugins.jetbrains.com/plugin/7871-clion-cpplint
+
+Follow the installation instructions (locate python and cpplint.py)
+Mine was located in:
+
+    /home/michal/.python_envs/gt/bin/python
+    /home/michal/.python_envs/gt/lib/python3.6/site-packages/cpplint.py
 
 ## Header files
 Please put following in your automatic header file:
