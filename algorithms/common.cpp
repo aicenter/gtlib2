@@ -51,7 +51,7 @@ mixedToBehavioralStrategy(const vector<BehavioralStrategy> &pureStrats, int play
   BehavioralStrategy behavStrat;
 
   auto updateBehavStrategy = [&behavStrat, &player1](shared_ptr<EFGNode> node) {
-    if (*node->getCurrentPlayer() == player1) {
+    if (node->getCurrentPlayer() && *node->getCurrentPlayer() == player1) {
       auto infSet = node->getAOHInfSet();
       if (behavStrat.find(infSet) == behavStrat.end()) {
         behavStrat[infSet] = unordered_map<shared_ptr<Action>, double>();
