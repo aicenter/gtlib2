@@ -50,6 +50,22 @@ cmake ..
 make
 ```
 
+# High-level overview
+
+Take a look at `base/` folder, which contains a number of abstract classes which are well documented. 
+
+Game is modeled as a (possibly cyclic) graph whose nodes represent state of the game. The edges or transitions from state to state happen only when the actual game state has changed -- players might play actions, which do not change the state! Additionally, chance is encoded by *stochastic* transitions, i.e. the outcome of player's actions (in general) is not deterministic. 
+
+Each edge has an outcome assigned to it: 
+- the new state,
+- vector of observations, and
+- rewards for each player.
+
+Extensive form game is built on top of this graph. There are some major differences to classical EFG definition in literature:
+- Chance events are not encoded as a distinct histories: a single action can lead to multiple histories with some probability.
+- Information sets are represented using action-observation history (AOH)
+- Utilities in the leaves are distributed along the (root -> leaf) trajectory as rewards.
+
 # Contributing
 
 Please check the [CONTRIBUTING.md](CONTRIBUTING.md) file to understand how to contribute code to this repository. 
