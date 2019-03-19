@@ -33,7 +33,7 @@ GoofSpielAction::GoofSpielAction(int id, int card) : Action(id) {
 }
 
 string GoofSpielAction::toString() const {
-  return "Card number: " + std::to_string(cardNumber);
+  return "Card: " + std::to_string(cardNumber);
 }
 
 size_t GoofSpielAction::getHash() const {
@@ -65,10 +65,7 @@ IIGoofSpielObservation::IIGoofSpielObservation(int id, optional<int> newBid,
     result(move(result)) {}
 
 GoofSpielDomain::GoofSpielDomain(unsigned int maxDepth, optional<unsigned long int> seed) :
-    GoofSpielDomain(
-        13,
-        maxDepth,
-        move(seed)) {}
+    GoofSpielDomain(13, maxDepth, move(seed)) {}
 
 GoofSpielDomain::GoofSpielDomain(int numberOfCards, unsigned int maxDepth,
                                  optional<unsigned long int> seed) :
@@ -321,7 +318,8 @@ bool GoofSpielState::operator==(const State &rhs) const {
       player1PlayedCards == gsState.player1PlayedCards &&
       player2PlayedCards == gsState.player2PlayedCards &&
       naturePlayedCards == gsState.naturePlayedCards &&
-      player1Deck == gsState.player1Deck && player2Deck == gsState.player2Deck &&
+      player1Deck == gsState.player1Deck &&
+      player2Deck == gsState.player2Deck &&
       natureDeck == gsState.natureDeck;
 }
 
@@ -439,13 +437,9 @@ IIGoofSpielState::performActions(const vector<pair<int, shared_ptr<Action>>> &ac
 
   OutcomeDistribution newOutcomes;
 
-  const double thisRoundRewardP1 = p1Card == p2Card ?
-                                   *natureSelectedCard / 2.0 : p1Card > p2Card ? *natureSelectedCard
-                                                                               : 0.0;
-
-  const double thisRoundRewardP2 = p1Card == p2Card ?
-                                   *natureSelectedCard / 2.0 : p2Card > p1Card ? *natureSelectedCard
-                                                                               : 0.0;
+  const double thisRoundRewardP1 = p1Card == p2Card ? 0.0
+                                                    : p1Card > p2Card ? *natureSelectedCard : -*natureSelectedCard;
+  const double thisRoundRewardP2 = -thisRoundRewardP1;
 
   vector<double> newRewards{player1CumulativeReward + thisRoundRewardP1,
                             player2CumulativeReward + thisRoundRewardP2};
