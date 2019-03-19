@@ -37,17 +37,15 @@ using std::cout;
 namespace GTLib2 {
 namespace algorithms {
 
-void treeWalkEFG(const Domain &domain, EFGNodeCallback function) {
-    treeWalkEFG(domain, move(function), domain.getMaxDepth());
-}
 
 void treeWalkEFG(const Domain &domain, EFGNodeCallback function, int maxDepth) {
     auto traverse = [&function, &domain, maxDepth]
         (const shared_ptr<EFGNode> &node, const auto &traverse) {
-        if (node->getDepth() >= maxDepth) return;
 
         // Call the provided function on the current node.
         function(node);
+
+        if (node->getDepth() >= maxDepth) return;
 
         const auto actions = node->availableActions();
         for (const auto &action : actions) {
