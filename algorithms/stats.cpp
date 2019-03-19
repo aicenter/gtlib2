@@ -31,50 +31,57 @@
 using std::unordered_set;
 using std::cout;
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
-
 namespace GTLib2 {
 namespace algorithms {
 
 void calculateDomainStatistics(const Domain &domain, DomainStatistics *stats) {
     auto collectIS = unordered_map<int, unordered_set<shared_ptr<AOH>>>();
+    auto collectSequences = unordered_map<int, unordered_set<ActionSequence>>();
 
     for (int i = 0; i < GAME_MAX_PLAYERS; ++i) {
         collectIS[i] = unordered_set<shared_ptr<AOH>>();
+        collectSequences[i] = unordered_set<ActionSequence>();
     }
-
-    auto countingFn = [&domain, &stats, &collectIS]
+    auto countingFn = [&domain, &stats, &collectIS, &collectSequences]
         (shared_ptr<EFGNode> node) {
-      if (node->getCurrentPlayer()) stats->num_nodes++;
+        stats->num_nodes++;
 
-      if (!node->getParent()
-          || node->getParent()->getDepth() != node->getDepth()) {
-          stats->num_states++;
-      }
+        if (!node->getParent()
+            || node->getParent()->getDepth() != node->getDepth()) {
+            stats->num_states++;
+        }
 
-      stats->max_EFGDepth = std::max(
-          stats->max_EFGDepth, node->getDepth());
+        stats->max_EFGDepth = std::max(
+            stats->max_EFGDepth, node->getDistanceFromRoot());
+        stats->max_StateDepth = std::max(
+            stats->max_StateDepth, node->getDepth());
 
-      if (node->isTerminal()) {
-          stats->num_terminals++;
-          return;
-      }
+        for (auto &player : domain.getPlayers()) {
+            auto seq = node->getActionsSeqOfPlayer(player);
+            collectSequences[player].emplace(seq);
+        }
 
-      int player = *node->getCurrentPlayer();
-      stats->num_histories[player]++;
-      auto infSet = node->getAOHInfSet();
-      collectIS[player].emplace(infSet);
+        if (node->isTerminal()) {
+            stats->num_terminals++;
+            return;
+        }
+
+        // following stats are only for non-terminal nodes:
+        int player = *node->getCurrentPlayer();
+        stats->num_histories[player]++;
+        auto infSet = node->getAOHInfSet();
+        collectIS[player].emplace(infSet);
     };
 
     treeWalkEFG(domain, countingFn, domain.getMaxDepth());
 
     for (int i = 0; i < GAME_MAX_PLAYERS; ++i) {
         stats->num_infosets[i] = collectIS[i].size();
+        stats->num_sequences[i] = collectSequences[i].size();
     }
 }
 
-void printDomainStatistics(const Domain &domain, std::ostream& ostr) {
+void printDomainStatistics(const Domain &domain, std::ostream &ostr) {
     DomainStatistics stats;
     calculateDomainStatistics(domain, &stats);
 
@@ -85,9 +92,6 @@ void printDomainStatistics(const Domain &domain, std::ostream& ostr) {
     ostr << stats;
 }
 
-
 }  // namespace algorithms
 }  // namespace GTLib2
-
-#pragma clang diagnostic pop
 

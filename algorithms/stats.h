@@ -27,7 +27,6 @@
 #include "base/efg.h"
 
 namespace GTLib2 {
-
 namespace algorithms {
 
 #define PRINT_ARRAY(ostr, ARR) \
@@ -37,9 +36,12 @@ namespace algorithms {
     }                          \
     ostr << "]\n";
 
-// Capture various domain statistics, for each player if possible.
+/**
+ * Capture various domain statistics, for each player if possible.
+ */
 struct DomainStatistics {
     int max_EFGDepth = 0;
+    int max_StateDepth = 0;
 
     uint64_t num_nodes = 0;
     uint64_t num_terminals = 0;
@@ -47,15 +49,19 @@ struct DomainStatistics {
 
     uint64_t num_histories[GAME_MAX_PLAYERS] = {0};
     uint64_t num_infosets[GAME_MAX_PLAYERS] = {0};
+    uint64_t num_sequences[GAME_MAX_PLAYERS] = {0};
 
     friend std::ostream &
     operator<<(std::ostream &ss, DomainStatistics const &stats) {
         ss << std::endl;
-        ss << "States:       \t" << stats.num_states << std::endl;
-        ss << "Histories:    \t"; PRINT_ARRAY(ss, stats.num_histories);
-        ss << "Infosets:     \t"; PRINT_ARRAY(ss, stats.num_infosets);
-        ss << "Terminals:    \t" << stats.num_terminals << std::endl;
-        ss << "Depth of EFG: \t" << stats.max_EFGDepth << std::endl;
+        ss << "States:              \t" << stats.num_states << std::endl;
+        ss << "Histories:           \t"; PRINT_ARRAY(ss, stats.num_histories);
+        ss << "Terminals:           \t" << stats.num_terminals << std::endl;
+        ss << "EFG nodes:           \t" << stats.num_nodes << std::endl;
+        ss << "Infosets:            \t"; PRINT_ARRAY(ss, stats.num_infosets);
+        ss << "Sequences:           \t"; PRINT_ARRAY(ss, stats.num_sequences);
+        ss << "Depth of game state: \t" << stats.max_StateDepth << std::endl;
+        ss << "Depth of EFG:        \t" << stats.max_EFGDepth << std::endl;
         ss << std::endl;
 
         return ss;
@@ -64,6 +70,7 @@ struct DomainStatistics {
     friend bool
     operator==(const DomainStatistics &some, const DomainStatistics &other) {
         if (!(some.max_EFGDepth == other.max_EFGDepth &&
+            some.max_StateDepth == other.max_StateDepth &&
             some.num_nodes == other.num_nodes &&
             some.num_terminals == other.num_terminals &&
             some.num_states == other.num_states)) {
@@ -75,21 +82,31 @@ struct DomainStatistics {
                         std::begin(other.num_histories)))
             return false;
 
+        if (!std::equal(std::begin(some.num_sequences),
+                        std::end(some.num_sequences),
+                        std::begin(other.num_sequences)))
+            return false;
+
         return std::equal(std::begin(some.num_infosets),
                           std::end(some.num_infosets),
                           std::begin(other.num_infosets));
     }
 };
 
-// Count the number of nodes, infosets, public states
-// and other statistics defined in DomainStatistics
-// @see DomainStatistics
+/** Count the number of nodes, infosets, public states
+ * and other statistics defined in DomainStatistics
+ * @see DomainStatistics
+ */
 void calculateDomainStatistics(const Domain &domain, DomainStatistics *stats);
 
-// Print basic statistics about supplied domain to stream
+/**
+ * Print basic statistics about supplied domain to stream
+ */
 void printDomainStatistics(const Domain &domain, std::ostream &ostr);
 
-// Print basic statistics about supplied domain
+/**
+ * Print basic statistics about supplied domain
+ */
 inline void printDomainStatistics(const Domain &domain) {
     printDomainStatistics(domain, std::cout);
 }
