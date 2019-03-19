@@ -155,7 +155,6 @@ pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStr
     expVal += bestStratVal.second;
     brs.insert(bestStratVal.first.begin(), bestStratVal.first.end());
   }
-  cout << "Number of nodes: " << nodes << "\n";
   return pair<BehavioralStrategy, double>(brs, expVal);
 }
 
@@ -311,7 +310,6 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(
     expVal += bestStratVal.second;
     brs.insert(bestStratVal.first.begin(), bestStratVal.first.end());
   }
-  cout << "Number of nodes: " << nodes << "\n";
   return pair<BehavioralStrategy, double>(brs, expVal);
 }
 }  // namespace algorithms
