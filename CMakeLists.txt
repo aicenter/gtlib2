@@ -13,8 +13,12 @@ if(CMAKE_USE_PTHREADS_INIT)
 endif()
 
 # link boost library
-find_package(Boost COMPONENTS unit_test_framework system REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
+# disable auto link
+add_definitions(-DBOOST_ALL_NO_LIB)
+# link against dynamic libraries
+add_definitions(-DBOOST_TEST_DYN_LINK)
+find_package(Boost COMPONENTS unit_test_framework system REQUIRED)
 
 # add cmake
 include_directories(${CMAKE_SOURCE_DIR})
@@ -39,13 +43,13 @@ if( CPLEX_FOUND )
 endif()
 
 # ------ GLPK
-FIND_PATH(GLPK_INCLUDE_DIR NAMES glpk.h PATHS
+find_path(GLPK_INCLUDE_DIR NAMES glpk.h PATHS
         ${GLPK_DIR}/basics/glpk/include
         ${GLPK_DIR}/include
         NO_DEFAULT_PATH
         )
 
-FIND_PATH(GLPK_LIBRARY  NAMES libglpk.a PATHS
+find_path(GLPK_LIBRARY  NAMES libglpk.a PATHS
         ${GLPK_DIR}/basics/glpk/lib
         ${GLPK_DIR}/lib
         NO_DEFAULT_PATH
@@ -63,7 +67,7 @@ if (GLPK_INCLUDE_DIR AND GLPK_LIBRARY)
 endif()
 
 # ------ GUROBI
-FIND_PATH(GUROBI_INCLUDE_DIR NAMES gurobi_c++.h PATHS
+find_path(GUROBI_INCLUDE_DIR NAMES gurobi_c++.h PATHS
         ${GUROBI_DIR}/include
         NO_DEFAULT_PATH
         )
@@ -99,13 +103,14 @@ endif()
 # https://stackoverflow.com/a/2110796
 set(SOURCE_FILES
         # algorithms
-        algorithms/normalFormLP.h algorithms/normalFormLP.cpp
-        algorithms/treeWalk.h algorithms/treeWalk.cpp
         algorithms/bestResponse.h algorithms/bestResponse.cpp
-        algorithms/common.h algorithms/common.cpp
         algorithms/cfr.h algorithms/cfr.cpp
-        algorithms/utility.h algorithms/utility.cpp
+        algorithms/common.h algorithms/common.cpp
         algorithms/equilibrium.h algorithms/equilibrium.cpp
+        algorithms/normalFormLP.h algorithms/normalFormLP.cpp
+        algorithms/stats.h algorithms/stats.cpp
+        algorithms/treeWalk.h algorithms/treeWalk.cpp
+        algorithms/utility.h algorithms/utility.cpp
         # base
         base/base.h base/base.cpp
         base/efg.h base/efg.cpp
@@ -122,29 +127,23 @@ set(SOURCE_FILES
         LPsolvers/LPSolver.h
         # utils
         utils/utils.h
+        utils/functools.h
         )
-
 set(TEST_FILES
+        tests/domainsTest.h tests/domainsTest.cpp
         tests/genericPokerTest.cpp
         tests/goofSpielTest.cpp
         tests/kriegSpielTest.cpp
-        tests/matchingPenniesTest.cpp
-        )
+        tests/matchingPenniesTest.cpp)
 
+# -------------------- Executables, linking --------------------
 
+# main
 add_executable(main main.cpp
         ${SOURCE_FILES}
         ${CPLEX_FILES}
         ${GLPK_FILES}
         ${GUROBI_FILES})
-
-add_executable(tester
-        ${TEST_FILES}
-        ${SOURCE_FILES}
-        ${CPLEX_FILES}
-        ${GLPK_FILES}
-        ${GUROBI_FILES})
-
 
 target_link_libraries(main
         ${GUROBILIB}
@@ -153,6 +152,14 @@ target_link_libraries(main
         ${GLPKLIB}
         ${Boost_LIBRARIES})
 
+# test
+add_executable(tester
+        ${TEST_FILES}
+        ${SOURCE_FILES}
+        ${CPLEX_FILES}
+        ${GLPK_FILES}
+        ${GUROBI_FILES})
+
 target_link_libraries(tester
         ${GUROBILIB}
         ${CPLEXLIB}
@@ -160,4 +167,6 @@ target_link_libraries(tester
         ${GLPKLIB}
         ${Boost_LIBRARIES}
         ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+
+enable_testing()
 add_test(tester tester)
