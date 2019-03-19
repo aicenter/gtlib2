@@ -50,8 +50,8 @@ using namespace GTLib2;
 
 void bestRespAndEqui() {
     domains::IIGoofSpielDomain domain(6, 1, 1);
-    int player1 = domain.getPlayers()[0];
-    int player2 = domain.getPlayers()[1];
+    Player player1 = domain.getPlayers()[0];
+    Player player2 = domain.getPlayers()[1];
     auto player1InfSetsAndActions =
         algorithms::generateInformationSetsAndAvailableActions(domain, player1);
     cout << player1InfSetsAndActions.size() << "\n";

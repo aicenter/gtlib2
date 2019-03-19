@@ -45,13 +45,13 @@ enum MOVES {
 class GenericPokerAction : public Action {
  public:
   // constructor
-  GenericPokerAction(int id, int type, int value);
+  GenericPokerAction(ActionId id, int type, int value);
   bool operator==(const Action &that) const override;
   size_t getHash() const override;
 
   // Returns move description.
   inline string toString() const final {
-    if (id == -1)
+    if (id == NO_ACTION)
       return "NoA";
     switch (type_) {
       case Check: return "Check";
@@ -94,7 +94,7 @@ class GenericPokerObservation : public Observation {
 
   // Returns description.
   inline string toString() const final {
-    if (id == -1)
+    if (id == NO_OBSERVATION)
       return "NoOb";
     switch (type_) {
       case PlayCard: return "Card number is " + to_string(value_);
@@ -127,22 +127,22 @@ class GenericPokerState : public State {
  public:
   // Constructor
   GenericPokerState(Domain *domain, int p1card, int p2card, optional<int> natureCard,
-                    double firstPlayerReward, double pot, vector<int> players, int round,
+                    double firstPlayerReward, double pot, vector<Player> players, int round,
                     shared_ptr<GenericPokerAction> lastAction, int continuousRaiseCount);
 
   GenericPokerState(Domain *domain, int p1card, int p2card, optional<int> natureCard,
-                    unsigned int ante, vector<int> players);
+                    unsigned int ante, vector<Player> players);
 
   // Destructor
   ~GenericPokerState() override = default;
 
   // GetActions returns possible actions for a player in the state.
-  vector<shared_ptr<Action>> getAvailableActionsFor(int player) const override;
+  vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
 
   OutcomeDistribution
-  performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const override;
+  performActions(const vector<PlayerAction> &actions) const override;
 
-  inline vector<int> getPlayers() const final {
+  inline vector<Player> getPlayers() const final {
     return players_;
   }
 
@@ -163,7 +163,7 @@ class GenericPokerState : public State {
   }
 
  protected:
-  vector<int> players_;
+  vector<Player> players_;
   shared_ptr<GenericPokerAction> lastAction;
   optional<int> natureCard_;
   double pot;
@@ -200,7 +200,7 @@ class GenericPokerDomain : public Domain {
   // GetInfo returns string containing domain information.
   string getInfo() const final;
 
-  inline vector<int> getPlayers() const final {
+  inline vector<Player> getPlayers() const final {
     return {0, 1};
   }
 

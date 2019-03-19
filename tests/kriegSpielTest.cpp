@@ -70,12 +70,12 @@ BOOST_AUTO_TEST_CASE(enPassant) {
     ks->insertPiece(blackKing);
     ks->updateAllPieces();
 
-    vector<pair<int, shared_ptr<Action>>> v;
+    vector<PlayerAction> v;
     for(shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
         string check = a->toString();
         if(a->toString() == "Pe4") {
             v.emplace_back(make_pair(0, a));
-            v.emplace_back(make_pair(1, make_shared<Action>(-1)));
+            v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
         }
     }
@@ -93,7 +93,7 @@ BOOST_AUTO_TEST_CASE(enPassant) {
         string check = a->toString();
         if(a->toString() == "pe3") {
             v.emplace_back(make_pair(0, a));
-            v.emplace_back(make_pair(1, make_shared<Action>(-1)));
+            v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
         }
     }
@@ -129,18 +129,18 @@ BOOST_AUTO_TEST_CASE(invalidMoving) {
     ks->updateAllPieces();
 
     //fetch random invalid move
-    vector<pair<int, shared_ptr<Action>>> v;
+    vector<PlayerAction> v;
     for(shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
         string check = a->toString();
         if(a->toString() == "Qb1") {
             v.emplace_back(make_pair(0, a));
-            v.emplace_back(make_pair(1, make_shared<Action>(-1)));
+            v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
         }
     }
 
     Outcome newState = ks->performActions(v)[0].first;
-    BOOST_CHECK(newState.observations[0]->getId() == v[0].second.get()->getId() && newState.observations[1]->getId() == -1);
+    BOOST_CHECK(newState.observations[0]->getId() == v[0].second.get()->getId() && newState.observations[1]->getId() == NO_OBSERVATION);
 }
 
 BOOST_AUTO_TEST_CASE(checking) {
@@ -162,12 +162,12 @@ BOOST_AUTO_TEST_CASE(checking) {
     ks->updateAllPieces();
 
     //fetch checking move
-    vector<pair<int, shared_ptr<Action>>> v;
+    vector<PlayerAction> v;
     for(shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
         string check = a->toString();
         if(a->toString() == "Qe8") {
             v.emplace_back(make_pair(0, a));
-            v.emplace_back(make_pair(1, make_shared<Action>(-1)));
+            v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
         }
     }
@@ -204,12 +204,12 @@ BOOST_AUTO_TEST_CASE(doublechecking) {
     ks->updateAllPieces();
 
     //fetch double check move
-    vector<pair<int, shared_ptr<Action>>> v;
+    vector<PlayerAction> v;
     for(shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
         string check = a->toString();
         if(a->toString() == "Bb5") {
             v.emplace_back(make_pair(0, a));
-            v.emplace_back(make_pair(1, make_shared<Action>(-1)));
+            v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
         }
     }
@@ -249,12 +249,12 @@ BOOST_AUTO_TEST_CASE(castling) {
     BOOST_CHECK(whiteKing->getAllValidMoves()->size() == 7);
 
     //fetch castling move
-    vector<pair<int, shared_ptr<Action>>> v;
+    vector<PlayerAction> v;
     for(shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
         string check = a->toString();
         if(a->toString() == "Kg1") {
             v.emplace_back(make_pair(0, a));
-            v.emplace_back(make_pair(1, make_shared<Action>(-1)));
+            v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
         }
     }
@@ -287,7 +287,7 @@ BOOST_AUTO_TEST_CASE(castling) {
         string check = a->toString();
         if(a->toString() == "Kc1") {
             v.emplace_back(make_pair(0, a));
-            v.emplace_back(make_pair(1, make_shared<Action>(-1)));
+            v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
         }
     }
@@ -325,19 +325,19 @@ BOOST_AUTO_TEST_CASE(castleDeny) {
     BOOST_CHECK(whiteKing->getAllValidMoves()->size() == 6);
 
     //fetch castling move
-    vector<pair<int, shared_ptr<Action>>> v;
+    vector<PlayerAction> v;
     for(shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
         string check = a->toString();
         if(a->toString() == "Kg1") {
             v.emplace_back(make_pair(0, a));
-            v.emplace_back(make_pair(1, make_shared<Action>(-1)));
+            v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
         }
     }
 
     //short castle should be invalid
     Outcome newState = ks->performActions(v)[0].first;
-    BOOST_CHECK(newState.observations[0]->getId() == v[0].second.get()->getId() && newState.observations[1]->getId() == -1);
+    BOOST_CHECK(newState.observations[0]->getId() == v[0].second.get()->getId() && newState.observations[1]->getId() == NO_OBSERVATION);
 
     //reset the board
     ks->clearBoard();
@@ -360,13 +360,13 @@ BOOST_AUTO_TEST_CASE(castleDeny) {
         string check = a->toString();
         if(a->toString() == "Kc1") {
             v.emplace_back(make_pair(0, a));
-            v.emplace_back(make_pair(1, make_shared<Action>(-1)));
+            v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
         }
     }
 
     newState = ks->performActions(v)[0].first;
-    BOOST_CHECK(newState.observations[0]->getId() == v[0].second.get()->getId() && newState.observations[1]->getId() == -1);
+    BOOST_CHECK(newState.observations[0]->getId() == v[0].second.get()->getId() && newState.observations[1]->getId() == NO_OBSERVATION);
 }
 
 BOOST_AUTO_TEST_CASE(cutting) {
@@ -393,12 +393,12 @@ BOOST_AUTO_TEST_CASE(cutting) {
     BOOST_CHECK(ks->getPiecesOfColor(0).size() + ks->getPiecesOfColor(1).size() == 4);
 
     //fetch castling move
-    vector<pair<int, shared_ptr<Action>>> v;
+    vector<PlayerAction> v;
     for(shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
         string check = a->toString();
         if(a->toString() == "Rh8") {
             v.emplace_back(make_pair(0, a));
-            v.emplace_back(make_pair(1, make_shared<Action>(-1)));
+            v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
         }
     }
@@ -432,12 +432,12 @@ BOOST_AUTO_TEST_CASE(gameOverWin) {
     ks->updateAllPieces();
 
     //fetch game winning move
-    vector<pair<int, shared_ptr<Action>>> v;
+    vector<PlayerAction> v;
     for(shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
         string check = a->toString();
         if(a->toString() == "Rf8") {
             v.emplace_back(make_pair(0, a));
-            v.emplace_back(make_pair(1, make_shared<Action>(-1)));
+            v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
         }
     }
@@ -465,12 +465,12 @@ BOOST_AUTO_TEST_CASE(gameOverDraw) {
     ks->updateAllPieces();
 
     //fetch game winning move
-    vector<pair<int, shared_ptr<Action>>> v;
+    vector<PlayerAction> v;
     for(shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
         string check = a->toString();
         if(a->toString() == "Ke6") {
             v.emplace_back(make_pair(0, a));
-            v.emplace_back(make_pair(1, make_shared<Action>(-1)));
+            v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
         }
     }
@@ -499,12 +499,12 @@ BOOST_AUTO_TEST_CASE(PAWNPromotion) {
     ks->updateAllPieces();
 
     //fetch game winning move
-    vector<pair<int, shared_ptr<Action>>> v;
+    vector<PlayerAction> v;
     for(shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
         string check = a->toString();
         if(a->toString() == "Pe8") {
             v.emplace_back(make_pair(0, a));
-            v.emplace_back(make_pair(1, make_shared<Action>(-1)));
+            v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
         }
     }
@@ -533,12 +533,12 @@ BOOST_AUTO_TEST_CASE(protection) {
     ks->updateAllPieces();
 
 
-    vector<pair<int, shared_ptr<Action>>> v;
+    vector<PlayerAction> v;
     for(shared_ptr<Action> a: ks->getAvailableActionsFor(1)) {
         string check = a->toString();
         if(a->toString() == "qd8") {
             v.emplace_back(make_pair(0, a));
-            v.emplace_back(make_pair(1, make_shared<Action>(-1)));
+            v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
         }
     }
@@ -551,13 +551,13 @@ BOOST_AUTO_TEST_CASE(protection) {
         string check = a->toString();
         if(a->toString() == "Kd8") {
             v.emplace_back(make_pair(0, a));
-            v.emplace_back(make_pair(1, make_shared<Action>(-1)));
+            v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
         }
     }
     newState = newBoard->performActions(v)[0].first;
 
-    BOOST_CHECK(newState.observations[0]->getId() == v[0].second.get()->getId() && newState.observations[1]->getId() == -1);
+    BOOST_CHECK(newState.observations[0]->getId() == v[0].second.get()->getId() && newState.observations[1]->getId() == NO_OBSERVATION);
 }
 
 BOOST_AUTO_TEST_CASE(randomPin) {
@@ -588,12 +588,12 @@ BOOST_AUTO_TEST_CASE(randomPin) {
         ks->updateAllPieces();
 
 
-        vector<pair<int, shared_ptr<Action>>> v;
+        vector<PlayerAction> v;
         for(shared_ptr<Action> a: ks->getAvailableActionsFor(1)) {
             string check = a->toString();
             if(a->toString() == "pa4") {
                 v.emplace_back(make_pair(0, a));
-                v.emplace_back(make_pair(1, make_shared<Action>(-1)));
+                v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
                 break;
             }
         }
@@ -606,14 +606,14 @@ BOOST_AUTO_TEST_CASE(randomPin) {
             string check = a->toString();
             if(a->toString() == "Qc6") {
                 v.emplace_back(make_pair(0, a));
-                v.emplace_back(make_pair(1, make_shared<Action>(-1)));
+                v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
                 break;
             }
         }
 
         Outcome lastState = newBoard->performActions(v)[0].first;
 
-        BOOST_CHECK(lastState.observations[0]->getId() == v[0].second.get()->getId() && lastState.observations[1]->getId() == -1);
+        BOOST_CHECK(lastState.observations[0]->getId() == v[0].second.get()->getId() && lastState.observations[1]->getId() == NO_OBSERVATION);
 }
 
 BOOST_AUTO_TEST_CASE(randomGameOver) {
@@ -641,12 +641,12 @@ BOOST_AUTO_TEST_CASE(randomGameOver) {
         ks->updateAllPieces();
 
 
-        vector<pair<int, shared_ptr<Action>>> v;
+        vector<PlayerAction> v;
         for(shared_ptr<Action> a: ks->getAvailableActionsFor(1)) {
             string check = a->toString();
             if(a->toString() == "qc2") {
                 v.emplace_back(make_pair(0, a));
-                v.emplace_back(make_pair(1, make_shared<Action>(-1)));
+                v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
                 break;
             }
         }
@@ -680,12 +680,12 @@ BOOST_AUTO_TEST_CASE(piercingProtection) {
     ks->updateAllPieces();
 
 
-    vector<pair<int, shared_ptr<Action>>> v;
+    vector<PlayerAction> v;
     for(shared_ptr<Action> a: ks->getAvailableActionsFor(1)) {
         string check = a->toString();
         if(a->toString() == "kf8") {
             v.emplace_back(make_pair(0, a));
-            v.emplace_back(make_pair(1, make_shared<Action>(-1)));
+            v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
         }
     }
@@ -700,12 +700,12 @@ BOOST_AUTO_TEST_CASE(gameOverTest) {
     shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state;
     auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
 
-    vector<pair<int, shared_ptr<Action>>> v;
+    vector<PlayerAction> v;
     for(shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
         string check = a->toString();
         if(a->toString() == "Kb1") {
             v.emplace_back(make_pair(0, a));
-            v.emplace_back(make_pair(1, make_shared<Action>(-1)));
+            v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
         }
     }
@@ -718,7 +718,7 @@ BOOST_AUTO_TEST_CASE(gameOverTest) {
         string check = a->toString();
         if(a->toString() == "kb3") {
             v.emplace_back(make_pair(0, a));
-            v.emplace_back(make_pair(1, make_shared<Action>(-1)));
+            v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
         }
     }
@@ -731,7 +731,7 @@ BOOST_AUTO_TEST_CASE(gameOverTest) {
         string check = a->toString();
         if(a->toString() == "Rd3") {
             v.emplace_back(make_pair(0, a));
-            v.emplace_back(make_pair(1, make_shared<Action>(-1)));
+            v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
         }
     }

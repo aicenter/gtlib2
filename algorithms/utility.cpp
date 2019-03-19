@@ -138,8 +138,8 @@ tuple<vector<double>, unsigned int, unsigned int> constructUtilityMatrixFor(
     const vector<BehavioralStrategy> &player1PureStrats,
     const vector<BehavioralStrategy> &player2PureStrats) {
 
-  int player1 = domain.getPlayers()[0];
-  int player2 = domain.getPlayers()[1];
+  Player player1 = domain.getPlayers()[0];
+  Player player2 = domain.getPlayers()[1];
 
   const auto numberOfRows = player1PureStrats.size();
   const auto numberOfColls = player2PureStrats.size();

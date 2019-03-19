@@ -28,7 +28,7 @@
 
 namespace GTLib2 {
 namespace domains {
-GenericPokerAction::GenericPokerAction(int id, int type, int value) :
+GenericPokerAction::GenericPokerAction(ActionId id, int type, int value) :
     Action(id), type_(type), value_(value) {}
 
 size_t GenericPokerAction::getHash() const {
@@ -78,7 +78,7 @@ GenericPokerDomain::GenericPokerDomain(unsigned int maxCardTypes, unsigned int m
       + betsSecondRound.back() + maxRaisesInRow * raisesSecondRound.back();
   vector<double> rewards(2);
   int size = maxCardTypes * maxCardTypes;
-  auto next_players = vector<int>{0};
+  auto next_players = vector<Player>{0};
   for (int p1card = 0; p1card < maxCardTypes; ++p1card) {
     for (int p2card = 0; p2card < maxCardTypes; ++p2card) {
       if (p1card == p2card && maxCardsOfTypes < 2) {
@@ -138,7 +138,7 @@ string GenericPokerDomain::getInfo() const {
       raises2.str().substr(0, raises2.str().length() - 2) + "]\n";
 }
 
-vector<shared_ptr<Action>> GenericPokerState::getAvailableActionsFor(int player) const {
+vector<shared_ptr<Action>> GenericPokerState::getAvailableActionsFor(Player player) const {
   auto list = vector<shared_ptr<Action>>();
   int count = 0;
   auto pokerDomain = static_cast<GenericPokerDomain *>(domain);
@@ -180,16 +180,16 @@ vector<shared_ptr<Action>> GenericPokerState::getAvailableActionsFor(int player)
 }
 
 OutcomeDistribution
-GenericPokerState::performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const {
+GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
   const auto pokerDomain = static_cast<GenericPokerDomain *>(domain);
   const auto a1 = dynamic_pointer_cast<GenericPokerAction>(actions[0].second);
   const auto a2 = dynamic_pointer_cast<GenericPokerAction>(actions[1].second);
   OutcomeDistribution newOutcomes;
-  vector<int> next_players = vector<int>(1);
+  vector<Player> next_players = vector<Player>(1);
   auto newLastAction = lastAction;
   double bet, new_pot = pot, newFirstPlayerReward = firstPlayerReward;
   int newContinuousRaiseCount = continuousRaiseCount_, new_round = round_;
-  int id = -1;
+  ObservationId id = NO_OBSERVATION;
   auto observations = vector<shared_ptr<Observation>>(2);
   shared_ptr<GenericPokerState> newState;
   if (a1) {
@@ -301,7 +301,7 @@ GenericPokerState::performActions(const vector<pair<int, shared_ptr<Action>>> &a
                                               new_round,
                                               newLastAction,
                                               newContinuousRaiseCount);
-    observations[0] = make_shared<Observation>(-1);
+    observations[0] = make_shared<Observation>(NO_OBSERVATION);
     observations[1] = make_shared<GenericPokerObservation>(id, a1->GetType(), a1->GetValue());
   } else if (a2) {
     switch (a2->GetType()) {
@@ -417,11 +417,11 @@ GenericPokerState::performActions(const vector<pair<int, shared_ptr<Action>>> &a
                                               newLastAction,
                                               newContinuousRaiseCount);
     observations[0] = make_shared<GenericPokerObservation>(id, a2->GetType(), a2->GetValue());
-    observations[1] = make_shared<Observation>(-1);
+    observations[1] = make_shared<Observation>(NO_OBSERVATION);
   }
   vector<double> rewards(2);
   if (new_round == pokerDomain->TERMINAL_ROUND) {
-    int result = hasPlayerOneWon(newLastAction, a1? -1:1);
+    int result = hasPlayerOneWon(newLastAction, a1 ? -1 : 1);
     rewards = vector<double>{result*newFirstPlayerReward, -result*newFirstPlayerReward};
   }
   Outcome outcome(newState, move(observations), rewards);
@@ -436,7 +436,7 @@ GenericPokerState::GenericPokerState(Domain *domain,
                                      optional<int> natureCard,
                                      double firstPlayerReward,
                                      double pot,
-                                     vector<int> players,
+                                     vector<Player> players,
                                      int round,
                                      shared_ptr<GenericPokerAction> lastAction,
                                      int continuousRaiseCount) :
@@ -449,7 +449,7 @@ GenericPokerState::GenericPokerState(Domain *domain,
                                      int p2card,
                                      optional<int> natureCard,
                                      unsigned int ante,
-                                     vector<int> players) : GenericPokerState(domain,
+                                     vector<Player> players) : GenericPokerState(domain,
                                                                               p1card,
                                                                               p2card,
                                                                               move(natureCard),
@@ -464,11 +464,13 @@ bool GenericPokerState::operator==(const State &rhs) const {
   auto State = dynamic_cast<const GenericPokerState &>(rhs);
   return player1Card_ == State.player1Card_
       && (lastAction && State.lastAction ? *lastAction == *State.lastAction : lastAction
-          == State.lastAction) &&
-      player2Card_ == State.player2Card_ && round_ == State.round_ && pot == State.pot &&
-      firstPlayerReward == State.firstPlayerReward
-      && natureCard_.value_or(-1) == State.natureCard_.value_or(-1) &&
-      players_ == State.players_;
+          == State.lastAction)
+      && player2Card_ == State.player2Card_
+      && round_ == State.round_
+      && pot == State.pot
+      && firstPlayerReward == State.firstPlayerReward
+      && natureCard_.value_or(-1) == State.natureCard_.value_or(-1)
+      && players_ == State.players_;
 }
 size_t GenericPokerState::getHash() const {
   size_t seed = 0;

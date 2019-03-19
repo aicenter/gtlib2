@@ -61,8 +61,8 @@ NormalFormLP::NormalFormLP(const shared_ptr<Domain> _game,
                            unique_ptr<LPSolver> _lp_solver) {
   lp_solver = std::move(_lp_solver);
 
-  int player1 = _game->getPlayers()[0];
-  int player2 = _game->getPlayers()[1];
+  Player player1 = _game->getPlayers()[0];
+  Player player2 = _game->getPlayers()[1];
   auto player1InfSetsAndActions = generateInformationSetsAndAvailableActions(*_game, player1);
   auto player2InfSetsAndActions = generateInformationSetsAndAvailableActions(*_game, player2);
   auto player1PureStrats = generateAllPureStrategies(player1InfSetsAndActions);

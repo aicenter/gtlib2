@@ -61,11 +61,11 @@ static std::array<string, 5> movedes_ = {"stay", "right", "down", "left", "up"};
 class PursuitAction : public Action {
  public:
   // constructor
-  PursuitAction(int id, int move);
+  PursuitAction(ActionId id, int move);
 
   // Returns move description.
   inline string toString() const final {
-    if (id == -1)
+    if (id == NO_ACTION)
       return "NoA";
     return movedes_[move_];
   }
@@ -142,12 +142,12 @@ class PursuitState : public State {
   ~PursuitState() override = default;
 
   // GetActions returns possible actions for a player in the state.
-  vector<shared_ptr<Action>> getAvailableActionsFor(int player) const override;
+  vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
 
   OutcomeDistribution
-  performActions(const vector<pair<int, shared_ptr<Action>>> &actions2) const override;
+  performActions(const vector<PlayerAction> &actions2) const override;
 
-  inline vector<int> getPlayers() const final {
+  inline vector<Player> getPlayers() const final {
     return players_;
   }
 
@@ -170,7 +170,7 @@ class PursuitState : public State {
   vector<Pos> place_;  // locations of all players
   // eight surrounding
   vector<string> strings_;
-  vector<int> players_;
+  vector<Player> players_;
   double prob_ = 1;  // state probability
 };
 
@@ -181,23 +181,23 @@ class PursuitState : public State {
 class MMPursuitState : public PursuitState {
  public:
   // Constructor
-  MMPursuitState(Domain *domain, const vector<Pos> &p, const vector<int> &players,
+  MMPursuitState(Domain *domain, const vector<Pos> &p, const vector<Player> &players,
                  vector<int> numberOfMoves);
 
   // Constructor
-  MMPursuitState(Domain *domain, const vector<Pos> &p, const vector<int> &players,
+  MMPursuitState(Domain *domain, const vector<Pos> &p, const vector<Player> &players,
                  vector<int> numberOfMoves, int currentNOM, int currentPlayer);
 
   // Constructor
   MMPursuitState(Domain *domain, const vector<Pos> &p, double prob,
-                 const vector<int> &players, vector<int> numberOfMoves);
+                 const vector<Player> &players, vector<int> numberOfMoves);
 
   // Constructor
-  MMPursuitState(Domain *domain, const vector<Pos> &p, double prob, const vector<int> &players,
+  MMPursuitState(Domain *domain, const vector<Pos> &p, double prob, const vector<Player> &players,
                  vector<int> numberOfMoves, int currentNOM, int currentPlayer);
 
   OutcomeDistribution
-  performActions(const vector<pair<int, shared_ptr<Action>>> &actions2) const override;
+  performActions(const vector<PlayerAction> &actions2) const override;
 
   bool operator==(const State &rhs) const override;
 
@@ -205,7 +205,7 @@ class MMPursuitState : public PursuitState {
 
  private:
   vector<int> numberOfMoves_;
-  vector<int> players_;
+  vector<Player> players_;
   int currentNOM_;
   int currentPlayer_;
 };
@@ -225,7 +225,7 @@ class ObsPursuitState : public PursuitState {
   ObsPursuitState(Domain *domain, const vector<Pos> &p, double prob);
 
   OutcomeDistribution
-  performActions(const vector<pair<int, shared_ptr<Action>>> &actions2) const override;
+  performActions(const vector<PlayerAction> &actions2) const override;
 };
 
 /**
@@ -270,7 +270,7 @@ class PursuitDomain : public Domain {
   // GetInfo returns string containing domain information.
   string getInfo() const final;
 
-  vector<int> getPlayers() const final;
+  vector<Player> getPlayers() const final;
 
   vector<double> probability;  // probability of stay or move
   int height;

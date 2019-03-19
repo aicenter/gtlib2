@@ -28,7 +28,7 @@
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
 namespace GTLib2 {
 namespace domains {
-GoofSpielAction::GoofSpielAction(int id, int card) : Action(id) {
+GoofSpielAction::GoofSpielAction(ActionId id, int card) : Action(id) {
   cardNumber = card;
 }
 
@@ -134,7 +134,7 @@ string GoofSpielDomain::getInfo() const {
   return "Goof spiel. Max depth is: " + std::to_string(maxDepth);
 }
 
-vector<int> GoofSpielDomain::getPlayers() const {
+vector<Player> GoofSpielDomain::getPlayers() const {
   return {0, 1};
 }
 
@@ -193,7 +193,7 @@ GoofSpielState::GoofSpielState(Domain *domain,
   }
 }
 
-vector<shared_ptr<Action>> GoofSpielState::getAvailableActionsFor(const int player) const {
+vector<shared_ptr<Action>> GoofSpielState::getAvailableActionsFor(const Player player) const {
   const auto &deck = player == 0 ? player1Deck : player2Deck;
 
   vector<shared_ptr<Action>> actions;
@@ -207,7 +207,7 @@ vector<shared_ptr<Action>> GoofSpielState::getAvailableActionsFor(const int play
 }
 
 OutcomeDistribution
-GoofSpielState::performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const {
+GoofSpielState::performActions(const vector<PlayerAction> &actions) const {
   const auto goofdomain = static_cast<GoofSpielDomain *>(domain);
   const auto player1Action = dynamic_cast<GoofSpielAction*>(actions[0].second.get());
   const auto player2Action = dynamic_cast<GoofSpielAction*>(actions[1].second.get());
@@ -285,7 +285,7 @@ GoofSpielState::performActions(const vector<pair<int, shared_ptr<Action>>> &acti
   return newOutcomes;
 }
 
-vector<int> GoofSpielState::getPlayers() const {
+vector<Player> GoofSpielState::getPlayers() const {
   if (!player1Deck.empty() && !player2Deck.empty()) {
     return {0, 1};
   } else {
@@ -408,7 +408,7 @@ string IIGoofSpielDomain::getInfo() const {
   return "Goof spiel. Max depth is: " + std::to_string(maxDepth);
 }
 
-vector<int> IIGoofSpielDomain::getPlayers() const {
+vector<Player> IIGoofSpielDomain::getPlayers() const {
   return {0, 1};
 }
 
@@ -428,7 +428,7 @@ IIGoofSpielState::IIGoofSpielState(Domain *domain, const GoofSpielState &previou
                    player1CumulativeReward, player2CumulativeReward) {}
 
 OutcomeDistribution
-IIGoofSpielState::performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const {
+IIGoofSpielState::performActions(const vector<PlayerAction> &actions) const {
   const auto goofdomain = static_cast<IIGoofSpielDomain *>(domain);
   const auto player1Action = dynamic_cast<GoofSpielAction*>(actions[0].second.get());
   const auto player2Action = dynamic_cast<GoofSpielAction*>(actions[1].second.get());

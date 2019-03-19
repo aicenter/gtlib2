@@ -33,7 +33,7 @@
 
 namespace GTLib2 {
 namespace domains {
-PursuitAction::PursuitAction(int id, int move) : Action(id), move_(move) {}
+PursuitAction::PursuitAction(ActionId id, int move) : Action(id), move_(move) {}
 
 bool PursuitAction::operator==(const Action &that) const {
   if (typeid(*this) == typeid(that)) {
@@ -89,11 +89,11 @@ PursuitState::PursuitState(Domain *domain, const vector<Pos> &p) : PursuitState(
 PursuitState::PursuitState(Domain *domain, const vector<Pos> &p, double prob) :
     State(domain), place_(p), prob_(prob) {
   strings_ = vector<string>(p.size());
-  players_ = vector<int>(p.size());
+  players_ = vector<Player>(p.size());
   std::iota(players_.begin(), players_.end(), 0);
 }
 
-vector<shared_ptr<Action>> PursuitState::getAvailableActionsFor(int player) const {
+vector<shared_ptr<Action>> PursuitState::getAvailableActionsFor(Player player) const {
   auto list = vector<shared_ptr<Action>>();
   for (int i = 1; i < players_.size(); ++i) {
     if (place_[players_[0]].x == place_[players_[i]].x && place_[0].y == place_[players_[i]].y) {
@@ -115,7 +115,7 @@ vector<shared_ptr<Action>> PursuitState::getAvailableActionsFor(int player) cons
 }
 
 OutcomeDistribution
-PursuitState::performActions(const vector<pair<int, shared_ptr<Action>>> &actions2) const {
+PursuitState::performActions(const vector<PlayerAction> &actions2) const {
   vector<PursuitAction*> actions(actions2.size());
   auto purDomain = static_cast<PursuitDomain *>(domain);
   for (auto &i : actions2) {
@@ -125,7 +125,7 @@ PursuitState::performActions(const vector<pair<int, shared_ptr<Action>>> &action
   auto actionssize = static_cast<unsigned int>(actions.size());
   auto powsize = static_cast<unsigned int>(actions.size());
   for (auto &i : actions) {
-    if (i->getId() == -1)
+    if (i->getId() == NO_ACTION)
       powsize--;
   }
   int count = (1 << powsize);
@@ -140,7 +140,7 @@ PursuitState::performActions(const vector<pair<int, shared_ptr<Action>>> &action
     vector<Pos> moves = place_;
     for (unsigned int i = 0; i < actionssize; ++i) {
       if ((k >> i & 1) == 1) {
-        if (actions[i]->getId() > -1) {
+        if (actions[i]->getId() > NO_ACTION) {
           moves[i].x = pursuitMoves[actions[i]->GetMove()].x + place_[i].x;
           moves[i].y = pursuitMoves[actions[i]->GetMove()].y + place_[i].y;
         }
@@ -240,26 +240,26 @@ size_t PursuitState::getHash() const {
 }
 
 MMPursuitState::MMPursuitState(Domain *domain, const vector<Pos> &p,
-                               const vector<int> &players, vector<int> numberOfMoves) :
+                               const vector<Player> &players, vector<int> numberOfMoves) :
     MMPursuitState(domain, p, players, numberOfMoves, numberOfMoves[0], 0) {}
 
-MMPursuitState::MMPursuitState(Domain *domain, const vector<Pos> &p, const vector<int> &players,
+MMPursuitState::MMPursuitState(Domain *domain, const vector<Pos> &p, const vector<Player> &players,
                                vector<int> numberOfMoves, int currentNOM, int currentPlayer) :
     PursuitState(domain, p), players_(players), numberOfMoves_(move(numberOfMoves)),
     currentNOM_(currentNOM), currentPlayer_(currentPlayer) {}
 
 MMPursuitState::MMPursuitState(Domain *domain, const vector<Pos> &p, double prob,
-                               const vector<int> &players, vector<int> numberOfMoves) :
+                               const vector<Player> &players, vector<int> numberOfMoves) :
     MMPursuitState(domain, p, prob, players, numberOfMoves, numberOfMoves[0], 0) {}
 
 MMPursuitState::MMPursuitState(Domain *domain, const vector<Pos> &p, double prob,
-                               const vector<int> &players, vector<int> numberOfMoves,
+                               const vector<Player> &players, vector<int> numberOfMoves,
                                int currentNOM, int currentPlayer) :
     PursuitState(domain, p, prob), players_(players), numberOfMoves_(move(numberOfMoves)),
     currentNOM_(currentNOM), currentPlayer_(currentPlayer) {}
 
 OutcomeDistribution
-MMPursuitState::performActions(const vector<pair<int, shared_ptr<Action>>> &actions2) const {
+MMPursuitState::performActions(const vector<PlayerAction> &actions2) const {
   vector<PursuitAction*> actions(actions2.size());
   auto purDomain = static_cast<PursuitDomain *>(domain);
   for (auto &i : actions2) {
@@ -277,7 +277,7 @@ MMPursuitState::performActions(const vector<pair<int, shared_ptr<Action>>> &acti
     // making moves and assigning probability
     vector<Pos> moves = place_;
     for (int i = 0; i < actionssize; ++i) {
-      if (actions[i]->getId() > -1) {
+      if (actions[i]->getId() > NO_ACTION) {
         moves[i].x = pursuitMoves[actions[i]->GetMove()].x + place_[i].x;
         moves[i].y = pursuitMoves[actions[i]->GetMove()].y + place_[i].y;
       }
@@ -313,8 +313,8 @@ MMPursuitState::performActions(const vector<pair<int, shared_ptr<Action>>> &acti
     vector<int> ob = vector<int>();
     ob.reserve(size + 1);
     for (int m = 0, pom = 0; m < size; ++m, ++pom) {  // making observations
-      if (actions[m]->getId() == -1 && currentNOM_ > 1) {
-        observations[m] = std::make_shared<Observation>(-1);
+      if (actions[m]->getId() == NO_ACTION && currentNOM_ > 1) {
+        observations[m] = std::make_shared<Observation>(NO_OBSERVATION);
         --pom;
         continue;
       }
@@ -399,7 +399,7 @@ ObsPursuitState::ObsPursuitState(Domain *domain, const vector<Pos> &p,
                                  double prob) : PursuitState(domain, p, prob) {}
 
 OutcomeDistribution
-ObsPursuitState::performActions(const vector<pair<int, shared_ptr<Action>>> &actions2) const {
+ObsPursuitState::performActions(const vector<PlayerAction> &actions2) const {
   vector<PursuitAction*> actions(actions2.size());
   auto purDomain = static_cast<PursuitDomain *>(domain);
   for (auto &i : actions2) {
@@ -409,7 +409,7 @@ ObsPursuitState::performActions(const vector<pair<int, shared_ptr<Action>>> &act
   auto actionssize = static_cast<unsigned int>(actions.size());
   auto powsize = static_cast<unsigned int>(actions.size());
   for (auto &i : actions) {
-    if (i->getId() == -1)
+    if (i->getId() == NO_ACTION)
       powsize--;
   }
   int count = 1 << powsize;
@@ -423,7 +423,7 @@ ObsPursuitState::performActions(const vector<pair<int, shared_ptr<Action>>> &act
     vector<Pos> moves = place_;
     for (int i = 0; i < actionssize; ++i) {
       if (((k >> i) & 1) == 1) {
-        if (actions[i]->getId() > -1) {
+        if (actions[i]->getId() > NO_ACTION) {
           moves[i].x = pursuitMoves[actions[i]->GetMove()].x + place_[i].x;
           moves[i].y = pursuitMoves[actions[i]->GetMove()].y + place_[i].y;
         }
@@ -490,7 +490,7 @@ PursuitDomain::PursuitDomain(unsigned int max,
   vector<double> rewards(numberOfPlayers);
   vector<shared_ptr<Observation>> Obs;
   for (int j = 0; j < numberOfPlayers; ++j) {
-    Obs.push_back(make_shared<Observation>(-1));
+    Obs.push_back(make_shared<Observation>(NO_OBSERVATION));
   }
   Outcome o(state, Obs, rewards);
   rootStatesDistribution.push_back(pair<Outcome, double>(move(o), 1.0));
@@ -519,15 +519,15 @@ PursuitDomain::PursuitDomain(unsigned int max, unsigned int numberOfPlayers,
   vector<double> rewards(numberOfPlayers);
   vector<shared_ptr<Observation>> Obs;
   for (int j = 0; j < numberOfPlayers; ++j) {
-    Obs.push_back(make_shared<Observation>(-1));
+    Obs.push_back(make_shared<Observation>(NO_OBSERVATION));
   }
 
   Outcome o(state, Obs, rewards);
   rootStatesDistribution.push_back(pair<Outcome, double>(move(o), 1.0));
 }
 
-vector<int> PursuitDomain::getPlayers() const {
-  auto players = vector<int>(numberOfPlayers);
+vector<Player> PursuitDomain::getPlayers() const {
+  auto players = vector<Player>(numberOfPlayers);
   std::iota(players.begin(), players.end(), 0);
   return players;
 }
@@ -539,7 +539,7 @@ PursuitDomain::PursuitDomain(unsigned int max, unsigned int numberOfPlayers,
   vector<double> rewards(numberOfPlayers);
   vector<shared_ptr<Observation>> Obs;
   for (int j = 0; j < numberOfPlayers; ++j) {
-    Obs.push_back(make_shared<Observation>(-1));
+    Obs.push_back(make_shared<Observation>(NO_OBSERVATION));
   }
   Outcome o(state, Obs, rewards);
   rootStatesDistribution.push_back(pair<Outcome, double>(move(o), 1.0));
@@ -577,7 +577,7 @@ PursuitDomainChance::PursuitDomainChance(unsigned int max,
     vector<double> rewards(numberOfPlayers);
     vector<shared_ptr<Observation>> Obs;
     for (int j = 0; j < numberOfPlayers; ++j) {
-      Obs.push_back(make_shared<Observation>(-1));
+      Obs.push_back(make_shared<Observation>(NO_OBSERVATION));
     }
 
     Outcome o(state, Obs, rewards);

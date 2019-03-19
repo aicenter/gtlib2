@@ -45,11 +45,11 @@ namespace domains {
 class RhodeIslandPokerAction : public Action {
  public:
   // constructor
-  RhodeIslandPokerAction(int id, int type, int value);
+  RhodeIslandPokerAction(ActionId id, int type, int value);
 
   // Returns move description.
   inline string toString() const final {
-    if (id == -1)
+    if (id == NO_ACTION)
       return "NoA";
     switch (type_) {
       case Check: return "Check";
@@ -98,7 +98,7 @@ class RhodeIslandPokerObservation : public Observation {
 
   // Returns description.
   inline string toString() const final {
-    if (id == -1)
+    if (id == NO_OBSERVATION)
       return "NoOb";
     switch (type_) {
       case PlayCard: return "Card is " + to_string(value_) + " " + to_string(color_);
@@ -134,7 +134,7 @@ class RhodeIslandPokerState : public State {
   RhodeIslandPokerState(Domain *domain, pair<int, int> p1card,
                         pair<int, int> p2card, optional<pair<int, int>> natureCard1,
                         optional<pair<int, int>> natureCard2, double firstPlayerReward,
-                        double pot, vector<int> players, int round,
+                        double pot, vector<Player> players, int round,
                         shared_ptr<RhodeIslandPokerAction> lastAction, int continuousRaiseCount);
 
   RhodeIslandPokerState(Domain *domain,
@@ -143,18 +143,18 @@ class RhodeIslandPokerState : public State {
                         optional<pair<int, int>> natureCard1,
                         optional<pair<int, int>> natureCard2,
                         unsigned int ante,
-                        vector<int> players);
+                        vector<Player> players);
 
   // Destructor
   ~RhodeIslandPokerState() override = default;
 
   // GetActions returns possible actions for a player in the state.
-  vector<shared_ptr<Action>> getAvailableActionsFor(int player) const override;
+  vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
 
   OutcomeDistribution
-  performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const override;
+  performActions(const vector<PlayerAction> &actions) const override;
 
-  inline vector<int> getPlayers() const final {
+  inline vector<Player> getPlayers() const final {
     return players_;
   }
 
@@ -184,7 +184,7 @@ class RhodeIslandPokerState : public State {
   }
 
  protected:
-  vector<int> players_;
+  vector<Player> players_;
   shared_ptr<RhodeIslandPokerAction> lastAction;
   optional<pair<int, int>> natureCard1_;  // first number, second color (type)
   optional<pair<int, int>> natureCard2_;
@@ -222,7 +222,7 @@ class RhodeIslandPokerDomain : public Domain {
   // GetInfo returns string containing domain information.
   string getInfo() const final;
 
-  inline vector<int> getPlayers() const final {
+  inline vector<Player> getPlayers() const final {
     return {0, 1};
   }
 

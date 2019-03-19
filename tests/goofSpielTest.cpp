@@ -121,8 +121,8 @@ BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
 BOOST_AUTO_TEST_CASE(computeUtilityFullDepthCard4) {
     GoofSpielDomain gsd(4, 4, nullopt);
 
-    int player1 = gsd.getPlayers()[1];
-    int player2 = gsd.getPlayers()[0];
+    Player player1 = gsd.getPlayers()[1];
+    Player player2 = gsd.getPlayers()[0];
 
 
     // Create strategy that plays the lowest card
@@ -190,8 +190,8 @@ BOOST_AUTO_TEST_CASE(computeUtilityFullDepthCard4) {
 BOOST_AUTO_TEST_CASE(bestResponseFullDepthCard4) {
     GoofSpielDomain gsd(4, 4, nullopt);
 
-    int player1 = gsd.getPlayers()[1];
-    int opponent = gsd.getPlayers()[0];
+    Player player1 = gsd.getPlayers()[1];
+    Player opponent = gsd.getPlayers()[0];
 
 
     // Create strategy that plays the lowest card
@@ -229,8 +229,8 @@ BOOST_AUTO_TEST_CASE(bestResponseFullDepthCard4) {
 BOOST_AUTO_TEST_CASE(bestResponseDepth2Card4) {
     GoofSpielDomain gsd(4, 2, nullopt);
 
-    int player1 = gsd.getPlayers()[1];
-    int oponent = gsd.getPlayers()[0];
+    Player player1 = gsd.getPlayers()[1];
+    Player oponent = gsd.getPlayers()[0];
 
 
     // Create strategy that plays the lowest card
@@ -259,9 +259,8 @@ BOOST_AUTO_TEST_CASE(bestResponseDepth2Card4) {
 BOOST_AUTO_TEST_CASE(bestResponseDepth1Card13) {
     GoofSpielDomain gsd(1, nullopt);
 
-    int player1 = gsd.getPlayers()[1];
-    int opponent = gsd.getPlayers()[0];
-
+    Player player1 = gsd.getPlayers()[1];
+    Player opponent = gsd.getPlayers()[0];
 
     // Create strategy that plays the lowest card
     BehavioralStrategy player2Strat;

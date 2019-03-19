@@ -34,7 +34,7 @@
 namespace GTLib2 {
 namespace domains {
 
-PhantomTTTAction::PhantomTTTAction(int id, int move) : Action(id), move_(move) {}
+PhantomTTTAction::PhantomTTTAction(ActionId id, int move) : Action(id), move_(move) {}
 
 bool PhantomTTTAction::operator==(const Action &that) const {
   if (typeid(*this) == typeid(that)) {
@@ -52,12 +52,12 @@ size_t PhantomTTTAction::getHash() const {
 PhantomTTTObservation::PhantomTTTObservation(int id) : Observation(id) {}
 
 PhantomTTTState::PhantomTTTState(Domain *domain, vector<vector<int>> p,
-                                 vector<int> players) : State(domain),
+                                 vector<Player> players) : State(domain),
                                                         place_(move(p)), players_(move(players)) {
   strings_ = vector<string>(2);
 }
 
-vector<shared_ptr<Action>> PhantomTTTState::getAvailableActionsFor(int player) const {
+vector<shared_ptr<Action>> PhantomTTTState::getAvailableActionsFor(Player player) const {
   auto list = vector<shared_ptr<Action>>();
   int count = 0;
   for (int i = 0; i < 9; ++i) {
@@ -70,13 +70,13 @@ vector<shared_ptr<Action>> PhantomTTTState::getAvailableActionsFor(int player) c
 }
 
 OutcomeDistribution PhantomTTTState::performActions
-    (const vector<pair<int, shared_ptr<Action>>> &actions) const {
+    (const vector<PlayerAction> &actions) const {
   auto a1 = dynamic_cast<PhantomTTTAction*>(actions[0].second.get());
   auto a2 = dynamic_cast<PhantomTTTAction*>(actions[1].second.get());
   vector<shared_ptr<Observation>> observations(2);
   vector<double> rewards(2);
   int success = 0;
-  vector<int> pla2;
+  vector<Player> pla2;
   // observations.reserve(2);
   vector<vector<int>> moves = place_;
   if (a1) {
@@ -89,7 +89,7 @@ OutcomeDistribution PhantomTTTState::performActions
       pla2.emplace_back(0);
     }
     observations[0] = make_shared<PhantomTTTObservation>(success);
-    observations[1] = make_shared<Observation>(-1);
+    observations[1] = make_shared<Observation>(NO_OBSERVATION);
   } else {
     if (moves[0][a2->GetMove()] == 0) {
       moves[1][a2->GetMove()] = 1;
@@ -99,7 +99,7 @@ OutcomeDistribution PhantomTTTState::performActions
       moves[1][a2->GetMove()] = 2;
       pla2.emplace_back(1);
     }
-    observations[0] = make_shared<Observation>(-1);
+    observations[0] = make_shared<Observation>(NO_OBSERVATION);
     observations[1] = make_shared<PhantomTTTObservation>(success);
   }
   auto board = moves[0];
@@ -201,9 +201,9 @@ PhantomTTTDomain::PhantomTTTDomain(unsigned int max) :
     Domain(max, 2) {
   auto vec = vector<vector<int>>{{0, 0, 0, 0, 0, 0, 0, 0, 0},
                                  {0, 0, 0, 0, 0, 0, 0, 0, 0}};
-  auto players = vector<int>({0});
+  auto players = vector<Player>({0});
   vector<double> rewards(2);
-  vector<shared_ptr<Observation>> Obs{make_shared<Observation>(-1), make_shared<Observation>(-1)};
+  vector<shared_ptr<Observation>> Obs{make_shared<Observation>(NO_OBSERVATION), make_shared<Observation>(NO_OBSERVATION)};
   Outcome o(make_shared<PhantomTTTState>(this, vec, players), Obs, rewards);
   rootStatesDistribution.push_back(pair<Outcome, double>(move(o), 1.0));
 }

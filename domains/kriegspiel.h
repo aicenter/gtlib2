@@ -290,10 +290,10 @@ namespace GTLib2 {
              *                                                        the position to which it is moving
              * @param chess::Square, the square where the figure is moving from
              */
-            KriegspielAction(int id, pair<shared_ptr<AbstractPiece>, chess::Square>, chess::Square);
-            explicit KriegspielAction(int id);
+            KriegspielAction(ActionId id, pair<shared_ptr<AbstractPiece>, chess::Square>, chess::Square);
+            explicit KriegspielAction(ActionId id);
             inline string toString() const final {
-                if(id == -1)
+                if(id == NO_ACTION)
                     return "No action";
                 return move_.first->toString() + coordToString(move_.second);
             }
@@ -335,7 +335,7 @@ namespace GTLib2 {
             // GetInfo returns string containing domain information.
             string getInfo() const final;
 
-            inline vector<int> getPlayers() const final {
+            inline vector<Player> getPlayers() const final {
                 return {chess::player::WHITE, chess::player::BLACK};
             }
         };
@@ -397,7 +397,7 @@ namespace GTLib2 {
             ~KriegspielState() override = default;
 
             // GetActions returns possible actions for a player in the state.
-            vector<shared_ptr<Action>> getAvailableActionsFor(int player) const override;
+            vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
 
             /*
              * Performs an action on the current board state
@@ -405,14 +405,14 @@ namespace GTLib2 {
              *                              and the NaturalProbability of the Outcome
              */
             OutcomeDistribution
-            performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const override;
+            performActions(const vector<PlayerAction> &actions) const override;
 
             /*
              * Gets the player(s) moving in the current game state
-             * @returns vector<int> a list of the players
+             * @returns vector<Player> a list of the players
              */
-            inline vector<int> getPlayers() const final {
-                vector<int> v;
+            inline vector<Player> getPlayers() const final {
+                vector<Player> v;
                 if(!this->gameHasEnded || this->moveHistory->size() == this->domain->getMaxDepth()) v.emplace_back(playerOnTheMove);
                 return v;
             }
@@ -596,7 +596,7 @@ namespace GTLib2 {
             vector<shared_ptr<AbstractPiece>> checkingFigures;
             shared_ptr<vector<shared_ptr<KriegspielAction>>> moveHistory;
             shared_ptr<vector<shared_ptr<KriegspielAction>>> attemptedMoveHistory;
-            int playerOnTheMove;
+            Player playerOnTheMove;
             int lastCut = 0;
             chess::Square enPassantSquare;
             int playerInCheck = -1;

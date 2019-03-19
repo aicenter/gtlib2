@@ -700,10 +700,14 @@ namespace GTLib2 {
     namespace domains {
         using chess::Square;
 
-        KriegspielAction::KriegspielAction(int id, pair<shared_ptr<AbstractPiece>, Square> move, Square originalPos): Action(id), moveFrom(originalPos), move_(std::move(move)) {
+        KriegspielAction::KriegspielAction
+        (ActionId id, pair<shared_ptr<AbstractPiece>, Square> move, Square originalPos):
+        Action(id), moveFrom(originalPos), move_(std::move(move)) {
         }
 
-        KriegspielAction::KriegspielAction(int id): Action(id), moveFrom(-1, -1), move_(pair<shared_ptr<AbstractPiece>, Square>(nullptr, Square(-1, -1))) {
+        KriegspielAction::KriegspielAction(ActionId id):
+        Action(id), moveFrom(-1, -1),
+        move_(pair<shared_ptr<AbstractPiece>, Square>(nullptr, Square(-1, -1))) {
 
         }
 
@@ -713,7 +717,7 @@ namespace GTLib2 {
 
         KriegspielDomain::KriegspielDomain(unsigned int maxDepth, unsigned int legalMaxDepth, chess::BOARD b):Domain(maxDepth, 2) {
             vector<double> rewards(2);
-            vector<shared_ptr<Observation>> Obs{make_shared<Observation>(-1), make_shared<Observation>(-1)};
+            vector<shared_ptr<Observation>> Obs{make_shared<Observation>(NO_OBSERVATION), make_shared<Observation>(NO_OBSERVATION)};
             Outcome o(make_shared<KriegspielState>(this, legalMaxDepth, b), Obs, rewards);
             rootStatesDistribution.push_back(pair<Outcome, double>(move(o), 1.0));
             maxUtility = 1;
@@ -785,12 +789,12 @@ namespace GTLib2 {
 
         KriegspielDomain::KriegspielDomain(unsigned int maxDepth, unsigned int legalMaxDepth, string s): Domain(maxDepth, 2) {
             vector<double> rewards(2);
-            vector<shared_ptr<Observation>> Obs{make_shared<Observation>(-1), make_shared<Observation>(-1)};
+            vector<shared_ptr<Observation>> Obs{make_shared<Observation>(NO_OBSERVATION), make_shared<Observation>(-1)};
             Outcome o(make_shared<KriegspielState>(this, legalMaxDepth, s), Obs, rewards);
             rootStatesDistribution.push_back(pair<Outcome, double>(move(o), 1.0));
         }
 
-        vector<shared_ptr<Action>> KriegspielState::getAvailableActionsFor(int player) const {
+        vector<shared_ptr<Action>> KriegspielState::getAvailableActionsFor(Player player) const {
             auto list = vector<shared_ptr<Action>>();
             if(player != this->playerOnTheMove || this->gameHasEnded || this->moveHistory->size() == this->legalMaxDepth) {
                 return list;
@@ -999,7 +1003,7 @@ namespace GTLib2 {
 
 
         OutcomeDistribution KriegspielState::performActions(
-                const vector<pair<int, shared_ptr<GTLib2::Action>>> &actions) const {
+                const vector<pair<Player, shared_ptr<GTLib2::Action>>> &actions) const {
             auto a1 = dynamic_cast<KriegspielAction*>(actions[0].second.get());
             auto a2 = dynamic_cast<KriegspielAction*>(actions[1].second.get());
             vector<shared_ptr<Observation>> observations(2);
@@ -1029,7 +1033,7 @@ namespace GTLib2 {
                 s->addToAttemptedMoves(ac);
                 nextMove = this->playerOnTheMove;
                 observations[this->playerOnTheMove] = make_shared<Observation>(a->getId());
-                observations[chess::invertColor(this->playerOnTheMove)] = make_shared<Observation>(-1);
+                observations[chess::invertColor(this->playerOnTheMove)] = make_shared<Observation>(NO_OBSERVATION);
                 s->updateState(nextMove);
                 rewards = s->checkGameOver();
             }

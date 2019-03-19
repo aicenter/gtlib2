@@ -35,7 +35,7 @@ namespace domains {
 class MatchingPenniesDomain : public Domain {
  public:
   MatchingPenniesDomain();
-  vector<int> getPlayers() const override;
+  vector<Player> getPlayers() const override;
 
   string getInfo() const override { return "Matching pennies"; }
 };
@@ -43,7 +43,7 @@ class MatchingPenniesDomain : public Domain {
 class SimultaneousMatchingPenniesDomain : public Domain {
  public:
   SimultaneousMatchingPenniesDomain();
-  vector<int> getPlayers() const override;
+  vector<Player> getPlayers() const override;
 
   string getInfo() const override { return "Matching pennies"; }
 };
@@ -77,18 +77,18 @@ class MatchingPenniesState : public State {
  public:
   MatchingPenniesState(Domain *domain, Move p1, Move p2);
 
-  vector<shared_ptr<Action>> getAvailableActionsFor(int player) const override;
+  vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
 
   OutcomeDistribution
-  performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const override;
+  performActions(const vector<PlayerAction> &actions) const override;
 
   int getNumberOfPlayers() const override;
-  vector<int> getPlayers() const override;
+  vector<Player> getPlayers() const override;
   size_t getHash() const override;
 
   bool operator==(const State &rhs) const override;
 
-  vector<int> players;
+  vector<Player> players;
   Move player1;
   Move player2;
 
@@ -100,18 +100,18 @@ class SimultaneousMatchingPenniesState : public State {
  public:
   SimultaneousMatchingPenniesState(Domain *domain, Move p1, Move p2);
 
-  vector<shared_ptr<Action>> getAvailableActionsFor(int player) const override;
+  vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
 
   OutcomeDistribution
-  performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const override;
+  performActions(const vector<PlayerAction> &actions) const override;
 
   int getNumberOfPlayers() const override;
 
-  vector<int> getPlayers() const override;
+  vector<Player> getPlayers() const override;
 
   size_t getHash() const override;
 
-  vector<int> players;
+  vector<Player> players;
   Move player1;
   Move player2;
 

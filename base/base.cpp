@@ -28,47 +28,46 @@
 
 namespace GTLib2 {
 
-Action::Action(int id) : id(id) {}
+Action::Action(ActionId id) : id(id) {}
 
 bool Action::operator==(const Action &that) const {
-  return id == that.id;
+    return id == that.id;
 }
 
 string Action::toString() const {
-  if (id == -1)
-    return "NoA";
-  return to_string(id);
+    if (id == NO_ACTION) return "NoA";
+    return to_string(id);
 }
 
-int Action::getId() const {
-  return id;
+ActionId Action::getId() const {
+    return id;
 }
 
 size_t Action::getHash() const {
-  std::hash<int> h;
-  return h(id);
+    std::hash<size_t> h;
+    return h(id);
 }
 
-Observation::Observation(int id) : id(id) {}
+Observation::Observation(ObservationId id) : id(id) {}
 
 string Observation::toString() const {
-  if (id == -1) {
-    return "NoOb;";
-  }
-  return to_string(id);
+    if (id == NO_OBSERVATION) {
+        return "NoOb;";
+    }
+    return to_string(id);
 }
 
-int Observation::getId() const {
-  return id;
+ObservationId Observation::getId() const {
+    return id;
 }
 
 bool Observation::operator==(const Observation &rhs) const {
-  return id == rhs.id;
+    return id == rhs.id;
 }
 
 size_t Observation::getHash() const {
-  std::hash<int> h;
-  return h(id);
+    std::hash<size_t> h;
+    return h(id);
 }
 
 Outcome::Outcome(shared_ptr<State> s, vector<shared_ptr<Observation>> observations,
@@ -76,77 +75,80 @@ Outcome::Outcome(shared_ptr<State> s, vector<shared_ptr<Observation>> observatio
     : state(move(s)), rewards(move(rewards)), observations(move(observations)) {}
 
 size_t Outcome::getHash() const {
-  size_t seed = state->getHash();
-  for (const auto &playerObservation : observations) {
-    boost::hash_combine(seed, playerObservation);
-  }
-  for (const auto &playerReward : rewards) {
-    boost::hash_combine(seed, playerReward);
-  }
-  return seed;
+    size_t seed = state->getHash();
+    for (const auto &playerObservation : observations) {
+        boost::hash_combine(seed, playerObservation);
+    }
+    for (const auto &playerReward : rewards) {
+        boost::hash_combine(seed, playerReward);
+    }
+    return seed;
 }
 
 bool Outcome::operator==(const Outcome &rhs) const {
-  if (observations.size() != rhs.observations.size()) {
-    return false;
-  }
-  if (rewards.size() != rhs.rewards.size()) {
-    return false;
-  }
-  if (!(state == rhs.state)) {
-    return false;
-  }
-  if (rewards != rhs.rewards) {
-    return false;
-  }
-  return !(observations != rhs.observations);
+    if (observations.size() != rhs.observations.size()) {
+        return false;
+    }
+    if (rewards.size() != rhs.rewards.size()) {
+        return false;
+    }
+    if (!(state == rhs.state)) {
+        return false;
+    }
+    if (rewards != rhs.rewards) {
+        return false;
+    }
+    return observations == rhs.observations;
 }
 
 size_t AOH::computeHash() const {
-  size_t seed = 0;
-  for (auto actionObservation : aoh) {
-    boost::hash_combine(seed, std::get<0>(actionObservation));
-    boost::hash_combine(seed, std::get<1>(actionObservation));
-  }
-  return seed;
+    size_t seed = 0;
+    for (auto actionObservation : aoh) {
+        boost::hash_combine(seed, std::get<0>(actionObservation));
+        boost::hash_combine(seed, std::get<1>(actionObservation));
+    }
+    return seed;
 }
 
-AOH::AOH(int player, const vector<pair<int, int>> &aoHistory) {
-  aoh = aoHistory;
-  this->player = player;
-  hashValue = computeHash();
+AOH::AOH(Player player, const vector<ActionObservation> &aoHistory) {
+    aoh = aoHistory;
+    this->player = player;
+    hashValue = computeHash();
 }
 
 bool AOH::operator==(const InformationSet &rhs) const {
-  if (typeid(rhs) == typeid(*this)) {
-    const auto rhsAOH = static_cast<const AOH *>(&rhs);
-    if (player != rhsAOH->player ||
-        hashValue != rhsAOH->hashValue ||
-        aoh.size() != rhsAOH->aoh.size()) {
-      return false;
+    // cheap alternative to dynamic_cast,
+    // this should be safe because we do not need any intermediate types
+    // todo: Kuba please finish comment with better explanation :)
+    if (typeid(rhs) == typeid(*this)) {
+        const auto rhsAOH = static_cast<const AOH *>(&rhs);
+        if (player != rhsAOH->player ||
+            hashValue != rhsAOH->hashValue ||
+            aoh.size() != rhsAOH->aoh.size()) {
+            return false;
+        }
+        for (int i = 0; i < aoh.size(); ++i) {
+            if (aoh[i] != rhsAOH->aoh[i]) {
+                return false;
+            }
+        }
+        return true;
     }
-    for (int i = 0; i < aoh.size(); ++i) {
-      if (aoh[i] != rhsAOH->aoh[i]) {
-        return false;
-      }
-    }
-    return true;
-  }
-  return false;
+    return false;
 }
 
 int AOH::getNumberOfActions() const {
-  return static_cast<int> (aoh.size()) - 1;
+    return static_cast<int> (aoh.size()) - 1;
 }
 
 string AOH::toString() const {
-  string s = "Player: " + to_string(player) + ",  init observation:" +
-      to_string(aoh.front().second) + ", hash value: " +
-      to_string(hashValue) + "\n";
-  for (const auto &i : aoh) {
-    s += "Action: " + to_string(std::get<0>(i)) + ", Obs: " + to_string(std::get<1>(i)) + " | ";
-  }
-  return s;
+    string s = "Player: " + to_string(player) + ",  init observation:" +
+        to_string(aoh.front().second) + ", hash value: " +
+        to_string(hashValue) + "\n";
+    for (const auto &i : aoh) {
+        s += "Action: " + to_string(std::get<0>(i)) + ", Obs: " + to_string(std::get<1>(i)) + " | ";
+    }
+    return s;
 }
 
 State::State(Domain *domain) : domain(domain) {}
@@ -155,25 +157,25 @@ Domain::Domain(unsigned int maxDepth, unsigned int numberOfPlayers) :
     maxDepth(maxDepth), numberOfPlayers(numberOfPlayers), maxUtility(0) {}
 
 const OutcomeDistribution &Domain::getRootStatesDistribution() const {
-  return rootStatesDistribution;
+    return rootStatesDistribution;
 }
 
 bool State::operator==(const State &rhs) const {
-  assert(("operator == is not implemented", false));
-  return false;
+    assert(("operator == is not implemented", false));
+    return false;
 }
 
 size_t State::getHash() const {
-  assert(("getHash is not implemented", false));
-  return 0;
+    assert(("getHash is not implemented", false));
+    return 0;
 }
 
 int State::getNumberOfPlayers() const {
-  return static_cast<int> (getPlayers().size());
+    return static_cast<int> (getPlayers().size());
 }
 
 string State::toString() const {
-  return std::string();
+    return std::string();
 }
 }  // namespace GTLib2
 

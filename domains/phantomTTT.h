@@ -43,11 +43,11 @@ const std::array<string, 9> moved_ = {"top left", "top", "top right",
 class PhantomTTTAction : public Action {
  public:
   // constructor
-  PhantomTTTAction(int id, int move);
+  PhantomTTTAction(ActionId id, int move);
 
   // Returns move description.
   inline string toString() const final {
-    if (id == -1)
+    if (id == NO_ACTION)
       return "NoA";
     return moved_[move_];
   }
@@ -90,18 +90,18 @@ class PhantomTTTObservation : public Observation {
 class PhantomTTTState : public State {
  public:
   // Constructor
-  PhantomTTTState(Domain *domain, vector<vector<int>> p, vector<int> players);
+  PhantomTTTState(Domain *domain, vector<vector<int>> p, vector<Player> players);
 
   // Destructor
   ~PhantomTTTState() override = default;
 
   // GetActions returns possible actions for a player in the state.
-  vector<shared_ptr<Action>> getAvailableActionsFor(int player) const override;
+  vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
 
   OutcomeDistribution
-  performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const override;
+  performActions(const vector<PlayerAction> &actions) const override;
 
-  inline vector<int> getPlayers() const final {
+  inline vector<Player> getPlayers() const final {
     return players_;
   }
 
@@ -136,7 +136,7 @@ class PhantomTTTState : public State {
  protected:
   vector<vector<int>> place_;  // players' board
   vector<string> strings_;
-  vector<int> players_;
+  vector<Player> players_;
 };
 
 /**
@@ -154,7 +154,7 @@ class PhantomTTTDomain : public Domain {
   // GetInfo returns string containing domain information.
   string getInfo() const final;
 
-  inline vector<int> getPlayers() const final {
+  inline vector<Player> getPlayers() const final {
     return {0, 1};
   }
 };

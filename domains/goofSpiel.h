@@ -40,7 +40,7 @@ namespace domains {
 
 class GoofSpielAction : public Action {
  public:
-  GoofSpielAction(int id, int card);
+  GoofSpielAction(ActionId id, int card);
   string toString() const override;
   bool operator==(const Action &that) const override;
   size_t getHash() const override;
@@ -72,7 +72,7 @@ class GoofSpielDomain : public Domain {
   GoofSpielDomain(unsigned int maxDepth, optional<unsigned long int> seed);
   GoofSpielDomain(int numberOfCards, unsigned int maxDepth, optional<unsigned long int> seed);
   string getInfo() const override;
-  vector<int> getPlayers() const override;
+  vector<Player> getPlayers() const override;
   const int numberOfCards;
   const int seed;
 };
@@ -82,7 +82,7 @@ class IIGoofSpielDomain : public Domain {
   IIGoofSpielDomain(unsigned int maxDepth, optional<unsigned long int> seed);
   IIGoofSpielDomain(int numberOfCards, unsigned int maxDepth, optional<unsigned long int> seed);
   string getInfo() const override;
-  vector<int> getPlayers() const override;
+  vector<Player> getPlayers() const override;
   const int numberOfCards;
   const int seed;
 };
@@ -100,10 +100,10 @@ class GoofSpielState : public State {
                  double player1CumulativeReward,
                  double player2CumulativeReward);
 
-  vector<shared_ptr<Action>> getAvailableActionsFor(int player) const override;
+  vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
   OutcomeDistribution performActions(
-      const vector<pair<int, shared_ptr<Action>>> &actions) const override;
-  vector<int> getPlayers() const override;
+      const vector<PlayerAction> &actions) const override;
+  vector<Player> getPlayers() const override;
   string toString() const override;
   bool operator==(const State &rhs) const override;
 
@@ -134,7 +134,7 @@ class IIGoofSpielState : public GoofSpielState {
                    double player2CumulativeReward);
 
   OutcomeDistribution performActions(
-      const vector<pair<int, shared_ptr<Action>>> &actions) const final;
+      const vector<PlayerAction> &actions) const final;
 };
 
 }  // namespace domains

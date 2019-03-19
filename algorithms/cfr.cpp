@@ -166,8 +166,8 @@ CFRiterationsAOH(const Domain &domain, int iterations) {
   auto regrets = unordered_map<shared_ptr<InformationSet>, pair<vector<double>, vector<double>>>();
   int nbSamples = 0;
   bool firstIteration = true;
-  auto aoh1 = vector<pair<int, int>>();
-  auto aoh2 = vector<pair<int, int>>();
+  auto aoh1 = vector<ActionObservation>();
+  auto aoh2 = vector<ActionObservation>();
   aoh1.reserve(domain.getMaxDepth());
   aoh2.reserve(domain.getMaxDepth());
   auto efgnodes = unordered_map<shared_ptr<EFGNode>,
@@ -226,9 +226,9 @@ CFRiterationsAOH(const Domain &domain, int iterations) {
           if (node->noActionPerformedInThisRound()) {
             if (currentplayer == 0) {
               aoh1.emplace_back(actions[k]->getId(), newNode.first->getLastObservationOfPlayer(0));
-              aoh2.emplace_back(-1, newNode.first->getLastObservationOfPlayer(1));
+              aoh2.emplace_back(NO_ACTION, newNode.first->getLastObservationOfPlayer(1));
             } else {
-              aoh1.emplace_back(-1, newNode.first->getLastObservationOfPlayer(0));
+              aoh1.emplace_back(NO_ACTION, newNode.first->getLastObservationOfPlayer(0));
               aoh2.emplace_back(actions[k]->getId(), newNode.first->getLastObservationOfPlayer(1));
             }
           } else {
@@ -266,16 +266,16 @@ CFRiterationsAOH(const Domain &domain, int iterations) {
   for (int i = 0; i < iterations; ++i) {
     double v1 = 0, v2 = 0;
     for (const auto &nodeProb : rootNodes) {
-      aoh1.emplace_back(-1, nodeProb.first->getLastObservationOfPlayer(0));
-      aoh2.emplace_back(-1, nodeProb.first->getLastObservationOfPlayer(1));
+      aoh1.emplace_back(NO_ACTION, nodeProb.first->getLastObservationOfPlayer(0));
+      aoh2.emplace_back(NO_ACTION, nodeProb.first->getLastObservationOfPlayer(1));
       v1 += nodeProb.second * iteration(nodeProb.first, 1, nodeProb.second, 0, iteration);
       aoh1.pop_back();
       aoh2.pop_back();
     }
     firstIteration = false;
     for (const auto &nodeProb : rootNodes) {
-      aoh1.emplace_back(-1, nodeProb.first->getLastObservationOfPlayer(0));
-      aoh2.emplace_back(-1, nodeProb.first->getLastObservationOfPlayer(1));
+      aoh1.emplace_back(NO_ACTION, nodeProb.first->getLastObservationOfPlayer(0));
+      aoh2.emplace_back(NO_ACTION, nodeProb.first->getLastObservationOfPlayer(1));
       v2 += nodeProb.second * iteration(nodeProb.first, nodeProb.second, 1, 1, iteration);
       aoh1.pop_back();
       aoh2.pop_back();

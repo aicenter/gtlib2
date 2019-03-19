@@ -42,11 +42,11 @@ MatchingPenniesDomain::MatchingPenniesDomain() : Domain(std::numeric_limits<int>
   rootStatesDistribution.push_back(pair<Outcome, double>(outcome, 1.0));
 }
 
-vector<int> MatchingPenniesDomain::getPlayers() const {
+vector<Player> MatchingPenniesDomain::getPlayers() const {
   return {0, 1};
 }
 
-vector<shared_ptr<Action>> MatchingPenniesState::getAvailableActionsFor(int player) const {
+vector<shared_ptr<Action>> MatchingPenniesState::getAvailableActionsFor(Player player) const {
   vector<shared_ptr<Action>> actions = vector<shared_ptr<Action>>();
   if (player == 0 && player1 == Nothing && player2 == Nothing) {
     actions.push_back(make_shared<MatchingPenniesAction>(Heads));
@@ -74,7 +74,7 @@ int MatchingPenniesState::getNumberOfPlayers() const {
 }
 
 OutcomeDistribution
-MatchingPenniesState::performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const {
+MatchingPenniesState::performActions(const vector<PlayerAction> &actions) const {
   auto p1Action = dynamic_cast<MatchingPenniesAction*>(actions[0].second.get());
   auto p2Action = dynamic_cast<MatchingPenniesAction*>(actions[1].second.get());
 
@@ -130,7 +130,7 @@ string MatchingPenniesState::toString() const {
   return desc;
 }
 
-vector<int> MatchingPenniesState::getPlayers() const {
+vector<Player> MatchingPenniesState::getPlayers() const {
   return players;
 }
 
@@ -187,7 +187,7 @@ SimultaneousMatchingPenniesState::SimultaneousMatchingPenniesState(Domain *domai
 }
 
 vector<shared_ptr<Action>>
-SimultaneousMatchingPenniesState::getAvailableActionsFor(int player) const {
+SimultaneousMatchingPenniesState::getAvailableActionsFor(Player player) const {
   vector<shared_ptr<Action>> actions = vector<shared_ptr<Action>>();
   if (player1 == Nothing && player2 == Nothing) {
     actions.push_back(make_shared<MatchingPenniesAction>(Heads));
@@ -197,8 +197,8 @@ SimultaneousMatchingPenniesState::getAvailableActionsFor(int player) const {
 }
 
 OutcomeDistribution
-SimultaneousMatchingPenniesState::performActions(const vector<pair<int,
-                                                                   shared_ptr<Action>>> &actions)
+SimultaneousMatchingPenniesState::performActions(
+    const vector<PlayerAction> &actions)
 const {
   auto p1Action = dynamic_cast<MatchingPenniesAction*>(actions[0].second.get());
   auto p2Action = dynamic_cast<MatchingPenniesAction*>(actions[1].second.get());
@@ -258,7 +258,7 @@ string SimultaneousMatchingPenniesState::toString() const {
   return desc;
 }
 
-vector<int> SimultaneousMatchingPenniesState::getPlayers() const {
+vector<Player> SimultaneousMatchingPenniesState::getPlayers() const {
   return players;
 }
 
@@ -283,7 +283,7 @@ SimultaneousMatchingPenniesDomain::SimultaneousMatchingPenniesDomain() :
   rootStatesDistribution.push_back(pair<Outcome, double>(outcome, 1.0));
 }
 
-vector<int> SimultaneousMatchingPenniesDomain::getPlayers() const {
+vector<Player> SimultaneousMatchingPenniesDomain::getPlayers() const {
   return {0, 1};
 }
 }  // namespace domains
