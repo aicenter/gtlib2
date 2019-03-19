@@ -294,19 +294,20 @@ vector<int> GoofSpielState::getPlayers() const {
 }
 
 string GoofSpielState::toString() const {
-  string ret = "p1played: ";
-  for (int card : player1PlayedCards) {
-    ret.append(" " + to_string(card) + " ");
-  }
-  ret.append(" p2played: ");
-  for (auto card : player2PlayedCards) {
-    ret.append(" " + to_string(card) + " ");
-  }
-  ret.append(" naturePlayed ");
-  for (auto card : naturePlayedCards) {
-    ret.append(" " + to_string(card) + " ");
-  }
-  return ret;
+    string ret = "P1: [";
+    for (int card : player1PlayedCards) {
+        ret.append(to_string(card) +" ");
+    }
+    ret.append("]\nP2: [");
+    for (auto card : player2PlayedCards) {
+        ret.append(to_string(card) +" ");
+    }
+    ret.append("]\nN: [");
+    for (auto card : naturePlayedCards) {
+        ret.append(to_string(card) +" ");
+    }
+    ret.append("]");
+    return ret;
 }
 
 bool GoofSpielState::operator==(const State &rhs) const {
