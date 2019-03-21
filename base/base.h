@@ -68,11 +68,16 @@ typedef uint8_t Player;
 
 /**
  * Support ids up to size of the address space (64bit)
+ *
+ * For a given State/EFGNode/InformationSet, IDs should be indexed
+ * from 0 to N-1, where N is the number of available actions.
  */
 typedef size_t ActionId;
 
 /**
  * Support ids up to size of the address space (64bit)
+ *
+ * Unlike ActionId, the values of ObservationId *do not* need to be indexed from 0 to N-1.
  */
 typedef size_t ObservationId;
 
