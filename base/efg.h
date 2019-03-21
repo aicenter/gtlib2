@@ -27,21 +27,19 @@
 
 #include <experimental/optional>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <utility>
 #include <string>
 #include <functional>
-#include <boost/bimap.hpp>
-#include <boost/bimap/unordered_multiset_of.hpp>
 
 #include "base/base.h"
 
 using std::unordered_map;
+using std::unordered_set;
 using std::experimental::nullopt;
 using std::experimental::optional;
 
-using boost::bimap;
-using boost::bimaps::unordered_multiset_of;
 
 namespace GTLib2 {
 
@@ -274,18 +272,6 @@ namespace GTLib2 {
  * You can extend this cache to save more information needed by your algoritm.
  */
 class EFGCache {
-    // todo: is this equivalent to boost::hash<T>?
-    //  https://www.boost.org/doc/libs/1_69_0/libs/bimap/doc/html/boost_bimap/the_tutorial/controlling_collection_types.html#boost_bimap.the_tutorial.controlling_collection_types.configuration_parameters
-    //  HashFunctor converts a T object into an std::size_t value. By default it is boost::hash<T>.
-    //  maybe we will need to implement boost::hash as well?
-    typedef bimap<
-        unordered_multiset_of<shared_ptr<EFGNode>>,
-        unordered_multiset_of<shared_ptr<AOH>>
-    > EFGNodes2Infosets;
-
-    typedef EFGNodes2Infosets::value_type Node2InfosetRecord;
-
-    typedef EFGNodes2Infosets::right_const_iterator nodeItr;
 
     /**
      * Root distribution of the nodes
@@ -295,14 +281,15 @@ class EFGCache {
     /**
      * Many EFGNodes can belong to many (augmented) infosets.
      *
-     * This bimap represents a bipartite graph.
+     * These two fields together represent a bipartite graph.
      */
-    EFGNodes2Infosets nodesInfosetsBimap_;
+    unordered_map<shared_ptr<EFGNode>, vector<shared_ptr<AOH>>> node2infosets_;
+    unordered_map<shared_ptr<AOH>, vector<shared_ptr<EFGNode>>> infoset2nodes_;
 
     /**
      * Specify that in a given node, with which action new distribution of nodes can be obtained.
      *
-     * Note that parent nodes are saved in each respective EFGNode
+     * Note that parent nodes are saved in each respective EFGNode.
      */
     unordered_map<
         shared_ptr<EFGNode>,
@@ -310,7 +297,37 @@ class EFGCache {
     > nodesChildren_;
 
  public:
-    EFGCache(EFGNodesDistribution &rootNodes);
+    EFGCache(const OutcomeDistribution &rootProbDist);
+    EFGCache(const EFGNodesDistribution &rootNodes);
+
+    inline bool hasChildren(const shared_ptr<EFGNode> &node) {
+        return nodesChildren_.find(node) != nodesChildren_.end();
+    }
+
+    inline bool hasChildren(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action) {
+        auto it = nodesChildren_.find(node);
+        if(it == nodesChildren_.end()) return false;
+        auto & distributionEntry = it->second;
+        return distributionEntry.find(action) != distributionEntry.end();
+    }
+
+    inline bool hasNode(const shared_ptr<EFGNode> &node) {
+        return node2infosets_.find(node) != node2infosets_.end();
+    }
+
+    inline bool hasInfoset(const shared_ptr<AOH> &augInfoset) {
+        return infoset2nodes_.find(augInfoset) != infoset2nodes_.end();
+    }
+
+    inline const vector<shared_ptr<EFGNode>> &
+    getNodesFor(const shared_ptr<AOH> &augInfoset) {
+        return infoset2nodes_[augInfoset];
+    }
+
+    inline const vector<shared_ptr<AOH>> &
+    getInfosetsFor(const shared_ptr<EFGNode> &node) {
+        return node2infosets_[node];
+    }
 
     /**
      * Find infoset for the supplied node.
@@ -321,8 +338,10 @@ class EFGCache {
      * This function cannot be called on terminal nodes, as infosets are not defined there.
      * It also crashes if you ask for infoset for a node which is not saved in this cache.
      */
-    const shared_ptr<AOH> &
-    getInfosetFor(const shared_ptr<EFGNode> &node);
+    inline const shared_ptr<AOH> &
+    getInfosetFor(const shared_ptr<EFGNode> &node) {
+        return node2infosets_[node][*node->getCurrentPlayer()];
+    }
 
     /**
      * Find augmented infoset for the supplied node.
@@ -330,22 +349,10 @@ class EFGCache {
      * This function cannot be called on terminal nodes, as infosets are not defined there.
      * It also crashes if you ask for infoset for a node which is not saved in this cache.
      */
-    const shared_ptr<AOH> &
-    getAugInfosetFor(const shared_ptr<EFGNode> &node, Player player);
-
-    /**
-     * Try to find all nodes that belong to this (augmented) infoset.
-     *
-     * Return an iterator range which can be used as
-     * @code
-     * auto range = getNodesFor(infoset);
-     * for (auto it = range.first; it != range.second; ++it) {
-     *     auto &node = it->second;
-     * }
-     * @endcode
-     */
-    std::pair<nodeItr, nodeItr>
-    getNodesFor(const shared_ptr<AOH> &augInfoset);
+    inline const shared_ptr<AOH> &
+    getAugInfosetFor(const shared_ptr<EFGNode> &node, Player player) {
+        return node2infosets_[node][player];
+    }
 
     /**
      * Retrieve children for the node after following some action.
@@ -354,6 +361,9 @@ class EFGCache {
      */
     const EFGNodesDistribution &
     getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action);
+
+ private:
+    void updateInfosets(const shared_ptr<EFGNode> &node);
 
 };
 };  // namespace GTLib2

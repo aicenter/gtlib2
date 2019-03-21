@@ -21,6 +21,9 @@
 
 
 #include "base/efg.h"
+#include "algorithms/common.h"
+#include "efg.h"
+
 
 #include <algorithm>
 #include <sstream>
@@ -327,6 +330,18 @@ bool EFGNode::isTerminal() const {
     return currentPlayer == nullopt;
 }
 
+
+EFGCache::EFGCache(const GTLib2::EFGNodesDistribution &rootNodesDist) {
+    rootNodes_ = rootNodesDist;
+    for (auto &[node, _]: rootNodesDist) {
+        updateInfosets(node);
+    }
+}
+
+EFGCache::EFGCache(const OutcomeDistribution &rootProbDist)
+    : EFGCache(algorithms::createRootEFGNodesFromInitialOutcomeDistribution(rootProbDist)) {
+}
+
 const EFGNodesDistribution &
 EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action) {
     // fetch from cache if possible
@@ -340,21 +355,17 @@ EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Actio
 
     // create new nodes and save them to cache
     auto nodesDist = node->performAction(action);
-    EFGActionNodesDistribution actionNodesDistMap;
     if (maybeNode == nodesChildren_.end()) {
-        actionNodesDistMap = EFGActionNodesDistribution();
+        auto actionNodesDistMap = EFGActionNodesDistribution();
+        actionNodesDistMap.insert(std::make_pair(action, nodesDist));
+        nodesChildren_.insert(std::make_pair(node, actionNodesDistMap));
     } else {
-        actionNodesDistMap = maybeNode->second;
+        auto actionNodesDistMap = maybeNode->second;
+        actionNodesDistMap.insert(std::make_pair(action, nodesDist));
     }
-    actionNodesDistMap.insert(std::make_pair(action, nodesDist));
 
-    // insert infosets
-    if (maybeNode == nodesChildren_.end()) {
-        for (Player pl: node->getState()->getPlayers()) {
-            nodesInfosetsBimap_.insert(
-                Node2InfosetRecord(node, node->getAOHAugInfSet(pl))
-            );
-        }
+    for (auto &[childNode, _]: nodesDist) {
+        updateInfosets(childNode);
     }
 
     // retrieve from map directly to return a reference,
@@ -364,42 +375,25 @@ EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Actio
         .find(action)->second;
 }
 
-const shared_ptr<AOH> &
-EFGCache::getInfosetFor(const shared_ptr<EFGNode> &node) {
-    assert(!node->isTerminal()); // Infosets are not defined for terminal nodes
-    return getAugInfosetFor(node, *node->getCurrentPlayer());
-}
+void EFGCache::updateInfosets(const shared_ptr<EFGNode> &node) {
+    vector<shared_ptr<AOH>> infosets;
 
-const shared_ptr<AOH> &
-EFGCache::getAugInfosetFor(const shared_ptr<EFGNode> &node, Player player) {
-    assert(!node->isTerminal()); // Infosets are not defined for terminal nodes
+    for (Player pl: node->getState()->getPlayers()) {
+        auto infoset = node->getAOHAugInfSet(pl);
+        auto maybe_infoset = infoset2nodes_.find(infoset);
 
-    auto range = nodesInfosetsBimap_.left.equal_range(node);
-    for (auto it = range.first; it != range.second; ++it) {
-        auto &infoset = it->second;
-        if (infoset->getPlayer() == player) return infoset;
-    }
-
-    assert(false); // Infoset not found -- maybe node doesn't come from this cache?
-}
-
-std::pair<EFGCache::nodeItr, EFGCache::nodeItr>
-EFGCache::getNodesFor(const shared_ptr<AOH> &augInfoset) {
-    return nodesInfosetsBimap_.right.equal_range(augInfoset);
-}
-
-EFGCache::EFGCache(GTLib2::EFGNodesDistribution &rootNodesDist) {
-    this->rootNodes_ = rootNodesDist;
-
-    // initialize root infosets
-    for (auto &nodeDist : rootNodesDist) {
-        auto &node = nodeDist.first;
-        for (Player pl: node->getState()->getPlayers()) {
-            nodesInfosetsBimap_.insert(
-                Node2InfosetRecord(node, node->getAOHAugInfSet(pl))
-            );
+        if (maybe_infoset == infoset2nodes_.end()) {
+            // infoset not found yet, initialize it with this node
+            infosets.emplace_back(infoset);
+            infoset2nodes_.emplace(infoset, vector<shared_ptr<EFGNode>>{node});
+        } else {
+            // infoset found, append this node
+            infoset = maybe_infoset->first;
+            infosets.emplace_back(infoset);
+            maybe_infoset->second.push_back(node);
         }
     }
+    node2infosets_.emplace(node, infosets);
 }
 
 }  // namespace GTLib2
