@@ -31,15 +31,22 @@
 #include <utility>
 #include <string>
 #include <functional>
+#include <boost/bimap.hpp>
+#include <boost/bimap/unordered_multiset_of.hpp>
+
 #include "base/base.h"
 
 using std::unordered_map;
 using std::experimental::nullopt;
 using std::experimental::optional;
 
+using boost::bimap;
+using boost::bimaps::unordered_multiset_of;
+
 namespace GTLib2 {
 
 class EFGNode;
+class EFGCache;
 
 /**
  * The probability of given EFGNode following after performing some action.
@@ -49,9 +56,17 @@ typedef pair<shared_ptr<EFGNode>, double> EFGDistEntry;
 /**
  * Entire probability distribution over the next EFGNodes after performing some action.
  *
- * This should some up to 1.
+ * This should sum up to 1.
  */
 typedef vector<EFGDistEntry> EFGNodesDistribution;
+
+/**
+ * Distribution of nodes after following a specified action.
+ */
+typedef unordered_map<
+    shared_ptr<Action>,
+    EFGNodesDistribution
+> EFGActionNodesDistribution;
 
 /**
  * EFGNode is a class that represents node in an extensive form game (EFG).
@@ -62,11 +77,14 @@ typedef vector<EFGDistEntry> EFGNodesDistribution;
  * - rewards (utility) and
  * - information set.
  *
- * There are two types of EFGNodes:
- * - Player (inner) nodes
- * - Terminal nodes
+ * There are two types of EFGNodes: a) inner nodes and b) terminal nodes.
+ * They can be distinguished by calling isTerminal() method.
  *
- * Chance nodes are encoded into the distribution of next nodes after performing some action.
+ * Chance nodes are encoded into the distribution of next nodes (i.e. EFGNodesDistribution)
+ * after performing specified action.
+ *
+ * Note that **many calls are not cached!** Use EFGCache to save the tree structure,
+ * and iteratore over the tree using the EFGCache::getChildrenFor() method.
  */
 class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
  public:
@@ -119,7 +137,8 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
 
     /**
      * Check if the node is in the given information set.
-    */bool isContainedInInformationSet(const shared_ptr<AOH> &infSet) const;
+     */
+    bool isContainedInInformationSet(const shared_ptr<AOH> &infSet) const;
 
     /**
      * Gets the parent efg node.
@@ -197,6 +216,7 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
     vector<shared_ptr<Observation>> observations;
     vector<PlayerAction> performedActionsInThisRound;
     vector<Player> remainingPlayersInTheRound;
+    // todo: const for member variables and constructors?
     shared_ptr<State> state;
     shared_ptr<EFGNode const> parent;
     shared_ptr<Action> incomingAction;  // Action performed in the parent node.
@@ -204,7 +224,7 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
     mutable size_t hashAOH = 0;
     int depth;
 };
-}  // namespace GTLib2
+};  // namespace GTLib2
 
 namespace std { // NOLINT(cert-dcl58-cpp)
 
@@ -240,6 +260,104 @@ struct equal_to<EFGNode *> {
     }
 };
 }  // namespace std
+
+
+namespace GTLib2 {
+
+/**
+ * Save EFG tree structure in a cache.
+ *
+ * Calls from EFGNode::performAction() are not cached, so at each call a copy is created.
+ * This structure is a caching wrapper built on top of EFGNode.
+ * It also caches the retrieval of (augmented) information sets and the nodes within them.
+ *
+ * You can extend this cache to save more information needed by your algoritm.
+ */
+class EFGCache {
+    // todo: is this equivalent to boost::hash<T>?
+    //  https://www.boost.org/doc/libs/1_69_0/libs/bimap/doc/html/boost_bimap/the_tutorial/controlling_collection_types.html#boost_bimap.the_tutorial.controlling_collection_types.configuration_parameters
+    //  HashFunctor converts a T object into an std::size_t value. By default it is boost::hash<T>.
+    //  maybe we will need to implement boost::hash as well?
+    typedef bimap<
+        unordered_multiset_of<shared_ptr<EFGNode>>,
+        unordered_multiset_of<shared_ptr<AOH>>
+    > EFGNodes2Infosets;
+
+    typedef EFGNodes2Infosets::value_type Node2InfosetRecord;
+
+    typedef EFGNodes2Infosets::right_const_iterator nodeItr;
+
+    /**
+     * Root distribution of the nodes
+     */
+    EFGNodesDistribution rootNodes;
+
+    /**
+     * Many EFGNodes can belong to many (augmented) infosets.
+     *
+     * This bimap represents a bipartite graph.
+     */
+    EFGNodes2Infosets nodesInfosetsBimap;
+
+    /**
+     * Specify that in a given node, with which action new distribution of nodes can be obtained.
+     *
+     * Note that parent nodes are saved in each respective EFGNode
+     */
+    unordered_map<
+        shared_ptr<EFGNode>,
+        EFGActionNodesDistribution
+    > nodesChildren;
+
+ public:
+    EFGCache(EFGNodesDistribution &rootNodes);
+
+    /**
+     * Find infoset for the supplied node.
+     *
+     * This is equivalent to searching for augmented infoset with the same player
+     * as is the acting player in the specified node.
+     *
+     * This function cannot be called on terminal nodes, as infosets are not defined there.
+     * It also crashes if you ask for infoset for a node which is not saved in this cache.
+     */
+    const shared_ptr<AOH> &
+    getInfosetFor(const shared_ptr<EFGNode> &node);
+
+    /**
+     * Find augmented infoset for the supplied node.
+     *
+     * This function cannot be called on terminal nodes, as infosets are not defined there.
+     * It also crashes if you ask for infoset for a node which is not saved in this cache.
+     */
+    const shared_ptr<AOH> &
+    getAugInfosetFor(const shared_ptr<EFGNode> &node, Player player);
+
+    /**
+     * Try to find all nodes that belong to this (augmented) infoset.
+     *
+     * Return an iterator range which can be used as
+     * @code
+     * auto range = getNodesFor(infoset);
+     * for (auto it = range.first; it != range.second; ++it) {
+     *     auto &node = it->second;
+     * }
+     * @endcode
+     */
+    std::pair<nodeItr, nodeItr>
+    getNodesFor(const shared_ptr<AOH> &augInfoset);
+
+    /**
+     * Retrieve children for the node after following some action.
+     *
+     * The nodes are saved in the cache along their augmented infoset identification.
+     */
+    const EFGNodesDistribution &
+    getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action);
+
+};
+};  // namespace GTLib2
+
 
 #endif  // BASE_EFG_H_
 
