@@ -330,8 +330,8 @@ bool EFGNode::isTerminal() const {
 const EFGNodesDistribution &
 EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action) {
     // fetch from cache if possible
-    auto maybeNode = nodesChildren.find(node);
-    if (maybeNode != nodesChildren.end()) {
+    auto maybeNode = nodesChildren_.find(node);
+    if (maybeNode != nodesChildren_.end()) {
         auto actionNodesDist = maybeNode->second.find(action);
         if (actionNodesDist != maybeNode->second.end()) {
             return actionNodesDist->second;
@@ -341,7 +341,7 @@ EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Actio
     // create new nodes and save them to cache
     auto nodesDist = node->performAction(action);
     EFGActionNodesDistribution actionNodesDistMap;
-    if (maybeNode == nodesChildren.end()) {
+    if (maybeNode == nodesChildren_.end()) {
         actionNodesDistMap = EFGActionNodesDistribution();
     } else {
         actionNodesDistMap = maybeNode->second;
@@ -349,9 +349,9 @@ EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Actio
     actionNodesDistMap.insert(std::make_pair(action, nodesDist));
 
     // insert infosets
-    if (maybeNode == nodesChildren.end()) {
+    if (maybeNode == nodesChildren_.end()) {
         for (Player pl: node->getState()->getPlayers()) {
-            nodesInfosetsBimap.insert(
+            nodesInfosetsBimap_.insert(
                 Node2InfosetRecord(node, node->getAOHAugInfSet(pl))
             );
         }
@@ -359,7 +359,7 @@ EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Actio
 
     // retrieve from map directly to return a reference,
     // this is guaranteed to exist there since we've just inserted it
-    return nodesChildren
+    return nodesChildren_
         .find(node)->second
         .find(action)->second;
 }
@@ -374,7 +374,7 @@ const shared_ptr<AOH> &
 EFGCache::getAugInfosetFor(const shared_ptr<EFGNode> &node, Player player) {
     assert(!node->isTerminal()); // Infosets are not defined for terminal nodes
 
-    auto range = nodesInfosetsBimap.left.equal_range(node);
+    auto range = nodesInfosetsBimap_.left.equal_range(node);
     for (auto it = range.first; it != range.second; ++it) {
         auto &infoset = it->second;
         if (infoset->getPlayer() == player) return infoset;
@@ -385,17 +385,17 @@ EFGCache::getAugInfosetFor(const shared_ptr<EFGNode> &node, Player player) {
 
 std::pair<EFGCache::nodeItr, EFGCache::nodeItr>
 EFGCache::getNodesFor(const shared_ptr<AOH> &augInfoset) {
-    return nodesInfosetsBimap.right.equal_range(augInfoset);
+    return nodesInfosetsBimap_.right.equal_range(augInfoset);
 }
 
 EFGCache::EFGCache(GTLib2::EFGNodesDistribution &rootNodesDist) {
-    this->rootNodes = rootNodesDist;
+    this->rootNodes_ = rootNodesDist;
 
     // initialize root infosets
     for (auto &nodeDist : rootNodesDist) {
         auto &node = nodeDist.first;
         for (Player pl: node->getState()->getPlayers()) {
-            nodesInfosetsBimap.insert(
+            nodesInfosetsBimap_.insert(
                 Node2InfosetRecord(node, node->getAOHAugInfSet(pl))
             );
         }

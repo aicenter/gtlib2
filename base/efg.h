@@ -290,14 +290,14 @@ class EFGCache {
     /**
      * Root distribution of the nodes
      */
-    EFGNodesDistribution rootNodes;
+    EFGNodesDistribution rootNodes_;
 
     /**
      * Many EFGNodes can belong to many (augmented) infosets.
      *
      * This bimap represents a bipartite graph.
      */
-    EFGNodes2Infosets nodesInfosetsBimap;
+    EFGNodes2Infosets nodesInfosetsBimap_;
 
     /**
      * Specify that in a given node, with which action new distribution of nodes can be obtained.
@@ -307,7 +307,7 @@ class EFGCache {
     unordered_map<
         shared_ptr<EFGNode>,
         EFGActionNodesDistribution
-    > nodesChildren;
+    > nodesChildren_;
 
  public:
     EFGCache(EFGNodesDistribution &rootNodes);
