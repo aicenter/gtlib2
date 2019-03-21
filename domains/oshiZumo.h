@@ -1,23 +1,37 @@
-//
-// Created by Matej Sestak on 22.2.19.
-//
+/*
+    Copyright 2019 Faculty of Electrical Engineering at CTU in Prague
+
+    This file is part of Game Theoretic Library.
+
+    Game Theoretic Library is free software: you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public License
+    as published by the Free Software Foundation, either version 3
+    of the License, or (at your option) any later version.
+
+    Game Theoretic Library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with Game Theoretic Library.
+
+    If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
 #ifndef GTLIB2_OSHIZUMO_H
 #define GTLIB2_OSHIZUMO_H
 
-#include <experimental/optional>
 #include "base/base.h"
-
-using std::experimental::optional;
 
 namespace GTLib2{
 namespace domains{
 
 class OshiZumoAction : public Action {
 public:
-    explicit OshiZumoAction(int bid);
+    explicit OshiZumoAction(ActionId id, int bid);
     bool operator==(const Action &that) const override;
     size_t getHash() const override;
 
@@ -26,38 +40,37 @@ public:
 
 class OshiZumoDomain : public Domain {
 public:
-    OshiZumoDomain(int startingCoins, int K, int minBid);
+    OshiZumoDomain(int startingCoins, int startingLoc, int minBid);
     string getInfo() const override;
-    vector<int> getPlayers() const override;
+    vector<Player> getPlayers() const override;
     const int startingCoins;
-    const int locationK;
+    // if startingLocation = 3, then there is (2*3 + 1) = 7 locations:   ---W---
+    // wrestler starts in the middle(3):                                 0123456
+    const int startingLocation;
     const int minBid;
 };
 
 class OshiZumoState : public State {
 public:
     OshiZumoState(Domain *domain, int wrestlerPosition, int startingCoins);
-    OshiZumoState(Domain *domain, int wrestlerPosition,
-                    int p1Coins, int p2Coins);
-    vector<shared_ptr<Action>> getAvailableActionsFor(int player) const override;
+    OshiZumoState(Domain *domain, int wrestlerPosition, vector<int> coins);
+    vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
     OutcomeDistribution
-    performActions(const vector<pair<int, shared_ptr<Action>>> &actions) const override;
-    vector<int> getPlayers() const override;
+    performActions(const vector<PlayerAction> &actions) const override;
+    vector<Player> getPlayers() const override;
     bool isGameEnd() const;
     string toString() const override;
     bool operator==(const State &that) const override;
     size_t getHash() const override;
 
     int wrestlerLocation;
-    int p1Coins;
-    int p2Coins;
+    vector<int> coins;
 
 };
 
 class OshiZumoObservation : public Observation {
 public:
     explicit OshiZumoObservation(int otherBid);
-
 
     int otherBid;
 
