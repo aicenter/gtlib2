@@ -159,7 +159,7 @@ OutcomeDistribution PhantomTTTState::performActions
         moves[1][j] = -1;
       }
     }
-    s = make_shared<PhantomTTTState>(domain, moves, pla2);
+    s = make_shared<PhantomTTTState>(domain_, moves, pla2);
     DebugString(s->strings_[0].append(strings_[0] + "  ||  ACTION: " +
                 (a1 ? a1->toString() : "NoA") + "  | OBS: " + observations[0]->toString()
                 + "  ||  END OF GAME");
@@ -167,7 +167,7 @@ OutcomeDistribution PhantomTTTState::performActions
                 (a2 ? a2->toString() : "Nothing") + "  | OBS: " + observations[1]->toString()
                 + "  ||  END OF GAME");)
   } else {
-    s = make_shared<PhantomTTTState>(domain, moves, pla2);
+    s = make_shared<PhantomTTTState>(domain_, moves, pla2);
     DebugString(s->strings_[0].append(strings_[0] + "  ||  ACTION: " +
                 (a1 ? a1->toString() : "NoA") + "  | OBS: " + observations[0]->toString());
                 s->strings_[1].append(strings_[1] + "  ||  ACTION: " +
@@ -205,12 +205,12 @@ PhantomTTTDomain::PhantomTTTDomain(unsigned int max) :
   vector<double> rewards(2);
   vector<shared_ptr<Observation>> Obs{make_shared<Observation>(NO_OBSERVATION), make_shared<Observation>(NO_OBSERVATION)};
   Outcome o(make_shared<PhantomTTTState>(this, vec, players), Obs, rewards);
-  rootStatesDistribution.push_back(pair<Outcome, double>(move(o), 1.0));
+  rootStatesDistribution_.push_back(pair<Outcome, double>(move(o), 1.0));
 }
 
 string PhantomTTTDomain::getInfo() const {
   return "************ Phantom Tic Tac Toe *************\n" +
-      rootStatesDistribution[0].first.state->toString() + "\n";
+      rootStatesDistribution_[0].first.state_->toString() + "\n";
 }
 }  // namespace domains
 }  // namespace GTLib2

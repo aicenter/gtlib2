@@ -28,77 +28,77 @@
 
 namespace GTLib2 {
 
-Action::Action(ActionId id) : id(id) {}
+Action::Action(ActionId id) : id_(id) {}
 
 bool Action::operator==(const Action &that) const {
-    return id == that.id;
+    return id_ == that.id_;
 }
 
 string Action::toString() const {
-    if (id == NO_ACTION) return "NoA";
-    return to_string(id);
+    if (id_ == NO_ACTION) return "NoA";
+    return to_string(id_);
 }
 
 ActionId Action::getId() const {
-    return id;
+    return id_;
 }
 
 size_t Action::getHash() const {
     std::hash<size_t> h;
-    return h(id);
+    return h(id_);
 }
 
-Observation::Observation(ObservationId id) : id(id) {}
+Observation::Observation(ObservationId id) : id_(id) {}
 
 string Observation::toString() const {
-    if (id == NO_OBSERVATION) {
+    if (id_ == NO_OBSERVATION) {
         return "NoOb;";
     }
-    return to_string(id);
+    return to_string(id_);
 }
 
 ObservationId Observation::getId() const {
-    return id;
+    return id_;
 }
 
 bool Observation::operator==(const Observation &rhs) const {
-    return id == rhs.id;
+    return id_ == rhs.id_;
 }
 
 size_t Observation::getHash() const {
     std::hash<size_t> h;
-    return h(id);
+    return h(id_);
 }
 
 Outcome::Outcome(shared_ptr<State> s, vector<shared_ptr<Observation>> observations,
                  vector<double> rewards)
-    : state(move(s)), rewards(move(rewards)), observations(move(observations)) {}
+    : state_(move(s)), rewards_(move(rewards)), observations_(move(observations)) {}
 
 size_t Outcome::getHash() const {
-    size_t seed = state->getHash();
-    for (const auto &playerObservation : observations) {
+    size_t seed = state_->getHash();
+    for (const auto &playerObservation : observations_) {
         boost::hash_combine(seed, playerObservation);
     }
-    for (const auto &playerReward : rewards) {
+    for (const auto &playerReward : rewards_) {
         boost::hash_combine(seed, playerReward);
     }
     return seed;
 }
 
 bool Outcome::operator==(const Outcome &rhs) const {
-    if (observations.size() != rhs.observations.size()) {
+    if (observations_.size() != rhs.observations_.size()) {
         return false;
     }
-    if (rewards.size() != rhs.rewards.size()) {
+    if (rewards_.size() != rhs.rewards_.size()) {
         return false;
     }
-    if (!(state == rhs.state)) {
+    if (!(state_ == rhs.state_)) {
         return false;
     }
-    if (rewards != rhs.rewards) {
+    if (rewards_ != rhs.rewards_) {
         return false;
     }
-    return observations == rhs.observations;
+    return observations_ == rhs.observations_;
 }
 
 size_t AOH::computeHash() const {
@@ -113,7 +113,7 @@ size_t AOH::computeHash() const {
 AOH::AOH(Player player, const vector<ActionObservation> &aoHistory) {
     aoh_ = aoHistory;
     player_ = player;
-    hashValue = computeHash();
+    hashValue_ = computeHash();
 }
 
 bool AOH::operator==(const InformationSet &rhs) const {
@@ -123,7 +123,7 @@ bool AOH::operator==(const InformationSet &rhs) const {
     if (typeid(rhs) == typeid(*this)) {
         const auto rhsAOH = static_cast<const AOH *>(&rhs);
         if (player_ != rhsAOH->player_ ||
-            hashValue != rhsAOH->hashValue ||
+            hashValue_ != rhsAOH->hashValue_ ||
             aoh_.size() != rhsAOH->aoh_.size()) {
             return false;
         }
@@ -144,20 +144,20 @@ int AOH::getNumberOfActions() const {
 string AOH::toString() const {
     string s = "Player: " + to_string(player_) + ",  init observation:" +
         to_string(aoh_.front().second) + ", hash value: " +
-        to_string(hashValue) + "\n";
+        to_string(hashValue_) + "\n";
     for (const auto &i : aoh_) {
         s += "Action: " + to_string(std::get<0>(i)) + ", Obs: " + to_string(std::get<1>(i)) + " | ";
     }
     return s;
 }
 
-State::State(Domain *domain) : domain(domain) {}
+State::State(Domain *domain) : domain_(domain) {}
 
 Domain::Domain(unsigned int maxDepth, unsigned int numberOfPlayers) :
-    maxDepth(maxDepth), numberOfPlayers(numberOfPlayers), maxUtility_(0) {}
+    maxDepth_(maxDepth), numberOfPlayers_(numberOfPlayers), maxUtility_(0) {}
 
 const OutcomeDistribution &Domain::getRootStatesDistribution() const {
-    return rootStatesDistribution;
+    return rootStatesDistribution_;
 }
 
 bool State::operator==(const State &rhs) const {

@@ -60,14 +60,14 @@ RhodeIslandPokerDomain::RhodeIslandPokerDomain(unsigned int maxCardTypes,
                                                unsigned int maxDifferentRaises,
                                                unsigned int ante) :
     Domain(10 + 2 * maxRaisesInRow, 2),
-    maxCardTypes(maxCardTypes),
-    maxCardsOfEachType(maxCardsOfTypes),
-    maxRaisesInRow(maxRaisesInRow),
-    ante(ante),
-    maxDifferentBets(maxDifferentBets),
-    maxDifferentRaises(maxDifferentRaises) {
+    maxCardTypes_(maxCardTypes),
+    maxCardsOfEachType_(maxCardsOfTypes),
+    maxRaisesInRow_(maxRaisesInRow),
+    ante_(ante),
+    maxDifferentBets_(maxDifferentBets),
+    maxDifferentRaises_(maxDifferentRaises) {
   for (int i = 0; i < maxDifferentBets; i++) {
-    betsFirstRound.push_back((i + 1) * 2);
+    betsFirstRound_.push_back((i + 1) * 2);
   }
 
   /**
@@ -75,33 +75,33 @@ RhodeIslandPokerDomain::RhodeIslandPokerDomain(unsigned int maxCardTypes,
    */
 
   for (int i = 0; i < maxDifferentRaises; i++) {
-    raisesFirstRound.push_back((i + 1) * 2);
+    raisesFirstRound_.push_back((i + 1) * 2);
   }
 
-  for (int i : betsFirstRound) {
-    betsSecondRound.push_back(2 * i);
+  for (int i : betsFirstRound_) {
+    betsSecondRound_.push_back(2 * i);
   }
 
-  for (int i : raisesFirstRound) {
-    raisesSecondRound.push_back(2 * i);
+  for (int i : raisesFirstRound_) {
+    raisesSecondRound_.push_back(2 * i);
   }
 
-  for (int i : betsSecondRound) {
-    betsThirdRound.push_back(2 * i);
+  for (int i : betsSecondRound_) {
+    betsThirdRound_.push_back(2 * i);
   }
 
-  for (int i : raisesSecondRound) {
-    raisesThirdRound.push_back(2 * i);
+  for (int i : raisesSecondRound_) {
+    raisesThirdRound_.push_back(2 * i);
   }
 
-  maxUtility = ante + betsFirstRound.back() + maxRaisesInRow * raisesFirstRound.back()
-      + betsSecondRound.back() + maxRaisesInRow * raisesSecondRound.back()
-      + betsThirdRound.back() + maxRaisesInRow * raisesThirdRound.back();
+  maxUtility_ = ante + betsFirstRound_.back() + maxRaisesInRow * raisesFirstRound_.back()
+      + betsSecondRound_.back() + maxRaisesInRow * raisesSecondRound_.back()
+      + betsThirdRound_.back() + maxRaisesInRow * raisesThirdRound_.back();
   vector<double> rewards(2);
   auto next_players = vector<Player>{0};
   double prob = 1.0 / (maxCardsOfTypes * maxCardTypes * (maxCardTypes * maxCardsOfTypes - 1));
-  for (int color = 0; color < maxCardsOfEachType; ++color) {
-    for (int color2 = 0; color2 < maxCardsOfEachType; ++color2) {
+  for (int color = 0; color < maxCardsOfEachType_; ++color) {
+    for (int color2 = 0; color2 < maxCardsOfEachType_; ++color2) {
       for (int p1card = 0; p1card < maxCardTypes; ++p1card) {
         for (int p2card = 0; p2card < maxCardTypes; ++p2card) {
           if (p1card == p2card && color == color2) {
@@ -126,7 +126,7 @@ RhodeIslandPokerDomain::RhodeIslandPokerDomain(unsigned int maxCardTypes,
                                                               color2)};
           Outcome outcome(newState, newObservations, rewards);
 
-          rootStatesDistribution.emplace_back(outcome, prob);
+          rootStatesDistribution_.emplace_back(outcome, prob);
         }
       }
     }
@@ -149,31 +149,31 @@ RhodeIslandPokerDomain::RhodeIslandPokerDomain() : RhodeIslandPokerDomain(4, 4, 
 
 string RhodeIslandPokerDomain::getInfo() const {
   std::stringstream bets1;
-  std::copy(betsFirstRound.begin(), betsFirstRound.end(), std::ostream_iterator<int>(bets1, ", "));
+  std::copy(betsFirstRound_.begin(), betsFirstRound_.end(), std::ostream_iterator<int>(bets1, ", "));
   std::stringstream bets2;
-  std::copy(betsSecondRound.begin(),
-            betsSecondRound.end(),
+  std::copy(betsSecondRound_.begin(),
+            betsSecondRound_.end(),
             std::ostream_iterator<int>(bets2, ", "));
   std::stringstream bets3;
-  std::copy(betsSecondRound.begin(),
-            betsSecondRound.end(),
+  std::copy(betsSecondRound_.begin(),
+            betsSecondRound_.end(),
             std::ostream_iterator<int>(bets3, ", "));
   std::stringstream raises1;
-  std::copy(raisesFirstRound.begin(),
-            raisesFirstRound.end(),
+  std::copy(raisesFirstRound_.begin(),
+            raisesFirstRound_.end(),
             std::ostream_iterator<int>(raises1, ", "));
   std::stringstream raises2;
-  std::copy(raisesSecondRound.begin(),
-            raisesSecondRound.end(),
+  std::copy(raisesSecondRound_.begin(),
+            raisesSecondRound_.end(),
             std::ostream_iterator<int>(raises2, ", "));
   std::stringstream raises3;
-  std::copy(raisesSecondRound.begin(),
-            raisesSecondRound.end(),
+  std::copy(raisesSecondRound_.begin(),
+            raisesSecondRound_.end(),
             std::ostream_iterator<int>(raises3, ", "));
-  return "RhodeIsland Poker:\nMax card types: " + to_string(maxCardTypes) +
-      "\nMax cards of each type: " + to_string(maxCardsOfEachType) +
-      "\nMax raises in row: " + to_string(maxRaisesInRow) +
-      "\nMax utility: " + to_string(maxUtility) + "\nBets first round: [" +
+  return "RhodeIsland Poker:\nMax card types: " + to_string(maxCardTypes_) +
+      "\nMax cards of each type: " + to_string(maxCardsOfEachType_) +
+      "\nMax raises in row: " + to_string(maxRaisesInRow_) +
+      "\nMax utility: " + to_string(maxUtility_) + "\nBets first round: [" +
       bets1.str().substr(0, bets1.str().length() - 2) + "]\nBets second round: [" +
       bets2.str().substr(0, bets2.str().length() - 2) + "]\nBets third round: [" +
       bets3.str().substr(0, bets3.str().length() - 2) + "]\nRaises first round: [" +
@@ -185,44 +185,44 @@ string RhodeIslandPokerDomain::getInfo() const {
 vector<shared_ptr<Action>> RhodeIslandPokerState::getAvailableActionsFor(Player player) const {
   auto list = vector<shared_ptr<Action>>();
   int count = 0;
-  auto pokerDomain = static_cast<RhodeIslandPokerDomain *>(domain);
+  auto pokerDomain = static_cast<RhodeIslandPokerDomain *>(domain_);
   if (round_ == pokerDomain->TERMINAL_ROUND) {
     return list;
   }
-  if (!lastAction || lastAction->GetType() == Check || lastAction->GetType() == Call) {
+  if (!lastAction_ || lastAction_->GetType() == Check || lastAction_->GetType() == Call) {
     if (round_ == 1) {
-      for (int betValue : pokerDomain->betsFirstRound) {
+      for (int betValue : pokerDomain->betsFirstRound_) {
         list.push_back(make_shared<RhodeIslandPokerAction>(count, Bet, betValue));
         ++count;
       }
     } else if (round_ == 3) {
-      for (int betValue : pokerDomain->betsSecondRound) {
+      for (int betValue : pokerDomain->betsSecondRound_) {
         list.push_back(make_shared<RhodeIslandPokerAction>(count, Bet, betValue));
         ++count;
       }
     } else if (round_ == 5) {
-      for (int betValue : pokerDomain->betsThirdRound) {
+      for (int betValue : pokerDomain->betsThirdRound_) {
         list.push_back(make_shared<RhodeIslandPokerAction>(count, Bet, betValue));
         ++count;
       }
     }
     list.push_back(make_shared<RhodeIslandPokerAction>(count, Check, 0));
-  } else if (lastAction->GetType() == Bet || lastAction->GetType() == Raise) {
+  } else if (lastAction_->GetType() == Bet || lastAction_->GetType() == Raise) {
     list.push_back(make_shared<RhodeIslandPokerAction>(count, Call, 0));
     ++count;
-    if (continuousRaiseCount_ < pokerDomain->maxRaisesInRow) {
+    if (continuousRaiseCount_ < pokerDomain->maxRaisesInRow_) {
       if (round_ == 1) {
-        for (int raiseValue : pokerDomain->raisesFirstRound) {
+        for (int raiseValue : pokerDomain->raisesFirstRound_) {
           list.push_back(make_shared<RhodeIslandPokerAction>(count, Raise, raiseValue));
           ++count;
         }
       } else if (round_ == 3) {
-        for (int raiseValue : pokerDomain->raisesSecondRound) {
+        for (int raiseValue : pokerDomain->raisesSecondRound_) {
           list.push_back(make_shared<RhodeIslandPokerAction>(count, Raise, raiseValue));
           ++count;
         }
       } else if (round_ == 5) {
-        for (int raiseValue : pokerDomain->raisesThirdRound) {
+        for (int raiseValue : pokerDomain->raisesThirdRound_) {
           list.push_back(make_shared<RhodeIslandPokerAction>(count, Raise, raiseValue));
           ++count;
         }
@@ -235,14 +235,14 @@ vector<shared_ptr<Action>> RhodeIslandPokerState::getAvailableActionsFor(Player 
 
 OutcomeDistribution
 RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const {
-  auto pokerDomain = static_cast<RhodeIslandPokerDomain *>(domain);
+  auto pokerDomain = static_cast<RhodeIslandPokerDomain *>(domain_);
   auto a1 = dynamic_pointer_cast<RhodeIslandPokerAction>(actions[0].second);
   auto a2 = dynamic_pointer_cast<RhodeIslandPokerAction>(actions[1].second);
   auto observations = vector<shared_ptr<Observation>>(2);
   OutcomeDistribution newOutcomes;
   vector<Player> next_players = vector<Player>(1);
-  auto newLastAction = lastAction;
-  double bet, new_pot = pot, newFirstPlayerReward = firstPlayerReward;
+  auto newLastAction = lastAction_;
+  double bet, new_pot = pot_, newFirstPlayerReward = firstPlayerReward_;
   int newContinuousRaiseCount = continuousRaiseCount_, new_round = round_;
   ObservationId id = NO_OBSERVATION;
 
@@ -250,27 +250,27 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
   if (a1) {
     switch (a1->GetType()) {
       case Raise:
-        id = static_cast<int>(3 + pokerDomain->maxCardsOfEachType * pokerDomain->maxCardTypes
-            + 2 * pokerDomain->maxDifferentBets);
+        id = static_cast<int>(3 + pokerDomain->maxCardsOfEachType_ * pokerDomain->maxCardTypes_
+            + 2 * pokerDomain->maxDifferentBets_);
         switch (round_) {
           case 1:
-            for (auto &i : pokerDomain->raisesFirstRound) {
+            for (auto &i : pokerDomain->raisesFirstRound_) {
               if (a1->GetValue() == i) {
                 break;
               }
               ++id;
             }
             break;
-          case 3: id += static_cast<int>(pokerDomain->maxDifferentRaises);
-            for (auto &i : pokerDomain->raisesSecondRound) {
+          case 3: id += static_cast<int>(pokerDomain->maxDifferentRaises_);
+            for (auto &i : pokerDomain->raisesSecondRound_) {
               if (a1->GetValue() == i) {
                 break;
               }
               ++id;
             }
             break;
-          case 5: id += 2 * static_cast<int>(pokerDomain->maxDifferentRaises);
-            for (auto &i : pokerDomain->raisesThirdRound) {
+          case 5: id += 2 * static_cast<int>(pokerDomain->maxDifferentRaises_);
+            for (auto &i : pokerDomain->raisesThirdRound_) {
               if (a1->GetValue() == i) {
                 break;
               }
@@ -280,7 +280,7 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
           default: break;
         }
         newContinuousRaiseCount = continuousRaiseCount_ + 1;
-        bet = lastAction->GetValue()
+        bet = lastAction_->GetValue()
             + a1->GetValue();  // 2 *(pot - firstPlayerReward) - pot + a1->GetValue();
         new_pot += bet;
         break;
@@ -288,7 +288,7 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
       case Call:id = Call;
         newContinuousRaiseCount = 0;
         new_round = round_ + 1;
-        bet = lastAction->GetValue();  // 2 *(pot - firstPlayerReward) - pot;
+        bet = lastAction_->GetValue();  // 2 *(pot - firstPlayerReward) - pot;
         new_pot += bet;
         break;
 
@@ -296,26 +296,26 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
         break;
       case Bet:bet = a1->GetValue();
         new_pot += bet;
-        id = 3 + pokerDomain->maxCardsOfEachType * pokerDomain->maxCardTypes;
+        id = 3 + pokerDomain->maxCardsOfEachType_ * pokerDomain->maxCardTypes_;
         switch (round_) {
           case 1:
-            for (auto &i : pokerDomain->betsFirstRound) {
+            for (auto &i : pokerDomain->betsFirstRound_) {
               if (bet == i) {
                 break;
               }
               ++id;
             }
             break;
-          case 3: id += static_cast<int>(pokerDomain->maxDifferentBets);
-            for (auto &i : pokerDomain->betsSecondRound) {
+          case 3: id += static_cast<int>(pokerDomain->maxDifferentBets_);
+            for (auto &i : pokerDomain->betsSecondRound_) {
               if (bet == i) {
                 break;
               }
               ++id;
             }
             break;
-          case 5: id += 2 * static_cast<int>(pokerDomain->maxDifferentBets);
-            for (auto &i : pokerDomain->betsThirdRound) {
+          case 5: id += 2 * static_cast<int>(pokerDomain->maxDifferentBets_);
+            for (auto &i : pokerDomain->betsThirdRound_) {
               if (bet == i) {
                 break;
               }
@@ -326,22 +326,22 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
         }
         break;
       case Fold: id = Fold;
-        newFirstPlayerReward = pot - firstPlayerReward;
+        newFirstPlayerReward = pot_ - firstPlayerReward_;
         new_round = pokerDomain->TERMINAL_ROUND;
         break;
       default: break;
     }
     if (new_round == 2 && natureCard1_ == nullopt && a1->GetType() == Call) {
-      double prob = 1.0 / (pokerDomain->maxCardsOfEachType * pokerDomain->maxCardTypes - 2);
-      for (int j = 0; j < pokerDomain->maxCardsOfEachType; ++j) {
-        for (int i = 0; i < pokerDomain->maxCardTypes; ++i) {
+      double prob = 1.0 / (pokerDomain->maxCardsOfEachType_ * pokerDomain->maxCardTypes_ - 2);
+      for (int j = 0; j < pokerDomain->maxCardsOfEachType_; ++j) {
+        for (int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
           if ((player1Card_.first == i && player1Card_.second == j)
               || (player2Card_.first == i && player2Card_.second == j)) {
             continue;
           }
           newLastAction = a1;
           next_players[0] = 0;
-          newState = make_shared<RhodeIslandPokerState>(domain,
+          newState = make_shared<RhodeIslandPokerState>(domain_,
                                                         player1Card_,
                                                         player2Card_,
                                                         make_pair(i, j),
@@ -353,11 +353,11 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
                                                         newLastAction,
                                                         0);
           Outcome outcome(newState, vector<shared_ptr<Observation>>{
-              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes,
+              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes_,
                                                        PlayCard,
                                                        i,
                                                        j),
-              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes,
+              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes_,
                                                        PlayCard,
                                                        i,
                                                        j)}, vector<double>(2));
@@ -366,9 +366,9 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
       }
       return newOutcomes;
     } else if (new_round == 4 && natureCard2_ == nullopt && a1->GetType() == Call) {
-      double prob = 1.0 / (pokerDomain->maxCardsOfEachType * pokerDomain->maxCardTypes - 3);
-      for (int j = 0; j < pokerDomain->maxCardsOfEachType; ++j) {
-        for (int i = 0; i < pokerDomain->maxCardTypes; ++i) {
+      double prob = 1.0 / (pokerDomain->maxCardsOfEachType_ * pokerDomain->maxCardTypes_ - 3);
+      for (int j = 0; j < pokerDomain->maxCardsOfEachType_; ++j) {
+        for (int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
           if ((player1Card_.first == i && player1Card_.second == j)
               || (player2Card_.first == i && player2Card_.second == j)
               || (natureCard1_.value().first == i && natureCard1_.value().second == j)) {
@@ -376,16 +376,16 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
           }
           newLastAction = a1;
           next_players[0] = 0;
-          newState = make_shared<RhodeIslandPokerState>(domain, player1Card_, player2Card_,
+          newState = make_shared<RhodeIslandPokerState>(domain_, player1Card_, player2Card_,
                                                         natureCard1_, make_pair(i, j),
                                                         newFirstPlayerReward, new_pot, next_players,
                                                         new_round + 1, newLastAction, 0);
           Outcome outcome(newState, vector<shared_ptr<Observation>>{
-              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes,
+              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes_,
                                                        PlayCard,
                                                        i,
                                                        j),
-              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes,
+              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes_,
                                                        PlayCard,
                                                        i,
                                                        j)}, vector<double>(2));
@@ -399,7 +399,7 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
     if (new_round == pokerDomain->TERMINAL_ROUND) {
       next_players.clear();
     }
-    newState = make_shared<RhodeIslandPokerState>(domain,
+    newState = make_shared<RhodeIslandPokerState>(domain_,
                                                   player1Card_,
                                                   player2Card_,
                                                   natureCard1_,
@@ -417,27 +417,27 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
   } else if (a2) {
     switch (a2->GetType()) {
       case Raise:
-        id = static_cast<int>(3 + pokerDomain->maxCardTypes * pokerDomain->maxCardsOfEachType +
-            2 * pokerDomain->maxDifferentBets);
+        id = static_cast<int>(3 + pokerDomain->maxCardTypes_ * pokerDomain->maxCardsOfEachType_ +
+            2 * pokerDomain->maxDifferentBets_);
         switch (round_) {
           case 1:
-            for (auto &i : pokerDomain->raisesFirstRound) {
+            for (auto &i : pokerDomain->raisesFirstRound_) {
               if (a2->GetValue() == i) {
                 break;
               }
               ++id;
             }
             break;
-          case 3:id += static_cast<int>(pokerDomain->maxDifferentRaises);
-            for (auto &i : pokerDomain->raisesSecondRound) {
+          case 3:id += static_cast<int>(pokerDomain->maxDifferentRaises_);
+            for (auto &i : pokerDomain->raisesSecondRound_) {
               if (a2->GetValue() == i) {
                 break;
               }
               ++id;
             }
             break;
-          case 5:id += 2 * static_cast<int>(pokerDomain->maxDifferentRaises);
-            for (auto &i : pokerDomain->raisesThirdRound) {
+          case 5:id += 2 * static_cast<int>(pokerDomain->maxDifferentRaises_);
+            for (auto &i : pokerDomain->raisesThirdRound_) {
               if (a2->GetValue() == i) {
                 break;
               }
@@ -449,7 +449,7 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
 
         newContinuousRaiseCount = continuousRaiseCount_ + 1;
         bet =
-            lastAction->GetValue() + a2->GetValue();  // 2 *firstPlayerReward - pot +
+            lastAction_->GetValue() + a2->GetValue();  // 2 *firstPlayerReward - pot +
         // a2->GetValue();
         new_pot += bet;
         newFirstPlayerReward += bet;
@@ -458,7 +458,7 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
       case Call:id = Call;
         newContinuousRaiseCount = 0;
         new_round = round_ + 1;
-        bet = lastAction->GetValue();  // -2 *firstPlayerReward + pot;
+        bet = lastAction_->GetValue();  // -2 *firstPlayerReward + pot;
         new_pot += bet;
         newFirstPlayerReward += bet;
         break;
@@ -469,26 +469,26 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
       case Bet:bet = a2->GetValue();
         new_pot += bet;
         newFirstPlayerReward += bet;
-        id = 3 + pokerDomain->maxCardTypes * pokerDomain->maxCardsOfEachType;
+        id = 3 + pokerDomain->maxCardTypes_ * pokerDomain->maxCardsOfEachType_;
         switch (round_) {
           case 1:
-            for (auto &i : pokerDomain->betsFirstRound) {
+            for (auto &i : pokerDomain->betsFirstRound_) {
               if (bet == i) {
                 break;
               }
               ++id;
             }
             break;
-          case 3:id += static_cast<int>(pokerDomain->maxDifferentBets);
-            for (auto &i : pokerDomain->betsSecondRound) {
+          case 3:id += static_cast<int>(pokerDomain->maxDifferentBets_);
+            for (auto &i : pokerDomain->betsSecondRound_) {
               if (bet == i) {
                 break;
               }
               ++id;
             }
             break;
-          case 5:id += 2 * static_cast<int>(pokerDomain->maxDifferentBets);
-            for (auto &i : pokerDomain->betsSecondRound) {
+          case 5:id += 2 * static_cast<int>(pokerDomain->maxDifferentBets_);
+            for (auto &i : pokerDomain->betsSecondRound_) {
               if (bet == i) {
                 break;
               }
@@ -505,16 +505,16 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
     }
     if (new_round == 2 && natureCard1_ == nullopt
         && (a2->GetType() == Call || a2->GetType() == Check)) {
-      double prob = 1.0 / (pokerDomain->maxCardsOfEachType * pokerDomain->maxCardTypes - 2);
-      for (int j = 0; j < pokerDomain->maxCardsOfEachType; ++j) {
-        for (int i = 0; i < pokerDomain->maxCardTypes; ++i) {
+      double prob = 1.0 / (pokerDomain->maxCardsOfEachType_ * pokerDomain->maxCardTypes_ - 2);
+      for (int j = 0; j < pokerDomain->maxCardsOfEachType_; ++j) {
+        for (int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
           if ((player1Card_.first == i && player1Card_.second == j)
               || (player2Card_.first == i && player2Card_.second == j)) {
             continue;
           }
           newLastAction = a2;
           next_players[0] = 0;
-          newState = make_shared<RhodeIslandPokerState>(domain,
+          newState = make_shared<RhodeIslandPokerState>(domain_,
                                                         player1Card_,
                                                         player2Card_,
                                                         make_pair(i, j),
@@ -526,11 +526,11 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
                                                         newLastAction,
                                                         0);
           Outcome outcome(newState, vector<shared_ptr<Observation>>{
-              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes,
+              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes_,
                                                        PlayCard,
                                                        i,
                                                        j),
-              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes,
+              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes_,
                                                        PlayCard,
                                                        i,
                                                        j)}, vector<double>(2));
@@ -541,9 +541,9 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
       }
     } else if (new_round == 4 && natureCard2_ == nullopt
         && (a2->GetType() == Call || a2->GetType() == Check)) {
-      double prob = 1.0 / (pokerDomain->maxCardsOfEachType * pokerDomain->maxCardTypes - 3);
-      for (int j = 0; j < pokerDomain->maxCardsOfEachType; ++j) {
-        for (int i = 0; i < pokerDomain->maxCardTypes; ++i) {
+      double prob = 1.0 / (pokerDomain->maxCardsOfEachType_ * pokerDomain->maxCardTypes_ - 3);
+      for (int j = 0; j < pokerDomain->maxCardsOfEachType_; ++j) {
+        for (int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
           if ((player1Card_.first == i && player1Card_.second == j)
               || (player2Card_.first == i && player2Card_.second == j)
               || (natureCard1_.value().first == i && natureCard1_.value().second == j)) {
@@ -552,7 +552,7 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
           newLastAction = a2;
           next_players[0] = 0;
 
-          newState = make_shared<RhodeIslandPokerState>(domain,
+          newState = make_shared<RhodeIslandPokerState>(domain_,
                                                         player1Card_,
                                                         player2Card_,
                                                         natureCard1_,
@@ -564,11 +564,11 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
                                                         newLastAction,
                                                         0);
           Outcome outcome(newState, vector<shared_ptr<Observation>>{
-              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes,
+              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes_,
                                                        PlayCard,
                                                        i,
                                                        j),
-              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes,
+              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes_,
                                                        PlayCard,
                                                        i,
                                                        j)}, vector<double>(2));
@@ -583,7 +583,7 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
       next_players.clear();
     }
     newLastAction = a2;
-    newState = make_shared<RhodeIslandPokerState>(domain,
+    newState = make_shared<RhodeIslandPokerState>(domain_,
                                                   player1Card_,
                                                   player2Card_,
                                                   natureCard1_,
@@ -627,12 +627,12 @@ RhodeIslandPokerState::RhodeIslandPokerState(Domain *domain,
     player2Card_(move(p2card)),
     natureCard1_(move(natureCard1)),
     natureCard2_(move(natureCard2)),
-    pot(pot),
-    firstPlayerReward(firstPlayerReward),
+    pot_(pot),
+    firstPlayerReward_(firstPlayerReward),
     players_(move(players)),
     round_(round),
     continuousRaiseCount_(continuousRaiseCount),
-    lastAction(move(lastAction)) {}
+    lastAction_(move(lastAction)) {}
 
 RhodeIslandPokerState::RhodeIslandPokerState(Domain *domain,
                                              pair<int, int> p1card,
@@ -654,9 +654,9 @@ size_t RhodeIslandPokerState::getHash() const {
   boost::hash_combine(seed, *natureCard2_);
   boost::hash_combine(seed, round_);
   boost::hash_combine(seed, continuousRaiseCount_);
-  boost::hash_combine(seed, pot);
-  boost::hash_combine(seed, firstPlayerReward);
-  boost::hash_combine(seed, lastAction);
+  boost::hash_combine(seed, pot_);
+  boost::hash_combine(seed, firstPlayerReward_);
+  boost::hash_combine(seed, lastAction_);
   return seed;
 }
 
@@ -666,12 +666,12 @@ bool RhodeIslandPokerState::operator==(const State &rhs) const {
     return player1Card_ == State.player1Card_ &&
         player2Card_ == State.player2Card_ &&
         round_ == State.round_ &&
-        pot == State.pot &&
-        firstPlayerReward == State.firstPlayerReward &&
+        pot_ == State.pot_ &&
+        firstPlayerReward_ == State.firstPlayerReward_ &&
         natureCard1_ == State.natureCard1_ &&
         natureCard2_ == State.natureCard2_ &&
         players_ == State.players_ &&
-        lastAction == State.lastAction;
+        lastAction_ == State.lastAction_;
 }
 int RhodeIslandPokerState::hasPlayerOneWon(const shared_ptr<RhodeIslandPokerAction> &lastAction,
                                            int player) const {

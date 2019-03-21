@@ -51,11 +51,11 @@ GenericPokerObservation::GenericPokerObservation(int id, int type, int value) :
 GenericPokerDomain::GenericPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes,
                                        unsigned int maxRaisesInRow, unsigned int maxDifferentBets,
                                        unsigned int maxDifferentRaises, unsigned int ante) :
-    Domain(7 + 2 * maxRaisesInRow, 2), maxCardTypes(maxCardTypes),
-    maxCardsOfEachType(maxCardsOfTypes), maxRaisesInRow(maxRaisesInRow), ante(ante),
-    maxDifferentBets(maxDifferentBets), maxDifferentRaises(maxDifferentRaises) {
+    Domain(7 + 2 * maxRaisesInRow, 2), maxCardTypes_(maxCardTypes),
+    maxCardsOfEachType_(maxCardsOfTypes), maxRaisesInRow_(maxRaisesInRow), ante_(ante),
+    maxDifferentBets_(maxDifferentBets), maxDifferentRaises_(maxDifferentRaises) {
   for (int i = 0; i < maxDifferentBets; i++) {
-    betsFirstRound.push_back((i + 1) * 2);
+    betsFirstRound_.push_back((i + 1) * 2);
   }
 
   /**
@@ -63,19 +63,19 @@ GenericPokerDomain::GenericPokerDomain(unsigned int maxCardTypes, unsigned int m
    */
 
   for (int i = 0; i < maxDifferentRaises; i++) {
-    raisesFirstRound.push_back((i + 1) * 2);
+    raisesFirstRound_.push_back((i + 1) * 2);
   }
 
-  for (int i : betsFirstRound) {
-    betsSecondRound.push_back(2 * i);
+  for (int i : betsFirstRound_) {
+    betsSecondRound_.push_back(2 * i);
   }
 
-  for (int i : raisesFirstRound) {
-    raisesSecondRound.push_back(2 * i);
+  for (int i : raisesFirstRound_) {
+    raisesSecondRound_.push_back(2 * i);
   }
 
-  maxUtility_ = ante + betsFirstRound.back() + maxRaisesInRow * raisesFirstRound.back()
-      + betsSecondRound.back() + maxRaisesInRow * raisesSecondRound.back();
+  maxUtility_ = ante + betsFirstRound_.back() + maxRaisesInRow * raisesFirstRound_.back()
+      + betsSecondRound_.back() + maxRaisesInRow * raisesSecondRound_.back();
   vector<double> rewards(2);
   int size = maxCardTypes * maxCardTypes;
   auto next_players = vector<Player>{0};
@@ -89,8 +89,8 @@ GenericPokerDomain::GenericPokerDomain(unsigned int maxCardTypes, unsigned int m
       if (p1card == p2card) {
         ++occurencyCount;
       }
-      double prob = static_cast<double>(maxCardsOfEachType) / (maxCardTypes * maxCardsOfEachType)
-          * (maxCardsOfEachType - occurencyCount) / (maxCardTypes * maxCardsOfEachType - 1);
+      double prob = static_cast<double>(maxCardsOfEachType_) / (maxCardTypes * maxCardsOfEachType_)
+          * (maxCardsOfEachType_ - occurencyCount) / (maxCardTypes * maxCardsOfEachType_ - 1);
       auto newState = make_shared<GenericPokerState>(this, p1card, p2card, nullopt,
                                                      ante, next_players);
       vector<shared_ptr<Observation>> newObservations{
@@ -99,7 +99,7 @@ GenericPokerDomain::GenericPokerDomain(unsigned int maxCardTypes, unsigned int m
       };
       Outcome outcome(newState, newObservations, rewards);
 
-      rootStatesDistribution.emplace_back(move(outcome), prob);
+      rootStatesDistribution_.emplace_back(move(outcome), prob);
     }
   }
 }
@@ -117,20 +117,20 @@ GenericPokerDomain::GenericPokerDomain() : GenericPokerDomain(4, 3, 1, 2, 2, 1) 
 
 string GenericPokerDomain::getInfo() const {
   std::stringstream bets1;
-  std::copy(betsFirstRound.begin(), betsFirstRound.end(),
+  std::copy(betsFirstRound_.begin(), betsFirstRound_.end(),
             std::ostream_iterator<int>(bets1, ", "));
   std::stringstream bets2;
-  std::copy(betsSecondRound.begin(), betsSecondRound.end(),
+  std::copy(betsSecondRound_.begin(), betsSecondRound_.end(),
             std::ostream_iterator<int>(bets2, ", "));
   std::stringstream raises1;
-  std::copy(raisesFirstRound.begin(), raisesFirstRound.end(),
+  std::copy(raisesFirstRound_.begin(), raisesFirstRound_.end(),
             std::ostream_iterator<int>(raises1, ", "));
   std::stringstream raises2;
-  std::copy(raisesSecondRound.begin(), raisesSecondRound.end(),
+  std::copy(raisesSecondRound_.begin(), raisesSecondRound_.end(),
             std::ostream_iterator<int>(raises2, ", "));
-  return "Generic Poker:\nMax card types: " + to_string(maxCardTypes) +
-      "\nMax cards of each type: " + to_string(maxCardsOfEachType) +
-      "\nMax raises in row: " + to_string(maxRaisesInRow) +
+  return "Generic Poker:\nMax card types: " + to_string(maxCardTypes_) +
+      "\nMax cards of each type: " + to_string(maxCardsOfEachType_) +
+      "\nMax raises in row: " + to_string(maxRaisesInRow_) +
       "\nMax utility: " + to_string(maxUtility_) + "\nBets first round: [" +
       bets1.str().substr(0, bets1.str().length() - 2) + "]\nBets second round: [" +
       bets2.str().substr(0, bets2.str().length() - 2) + "]\nRaises first round: [" +
@@ -141,34 +141,34 @@ string GenericPokerDomain::getInfo() const {
 vector<shared_ptr<Action>> GenericPokerState::getAvailableActionsFor(Player player) const {
   auto list = vector<shared_ptr<Action>>();
   int count = 0;
-  auto pokerDomain = static_cast<GenericPokerDomain *>(domain);
+  auto pokerDomain = static_cast<GenericPokerDomain *>(domain_);
   if (round_ == pokerDomain->TERMINAL_ROUND) {
     return list;
   }
-  if (!lastAction || lastAction->GetType() == Check || lastAction->GetType() == Call) {
+  if (!lastAction_ || lastAction_->GetType() == Check || lastAction_->GetType() == Call) {
     if (round_ == 1) {
-      for (int betValue : pokerDomain->betsFirstRound) {
+      for (int betValue : pokerDomain->betsFirstRound_) {
         list.push_back(make_shared<GenericPokerAction>(count, Bet, betValue));
         ++count;
       }
     } else if (round_ == 3) {
-      for (int betValue : pokerDomain->betsSecondRound) {
+      for (int betValue : pokerDomain->betsSecondRound_) {
         list.push_back(make_shared<GenericPokerAction>(count, Bet, betValue));
         ++count;
       }
     }
     list.push_back(make_shared<GenericPokerAction>(count, Check, 0));
-  } else if (lastAction->GetType() == Bet || lastAction->GetType() == Raise) {
+  } else if (lastAction_->GetType() == Bet || lastAction_->GetType() == Raise) {
     list.push_back(make_shared<GenericPokerAction>(count, Call, 0));
     ++count;
-    if (continuousRaiseCount_ < pokerDomain->maxRaisesInRow) {
+    if (continuousRaiseCount_ < pokerDomain->maxRaisesInRow_) {
       if (round_ == 1) {
-        for (int raiseValue : pokerDomain->raisesFirstRound) {
+        for (int raiseValue : pokerDomain->raisesFirstRound_) {
           list.push_back(make_shared<GenericPokerAction>(count, Raise, raiseValue));
           ++count;
         }
       } else if (round_ == 3) {
-        for (int raiseValue : pokerDomain->raisesSecondRound) {
+        for (int raiseValue : pokerDomain->raisesSecondRound_) {
           list.push_back(make_shared<GenericPokerAction>(count, Raise, raiseValue));
           ++count;
         }
@@ -181,13 +181,13 @@ vector<shared_ptr<Action>> GenericPokerState::getAvailableActionsFor(Player play
 
 OutcomeDistribution
 GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
-  const auto pokerDomain = static_cast<GenericPokerDomain *>(domain);
+  const auto pokerDomain = static_cast<GenericPokerDomain *>(domain_);
   const auto a1 = dynamic_pointer_cast<GenericPokerAction>(actions[0].second);
   const auto a2 = dynamic_pointer_cast<GenericPokerAction>(actions[1].second);
   OutcomeDistribution newOutcomes;
   vector<Player> next_players = vector<Player>(1);
-  auto newLastAction = lastAction;
-  double bet, new_pot = pot, newFirstPlayerReward = firstPlayerReward;
+  auto newLastAction = lastAction_;
+  double bet, new_pot = pot_, newFirstPlayerReward = firstPlayerReward_;
   int newContinuousRaiseCount = continuousRaiseCount_, new_round = round_;
   ObservationId id = NO_OBSERVATION;
   auto observations = vector<shared_ptr<Observation>>(2);
@@ -195,18 +195,18 @@ GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
   if (a1) {
     switch (a1->GetType()) {
       case Raise:
-        id = static_cast<int>(3 + pokerDomain->maxCardTypes +
-            2 * pokerDomain->maxDifferentBets);
+        id = static_cast<int>(3 + pokerDomain->maxCardTypes_ +
+            2 * pokerDomain->maxDifferentBets_);
         if (round_ == 1) {
-          for (auto &i : pokerDomain->raisesFirstRound) {
+          for (auto &i : pokerDomain->raisesFirstRound_) {
             if (a1->GetValue() == i) {
               break;
             }
             ++id;
           }
         } else {
-          id += static_cast<int>(pokerDomain->maxDifferentRaises);
-          for (auto &i : pokerDomain->raisesSecondRound) {
+          id += static_cast<int>(pokerDomain->maxDifferentRaises_);
+          for (auto &i : pokerDomain->raisesSecondRound_) {
             if (a1->GetValue() == i) {
               break;
             }
@@ -214,7 +214,7 @@ GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
           }
         }
         newContinuousRaiseCount = continuousRaiseCount_ + 1;
-        bet = lastAction->GetValue() + a1->GetValue();
+        bet = lastAction_->GetValue() + a1->GetValue();
         // bet =  2 * (pot - firstPlayerReward) - pot + a1->GetValue();
         new_pot += bet;
         break;
@@ -222,7 +222,7 @@ GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
       case Call: id = Call;
         newContinuousRaiseCount = 0;
         new_round = round_ + 1;
-        bet = lastAction->GetValue();  // 2 *(pot - firstPlayerReward) - pot;
+        bet = lastAction_->GetValue();  // 2 *(pot - firstPlayerReward) - pot;
         new_pot += bet;
         break;
 
@@ -230,17 +230,17 @@ GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
         break;
       case Bet: bet = a1->GetValue();
         new_pot += bet;
-        id = 3 + pokerDomain->maxCardTypes;
+        id = 3 + pokerDomain->maxCardTypes_;
         if (round_ == 1) {
-          for (auto &i : pokerDomain->betsFirstRound) {
+          for (auto &i : pokerDomain->betsFirstRound_) {
             if (bet == i) {
               break;
             }
             ++id;
           }
         } else {
-          id += static_cast<int>(pokerDomain->maxDifferentBets);
-          for (auto &i : pokerDomain->betsSecondRound) {
+          id += static_cast<int>(pokerDomain->maxDifferentBets_);
+          for (auto &i : pokerDomain->betsSecondRound_) {
             if (bet == i) {
               break;
             }
@@ -249,15 +249,15 @@ GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
         }
         break;
       case Fold: id = Fold;
-        newFirstPlayerReward = pot - firstPlayerReward;
+        newFirstPlayerReward = pot_ - firstPlayerReward_;
         new_round = pokerDomain->TERMINAL_ROUND;
         break;
       default: break;
     }
     if (new_round == 2 && natureCard_ == nullopt && a1->GetType() == Call) {
-      for (int i = 0; i < pokerDomain->maxCardTypes; ++i) {
-        if ((player1Card_ == i && player2Card_ == i && pokerDomain->maxCardsOfEachType < 3) ||
-            ((player1Card_ == i || player2Card_ == i) && pokerDomain->maxCardsOfEachType < 2)) {
+      for (int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
+        if ((player1Card_ == i && player2Card_ == i && pokerDomain->maxCardsOfEachType_ < 3) ||
+            ((player1Card_ == i || player2Card_ == i) && pokerDomain->maxCardsOfEachType_ < 2)) {
           continue;
         }
         newLastAction = a1;
@@ -267,9 +267,9 @@ GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
           ++occurrenceCount;
         if (player2Card_ == i)
           ++occurrenceCount;
-        double prob = static_cast<double>(pokerDomain->maxCardsOfEachType - occurrenceCount) /
-            (pokerDomain->maxCardTypes * pokerDomain->maxCardsOfEachType - 2);
-        newState = make_shared<GenericPokerState>(domain,
+        double prob = static_cast<double>(pokerDomain->maxCardsOfEachType_ - occurrenceCount) /
+            (pokerDomain->maxCardTypes_ * pokerDomain->maxCardsOfEachType_ - 2);
+        newState = make_shared<GenericPokerState>(domain_,
                                                   player1Card_,
                                                   player2Card_,
                                                   i,
@@ -291,7 +291,7 @@ GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
     if (new_round == pokerDomain->TERMINAL_ROUND) {
       next_players.clear();
     }
-    newState = make_shared<GenericPokerState>(domain,
+    newState = make_shared<GenericPokerState>(domain_,
                                               player1Card_,
                                               player2Card_,
                                               natureCard_,
@@ -306,18 +306,18 @@ GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
   } else if (a2) {
     switch (a2->GetType()) {
       case Raise:
-        id = static_cast<int>(3 + pokerDomain->maxCardTypes +
-            2 * pokerDomain->maxDifferentBets);
+        id = static_cast<int>(3 + pokerDomain->maxCardTypes_ +
+            2 * pokerDomain->maxDifferentBets_);
         if (round_ == 1) {
-          for (auto &i : pokerDomain->raisesFirstRound) {
+          for (auto &i : pokerDomain->raisesFirstRound_) {
             if (a2->GetValue() == i) {
               break;
             }
             ++id;
           }
         } else {
-          id += static_cast<int>(pokerDomain->maxDifferentRaises);
-          for (auto &i : pokerDomain->raisesSecondRound) {
+          id += static_cast<int>(pokerDomain->maxDifferentRaises_);
+          for (auto &i : pokerDomain->raisesSecondRound_) {
             if (a2->GetValue() == i) {
               break;
             }
@@ -326,7 +326,7 @@ GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
         }
 
         newContinuousRaiseCount = continuousRaiseCount_ + 1;
-        bet = lastAction->GetValue() + a2->GetValue();  // 2*firstPlayerReward-pot+a2->GetValue();
+        bet = lastAction_->GetValue() + a2->GetValue();  // 2*firstPlayerReward-pot+a2->GetValue();
         new_pot += bet;
         newFirstPlayerReward += bet;
         break;
@@ -334,7 +334,7 @@ GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
       case Call:id = Call;
         newContinuousRaiseCount = 0;
         new_round = round_ + 1;
-        bet = lastAction->GetValue();  // -2 *firstPlayerReward + pot;
+        bet = lastAction_->GetValue();  // -2 *firstPlayerReward + pot;
         new_pot += bet;
         newFirstPlayerReward += bet;
         break;
@@ -345,17 +345,17 @@ GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
       case Bet:bet = a2->GetValue();
         new_pot += bet;
         newFirstPlayerReward += bet;
-        id = 3 + pokerDomain->maxCardTypes;
+        id = 3 + pokerDomain->maxCardTypes_;
         if (round_ == 1) {
-          for (auto &i : pokerDomain->betsFirstRound) {
+          for (auto &i : pokerDomain->betsFirstRound_) {
             if (bet == i) {
               break;
             }
             ++id;
           }
         } else {
-          id += static_cast<int>(pokerDomain->maxDifferentBets);
-          for (auto &i : pokerDomain->betsSecondRound) {
+          id += static_cast<int>(pokerDomain->maxDifferentBets_);
+          for (auto &i : pokerDomain->betsSecondRound_) {
             if (bet == i) {
               break;
             }
@@ -370,9 +370,9 @@ GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
     }
     if (new_round == 2 && natureCard_ == nullopt &&
         (a2->GetType() == Call || a2->GetType() == Check)) {
-      for (int i = 0; i < pokerDomain->maxCardTypes; ++i) {
-        if ((player1Card_ == i && player2Card_ == i && pokerDomain->maxCardsOfEachType < 3) ||
-            ((player1Card_ == i || player2Card_ == i) && pokerDomain->maxCardsOfEachType < 2)) {
+      for (int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
+        if ((player1Card_ == i && player2Card_ == i && pokerDomain->maxCardsOfEachType_ < 3) ||
+            ((player1Card_ == i || player2Card_ == i) && pokerDomain->maxCardsOfEachType_ < 2)) {
           continue;
         }
         newLastAction = a2;
@@ -382,9 +382,9 @@ GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
           ++occurrenceCount;
         if (player2Card_ == i)
           ++occurrenceCount;
-        double prob = static_cast<double>(pokerDomain->maxCardsOfEachType - occurrenceCount) /
-            (pokerDomain->maxCardTypes * pokerDomain->maxCardsOfEachType - 2);
-        newState = make_shared<GenericPokerState>(domain,
+        double prob = static_cast<double>(pokerDomain->maxCardsOfEachType_ - occurrenceCount) /
+            (pokerDomain->maxCardTypes_ * pokerDomain->maxCardsOfEachType_ - 2);
+        newState = make_shared<GenericPokerState>(domain_,
                                                   player1Card_,
                                                   player2Card_,
                                                   i,
@@ -406,7 +406,7 @@ GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
       next_players.clear();
     }
     newLastAction = a2;
-    newState = make_shared<GenericPokerState>(domain,
+    newState = make_shared<GenericPokerState>(domain_,
                                               player1Card_,
                                               player2Card_,
                                               natureCard_,
@@ -441,8 +441,8 @@ GenericPokerState::GenericPokerState(Domain *domain,
                                      shared_ptr<GenericPokerAction> lastAction,
                                      int continuousRaiseCount) :
     State(domain), player1Card_(p1card), player2Card_(p2card), natureCard_(move(natureCard)),
-    pot(pot), firstPlayerReward(firstPlayerReward), players_(move(players)), round_(round),
-    continuousRaiseCount_(continuousRaiseCount), lastAction(move(lastAction)) {}
+    pot_(pot), firstPlayerReward_(firstPlayerReward), players_(move(players)), round_(round),
+    continuousRaiseCount_(continuousRaiseCount), lastAction_(move(lastAction)) {}
 
 GenericPokerState::GenericPokerState(Domain *domain,
                                      int p1card,
@@ -463,12 +463,12 @@ GenericPokerState::GenericPokerState(Domain *domain,
 bool GenericPokerState::operator==(const State &rhs) const {
   auto State = dynamic_cast<const GenericPokerState &>(rhs);
   return player1Card_ == State.player1Card_
-      && (lastAction && State.lastAction ? *lastAction == *State.lastAction : lastAction
-          == State.lastAction)
+      && (lastAction_ && State.lastAction_ ? *lastAction_ == *State.lastAction_ : lastAction_
+          == State.lastAction_)
       && player2Card_ == State.player2Card_
       && round_ == State.round_
-      && pot == State.pot
-      && firstPlayerReward == State.firstPlayerReward
+      && pot_ == State.pot_
+      && firstPlayerReward_ == State.firstPlayerReward_
       && natureCard_.value_or(-1) == State.natureCard_.value_or(-1)
       && players_ == State.players_;
 }
@@ -482,10 +482,10 @@ size_t GenericPokerState::getHash() const {
   boost::hash_combine(seed, natureCard_.value_or(-1));
   boost::hash_combine(seed, round_);
   boost::hash_combine(seed, continuousRaiseCount_);
-  boost::hash_combine(seed, pot);
-  boost::hash_combine(seed, firstPlayerReward);
-  if (lastAction) {
-    boost::hash_combine(seed, lastAction->getHash());
+  boost::hash_combine(seed, pot_);
+  boost::hash_combine(seed, firstPlayerReward_);
+  if (lastAction_) {
+    boost::hash_combine(seed, lastAction_->getHash());
   }
   return seed;
 }

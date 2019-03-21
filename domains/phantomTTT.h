@@ -47,7 +47,7 @@ class PhantomTTTAction : public Action {
 
   // Returns move description.
   inline string toString() const final {
-    if (id == NO_ACTION)
+    if (id_ == NO_ACTION)
       return "NoA";
     return moved_[move_];
   }
@@ -76,7 +76,7 @@ class PhantomTTTObservation : public Observation {
 
   // Returns description.
   inline string toString() const final {
-    if (id == 1)
+    if (id_ == 1)
       return "Success";
     return "Fail";
   };

@@ -65,7 +65,7 @@ namespace chess {
         string createFEN(const GTLib2::domains::KriegspielState*);
     private:
         shared_ptr<AbstractPiece> createPiece(char&, int, int, GTLib2::domains::KriegspielState*);
-        int pawnid = 1;
+        int pawnid_ = 1;
     };
 }
 

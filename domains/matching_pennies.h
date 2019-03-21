@@ -63,14 +63,14 @@ class MatchingPenniesAction : public Action {
   bool operator==(const Action &that) const override;
   size_t getHash() const override;
 
-  Move move;
+  Move move_;
 };
 
 class MatchingPenniesObservation : public Observation {
  public:
   explicit MatchingPenniesObservation(OtherMove otherMoveParm);
 
-  OtherMove otherMove;
+  OtherMove otherMove_;
 };
 
 class MatchingPenniesState : public State {
@@ -88,9 +88,9 @@ class MatchingPenniesState : public State {
 
   bool operator==(const State &rhs) const override;
 
-  vector<Player> players;
-  Move player1;
-  Move player2;
+  vector<Player> players_;
+  Move player1_;
+  Move player2_;
 
   // ToString returns state description
   string toString() const override;
@@ -111,9 +111,9 @@ class SimultaneousMatchingPenniesState : public State {
 
   size_t getHash() const override;
 
-  vector<Player> players;
-  Move player1;
-  Move player2;
+  vector<Player> players_;
+  Move player1_;
+  Move player2_;
 
   // ToString returns state description
   string toString() const override;

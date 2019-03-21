@@ -313,8 +313,8 @@ namespace chess {
             case 'b':
                 return make_shared<Bishop>(static_cast<pieceName>(pieceChar), isupper(c) ? chess::WHITE : chess::BLACK, s, b);
             case 'p':
-                auto p = make_shared<Pawn>(static_cast<pieceName>(pieceChar), isupper(c) ? chess::WHITE : chess::BLACK, s, b, pawnid);
-                pawnid += 2;
+                auto p = make_shared<Pawn>(static_cast<pieceName>(pieceChar), isupper(c) ? chess::WHITE : chess::BLACK, s, b, pawnid_);
+                pawnid_ += 2;
                 return p;
         }
     }

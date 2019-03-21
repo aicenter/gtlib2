@@ -136,7 +136,7 @@ class Action {
     virtual size_t getHash() const;
 
  protected:
-    ActionId id;
+    ActionId id_;
 };
 
 /**
@@ -168,7 +168,7 @@ class Observation {
     virtual size_t getHash() const;
 
  protected:
-    ObservationId id;
+    ObservationId id_;
 };
 
 /**
@@ -190,9 +190,9 @@ class Outcome {
             vector<shared_ptr<Observation>> observations,
             vector<double> rewards);
 
-    shared_ptr<State> state;
-    vector<shared_ptr<Observation>> observations;
-    vector<double> rewards;
+    shared_ptr<State> state_;
+    vector<shared_ptr<Observation>> observations_;
+    vector<double> rewards_;
 
     size_t getHash() const;
 
@@ -233,7 +233,7 @@ class AOH: public InformationSet {
     int getNumberOfActions() const;
 
     inline size_t getHash() const final {
-        return hashValue;
+        return hashValue_;
     }
 
     // Overloaded for comparing two AOHs
@@ -254,7 +254,7 @@ class AOH: public InformationSet {
  private:
     size_t computeHash() const;
     vector<ActionObservation> aoh_;
-    size_t hashValue;
+    size_t hashValue_;
     Player player_;
 };
 
@@ -303,11 +303,11 @@ class State {
     virtual size_t getHash() const;
 
     inline Domain *getDomain() const {
-        return domain;
+        return domain_;
     }
 
  protected:
-    Domain *domain;
+    Domain *domain_;
 };
 
 /**
@@ -340,14 +340,14 @@ class Domain {
      * Returns number of players in the game.
      */
     inline unsigned int getNumberOfPlayers() const {
-        return numberOfPlayers;
+        return numberOfPlayers_;
     }
 
     /**
      * Returns default maximal depth used in algorithms.
      */
     inline unsigned int getMaxDepth() const {
-        return maxDepth;
+        return maxDepth_;
     }
 
     inline int getMaxUtility() const {
@@ -364,9 +364,9 @@ class Domain {
     virtual string getInfo() const = 0;
 
  protected:
-    OutcomeDistribution rootStatesDistribution;
-    unsigned int maxDepth;
-    unsigned int numberOfPlayers;
+    OutcomeDistribution rootStatesDistribution_;
+    unsigned int maxDepth_;
+    unsigned int numberOfPlayers_;
     int maxUtility_;
 };
 }  // namespace GTLib2

@@ -36,9 +36,9 @@ createRootEFGNodesFromInitialOutcomeDistribution(const OutcomeDistribution &prob
   for (auto &outcomeProb : probDist) {
     auto &outcome = outcomeProb.first;
     auto prob = outcomeProb.second;
-    auto node = make_shared<EFGNode>(outcome.state, nullptr,
-                                     outcome.observations,
-                                     outcome.rewards,
+    auto node = make_shared<EFGNode>(outcome.state_, nullptr,
+                                     outcome.observations_,
+                                     outcome.rewards_,
                                      prob, nullptr, 0);
     nodes.emplace_back(move(node), prob);
   }

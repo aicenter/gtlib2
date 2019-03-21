@@ -138,10 +138,10 @@ namespace chess {
          */
         void update();
         inline pieceName getKind() const {
-            return kind;
+            return kind_;
         }
         inline void setBoard(const GTLib2::domains::KriegspielState* s) {
-            board = s;
+            board_ = s;
         }
 
         /*
@@ -161,19 +161,19 @@ namespace chess {
         void reset();
         void setHasMoved(bool);
         inline const GTLib2::domains::KriegspielState* getBoard() const {
-            return board;
+            return board_;
         }
         virtual shared_ptr<AbstractPiece> clone() const = 0;
     protected:
-        int color;
-        shared_ptr<vector<Square>> moves = make_shared<vector<Square>>();
-        shared_ptr<vector<Square>> validMoves = make_shared<vector<Square>>();
-        pieceName kind;
-        Square position;
-        const GTLib2::domains::KriegspielState* board;
-        bool moved = false;
-        AbstractPiece* protectedBy = nullptr;
-        AbstractPiece* pinnedBy = nullptr;
+        int color_;
+        shared_ptr<vector<Square>> moves_ = make_shared<vector<Square>>();
+        shared_ptr<vector<Square>> validMoves_ = make_shared<vector<Square>>();
+        pieceName kind_;
+        Square position_;
+        const GTLib2::domains::KriegspielState* board_;
+        bool moved_ = false;
+        AbstractPiece* protectedBy_ = nullptr;
+        AbstractPiece* pinnedBy_ = nullptr;
     };
 
     /*
@@ -197,7 +197,7 @@ namespace chess {
         shared_ptr<AbstractPiece> clone() const override;
         int getId() const;
     protected:
-        int id;
+        int id_;
     };
 
     /*
@@ -293,7 +293,7 @@ namespace GTLib2 {
             KriegspielAction(ActionId id, pair<shared_ptr<AbstractPiece>, chess::Square>, chess::Square);
             explicit KriegspielAction(ActionId id);
             inline string toString() const final {
-                if(id == NO_ACTION)
+                if(id_ == NO_ACTION)
                     return "No action";
                 return move_.first->toString() + coordToString(move_.second);
             }
@@ -304,7 +304,7 @@ namespace GTLib2 {
             shared_ptr<KriegspielAction> clone() const;
         private:
             const pair<shared_ptr<AbstractPiece>, chess::Square> move_;
-            chess::Square moveFrom;
+            chess::Square moveFrom_;
         };
 
         /*
@@ -350,7 +350,7 @@ namespace GTLib2 {
 
             // Returns description.
             inline string toString() const final {
-                if (id == 1)
+                if (id_ == 1)
                     return "Success";
                 return "Fail";
             };
@@ -413,7 +413,7 @@ namespace GTLib2 {
              */
             inline vector<Player> getPlayers() const final {
                 vector<Player> v;
-                if(!gameHasEnded || moveHistory->size() == domain->getMaxDepth()) v.emplace_back(playerOnTheMove);
+                if(!gameHasEnded_ || moveHistory_->size() == domain_->getMaxDepth()) v.emplace_back(playerOnTheMove_);
                 return v;
             }
 
@@ -592,22 +592,22 @@ namespace GTLib2 {
             shared_ptr<vector<shared_ptr<KriegspielAction>>> copyMoveHistory() const;
             shared_ptr<vector<shared_ptr<KriegspielAction>>> copyAttemptedMoves() const;
         protected:
-            shared_ptr<vector<shared_ptr<AbstractPiece>>> pieces;  // players' board
-            vector<shared_ptr<AbstractPiece>> checkingFigures;
-            shared_ptr<vector<shared_ptr<KriegspielAction>>> moveHistory;
-            shared_ptr<vector<shared_ptr<KriegspielAction>>> attemptedMoveHistory;
-            Player playerOnTheMove;
-            int lastCut = 0;
-            chess::Square enPassantSquare;
-            int playerInCheck = -1;
-            int legalMaxDepth;
-            bool gameHasEnded = false;
+            shared_ptr<vector<shared_ptr<AbstractPiece>>> pieces_;  // players' board
+            vector<shared_ptr<AbstractPiece>> checkingFigures_;
+            shared_ptr<vector<shared_ptr<KriegspielAction>>> moveHistory_;
+            shared_ptr<vector<shared_ptr<KriegspielAction>>> attemptedMoveHistory_;
+            Player playerOnTheMove_;
+            int lastCut_ = 0;
+            chess::Square enPassantSquare_;
+            int playerInCheck_ = -1;
+            int legalMaxDepth_;
+            bool gameHasEnded_ = false;
         private:
             void initBoard(chess::BOARD);
             void initBoard(string);
-            int xSize;
-            int ySize;
-            bool canPlayerCastle;
+            int xSize_;
+            int ySize_;
+            bool canPlayerCastle_;
         };
 
     }

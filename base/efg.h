@@ -187,13 +187,13 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
     bool compareAOH(const EFGNode &rhs) const;
     size_t getHashedAOHs() const;
     vector<shared_ptr<Observation>> observations_;
-    vector<PlayerAction> performedActionsInThisRound;
+    vector<PlayerAction> performedActionsInThisRound_;
     vector<Player> remainingPlayersInTheRound_;
     shared_ptr<State> state_;
     shared_ptr<EFGNode const> parent_;
     shared_ptr<Action> incomingAction_;  // Action performed in the parent node.
     optional<Player> currentPlayer_ = nullopt;
-    mutable size_t hashAOH = 0;
+    mutable size_t hashAOH_ = 0;
     int depth_;
 };
 }  // namespace GTLib2

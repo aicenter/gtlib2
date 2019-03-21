@@ -49,7 +49,7 @@ class RhodeIslandPokerAction : public Action {
 
   // Returns move description.
   inline string toString() const final {
-    if (id == NO_ACTION)
+    if (id_ == NO_ACTION)
       return "NoA";
     switch (type_) {
       case Check: return "Check";
@@ -98,7 +98,7 @@ class RhodeIslandPokerObservation : public Observation {
 
   // Returns description.
   inline string toString() const final {
-    if (id == NO_OBSERVATION)
+    if (id_ == NO_OBSERVATION)
       return "NoOb";
     switch (type_) {
       case PlayCard: return "Card is " + to_string(value_) + " " + to_string(color_);
@@ -177,19 +177,19 @@ class RhodeIslandPokerState : public State {
         s += to_string(natureCard2_.value().first) + " " + to_string(natureCard2_.value().second);
       }
     }
-    return s + "\nPlayer on move: " + to_string(players_[0]) + "\nPot: " + to_string(pot) +
-        "\nReward for first player: " + to_string(firstPlayerReward) + "\nLast action: " +
-        lastAction->toString() + "\nRound: " + to_string(round_) + "Continuous raise count: " +
+    return s + "\nPlayer on move: " + to_string(players_[0]) + "\nPot: " + to_string(pot_) +
+        "\nReward for first player: " + to_string(firstPlayerReward_) + "\nLast action: " +
+        lastAction_->toString() + "\nRound: " + to_string(round_) + "Continuous raise count: " +
         to_string(continuousRaiseCount_) + "\n";
   }
 
  protected:
   vector<Player> players_;
-  shared_ptr<RhodeIslandPokerAction> lastAction;
+  shared_ptr<RhodeIslandPokerAction> lastAction_;
   optional<pair<int, int>> natureCard1_;  // first number, second color (type)
   optional<pair<int, int>> natureCard2_;
-  double pot;
-  double firstPlayerReward;
+  double pot_;
+  double firstPlayerReward_;
   pair<int, int> player1Card_;  // first number, second color (type)
   pair<int, int> player2Card_;
   int round_;
@@ -226,19 +226,18 @@ class RhodeIslandPokerDomain : public Domain {
     return {0, 1};
   }
 
-  vector<int> betsFirstRound;
-  vector<int> raisesFirstRound;
-  vector<int> betsSecondRound;
-  vector<int> raisesSecondRound;
-  vector<int> betsThirdRound;
-  vector<int> raisesThirdRound;
-  const unsigned int maxCardTypes;  // cisla
-  const unsigned int maxCardsOfEachType;  // barvy
-  const unsigned int maxRaisesInRow;
-  const unsigned int maxDifferentBets;
-  const unsigned int maxDifferentRaises;
-  int maxUtility;
-  const unsigned int ante;
+  vector<int> betsFirstRound_;
+  vector<int> raisesFirstRound_;
+  vector<int> betsSecondRound_;
+  vector<int> raisesSecondRound_;
+  vector<int> betsThirdRound_;
+  vector<int> raisesThirdRound_;
+  const unsigned int maxCardTypes_;  // cisla
+  const unsigned int maxCardsOfEachType_;  // barvy
+  const unsigned int maxRaisesInRow_;
+  const unsigned int maxDifferentBets_;
+  const unsigned int maxDifferentRaises_;
+  const unsigned int ante_;
   const int TERMINAL_ROUND = 6;
 };
 }  // namespace domains
