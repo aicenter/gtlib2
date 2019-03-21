@@ -128,6 +128,11 @@ shared_ptr<AOH> EFGNode::getAOHInfSet() const {
     }
 }
 
+shared_ptr<AOH> EFGNode::getAOHAugInfSet(Player player) const {
+    auto aoh = getAOH(player);
+    return make_shared<AOH>(player, aoh);
+}
+
 vector<ActionObservation> EFGNode::getAOH(Player player) const {
     if (!parent) {
         return vector<ActionObservation>{

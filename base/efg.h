@@ -110,6 +110,14 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
     shared_ptr<AOH> getAOHInfSet() const;
 
     /**
+     * Gets the augmented information set of the node.
+     *
+     * Note that augmented information sets coincide with ordinary information sets
+     * when the requested player is acting in this node.
+     */
+    shared_ptr<AOH> getAOHAugInfSet(Player player) const;
+
+    /**
      * Check if the node is in the given information set.
     */bool isContainedInInformationSet(const shared_ptr<AOH> &infSet) const;
 
