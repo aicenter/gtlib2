@@ -42,43 +42,43 @@ namespace chess {
         return Square(x, y);
     }
 
-    AbstractPiece::AbstractPiece(chess::pieceName k, int c, Square pos, const GTLib2::domains::KriegspielState *s) : position_(pos), kind_(k), color_(c), board_(s) {}
+    AbstractPiece::AbstractPiece(chess::pieceName k, int c, Square pos, const GTLib2::domains::KriegspielState *s) : position(pos), kind(k), color(c), board(s) {}
 
-    Pawn::Pawn(chess::pieceName k, int c, chess::Square p, const GTLib2::domains::KriegspielState * b, int id): AbstractPiece(k, c, p, b), id_(id) {}
+    Pawn::Pawn(chess::pieceName k, int c, chess::Square p, const GTLib2::domains::KriegspielState * b, int id): AbstractPiece(k, c, p, b), id(id) {}
     Rook::Rook(chess::pieceName k, int c, chess::Square p, const GTLib2::domains::KriegspielState * b): AbstractPiece(k, c, p, b) {}
     Queen::Queen(chess::pieceName k, int c, chess::Square p, const GTLib2::domains::KriegspielState * b): AbstractPiece(k, c, p, b) {}
     Knight::Knight(chess::pieceName k, int c, chess::Square p, const GTLib2::domains::KriegspielState * b): AbstractPiece(k, c, p, b) {}
     Bishop::Bishop(chess::pieceName k, int c, chess::Square p, const GTLib2::domains::KriegspielState * b): AbstractPiece(k, c, p, b) {}
     King::King(chess::pieceName k, int c, chess::Square p, const GTLib2::domains::KriegspielState * b): AbstractPiece(k, c, p, b) {}
     King::King(chess::pieceName k, int c, chess::Square p, const GTLib2::domains::KriegspielState * b, bool mo): AbstractPiece(k, c, p, b) {
-        moved_ = mo;
+        this->moved = mo;
     }
     Rook::Rook(chess::pieceName k, int c, chess::Square p, const GTLib2::domains::KriegspielState * b, bool mo): AbstractPiece(k, c, p, b) {
-        moved_ = mo;
+        this->moved = mo;
     }
 
     shared_ptr<AbstractPiece> Queen::clone() const {
-        return make_shared<Queen>(kind_, color_, position_, board_);
+        return make_shared<Queen>(this->kind, this->color, this->position, this->board);
     }
 
     shared_ptr<AbstractPiece> Pawn::clone() const {
-        return make_shared<Pawn>(kind_, color_, position_, board_, id_);
+        return make_shared<Pawn>(this->kind, this->color, this->position, this->board, this->id);
     }
 
     shared_ptr<AbstractPiece> Knight::clone() const {
-        return make_shared<Knight>(kind_, color_, position_, board_);
+        return make_shared<Knight>(this->kind, this->color, this->position, this->board);
     }
 
     shared_ptr<AbstractPiece> King::clone() const {
-        return make_shared<King>(kind_, color_, position_, board_, moved_);
+        return make_shared<King>(this->kind, this->color, this->position, this->board, this->moved);
     }
 
     shared_ptr<AbstractPiece> Rook::clone() const {
-        return make_shared<Rook>(kind_, color_, position_, board_, moved_);
+        return make_shared<Rook>(this->kind, this->color, this->position, this->board, this->moved);
     }
 
     shared_ptr<AbstractPiece> Bishop::clone() const {
-        return make_shared<Bishop>(kind_, color_, position_, board_);
+        return make_shared<Bishop>(this->kind, this->color, this->position, this->board);
     }
 
     int invertColor(int c) {
@@ -86,51 +86,51 @@ namespace chess {
     }
 
     void AbstractPiece::move(Square pos) {
-        position_ = pos;
-        moved_ = true;
+        this->position = pos;
+        this->moved = true;
     }
 
     bool AbstractPiece::hasMoved() const {
-        if(kind_ != PAWN) {
-            return moved_;
+        if(this->kind != PAWN) {
+            return this->moved;
         } else {
-            if(getColor() == WHITE) {
-                return position_.y == 2;
+            if(this->getColor() == WHITE) {
+                return this->position.y == 2;
             } else {
-                return position_.y == board_->getYSize() - 2;
+                return this->position.y == this->board->getYSize() - 2;
             }
         }
     }
 
     AbstractPiece* AbstractPiece::getPinnedBy() const {
-        return pinnedBy_;
+        return this->pinnedBy;
     }
 
     AbstractPiece* AbstractPiece::getProtectedBy() const {
-        return protectedBy_;
+        return this->protectedBy;
     }
 
     void AbstractPiece::setPinnedBy(AbstractPiece* p) {
-        pinnedBy_ = p;
+        this->pinnedBy = p;
     }
 
     void AbstractPiece::setProtectedBy(AbstractPiece* p) {
-        protectedBy_ = p;
+        this->protectedBy = p;
     }
 
     vector<Square>* AbstractPiece::getAllMoves() const {
-        return moves_.get();
+        return this->moves.get();
     }
 
     vector<Square>* AbstractPiece::getAllValidMoves() const {
-        return validMoves_.get();
+        return this->validMoves.get();
     }
 
     void AbstractPiece::updateValidMovesWhilePinned() {
-        AbstractPiece* pinner = getPinnedBy();
-        validMoves_->clear();
-        int dx = position_.x;
-        int dy = position_.y;
+        AbstractPiece* pinner = this->getPinnedBy();
+        this->validMoves->clear();
+        int dx = this->position.x;
+        int dy = this->position.y;
         Square pinnerPosition = pinner->getPosition();
 
         int incrementX = dx == pinnerPosition.x ? 0 : dx < pinnerPosition.x ? 1 : -1;
@@ -141,208 +141,208 @@ namespace chess {
 
         for(; !(dx == pinnerPosition.x && dy == pinnerPosition.y); dx += incrementX, dy += incrementY) {
             Square newPos(dx, dy);
-            validMoves_->push_back(newPos);
+            this->validMoves->push_back(newPos);
         }
 
-        validMoves_->push_back(pinnerPosition);
+        this->validMoves->push_back(pinnerPosition);
     }
 
     void AbstractPiece::update() {
-        updateMoves();
-        if(board_->isPlayerInCheck() == getColor()) {
-            if(getPinnedBy() != nullptr) {
+        this->updateMoves();
+        if(this->board->isPlayerInCheck() == this->getColor()) {
+            if(this->getPinnedBy() != nullptr) {
                 //pinned piece cant block check
-                validMoves_->clear();
+                this->validMoves->clear();
                 return;
             }
-            updateValidMovesWhileInCheck();
-        } else updateValidMovesPinsProtects(getPinnedBy() != nullptr);
+            this->updateValidMovesWhileInCheck();
+        } else this->updateValidMovesPinsProtects(this->getPinnedBy() != nullptr);
     }
 
     void AbstractPiece::updateValidMovesWhileInCheck() {
-        if(kind_ == KING) {
+        if(this->kind == KING) {
             for(int* i: queenKingMoves) {
-                Square newPos(position_.x+i[0], position_.y+i[1]);
-                shared_ptr<AbstractPiece> p = board_->getPieceOnCoords(newPos);
-                if(board_->coordOutOfBounds(newPos) || board_->isSquareUnderAttack(invertColor(color_), newPos) ||
-                        (p != nullptr && p->getColor() == getColor()) || (p != nullptr && p->getProtectedBy() != nullptr)) {
+                Square newPos(this->position.x+i[0], this->position.y+i[1]);
+                shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
+                if(this->board->coordOutOfBounds(newPos) || this->board->isSquareUnderAttack(invertColor(this->color), newPos) ||
+                        (p != nullptr && p->getColor() == this->getColor()) || (p != nullptr && p->getProtectedBy() != nullptr)) {
                     continue;
                 }
-                validMoves_->push_back(newPos);
+                this->validMoves->push_back(newPos);
 
             }
             return;
         }
-        if(board_->getCheckingFigures().size() == 2) {
-            validMoves_->clear();
+        if(this->board->getCheckingFigures().size() == 2) {
+            this->validMoves->clear();
             return;
         }
-        shared_ptr<AbstractPiece> king = board_->getPiecesOfColorAndKind(getColor(), KING)[0];
-        shared_ptr<AbstractPiece> checker = board_->getCheckingFigures().at(0);
+        shared_ptr<AbstractPiece> king = this->board->getPiecesOfColorAndKind(this->getColor(), KING)[0];
+        shared_ptr<AbstractPiece> checker = this->board->getCheckingFigures().at(0);
         if(checker->getKind() != KNIGHT) {
-            vector<Square> blockingSquares = board_->getSquaresBetween(king.get(), checker.get());
+            vector<Square> blockingSquares = this->board->getSquaresBetween(king.get(), checker.get());
             for(Square s: blockingSquares) {
-                if(std::find(moves_->begin(), moves_->end(), s) != moves_->end()) {
-                    validMoves_->push_back(s);
+                if(std::find(this->moves->begin(), this->moves->end(), s) != this->moves->end()) {
+                    this->validMoves->push_back(s);
                 }
             }
         }
-        if(std::find(moves_->begin(), moves_->end(), checker->getPosition()) != moves_->end()) {
-            validMoves_->push_back(checker->getPosition());
+        if(std::find(this->moves->begin(), this->moves->end(), checker->getPosition()) != this->moves->end()) {
+            this->validMoves->push_back(checker->getPosition());
         }
 
     }
 
     void AbstractPiece::reset() {
-        pinnedBy_ = nullptr;
-        protectedBy_ = nullptr;
-        moves_->clear();
-        validMoves_->clear();
+        this->pinnedBy = nullptr;
+        this->protectedBy = nullptr;
+        this->moves->clear();
+        this->validMoves->clear();
     }
 
     string AbstractPiece::toString() const {
-        return std::string(1 , color_ == chess::WHITE ? toupper(kind_) : tolower(kind_));
+        return std::string(1 , this->color == chess::WHITE ? toupper(this->kind) : tolower(this->kind));
     }
 
     bool AbstractPiece::operator==(const chess::AbstractPiece &that) const {
-        return getPosition() == that.getPosition() && getKind() == that.getKind() && getColor() == that.getColor();
+        return this->getPosition() == that.getPosition() && this->getKind() == that.getKind() && this->getColor() == that.getColor();
     }
 
     int AbstractPiece::getColor() const {
-        return color_;
+        return this->color;
     }
 
     Square AbstractPiece::getPosition() const {
-        return position_;
+        return this->position;
     }
 
     void AbstractPiece::setHasMoved(bool h) {
-        moved_ = h;
+        this->moved = h;
     }
 
     bool AbstractPiece::equal_to(const AbstractPiece & that) const {
-        return getColor() == that.getColor() && getPosition() == that.getPosition() && getKind() == that.getKind();
+        return this->getColor() == that.getColor() && this->getPosition() == that.getPosition() && this->getKind() == that.getKind();
     }
 
     void Pawn::updateMoves() {
         //cut moves
-        int ycut = color_ == WHITE ? position_.y + 1 : position_.y - 1;
-        Square cutpos(position_.x-1, ycut);
-        if(board_->getPieceOnCoords(cutpos) != nullptr) {
-            moves_->push_back(cutpos);
+        int ycut = this->color == WHITE ? this->position.y + 1 : this->position.y - 1;
+        Square cutpos(this->position.x-1, ycut);
+        if(this->board->getPieceOnCoords(cutpos) != nullptr) {
+            moves->push_back(cutpos);
         }
 
-        if(board_->getEnPassantSquare() == cutpos) {
-            moves_->push_back(cutpos);
+        if(this->board->getEnPassantSquare() == cutpos) {
+            moves->push_back(cutpos);
         }
 
-        Square cutpos2(position_.x+1, ycut);
-        if(board_->getPieceOnCoords(cutpos2) != nullptr) {
-            moves_->push_back(cutpos2);
+        Square cutpos2(this->position.x+1, ycut);
+        if(this->board->getPieceOnCoords(cutpos2) != nullptr) {
+            moves->push_back(cutpos2);
         }
 
-        if(board_->getEnPassantSquare() == cutpos2) {
-            moves_->push_back(cutpos2);
+        if(this->board->getEnPassantSquare() == cutpos2) {
+            moves->push_back(cutpos2);
         }
 
 
-        Square moveForward(position_.x, ycut);
-        moves_->push_back(moveForward);
+        Square moveForward(this->position.x, ycut);
+        moves->push_back(moveForward);
 
-        if(!moved_) {
-            Square moveByTwo(position_.x, color_ == WHITE ? position_.y + 2 : position_.y - 2);
-            moves_->push_back(moveByTwo);
+        if(!this->moved) {
+            Square moveByTwo(this->position.x, this->color == WHITE ? this->position.y + 2 : this->position.y - 2);
+            moves->push_back(moveByTwo);
         }
     }
 
     void Pawn::updateValidMovesPinsProtects(bool onlyPinsAndProtects) {
         //cut moves
-        int ycut = color_ == WHITE ? position_.y + 1 : position_.y - 1;
+        int ycut = this->color == WHITE ? this->position.y + 1 : this->position.y - 1;
         for(int i = -1; i < 2; i += 2) {
-            Square cutpos(position_.x + i, ycut);
-            if(board_->coordOutOfBounds(cutpos)) continue;
-            shared_ptr<AbstractPiece> p = board_->getPieceOnCoords(cutpos);
-            if(p != nullptr && p->getColor() != getColor()) {
-                if(!onlyPinsAndProtects) validMoves_->push_back(cutpos);
-            } else if (p != nullptr && p->getColor() == getColor()) {
+            Square cutpos(this->position.x + i, ycut);
+            if(this->board->coordOutOfBounds(cutpos)) continue;
+            shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(cutpos);
+            if(p != nullptr && p->getColor() != this->getColor()) {
+                if(!onlyPinsAndProtects) validMoves->push_back(cutpos);
+            } else if (p != nullptr && p->getColor() == this->getColor()) {
                 p->setProtectedBy(this);
-            } else if(board_->getEnPassantSquare() == cutpos) {
-                if(!onlyPinsAndProtects) validMoves_->push_back(cutpos);
+            } else if(this->board->getEnPassantSquare() == cutpos) {
+                if(!onlyPinsAndProtects) validMoves->push_back(cutpos);
             }
         }
 
-        Square moveForward(position_.x, ycut);
-        if(board_->getPieceOnCoords(moveForward) == nullptr) {
-            if(!onlyPinsAndProtects) validMoves_->push_back(moveForward);
+        Square moveForward(this->position.x, ycut);
+        if(this->board->getPieceOnCoords(moveForward) == nullptr) {
+            if(!onlyPinsAndProtects) validMoves->push_back(moveForward);
         }
 
-        Square moveByTwo(position_.x, color_ == WHITE ? position_.y + 2 : position_.y - 2);
-        if(!moved_ && board_->getPieceOnCoords(moveByTwo) == nullptr && board_->getPieceOnCoords(moveForward) == nullptr) {
-            if(!onlyPinsAndProtects) validMoves_->push_back(moveByTwo);
+        Square moveByTwo(this->position.x, this->color == WHITE ? this->position.y + 2 : this->position.y - 2);
+        if(!this->moved && this->board->getPieceOnCoords(moveByTwo) == nullptr && this->board->getPieceOnCoords(moveForward) == nullptr) {
+            if(!onlyPinsAndProtects) validMoves->push_back(moveByTwo);
         }
     }
 
     vector<Square> Pawn::getSquaresAttacked() const {
         vector<Square> v;
-        int ycut = color_ == WHITE ? position_.y + 1 : position_.y - 1;
-        Square pos1(position_.x-1, ycut);
+        int ycut = this->color == WHITE ? this->position.y + 1 : this->position.y - 1;
+        Square pos1(this->position.x-1, ycut);
         v.push_back(pos1);
 
-        Square pos2(position_.x+1, ycut);
+        Square pos2(this->position.x+1, ycut);
         v.push_back(pos2);
         return v;
     }
 
     int Pawn::getId() const {
-        return id_;
+        return this->id;
     }
 
     void Rook::updateMoves() {
         for(int* i: rookMoves) {
-            int dx = position_.x;
-            int dy = position_.y;
+            int dx = this->position.x;
+            int dy = this->position.y;
             bool breakInner = false;
             dx += i[0];
             dy += i[1];
             //for cycle runs until coordinates are out of bounds
-            for(;!board_->coordOutOfBounds(Square(dx, dy));dx += i[0], dy += i[1]) {
+            for(;!this->board->coordOutOfBounds(Square(dx, dy));dx += i[0], dy += i[1]) {
                 if(breakInner) continue;
                 Square newPos(dx, dy);
-                shared_ptr<AbstractPiece> p = board_->getPieceOnCoords(newPos);
-                if(p != nullptr && p->getColor() == getColor()) {
+                shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
+                if(p != nullptr && p->getColor() == this->getColor()) {
                     breakInner = true;
                     continue;
                 }
-                moves_->push_back(newPos);
+                this->moves->push_back(newPos);
             }
         }
     }
 
     void Rook::updateValidMovesPinsProtects(bool onlyPinsAndProtects) {
         for(int* i: rookMoves) {
-            int dx = position_.x;
-            int dy = position_.y;
+            int dx = this->position.x;
+            int dy = this->position.y;
             bool breakInner = false;
             dx += i[0];
             dy += i[1];
             //for cycle runs until coordinates are out of bounds
-            for(;!board_->coordOutOfBounds(Square(dx, dy));dx += i[0], dy += i[1]) {
+            for(;!this->board->coordOutOfBounds(Square(dx, dy));dx += i[0], dy += i[1]) {
                 if(breakInner) break;
                 Square newPos(dx,dy);
-                shared_ptr<AbstractPiece> p = board_->getPieceOnCoords(newPos);
+                shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
                 if(p != nullptr) {
                     breakInner = true;
-                    if(p->getColor() == getColor()) {
+                    if(p->getColor() == this->getColor()) {
                         p->setProtectedBy(this);
                         continue;
                     } else {
-                        if(board_->checkPinnedPiece(this, p.get())) {
+                        if(this->board->checkPinnedPiece(this, p.get())) {
                             p->setPinnedBy(this);
                             p->updateValidMovesWhilePinned();
                         }
                     }
                 }
-                if(!onlyPinsAndProtects) validMoves_->push_back(newPos);
+                if(!onlyPinsAndProtects) this->validMoves->push_back(newPos);
             }
         }
     }
@@ -350,17 +350,17 @@ namespace chess {
     vector<Square> Rook::getSquaresAttacked() const {
         vector<Square> v;
         for(int* i: rookMoves) {
-            int dx = position_.x;
-            int dy = position_.y;
+            int dx = this->position.x;
+            int dy = this->position.y;
             bool breakInner = false;
             dx += i[0];
             dy += i[1];
             //for cycle runs until coordinates are out of bounds
-            for(;!board_->coordOutOfBounds(Square(dx, dy));dx += i[0], dy += i[1]) {
+            for(;!this->board->coordOutOfBounds(Square(dx, dy));dx += i[0], dy += i[1]) {
                 if(breakInner) break;
                 Square newPos(dx, dy);
-                shared_ptr<AbstractPiece> p = board_->getPieceOnCoords(newPos);
-                if((p != nullptr && p->getKind() != KING) || (p != nullptr && p->getKind() == KING && p->getColor() == getColor())) {
+                shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
+                if((p != nullptr && p->getKind() != KING) || (p != nullptr && p->getKind() == KING && p->getColor() == this->getColor())) {
                     breakInner = true;
                 }
                 v.push_back(newPos);
@@ -371,28 +371,28 @@ namespace chess {
 
     void Knight::updateMoves() {
         for(int* i: knightMoves) {
-            int dx = position_.x;
-            int dy = position_.y;
+            int dx = this->position.x;
+            int dy = this->position.y;
             Square newPos(dx+i[0], dy+i[1]);
-            shared_ptr<AbstractPiece> p = board_->getPieceOnCoords(newPos);
-            if(!board_->coordOutOfBounds(newPos) && (p == nullptr || (p != nullptr && p->getColor() != getColor()))) {
-                moves_->push_back(newPos);
+            shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
+            if(!this->board->coordOutOfBounds(newPos) && (p == nullptr || (p != nullptr && p->getColor() != this->getColor()))) {
+                this->moves->push_back(newPos);
             }
         }
     }
 
     void Knight::updateValidMovesPinsProtects(bool onlyPinsAndProtects) {
         for(int* i: knightMoves) {
-            int dx = position_.x;
-            int dy = position_.y;
+            int dx = this->position.x;
+            int dy = this->position.y;
             Square newPos(dx+i[0], dy+i[1]);
-            shared_ptr<AbstractPiece> p = board_->getPieceOnCoords(newPos);
-            if(!board_->coordOutOfBounds(newPos)) {
-                if(p != nullptr && p->getColor() == getColor()) {
+            shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
+            if(!this->board->coordOutOfBounds(newPos)) {
+                if(p != nullptr && p->getColor() == this->getColor()) {
                     p->setProtectedBy(this);
                     continue;
                 }
-                if(!onlyPinsAndProtects) validMoves_->push_back(newPos);
+                if(!onlyPinsAndProtects) this->validMoves->push_back(newPos);
             }
         }
     }
@@ -400,12 +400,12 @@ namespace chess {
     vector<Square> Knight::getSquaresAttacked() const {
         vector<Square> v;
         for(int* i: knightMoves) {
-            int dx = position_.x;
-            int dy = position_.y;
+            int dx = this->position.x;
+            int dy = this->position.y;
             Square newPos(dx+i[0], dy+i[1]);
-            shared_ptr<AbstractPiece> p = board_->getPieceOnCoords(newPos);
-            if(!board_->coordOutOfBounds(newPos)) {
-                if(p != nullptr && p->getColor() == getColor()) {
+            shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
+            if(!this->board->coordOutOfBounds(newPos)) {
+                if(p != nullptr && p->getColor() == this->getColor()) {
                     continue;
                 }
                 v.push_back(newPos);
@@ -416,50 +416,50 @@ namespace chess {
 
     void Bishop::updateMoves() {
         for(int* i: bishopMoves) {
-            int dx = position_.x;
-            int dy = position_.y;
+            int dx = this->position.x;
+            int dy = this->position.y;
             bool breakInner = false;
             dx += i[0];
             dy += i[1];
             //for cycle runs until coordinates are out of bounds
-            for(;!board_->coordOutOfBounds(Square(dx, dy));dx += i[0], dy += i[1]) {
+            for(;!this->board->coordOutOfBounds(Square(dx, dy));dx += i[0], dy += i[1]) {
                 if(breakInner) continue;
                 Square newPos(dx, dy);
-                shared_ptr<AbstractPiece> p = board_->getPieceOnCoords(newPos);
-                if(p != nullptr && p->getColor() == getColor()) {
+                shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
+                if(p != nullptr && p->getColor() == this->getColor()) {
                     breakInner = true;
                     continue;
                 }
-                moves_->push_back(newPos);
+                this->moves->push_back(newPos);
             }
         }
     }
 
     void Bishop::updateValidMovesPinsProtects(bool onlyPinsAndProtects) {
         for(int* i: bishopMoves) {
-            int dx = position_.x;
-            int dy = position_.y;
+            int dx = this->position.x;
+            int dy = this->position.y;
             bool breakInner = false;
             dx += i[0];
             dy += i[1];
             //for cycle runs until coordinates are out of bounds
-            for(;!board_->coordOutOfBounds(Square(dx, dy));dx += i[0], dy += i[1]) {
+            for(;!this->board->coordOutOfBounds(Square(dx, dy));dx += i[0], dy += i[1]) {
                 if(breakInner) break;
                 Square newPos(dx, dy);
-                shared_ptr<AbstractPiece> p = board_->getPieceOnCoords(newPos);
+                shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
                 if(p != nullptr) {
                     breakInner = true;
-                    if(p->getColor() == getColor()) {
+                    if(p->getColor() == this->getColor()) {
                         p->setProtectedBy(this);
                         continue;
                     } else {
-                        if(board_->checkPinnedPiece(this, p.get())) {
+                        if(this->board->checkPinnedPiece(this, p.get())) {
                             p->setPinnedBy(this);
                             p->updateValidMovesWhilePinned();
                         }
                     }
                 }
-                if(!onlyPinsAndProtects) validMoves_->push_back(newPos);
+                if(!onlyPinsAndProtects) this->validMoves->push_back(newPos);
             }
         }
     }
@@ -467,17 +467,17 @@ namespace chess {
     vector<Square> Bishop::getSquaresAttacked() const {
         vector<Square> v;
         for(int* i: bishopMoves) {
-            int dx = position_.x;
-            int dy = position_.y;
+            int dx = this->position.x;
+            int dy = this->position.y;
             bool breakInner = false;
             dx += i[0];
             dy += i[1];
             //for cycle runs until coordinates are out of bounds
-            for(;!board_->coordOutOfBounds(Square(dx, dy));dx += i[0], dy += i[1]) {
+            for(;!this->board->coordOutOfBounds(Square(dx, dy));dx += i[0], dy += i[1]) {
                 if(breakInner) break;
                 Square newPos(dx, dy);
-                shared_ptr<AbstractPiece> p = board_->getPieceOnCoords(newPos);
-                if((p != nullptr && p->getKind() != KING) || (p != nullptr && p->getKind() == KING && p->getColor() == getColor())) {
+                shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
+                if((p != nullptr && p->getKind() != KING) || (p != nullptr && p->getKind() == KING && p->getColor() == this->getColor())) {
                     breakInner = true;
                 }
                 v.push_back(newPos);
@@ -488,50 +488,50 @@ namespace chess {
 
     void Queen::updateMoves() {
         for(int* i: queenKingMoves) {
-            int dx = position_.x;
-            int dy = position_.y;
+            int dx = this->position.x;
+            int dy = this->position.y;
             bool breakInner = false;
             dx += i[0];
             dy += i[1];
             //for cycle runs until coordinates are out of bounds
-            for(;!board_->coordOutOfBounds(Square(dx, dy));dx += i[0], dy += i[1]) {
+            for(;!this->board->coordOutOfBounds(Square(dx, dy));dx += i[0], dy += i[1]) {
                 if(breakInner) continue;
                 Square newPos(dx, dy);
-                shared_ptr<AbstractPiece> p = board_->getPieceOnCoords(newPos);
-                if(p != nullptr && p->getColor() == getColor()) {
+                shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
+                if(p != nullptr && p->getColor() == this->getColor()) {
                     breakInner = true;
                     continue;
                 }
-                moves_->push_back(newPos);
+                this->moves->push_back(newPos);
             }
         }
     }
 
     void Queen::updateValidMovesPinsProtects(bool onlyPinsAndProtects) {
         for(int* i: queenKingMoves) {
-            int dx = position_.x;
-            int dy = position_.y;
+            int dx = this->position.x;
+            int dy = this->position.y;
             bool breakInner = false;
             dx += i[0];
             dy += i[1];
             //for cycle runs until coordinates are out of bounds
-            for(;!board_->coordOutOfBounds(Square(dx, dy));dx += i[0], dy += i[1]) {
+            for(;!this->board->coordOutOfBounds(Square(dx, dy));dx += i[0], dy += i[1]) {
                 if(breakInner) break;
                 Square newPos(dx, dy);
-                shared_ptr<AbstractPiece> p = board_->getPieceOnCoords(newPos);
+                shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
                 if(p != nullptr) {
                     breakInner = true;
-                    if(p->getColor() == getColor()) {
+                    if(p->getColor() == this->getColor()) {
                         p->setProtectedBy(this);
                         continue;
                     } else {
-                        if(board_->checkPinnedPiece(this, p.get())) {
+                        if(this->board->checkPinnedPiece(this, p.get())) {
                             p->setPinnedBy(this);
                             p->updateValidMovesWhilePinned();
                         }
                     }
                 }
-                if(!onlyPinsAndProtects) validMoves_->push_back(newPos);
+                if(!onlyPinsAndProtects) this->validMoves->push_back(newPos);
             }
         }
     }
@@ -539,17 +539,17 @@ namespace chess {
     vector<Square> Queen::getSquaresAttacked() const {
         vector<Square> v;
         for(int* i: queenKingMoves) {
-            int dx = position_.x;
-            int dy = position_.y;
+            int dx = this->position.x;
+            int dy = this->position.y;
             bool breakInner = false;
             dx += i[0];
             dy += i[1];
             //for cycle runs until coordinates are out of bounds
-            for(;!board_->coordOutOfBounds(Square(dx, dy));dx += i[0], dy += i[1]) {
+            for(;!this->board->coordOutOfBounds(Square(dx, dy));dx += i[0], dy += i[1]) {
                 if(breakInner) break;
                 Square newPos(dx, dy);
-                shared_ptr<AbstractPiece> p = board_->getPieceOnCoords(newPos);
-                if((p != nullptr && p->getKind() != KING) || (p != nullptr && p->getKind() == KING && p->getColor() == getColor())) {
+                shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
+                if((p != nullptr && p->getKind() != KING) || (p != nullptr && p->getKind() == KING && p->getColor() == this->getColor())) {
                     breakInner = true;
                 }
                 v.push_back(newPos);
@@ -560,43 +560,43 @@ namespace chess {
 
     void King::updateMoves() {
         for(int* i: queenKingMoves) {
-            Square newPos(position_.x+i[0], position_.y+i[1]);
-            if(board_->coordOutOfBounds(newPos)) {
+            Square newPos(this->position.x+i[0], this->position.y+i[1]);
+            if(this->board->coordOutOfBounds(newPos)) {
                 continue;
             }
-            shared_ptr<AbstractPiece> p = board_->getPieceOnCoords(newPos);
-            if(p != nullptr && p->getColor() == getColor()) continue;
-            moves_->push_back(newPos);
+            shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
+            if(p != nullptr && p->getColor() == this->getColor()) continue;
+            this->moves->push_back(newPos);
         }
 
-        if(!hasMoved() && board_->isPlayerInCheck() != getColor() && board_->canCastle()) {
-            vector<shared_ptr<AbstractPiece>> rooks = board_->getPiecesOfColorAndKind(color_, ROOK);
+        if(!this->hasMoved() && this->board->isPlayerInCheck() != this->getColor() && this->board->canCastle()) {
+            vector<shared_ptr<AbstractPiece>> rooks = this->board->getPiecesOfColorAndKind(this->color, ROOK);
             for(const shared_ptr<AbstractPiece>& r: rooks) {
                 if(!r->hasMoved()) {
-                    vector<Square> squaresBetween = board_->getSquaresBetween(r.get(), this);
+                    vector<Square> squaresBetween = this->board->getSquaresBetween(r.get(), this);
                     if(squaresBetween.size() == 2) {
                         //short castle
 
                         bool breakinner = false;
                         //check if there are pieces in the way
                         for(Square i: squaresBetween) {
-                            if(board_->getPieceOnCoords(i) != nullptr) {
+                            if(this->board->getPieceOnCoords(i) != nullptr) {
                                 breakinner = true;
                                 break;
                             }
                         }
                         if(breakinner) continue;
 
-                        int dx = r->getPosition().x > position_.x ? r->getPosition().x - 1: r->getPosition().x + 1;
-                        Square newPos(dx, position_.y);
-                        moves_->push_back(newPos);
+                        int dx = r->getPosition().x > this->position.x ? r->getPosition().x - 1: r->getPosition().x + 1;
+                        Square newPos(dx, this->position.y);
+                        this->moves->push_back(newPos);
                     } else {
                         //long castle
 
                         bool breakinner = false;
                         //check if there are pieces in the way
                         for(Square i: squaresBetween) {
-                            if(board_->getPieceOnCoords(i) != nullptr) {
+                            if(this->board->getPieceOnCoords(i) != nullptr) {
                                 breakinner = true;
                                 break;
                             }
@@ -604,9 +604,9 @@ namespace chess {
                         if(breakinner) continue;
 
 
-                        int dx = r->getPosition().x > position_.x ? r->getPosition().x - 2: r->getPosition().x + 2;
-                        Square newPos(dx, position_.y);
-                        moves_->push_back(newPos);
+                        int dx = r->getPosition().x > this->position.x ? r->getPosition().x - 2: r->getPosition().x + 2;
+                        Square newPos(dx, this->position.y);
+                        this->moves->push_back(newPos);
                     }
                 }
             }
@@ -615,64 +615,64 @@ namespace chess {
 
     void King::updateValidMovesPinsProtects(bool onlyPinsAndProtects) {
         for(int* i: queenKingMoves) {
-            Square newPos(position_.x+i[0], position_.y+i[1]);
-            if(board_->coordOutOfBounds(newPos) || board_->isSquareUnderAttack(invertColor(getColor()), newPos)) {
+            Square newPos(this->position.x+i[0], this->position.y+i[1]);
+            if(this->board->coordOutOfBounds(newPos) || this->board->isSquareUnderAttack(invertColor(this->getColor()), newPos)) {
                 continue;
             }
-            shared_ptr<AbstractPiece> p = board_->getPieceOnCoords(newPos);
-            if(p != nullptr && p->getColor() == getColor()) {
+            shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
+            if(p != nullptr && p->getColor() == this->getColor()) {
                 p->setProtectedBy(this);
                 continue;
             }
             if(p != nullptr && p->getProtectedBy() != nullptr) continue;
-            validMoves_->push_back(newPos);
+            this->validMoves->push_back(newPos);
         }
 
-        if(!hasMoved() && board_->isPlayerInCheck() != getColor() && board_->canCastle()) {
-            vector<shared_ptr<AbstractPiece>> rooks = board_->getPiecesOfColorAndKind(color_, ROOK);
+        if(!this->hasMoved() && this->board->isPlayerInCheck() != this->getColor() && this->board->canCastle()) {
+            vector<shared_ptr<AbstractPiece>> rooks = this->board->getPiecesOfColorAndKind(this->color, ROOK);
             for(const shared_ptr<AbstractPiece>& r: rooks) {
                 if(!r->hasMoved()) {
-                    vector<Square> squares = board_->getSquaresBetween(r.get(), this);
+                    vector<Square> squares = this->board->getSquaresBetween(r.get(), this);
                     bool breakinner = false;
                     for(Square i: squares) {
-                        if(board_->isSquareUnderAttack(invertColor(color_), i)) {
+                        if(this->board->isSquareUnderAttack(invertColor(this->color), i)) {
                             breakinner = true;
                         }
                     }
                     if(breakinner) continue;
-                    vector<Square> squaresBetween = board_->getSquaresBetween(r.get(), this);
+                    vector<Square> squaresBetween = this->board->getSquaresBetween(r.get(), this);
                     if(squaresBetween.size() == 2) {
                         //short castle
 
                         bool breakin = false;
                         //check if there are pieces in the way
                         for(Square i: squaresBetween) {
-                            if(board_->getPieceOnCoords(i) != nullptr) {
+                            if(this->board->getPieceOnCoords(i) != nullptr) {
                                 breakin = true;
                                 break;
                             }
                         }
                         if(breakin) continue;
 
-                        int dx = r->getPosition().x > position_.x ? r->getPosition().x - 1: r->getPosition().x + 1;
-                        Square newPos(dx, position_.y);
-                        validMoves_->push_back(newPos);
+                        int dx = r->getPosition().x > this->position.x ? r->getPosition().x - 1: r->getPosition().x + 1;
+                        Square newPos(dx, this->position.y);
+                        this->validMoves->push_back(newPos);
                     } else {
                         //long castle
 
                         bool breakin = false;
                         //check if there are pieces in the way
                         for(Square i: squaresBetween) {
-                            if(board_->getPieceOnCoords(i) != nullptr) {
+                            if(this->board->getPieceOnCoords(i) != nullptr) {
                                 breakin = true;
                                 break;
                             }
                         }
                         if(breakin) continue;
 
-                        int dx = r->getPosition().x > position_.x ? r->getPosition().x - 2: r->getPosition().x + 2;
-                        Square newPos(dx, position_.y);
-                        validMoves_->push_back(newPos);
+                        int dx = r->getPosition().x > this->position.x ? r->getPosition().x - 2: r->getPosition().x + 2;
+                        Square newPos(dx, this->position.y);
+                        this->validMoves->push_back(newPos);
                     }
                 }
             }
@@ -682,11 +682,11 @@ namespace chess {
     vector<Square> King::getSquaresAttacked() const {
         vector<Square> v;
         for(int* i: queenKingMoves) {
-            Square newPos(position_.x+i[0], position_.y+i[1]);
-            if(board_->coordOutOfBounds(newPos)) {
+            Square newPos(this->position.x+i[0], this->position.y+i[1]);
+            if(this->board->coordOutOfBounds(newPos)) {
                 continue;
             }
-            shared_ptr<AbstractPiece> p = board_->getPieceOnCoords(newPos);
+            shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
             if(p != nullptr) {
                 continue;
             }
@@ -702,17 +702,17 @@ namespace GTLib2 {
 
         KriegspielAction::KriegspielAction
         (ActionId id, pair<shared_ptr<AbstractPiece>, Square> move, Square originalPos):
-        Action(id), moveFrom_(originalPos), move_(std::move(move)) {
+        Action(id), moveFrom(originalPos), move_(std::move(move)) {
         }
 
         KriegspielAction::KriegspielAction(ActionId id):
-        Action(id), moveFrom_(-1, -1),
+        Action(id), moveFrom(-1, -1),
         move_(pair<shared_ptr<AbstractPiece>, Square>(nullptr, Square(-1, -1))) {
 
         }
 
         Square KriegspielAction::movingFrom() const {
-            return moveFrom_;
+            return this->moveFrom;
         }
 
         KriegspielDomain::KriegspielDomain(unsigned int maxDepth, unsigned int legalMaxDepth, chess::BOARD b):Domain(maxDepth, 2) {
@@ -723,61 +723,61 @@ namespace GTLib2 {
             maxUtility_ = 1;
         }
         KriegspielObservation::KriegspielObservation(int id):Observation(id) {}
-        KriegspielState::KriegspielState(GTLib2::Domain *domain, int legalMaxDepth, chess::BOARD b):State(domain), enPassantSquare_(-1, -1) {
-            moveHistory_ = make_shared<vector<shared_ptr<KriegspielAction>>>();
-            attemptedMoveHistory_ = make_shared<vector<shared_ptr<KriegspielAction>>>();
-            playerOnTheMove_ = chess::WHITE;
-            legalMaxDepth = legalMaxDepth;
-            initBoard(b);
-            updateState(chess::WHITE);
+        KriegspielState::KriegspielState(GTLib2::Domain *domain, int legalMaxDepth, chess::BOARD b):State(domain), enPassantSquare(-1, -1) {
+            this->moveHistory = make_shared<vector<shared_ptr<KriegspielAction>>>();
+            this->attemptedMoveHistory = make_shared<vector<shared_ptr<KriegspielAction>>>();
+            this->playerOnTheMove = chess::WHITE;
+            this->legalMaxDepth = legalMaxDepth;
+            this->initBoard(b);
+            this->updateState(chess::WHITE);
         }
 
-        KriegspielState::KriegspielState(Domain *domain, int legalMaxDepth, string s): State(domain), enPassantSquare_(-1, -1) {
-            moveHistory_ = make_shared<vector<shared_ptr<KriegspielAction>>>();
-            attemptedMoveHistory_ = make_shared<vector<shared_ptr<KriegspielAction>>>();
-            playerOnTheMove_ = chess::WHITE;
-            legalMaxDepth = legalMaxDepth;
-            initBoard(std::move(s));
-            updateAllPieces();
+        KriegspielState::KriegspielState(Domain *domain, int legalMaxDepth, string s): State(domain), enPassantSquare(-1, -1) {
+            this->moveHistory = make_shared<vector<shared_ptr<KriegspielAction>>>();
+            this->attemptedMoveHistory = make_shared<vector<shared_ptr<KriegspielAction>>>();
+            this->playerOnTheMove = chess::WHITE;
+            this->legalMaxDepth = legalMaxDepth;
+            this->initBoard(std::move(s));
+            this->updateAllPieces();
         }
 
         KriegspielState::KriegspielState(GTLib2::Domain *domain, int legalMaxDepth, int x, int y, shared_ptr<vector<shared_ptr<chess::AbstractPiece>>> pieces,
                                          Square enPassantSquare, shared_ptr<vector<shared_ptr<KriegspielAction>>> moves, int p, bool castle,
-                                         shared_ptr<vector<shared_ptr<KriegspielAction>>> attemptedMoves):State(domain), enPassantSquare_(enPassantSquare) {
-            xSize_ = x;
-            ySize_ = y;
-            pieces = std::move(pieces);
-            moveHistory_ = std::move(moves);
-            legalMaxDepth = legalMaxDepth;
-            attemptedMoveHistory_ = std::move(attemptedMoves);
-            canPlayerCastle_ = castle;
+                                         shared_ptr<vector<shared_ptr<KriegspielAction>>> attemptedMoves):State(domain), enPassantSquare(enPassantSquare) {
+            this->xSize = x;
+            this->ySize = y;
+            this->pieces = std::move(pieces);
+            this->moveHistory = std::move(moves);
+            this->legalMaxDepth = legalMaxDepth;
+            this->attemptedMoveHistory = std::move(attemptedMoves);
+            this->canPlayerCastle = castle;
 
             //rebind to new board state
-            for(shared_ptr<AbstractPiece>& piece: *pieces) {
+            for(shared_ptr<AbstractPiece>& piece: *this->pieces) {
                 piece->setBoard(this);
             }
-            playerOnTheMove_ = p;
+            this->playerOnTheMove = p;
         }
 
         pair<shared_ptr<AbstractPiece>, Square> KriegspielAction::getMove() const {
-            return move_;
+            return this->move_;
         }
 
         bool KriegspielAction::operator==(const GTLib2::Action &that) const {
             const auto rhsAction = dynamic_cast<const KriegspielAction *>(&that);
-            return move_.first->equal_to(*rhsAction->move_.first) && move_.second == rhsAction->move_.second && movingFrom() == rhsAction->movingFrom();
+            return this->move_.first->equal_to(*rhsAction->move_.first) && this->move_.second == rhsAction->move_.second && this->movingFrom() == rhsAction->movingFrom();
         }
 
         size_t KriegspielAction::getHash() const {
             std::hash<string> h;
-            string s = move_.first->toString() + chess::coordToString(move_.second) + chess::coordToString(movingFrom());
+            string s = this->move_.first->toString() + chess::coordToString(this->move_.second) + chess::coordToString(this->movingFrom());
             return h(s);
         }
 
         shared_ptr<KriegspielAction> KriegspielAction::clone() const {
-            Square s = Square(getMove().second.x, getMove().second.y);
-            shared_ptr<AbstractPiece> p = getMove().first->clone();
-            Square f = Square(movingFrom().x, movingFrom().y);
+            Square s = Square(this->getMove().second.x, this->getMove().second.y);
+            shared_ptr<AbstractPiece> p = this->getMove().first->clone();
+            Square f = Square(this->movingFrom().x, this->movingFrom().y);
             auto a = make_shared<KriegspielAction>(id_, pair<shared_ptr<AbstractPiece>, chess::Square>(p, s), f);
             return a;
         }
@@ -796,16 +796,16 @@ namespace GTLib2 {
 
         vector<shared_ptr<Action>> KriegspielState::getAvailableActionsFor(Player player) const {
             auto list = vector<shared_ptr<Action>>();
-            if(player != playerOnTheMove_ || gameHasEnded_ || moveHistory_->size() == legalMaxDepth_) {
+            if(player != this->playerOnTheMove || this->gameHasEnded || this->moveHistory->size() == this->legalMaxDepth) {
                 return list;
             }
             int count = 0;
-            for (shared_ptr<AbstractPiece>p: *pieces_) {
+            for (shared_ptr<AbstractPiece>p: *this->pieces) {
                 if(p->getColor() != player) continue;
                 auto moves = p->getAllMoves();
                 for(Square move: *moves) {
                     auto ksa = make_shared<KriegspielAction>(count, std::pair<shared_ptr<AbstractPiece>, Square>(p, move), p->getPosition());
-                    if(std::find(attemptedMoveHistory_->begin(), attemptedMoveHistory_->end(), ksa) == attemptedMoveHistory_->end()) {
+                    if(std::find(attemptedMoveHistory->begin(), attemptedMoveHistory->end(), ksa) == attemptedMoveHistory->end()) {
                         list.push_back(ksa);
                         ++count;
                     }
@@ -816,10 +816,10 @@ namespace GTLib2 {
 
         void KriegspielState::promote(shared_ptr<AbstractPiece> p, Square pos) const {
             auto q = make_shared<chess::Queen>(chess::QUEEN, p->getColor(), pos, this);
-            for(auto It = pieces_->begin(); It != pieces_->end();) {
+            for(auto It = this->pieces->begin(); It != this->pieces->end();) {
                 if(*(*It) == *p) {
-                    pieces_->erase(It);
-                    pieces_->push_back(q);
+                    this->pieces->erase(It);
+                    this->pieces->push_back(q);
                     break;
                 }
                 else {
@@ -830,7 +830,7 @@ namespace GTLib2 {
 
         vector<shared_ptr<AbstractPiece>> KriegspielState::getPiecesOfColor(int color) const {
             vector<shared_ptr<AbstractPiece>> v;
-            for(shared_ptr<AbstractPiece>& p: *pieces_) {
+            for(shared_ptr<AbstractPiece>& p: *this->pieces) {
                 if(p->getColor() == color) {
                     v.push_back(p);
                 }
@@ -839,17 +839,17 @@ namespace GTLib2 {
         }
 
         int KriegspielState::isPlayerInCheck() const {
-            return playerInCheck_;
+            return this->playerInCheck;
         }
 
         vector<shared_ptr<AbstractPiece>> KriegspielState::getCheckingFigures() const {
-            return checkingFigures_;
+            return this->checkingFigures;
         }
 
         int KriegspielState::checkGameOverCheck(int c) const {
             int inCheck = -1;
-            shared_ptr<AbstractPiece> king = getPiecesOfColorAndKind(c, chess::KING)[0];
-            for(const shared_ptr<AbstractPiece>& p: *pieces_) {
+            shared_ptr<AbstractPiece> king = this->getPiecesOfColorAndKind(c, chess::KING)[0];
+            for(const shared_ptr<AbstractPiece>& p: *this->pieces) {
                 if(p->getColor() == c) continue;
                 Square kingPos = king->getPosition();
                 vector<Square> attackSquares = p->getSquaresAttacked();
@@ -861,22 +861,22 @@ namespace GTLib2 {
         }
 
         void KriegspielState::checkPlayerInCheck() {
-            int kingColor = playerOnTheMove_;
-            playerInCheck_ = -1;
-            shared_ptr<AbstractPiece> king = getPiecesOfColorAndKind(kingColor, chess::KING)[0];
-            for(const shared_ptr<AbstractPiece>& p: *pieces_) {
+            int kingColor = this->playerOnTheMove;
+            this->playerInCheck = -1;
+            shared_ptr<AbstractPiece> king = this->getPiecesOfColorAndKind(kingColor, chess::KING)[0];
+            for(const shared_ptr<AbstractPiece>& p: *this->pieces) {
                 if(p->getColor() == kingColor) continue;
                 Square kingPos = king->getPosition();
                 vector<Square> attackSquares = p->getSquaresAttacked();
                 if(std::find(attackSquares.begin(), attackSquares.end(), kingPos) != attackSquares.end()) {
-                    playerInCheck_ = kingColor;
-                    checkingFigures_.push_back(p);
+                    this->playerInCheck = kingColor;
+                    this->checkingFigures.push_back(p);
                 }
             }
         }
 
         bool KriegspielState::canCastle() const {
-            return canPlayerCastle_;
+            return this->canPlayerCastle;
         }
 
         void KriegspielState::castle(KriegspielAction* a) const {
@@ -889,7 +889,7 @@ namespace GTLib2 {
             int incrementX = pos.x > dx ? 1 : -1;
             shared_ptr<AbstractPiece> rook;
             dx += incrementX;
-            for(; ((rook = getPieceOnCoords(Square(dx, dy))) == nullptr); dx += incrementX);
+            for(; ((rook = this->getPieceOnCoords(Square(dx, dy))) == nullptr); dx += incrementX);
             int newRookX = pos.x > rook->getPosition().x ? pos.x + 1 : pos.x - 1;
             Square newRookPos(newRookX, rook->getPosition().y);
             rook->move(newRookPos);
@@ -897,17 +897,17 @@ namespace GTLib2 {
 
         bool KriegspielState::move(KriegspielAction * a) {
             pair<shared_ptr<AbstractPiece>, Square> move = a->getMove();
-            shared_ptr<AbstractPiece> p = getPieceOnCoords(move.first->getPosition());
+            shared_ptr<AbstractPiece> p = this->getPieceOnCoords(move.first->getPosition());
             Square pos = move.second;
 
             if(std::find(p->getAllValidMoves()->begin(), p->getAllValidMoves()->end(), pos) != p->getAllValidMoves()->end()) {
                 //move valid
-                shared_ptr<AbstractPiece> checkCut = getPieceOnCoords(pos);
+                shared_ptr<AbstractPiece> checkCut = this->getPieceOnCoords(pos);
                 if(checkCut != nullptr) {
-                    lastCut_ = 30 + checkCut->getPosition().x + ((checkCut->getPosition().y-1) * ySize_);
-                    for(auto It = pieces_->begin(); It != pieces_->end();) {
+                    lastCut = 30 + checkCut->getPosition().x + ((checkCut->getPosition().y-1) * this->ySize);
+                    for(auto It = this->pieces->begin(); It != this->pieces->end();) {
                         if(*(*It) == *checkCut) {
-                            pieces_->erase(It);
+                            this->pieces->erase(It);
                             break;
                         }
                         else {
@@ -916,15 +916,15 @@ namespace GTLib2 {
                     }
                 }
 
-                if(pos.x == enPassantSquare_.x && pos.y == enPassantSquare_.y) {
+                if(pos.x == this->enPassantSquare.x && pos.y == this->enPassantSquare.y) {
                     int pawnColor = chess::invertColor(p->getColor());
                     int y = pawnColor == chess::WHITE ? pos.y + 1 : pos.y - 1;
                     Square enPassPos(pos.x, y);
-                    shared_ptr<AbstractPiece> enPassPawn = getPieceOnCoords(enPassPos);
+                    shared_ptr<AbstractPiece> enPassPawn = this->getPieceOnCoords(enPassPos);
                     if(enPassPawn != nullptr) {
-                        for(auto It = pieces_->begin(); It != pieces_->end();) {
+                        for(auto It = this->pieces->begin(); It != this->pieces->end();) {
                             if(*(*It) == *enPassPawn) {
-                                pieces_->erase(It);
+                                this->pieces->erase(It);
                                 break;
                             }
                             else {
@@ -935,12 +935,12 @@ namespace GTLib2 {
                 }
 
                 if(p->getKind() == chess::KING && abs(a->movingFrom().x - pos.x) > 1) {
-                    castle(a);
+                    this->castle(a);
                 }
                 p->move(pos);
-                checkPlayerInCheck();
-                if(p->getKind() == chess::PAWN && ((pos.y == getYSize() && p->getColor() == chess::WHITE) || (pos.y == 1 && p->getColor() == chess::BLACK))) {
-                    promote(p, pos);
+                this->checkPlayerInCheck();
+                if(p->getKind() == chess::PAWN && ((pos.y == this->getYSize() && p->getColor() == chess::WHITE) || (pos.y == 1 && p->getColor() == chess::BLACK))) {
+                    this->promote(p, pos);
                 }
                 return true;
             } else {
@@ -950,8 +950,8 @@ namespace GTLib2 {
 
         vector<double> KriegspielState::checkGameOver() const {
             vector<double> rewards(2);
-            vector<shared_ptr<AbstractPiece>> whitePieces = getPiecesOfColor(0);
-            vector<shared_ptr<AbstractPiece>> blackPieces = getPiecesOfColor(1);
+            vector<shared_ptr<AbstractPiece>> whitePieces = this->getPiecesOfColor(0);
+            vector<shared_ptr<AbstractPiece>> blackPieces = this->getPiecesOfColor(1);
             if(whitePieces.size() <= 2 && blackPieces.size() <= 2) {
                 bool isDraw = true;
                 whitePieces.insert(whitePieces.end(), blackPieces.begin(), blackPieces.end());
@@ -968,27 +968,27 @@ namespace GTLib2 {
             rewards[chess::WHITE] = 0;
             rewards[chess::BLACK] = 0;
             bool hasMoves[] = {false, false};
-            int isCheck = checkGameOverCheck(playerOnTheMove_);
+            int isCheck = this->checkGameOverCheck(this->playerOnTheMove);
 
-            for(const shared_ptr<AbstractPiece>& p: *pieces_) {
+            for(const shared_ptr<AbstractPiece>& p: *this->pieces) {
                 hasMoves[p->getColor()] = hasMoves[p->getColor()] ? true : !p->getAllValidMoves()->empty();
             }
 
-            if(isCheck == playerOnTheMove_) {
-                if(!hasMoves[playerOnTheMove_]) {
-                    rewards[playerOnTheMove_] = 0;
-                    rewards[chess::invertColor(playerOnTheMove_)] = 1;
-                } else if(moveHistory_->size() == legalMaxDepth_) {
+            if(isCheck == this->playerOnTheMove) {
+                if(!hasMoves[this->playerOnTheMove]) {
+                    rewards[this->playerOnTheMove] = 0;
+                    rewards[chess::invertColor(this->playerOnTheMove)] = 1;
+                } else if(this->moveHistory->size() == this->legalMaxDepth) {
                     rewards[chess::WHITE] = 0.5;
                     rewards[chess::BLACK] = 0.5;
-                } else if(moveHistory_->size() + attemptedMoveHistory_->size() == domain_->getMaxDepth()) {
+                } else if(this->moveHistory->size() + this->attemptedMoveHistory->size() == domain_->getMaxDepth()) {
                     rewards[chess::WHITE] = 0.5;
                     rewards[chess::BLACK] = 0.5;
                 }
-            } else if(!hasMoves[playerOnTheMove_]) {
+            } else if(!hasMoves[this->playerOnTheMove]) {
                 rewards[chess::WHITE] = 0.5;
                 rewards[chess::BLACK] = 0.5;
-            } else if(moveHistory_->size() == legalMaxDepth_) {
+            } else if(this->moveHistory->size() == this->legalMaxDepth) {
                 rewards[chess::WHITE] = 0.5;
                 rewards[chess::BLACK] = 0.5;
             }
@@ -997,7 +997,7 @@ namespace GTLib2 {
         }
 
         Square KriegspielState::getEnPassantSquare() const {
-            return enPassantSquare_;
+            return this->enPassantSquare;
         }
 
 
@@ -1009,31 +1009,31 @@ namespace GTLib2 {
             vector<shared_ptr<Observation>> observations(2);
             vector<double> rewards(2);
             shared_ptr<KriegspielState> s;
-            int nextMove = playerOnTheMove_;
+            int nextMove = this->playerOnTheMove;
             Square enPassSquare(-1, -1);
             KriegspielAction* a = a1 ? a1 : a2;
-            shared_ptr<vector<shared_ptr<AbstractPiece>>> pieces = copyPieces();
-            shared_ptr<vector<shared_ptr<KriegspielAction>>> history = copyMoveHistory();
-            shared_ptr<vector<shared_ptr<KriegspielAction>>> attemptedmoves = copyAttemptedMoves();
-            s = make_shared<KriegspielState>(domain_, legalMaxDepth_, xSize_, ySize_, pieces, enPassantSquare_, history, nextMove, canPlayerCastle_, attemptedmoves);
-            s->updateState(playerOnTheMove_);
+            shared_ptr<vector<shared_ptr<AbstractPiece>>> pieces = this->copyPieces();
+            shared_ptr<vector<shared_ptr<KriegspielAction>>> history = this->copyMoveHistory();
+            shared_ptr<vector<shared_ptr<KriegspielAction>>> attemptedmoves = this->copyAttemptedMoves();
+            s = make_shared<KriegspielState>(domain_, this->legalMaxDepth, this->xSize, this->ySize, pieces, this->enPassantSquare, history, nextMove, this->canPlayerCastle, attemptedmoves);
+            s->updateState(this->playerOnTheMove);
             shared_ptr<KriegspielAction> ac = a->clone();
             if(s->move(a)) {
                 s->addToHistory(ac);
-                enPassSquare = checkEnPassant(a);
-                nextMove = chess::invertColor(playerOnTheMove_);
+                enPassSquare = this->checkEnPassant(a);
+                nextMove = chess::invertColor(this->playerOnTheMove);
                 s->setPlayerOnMove(nextMove);
                 s->setEnPassant(enPassSquare);
                 s->updateState(nextMove);
                 rewards = s->checkGameOver();
-                observations[playerOnTheMove_] = make_shared<Observation>(1);
-                observations[chess::invertColor(playerOnTheMove_)] = make_shared<Observation>(s->calculateObservation(chess::invertColor(playerOnTheMove_)));
+                observations[this->playerOnTheMove] = make_shared<Observation>(1);
+                observations[chess::invertColor(this->playerOnTheMove)] = make_shared<Observation>(s->calculateObservation(chess::invertColor(this->playerOnTheMove)));
                 int x = 4;
             } else {
                 s->addToAttemptedMoves(ac);
-                nextMove = playerOnTheMove_;
-                observations[playerOnTheMove_] = make_shared<Observation>(a->getId());
-                observations[chess::invertColor(playerOnTheMove_)] = make_shared<Observation>(NO_OBSERVATION);
+                nextMove = this->playerOnTheMove;
+                observations[this->playerOnTheMove] = make_shared<Observation>(a->getId());
+                observations[chess::invertColor(this->playerOnTheMove)] = make_shared<Observation>(NO_OBSERVATION);
                 s->updateState(nextMove);
                 rewards = s->checkGameOver();
             }
@@ -1068,13 +1068,13 @@ namespace GTLib2 {
 
         bool KriegspielState::operator==(const GTLib2::State &rhs) const {
             const auto rhsState = dynamic_cast<const KriegspielState *>(&rhs);
-            if(xSize_ != rhsState->xSize_ || ySize_ != rhsState->ySize_) {
+            if(this->xSize != rhsState->xSize || this->ySize != rhsState->ySize) {
                 return false;
             }
-            for(int i = 1; i <= xSize_; i++) {
-                for(int j = 1; j <= ySize_; j++) {
-                    shared_ptr<AbstractPiece> p1 = getPieceOnCoords(Square(i, j));
-                    shared_ptr<AbstractPiece> p2 = getPieceOnCoords(Square(i, j));
+            for(int i = 1; i <= this->xSize; i++) {
+                for(int j = 1; j <= this->ySize; j++) {
+                    shared_ptr<AbstractPiece> p1 = this->getPieceOnCoords(Square(i, j));
+                    shared_ptr<AbstractPiece> p2 = this->getPieceOnCoords(Square(i, j));
                     if(p1 == nullptr && p2 == nullptr) continue;
                     if((p1 != nullptr && p2 == nullptr) || (p1 == nullptr && p2 != nullptr)) return false;
                     if(!(*p1 == *p2)) return false;
@@ -1085,21 +1085,21 @@ namespace GTLib2 {
 
         size_t KriegspielState::getHash() const {
             std::hash<string> h;
-            return h(toString());
+            return h(this->toString());
         }
 
         string KriegspielState::toString() const {
             //DEPRECATED
             vector<vector<string>> board;
-            for(int j = 0; j < ySize_; j++) {
+            for(int j = 0; j < this->ySize; j++) {
                 vector<string> row;
-                for(int i = 0; i < xSize_; i++) {
+                for(int i = 0; i < this->xSize; i++) {
                     row.emplace_back("_");
                 }
                 board.push_back(row);
             }
 
-            for(shared_ptr<AbstractPiece>p: *pieces_) {
+            for(shared_ptr<AbstractPiece>p: *this->pieces) {
                 Square pos = p->getPosition();
                 pos.y -= 1;
                 pos.x -= 1;
@@ -1107,7 +1107,7 @@ namespace GTLib2 {
             }
 
             string s;
-            for(int i = ySize_-1; i >= 0; i--) {
+            for(int i = this->ySize-1; i >= 0; i--) {
                 vector<string> row = board.at(i);
                 for(const string &str: row) {
                     s += str;
@@ -1122,7 +1122,7 @@ namespace GTLib2 {
         }
 
         shared_ptr<AbstractPiece> KriegspielState::getPieceOnCoords(Square pos) const {
-            for(const shared_ptr<AbstractPiece>& p: *pieces_) {
+            for(const shared_ptr<AbstractPiece>& p: *this->pieces) {
                 if(p->getPosition() == pos) {
                     return p;
                 }
@@ -1131,23 +1131,23 @@ namespace GTLib2 {
         }
 
         bool KriegspielState::coordOutOfBounds(Square pos) const {
-            return pos.x > xSize_ || pos.y > ySize_ || pos.x < 1 || pos.y < 1;
+            return pos.x > this->xSize || pos.y > this->ySize || pos.x < 1 || pos.y < 1;
         }
 
         void KriegspielState::updateAllPieces() const {
-            for(shared_ptr<AbstractPiece>& p: *pieces_) {
+            for(shared_ptr<AbstractPiece>& p: *this->pieces) {
                 p->update();
             }
         }
 
         void KriegspielState::resetAllPieces() {
-            for(shared_ptr<AbstractPiece>& p: *pieces_) {
+            for(shared_ptr<AbstractPiece>& p: *this->pieces) {
                 p->reset();
             }
         }
 
         void KriegspielState::updatePiecesOfColor(int color) const {
-            vector<shared_ptr<AbstractPiece>> v = getPiecesOfColor(color);
+            vector<shared_ptr<AbstractPiece>> v = this->getPiecesOfColor(color);
             for(shared_ptr<AbstractPiece>& p: v) {
                 p->update();
             }
@@ -1155,7 +1155,7 @@ namespace GTLib2 {
 
         vector<shared_ptr<AbstractPiece>> KriegspielState::getPiecesOfColorAndKind(int c, chess::pieceName n) const {
             vector<shared_ptr<AbstractPiece>> v;
-            for(const shared_ptr<AbstractPiece>& p: *pieces_) {
+            for(const shared_ptr<AbstractPiece>& p: *this->pieces) {
                 if(p->getColor() == c && p->getKind() == n) {
                     v.push_back(p);
                 }
@@ -1164,7 +1164,7 @@ namespace GTLib2 {
         }
 
         bool KriegspielState::isSquareUnderAttack(int color, Square square) const {
-            vector<shared_ptr<AbstractPiece>> pieces = getPiecesOfColor(color);
+            vector<shared_ptr<AbstractPiece>> pieces = this->getPiecesOfColor(color);
             for(const shared_ptr<AbstractPiece>& p: pieces) {
                 vector<Square> attackedSquares = p->getSquaresAttacked();
                 if(std::find(attackedSquares.begin(), attackedSquares.end(), square) != attackedSquares.end()) {
@@ -1175,11 +1175,11 @@ namespace GTLib2 {
         }
 
         void KriegspielState::clearBoard() {
-            pieces_->clear();
+            this->pieces->clear();
         }
 
         void KriegspielState::insertPiece(shared_ptr<AbstractPiece> p) {
-            pieces_->push_back(p);
+            this->pieces->push_back(p);
         }
 
         vector<Square> KriegspielState::getSquaresPierced(AbstractPiece* pierced, AbstractPiece* piercer) const {
@@ -1196,7 +1196,7 @@ namespace GTLib2 {
             dx += incrementX;
             dy += incrementY;
 
-            for(; !coordOutOfBounds(Square(dx, dy)); dx += incrementX, dy += incrementY) {
+            for(; !this->coordOutOfBounds(Square(dx, dy)); dx += incrementX, dy += incrementY) {
                 Square newPos(dx, dy);
                 squares.push_back(newPos);
             }
@@ -1220,7 +1220,7 @@ namespace GTLib2 {
 
             for(; !(dx == pos2.x && dy == pos2.y); dx += incrementX, dy += incrementY) {
                 Square newPos(dx, dy);
-                if(coordOutOfBounds(newPos)) {
+                if(this->coordOutOfBounds(newPos)) {
                     string s1 = "Position 1: " + to_string(p1->getPosition().x) + ", " + to_string(p1->getPosition().y) + "\r\n"
                                                                                                                           "Figure 1: " + p1->toString() + "\r\n";
                     string s2 = "Position 2: " + to_string(p2->getPosition().x) + ", " + to_string(p2->getPosition().y) + "\r\n"
@@ -1237,10 +1237,10 @@ namespace GTLib2 {
 
         bool KriegspielState::checkPinnedPiece(AbstractPiece* pinner, AbstractPiece* pinned) const {
             int kingColor = pinned->getColor();
-            shared_ptr<AbstractPiece> king = getPiecesOfColorAndKind(kingColor, chess::pieceName::KING)[0];
-            vector<Square> squaresToCheck = getSquaresPierced(pinned, pinner);
+            shared_ptr<AbstractPiece> king = this->getPiecesOfColorAndKind(kingColor, chess::pieceName::KING)[0];
+            vector<Square> squaresToCheck = this->getSquaresPierced(pinned, pinner);
             for(Square i: squaresToCheck) {
-                shared_ptr<AbstractPiece> p = getPieceOnCoords(i);
+                shared_ptr<AbstractPiece> p = this->getPieceOnCoords(i);
                 if(p != nullptr) {
                     return p == king;
                 }
@@ -1251,31 +1251,31 @@ namespace GTLib2 {
         void KriegspielState::initBoard(chess::BOARD b) {
             chess::BoardFactory bf;
             chess::boardInfo binfo = bf.create(b, this);
-            pieces_ = binfo.pieces;
-            xSize_ = binfo.x;
-            ySize_ = binfo.y;
-            canPlayerCastle_ = binfo.castle;
+            this->pieces = binfo.pieces;
+            this->xSize = binfo.x;
+            this->ySize = binfo.y;
+            this->canPlayerCastle = binfo.castle;
         }
 
         int KriegspielState::getXSize() const {
-            return xSize_;
+            return this->xSize;
         }
 
         int KriegspielState::getYSize() const {
-            return ySize_;
+            return this->ySize;
         }
 
         void KriegspielState::setPlayerOnMove(int p) {
-            playerOnTheMove_ = p;
+            this->playerOnTheMove = p;
         }
 
         void KriegspielState::setGameHasEnded(bool gameHasEnded) {
-            gameHasEnded = gameHasEnded;
+            this->gameHasEnded = gameHasEnded;
         }
 
         shared_ptr<vector<shared_ptr<AbstractPiece>>> KriegspielState::copyPieces() const {
             shared_ptr<vector<shared_ptr<AbstractPiece>>> v = make_shared<vector<shared_ptr<AbstractPiece>>>();
-            for(const shared_ptr<AbstractPiece>& p: *pieces_) {
+            for(const shared_ptr<AbstractPiece>& p: *this->pieces) {
                 auto asdf = p->clone();
                 v->push_back(asdf);
             }
@@ -1284,7 +1284,7 @@ namespace GTLib2 {
 
         shared_ptr<vector<shared_ptr<KriegspielAction>>> KriegspielState::copyMoveHistory() const {
             shared_ptr<vector<shared_ptr<KriegspielAction>>> v = make_shared<vector<shared_ptr<KriegspielAction>>>();
-            for(const shared_ptr<KriegspielAction>& a: *moveHistory_) {
+            for(const shared_ptr<KriegspielAction>& a: *this->moveHistory) {
                 auto asdf = a->clone();
                 v->push_back(asdf);
             }
@@ -1292,29 +1292,29 @@ namespace GTLib2 {
         }
 
         void KriegspielState::addToHistory(shared_ptr<KriegspielAction> a) {
-            moveHistory_->push_back(a);
-            attemptedMoveHistory_->clear();
+            this->moveHistory->push_back(a);
+            this->attemptedMoveHistory->clear();
         }
 
         void KriegspielState::setEnPassant(chess::Square s) {
-            enPassantSquare_ = s;
+            this->enPassantSquare = s;
             //refresh moves on pawns after setting enpassant square
-            vector<shared_ptr<AbstractPiece>> pawns = getPiecesOfColorAndKind(playerOnTheMove_, chess::PAWN);
+            vector<shared_ptr<AbstractPiece>> pawns = this->getPiecesOfColorAndKind(this->playerOnTheMove, chess::PAWN);
             for(shared_ptr<AbstractPiece>& p: pawns) {
                 p->update();
             }
         }
 
         void KriegspielState::updateState(int p) {
-            playerOnTheMove_ = p;
-            resetAllPieces();
-            updatePiecesOfColor(chess::invertColor(playerOnTheMove_));
-            checkPlayerInCheck();
-            updatePiecesOfColor(playerOnTheMove_);
+            this->playerOnTheMove = p;
+            this->resetAllPieces();
+            this->updatePiecesOfColor(chess::invertColor(this->playerOnTheMove));
+            this->checkPlayerInCheck();
+            this->updatePiecesOfColor(this->playerOnTheMove);
 
             //update kings again to remove moves that would cut protected pieces
-            shared_ptr<AbstractPiece> whiteKing = getPiecesOfColorAndKind(chess::WHITE, chess::KING)[0];
-            shared_ptr<AbstractPiece> blackKing = getPiecesOfColorAndKind(chess::BLACK, chess::KING)[0];
+            shared_ptr<AbstractPiece> whiteKing = this->getPiecesOfColorAndKind(chess::WHITE, chess::KING)[0];
+            shared_ptr<AbstractPiece> blackKing = this->getPiecesOfColorAndKind(chess::BLACK, chess::KING)[0];
             whiteKing->reset();
             blackKing->reset();
             whiteKing->update();
@@ -1324,19 +1324,19 @@ namespace GTLib2 {
         void KriegspielState::initBoard(string s) {
             chess::FenBoardFactory bf;
             chess::boardInfo binfo = bf.create(std::move(s), this);
-            pieces_ = binfo.pieces;
-            xSize_ = binfo.x;
-            ySize_ = binfo.y;
-            canPlayerCastle_ = binfo.castle;
+            this->pieces = binfo.pieces;
+            this->xSize = binfo.x;
+            this->ySize = binfo.y;
+            this->canPlayerCastle = binfo.castle;
             if(binfo.xEnpass) {
                 Square sq(binfo.xEnpass, binfo.yEnpass);
-                setEnPassant(sq);
+                this->setEnPassant(sq);
             }
         }
 
         shared_ptr<vector<shared_ptr<KriegspielAction>>> KriegspielState::copyAttemptedMoves() const {
             shared_ptr<vector<shared_ptr<KriegspielAction>>> v = make_shared<vector<shared_ptr<KriegspielAction>>>();
-            for(const shared_ptr<KriegspielAction>& a: *attemptedMoveHistory_) {
+            for(const shared_ptr<KriegspielAction>& a: *this->attemptedMoveHistory) {
                 auto asdf = a->clone();
                 v->push_back(asdf);
             }
@@ -1344,12 +1344,12 @@ namespace GTLib2 {
         }
 
         void KriegspielState::addToAttemptedMoves(shared_ptr<KriegspielAction> a) {
-            attemptedMoveHistory_->push_back(a);
+            this->attemptedMoveHistory->push_back(a);
         }
 
         int KriegspielState::calculateObservation(int player) const {
             auto pawns = getPiecesOfColorAndKind(player, chess::PAWN);
-            int toreturn = lastCut_;
+            int toreturn = lastCut;
             for(const shared_ptr<AbstractPiece>& p: pawns) {
                 auto curr = dynamic_cast<chess::Pawn*>(p.get());
                 for(auto move: *curr->getAllMoves()) {
