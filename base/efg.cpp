@@ -334,6 +334,7 @@ bool EFGNode::isTerminal() const {
 EFGCache::EFGCache(const GTLib2::EFGNodesDistribution &rootNodesDist) {
     rootNodes_ = rootNodesDist;
     for (auto &[node, _]: rootNodesDist) {
+        createNode(node);
         updateInfosets(node);
     }
 }
@@ -344,27 +345,26 @@ EFGCache::EFGCache(const OutcomeDistribution &rootProbDist)
 
 const EFGNodesDistribution &
 EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action) {
-    // fetch from cache if possible
     auto maybeNode = nodesChildren_.find(node);
-    if (maybeNode != nodesChildren_.end()) {
-        auto actionNodesDist = maybeNode->second.find(action);
-        if (actionNodesDist != maybeNode->second.end()) {
-            return actionNodesDist->second;
-        }
+    if (maybeNode == nodesChildren_.end()) {
+        // Node not found -- maybe trying to get children
+        // for a node gotten outside from cache?
+        assert(false);
+    }
+
+    // fetch from cache if possible
+    auto & nodeDist = maybeNode->second;
+    auto actionDist = nodeDist.find(action);
+    if (actionDist != nodeDist.end()) {
+        return actionDist->second;
     }
 
     // create new nodes and save them to cache
-    auto nodesDist = node->performAction(action);
-    if (maybeNode == nodesChildren_.end()) {
-        auto actionNodesDistMap = EFGActionNodesDistribution();
-        actionNodesDistMap.insert(std::make_pair(action, nodesDist));
-        nodesChildren_.insert(std::make_pair(node, actionNodesDistMap));
-    } else {
-        auto actionNodesDistMap = maybeNode->second;
-        actionNodesDistMap.insert(std::make_pair(action, nodesDist));
-    }
+    auto newDist = node->performAction(action);
+    nodeDist.insert(std::make_pair(action, newDist));
 
-    for (auto &[childNode, _]: nodesDist) {
+    for (auto &[childNode, _]: newDist) {
+        createNode(childNode);
         updateInfosets(childNode);
     }
 
@@ -394,6 +394,10 @@ void EFGCache::updateInfosets(const shared_ptr<EFGNode> &node) {
         }
     }
     node2infosets_.emplace(node, infosets);
+}
+
+void EFGCache::createNode(const shared_ptr<EFGNode> &node) {
+    nodesChildren_.emplace(node, EFGActionNodesDistribution());
 }
 
 }  // namespace GTLib2

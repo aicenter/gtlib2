@@ -301,7 +301,10 @@ class EFGCache {
     EFGCache(const EFGNodesDistribution &rootNodes);
 
     inline bool hasChildren(const shared_ptr<EFGNode> &node) {
-        return nodesChildren_.find(node) != nodesChildren_.end();
+        auto it = nodesChildren_.find(node);
+        if(it == nodesChildren_.end()) return false;
+        auto & distributionEntry = it->second;
+        return !distributionEntry.empty();
     }
 
     inline bool hasChildren(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action) {
@@ -364,6 +367,7 @@ class EFGCache {
 
  private:
     void updateInfosets(const shared_ptr<EFGNode> &node);
+    void createNode(const shared_ptr<EFGNode> &node);
 
 };
 };  // namespace GTLib2
