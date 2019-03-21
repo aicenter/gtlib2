@@ -134,7 +134,9 @@ set(TEST_FILES
         tests/genericPokerTest.cpp
         tests/goofSpielTest.cpp
         tests/kriegSpielTest.cpp
-        tests/matchingPenniesTest.cpp)
+        tests/matchingPenniesTest.cpp
+        tests/efgTest.cpp
+        )
 
 # -------------------- Executables, linking --------------------
 
