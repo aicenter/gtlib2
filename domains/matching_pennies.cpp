@@ -163,7 +163,7 @@ string MatchingPenniesAction::toString() const {
 bool MatchingPenniesAction::operator==(const Action &that) const {
   if (typeid(*this) == typeid(that)) {
     const auto rhsAction = static_cast<const MatchingPenniesAction *>(&that);
-    return this->move == rhsAction->move;
+    return move == rhsAction->move;
   }
   return false;
 }

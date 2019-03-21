@@ -29,22 +29,22 @@
 namespace GTLib2 {
 namespace domains {
 GoofSpielAction::GoofSpielAction(ActionId id, int card) : Action(id) {
-  cardNumber = card;
+  cardNumber_ = card;
 }
 
 string GoofSpielAction::toString() const {
-  return "Card: " + std::to_string(cardNumber);
+  return "Card: " + std::to_string(cardNumber_);
 }
 
 size_t GoofSpielAction::getHash() const {
   std::hash<int> h;
-  return h(cardNumber);
+  return h(cardNumber_);
 }
 
 bool GoofSpielAction::operator==(const Action &that) const {
   if (typeid(that) == typeid(*this)) {
     const auto rhsAction = static_cast<const GoofSpielAction *>(&that);
-    return this->cardNumber == rhsAction->cardNumber;
+    return cardNumber_ == rhsAction->cardNumber_;
   }
   return false;
 }
@@ -54,9 +54,9 @@ GoofSpielObservation::GoofSpielObservation(int id,
                                            optional<int> player1LastCard,
                                            optional<int> player2LastCard) :
     Observation(id) {
-  this->newBid = std::move(newBid);
-  this->player1LastCard = std::move(player1LastCard);
-  this->player2LastCard = std::move(player2LastCard);
+  newBid_ = std::move(newBid);
+  player1LastCard_ = std::move(player1LastCard);
+  player2LastCard_ = std::move(player2LastCard);
 }
 
 IIGoofSpielObservation::IIGoofSpielObservation(int id, optional<int> newBid,
@@ -74,7 +74,7 @@ GoofSpielDomain::GoofSpielDomain(int numberOfCards, unsigned int maxDepth,
     auto range = vector<int>(static_cast<unsigned int>(numberOfCards));
     std::iota(range.begin(), range.end(), 1);
     for (auto &i : range) {
-      maxUtility += i;
+      maxUtility_ += i;
     }
     std::default_random_engine eng{*seed};
     std::mt19937 randEng(eng());
@@ -103,7 +103,7 @@ GoofSpielDomain::GoofSpielDomain(int numberOfCards, unsigned int maxDepth,
     auto range = boost::irange(1, numberOfCards + 1);
     vector<int> deck(range.begin(), range.end());
     for (auto &i : deck) {
-      this->maxUtility += i;
+      maxUtility_ += i;
     }
     vector<double> rewards(2);
     for (auto const i : range) {
@@ -144,15 +144,15 @@ GoofSpielState::GoofSpielState(Domain *domain,
                                double player1CumulativeReward, double player2CumulativeReward,
                                vector<int> player1PlayedCards, vector<int> player2PlayedCards,
                                vector<int> naturePlayedCards) : State(domain) {
-  this->player1Deck = std::move(player1Deck);
-  this->player2Deck = std::move(player2Deck);
-  this->natureDeck = std::move(natureDeck);
-  this->natureSelectedCard = std::move(natureSelectedCard);
-  this->player1CumulativeReward = player1CumulativeReward;
-  this->player2CumulativeReward = player2CumulativeReward;
-  this->player1PlayedCards = std::move(player1PlayedCards);
-  this->player2PlayedCards = std::move(player2PlayedCards);
-  this->naturePlayedCards = std::move(naturePlayedCards);
+  player1Deck_ = std::move(player1Deck);
+  player2Deck_ = std::move(player2Deck);
+  natureDeck_ = std::move(natureDeck);
+  natureSelectedCard_ = std::move(natureSelectedCard);
+  player1CumulativeReward_ = player1CumulativeReward;
+  player2CumulativeReward_ = player2CumulativeReward;
+  player1PlayedCards_ = std::move(player1PlayedCards);
+  player2PlayedCards_ = std::move(player2PlayedCards);
+  naturePlayedCards_ = std::move(naturePlayedCards);
 }
 
 GoofSpielState::GoofSpielState(Domain *domain,
@@ -162,39 +162,39 @@ GoofSpielState::GoofSpielState(Domain *domain,
                                optional<int> newNatureCard,
                                double player1CumulativeReward,
                                double player2CumulativeReward) : State(domain) {
-  player1Deck = previousState.player1Deck;
-  player1Deck.erase(std::remove(player1Deck.begin(), player1Deck.end(),
-      player1Card), player1Deck.end());
-  player2Deck = previousState.player2Deck;
-  player2Deck.erase(std::remove(player2Deck.begin(), player2Deck.end(),
-      player2Card), player2Deck.end());
+  player1Deck_ = previousState.player1Deck_;
+  player1Deck_.erase(std::remove(player1Deck_.begin(), player1Deck_.end(),
+      player1Card), player1Deck_.end());
+  player2Deck_ = previousState.player2Deck_;
+  player2Deck_.erase(std::remove(player2Deck_.begin(), player2Deck_.end(),
+      player2Card), player2Deck_.end());
 
-  player1PlayedCards = previousState.player1PlayedCards;
-  player1PlayedCards.push_back(player1Card);
+  player1PlayedCards_ = previousState.player1PlayedCards_;
+  player1PlayedCards_.push_back(player1Card);
 
-  player2PlayedCards = previousState.player2PlayedCards;
-  player2PlayedCards.push_back(player2Card);
+  player2PlayedCards_ = previousState.player2PlayedCards_;
+  player2PlayedCards_.push_back(player2Card);
 
-  this->player1CumulativeReward = player1CumulativeReward;
-  this->player2CumulativeReward = player2CumulativeReward;
+  player1CumulativeReward_ = player1CumulativeReward;
+  player2CumulativeReward_ = player2CumulativeReward;
 
   if (newNatureCard == nullopt) {
-    natureDeck = vector<int>();
-    naturePlayedCards = previousState.naturePlayedCards;
-    natureSelectedCard = nullopt;
+    natureDeck_ = vector<int>();
+    naturePlayedCards_ = previousState.naturePlayedCards_;
+    natureSelectedCard_ = nullopt;
   } else {
-    natureDeck = previousState.natureDeck;
-    natureDeck.erase(std::remove(natureDeck.begin(), natureDeck.end(),
-        *newNatureCard), natureDeck.end());
+    natureDeck_ = previousState.natureDeck_;
+    natureDeck_.erase(std::remove(natureDeck_.begin(), natureDeck_.end(),
+        *newNatureCard), natureDeck_.end());
 
-    naturePlayedCards = previousState.naturePlayedCards;
-    naturePlayedCards.push_back(*newNatureCard);
-    natureSelectedCard = newNatureCard;
+    naturePlayedCards_ = previousState.naturePlayedCards_;
+    naturePlayedCards_.push_back(*newNatureCard);
+    natureSelectedCard_ = newNatureCard;
   }
 }
 
 vector<shared_ptr<Action>> GoofSpielState::getAvailableActionsFor(const Player player) const {
-  const auto &deck = player == 0 ? player1Deck : player2Deck;
+  const auto &deck = player == 0 ? player1Deck_ : player2Deck_;
 
   vector<shared_ptr<Action>> actions;
   int id = 0;
@@ -211,19 +211,19 @@ GoofSpielState::performActions(const vector<PlayerAction> &actions) const {
   const auto goofdomain = static_cast<GoofSpielDomain *>(domain);
   const auto player1Action = dynamic_cast<GoofSpielAction*>(actions[0].second.get());
   const auto player2Action = dynamic_cast<GoofSpielAction*>(actions[1].second.get());
-  const int p1Card = player1Action->cardNumber;
-  const int p2Card = player2Action->cardNumber;
+  const int p1Card = player1Action->cardNumber_;
+  const int p2Card = player2Action->cardNumber_;
 
   OutcomeDistribution newOutcomes;
 
   const double thisRoundRewardP1 = p1Card == p2Card ? 0.0
-      : p1Card > p2Card ? *natureSelectedCard : -*natureSelectedCard;
+      : p1Card > p2Card ? *natureSelectedCard_ : -*natureSelectedCard_;
   const double thisRoundRewardP2 = -thisRoundRewardP1;
 
   vector<double> newRewards
-      {player1CumulativeReward + thisRoundRewardP1, player2CumulativeReward + thisRoundRewardP2};
+      {player1CumulativeReward_ + thisRoundRewardP1, player2CumulativeReward_ + thisRoundRewardP2};
 
-  if (natureDeck.empty()) {
+  if (natureDeck_.empty()) {
     const auto newStatex = make_shared<GoofSpielState>(domain, *this, p1Card, p2Card,
                                                        nullopt, newRewards[0], newRewards[1]);
 
@@ -242,7 +242,7 @@ GoofSpielState::performActions(const vector<PlayerAction> &actions) const {
 
   } else {
     if (goofdomain->seed) {
-      auto natureCard = *natureDeck.begin();
+      auto natureCard = *natureDeck_.begin();
       const auto newStatex = make_shared<GoofSpielState>(domain, *this, p1Card, p2Card,
                                                          natureCard, newRewards[0], newRewards[1]);
 
@@ -257,7 +257,7 @@ GoofSpielState::performActions(const vector<PlayerAction> &actions) const {
       const auto newOutcome = Outcome(newStatex, newObservations, newRewards);
       newOutcomes.emplace_back(newOutcome, 1.0);
     } else {
-      for (const auto natureCard : natureDeck) {
+      for (const auto natureCard : natureDeck_) {
         const auto newStatex = make_shared<GoofSpielState>(domain,
                                                            *this,
                                                            p1Card,
@@ -278,7 +278,7 @@ GoofSpielState::performActions(const vector<PlayerAction> &actions) const {
                                                         player2Observation};
 
         const auto newOutcome = Outcome(newStatex, newObservations, newRewards);
-        newOutcomes.emplace_back(newOutcome, 1.0 / natureDeck.size());
+        newOutcomes.emplace_back(newOutcome, 1.0 / natureDeck_.size());
       }
     }
   }
@@ -286,7 +286,7 @@ GoofSpielState::performActions(const vector<PlayerAction> &actions) const {
 }
 
 vector<Player> GoofSpielState::getPlayers() const {
-  if (!player1Deck.empty() && !player2Deck.empty()) {
+  if (!player1Deck_.empty() && !player2Deck_.empty()) {
     return {0, 1};
   } else {
     return {};
@@ -295,15 +295,15 @@ vector<Player> GoofSpielState::getPlayers() const {
 
 string GoofSpielState::toString() const {
     string ret = "P1: [";
-    for (int card : player1PlayedCards) {
+    for (int card : player1PlayedCards_) {
         ret.append(to_string(card) +" ");
     }
     ret.append("]\nP2: [");
-    for (auto card : player2PlayedCards) {
+    for (auto card : player2PlayedCards_) {
         ret.append(to_string(card) +" ");
     }
     ret.append("]\nN: [");
-    for (auto card : naturePlayedCards) {
+    for (auto card : naturePlayedCards_) {
         ret.append(to_string(card) +" ");
     }
     ret.append("]");
@@ -313,30 +313,30 @@ string GoofSpielState::toString() const {
 bool GoofSpielState::operator==(const State &rhs) const {
   auto gsState = dynamic_cast<const GoofSpielState &>(rhs);
 
-  return natureSelectedCard == gsState.natureSelectedCard &&
-      player1CumulativeReward == gsState.player1CumulativeReward &&
-      player2CumulativeReward == gsState.player2CumulativeReward &&
-      player1PlayedCards == gsState.player1PlayedCards &&
-      player2PlayedCards == gsState.player2PlayedCards &&
-      naturePlayedCards == gsState.naturePlayedCards &&
-      player1Deck == gsState.player1Deck &&
-      player2Deck == gsState.player2Deck &&
-      natureDeck == gsState.natureDeck;
+  return natureSelectedCard_ == gsState.natureSelectedCard_ &&
+      player1CumulativeReward_ == gsState.player1CumulativeReward_ &&
+      player2CumulativeReward_ == gsState.player2CumulativeReward_ &&
+      player1PlayedCards_ == gsState.player1PlayedCards_ &&
+      player2PlayedCards_ == gsState.player2PlayedCards_ &&
+      naturePlayedCards_ == gsState.naturePlayedCards_ &&
+      player1Deck_ == gsState.player1Deck_ &&
+      player2Deck_ == gsState.player2Deck_ &&
+      natureDeck_ == gsState.natureDeck_;
 }
 
 size_t GoofSpielState::getHash() const {
   size_t seed = 0;
-  for (auto i : player1PlayedCards) {
+  for (auto i : player1PlayedCards_) {
     boost::hash_combine(seed, i);
   }
-  for (auto i : player2PlayedCards) {
+  for (auto i : player2PlayedCards_) {
     boost::hash_combine(seed, i);
   }
-  for (auto i : naturePlayedCards) {
+  for (auto i : naturePlayedCards_) {
     boost::hash_combine(seed, i);
   }
-  boost::hash_combine(seed, player1CumulativeReward);
-  boost::hash_combine(seed, player2CumulativeReward);
+  boost::hash_combine(seed, player1CumulativeReward_);
+  boost::hash_combine(seed, player2CumulativeReward_);
   return seed;
 }
 
@@ -351,7 +351,7 @@ IIGoofSpielDomain::IIGoofSpielDomain(int numberOfCards,
     auto range = vector<int>(static_cast<unsigned int>(numberOfCards));
     std::iota(range.begin(), range.end(), 1);
     for (auto &i : range) {
-      maxUtility += i;
+      maxUtility_ += i;
     }
     std::default_random_engine eng{*seed};
     std::mt19937 randEng(eng());
@@ -381,7 +381,7 @@ IIGoofSpielDomain::IIGoofSpielDomain(int numberOfCards,
     auto range = boost::irange(1, numberOfCards + 1);
     vector<int> deck(range.begin(), range.end());
     for (auto &i : deck) {
-      maxUtility += i;
+      maxUtility_ += i;
     }
     vector<double> rewards(2);
     for (auto const i : range) {
@@ -433,21 +433,21 @@ IIGoofSpielState::performActions(const vector<PlayerAction> &actions) const {
   const auto player1Action = dynamic_cast<GoofSpielAction*>(actions[0].second.get());
   const auto player2Action = dynamic_cast<GoofSpielAction*>(actions[1].second.get());
 
-  const int p1Card = player1Action->cardNumber;
-  const int p2Card = player2Action->cardNumber;
+  const int p1Card = player1Action->cardNumber_;
+  const int p2Card = player2Action->cardNumber_;
 
   OutcomeDistribution newOutcomes;
 
   const double thisRoundRewardP1 = p1Card == p2Card ? 0.0
-                                                    : p1Card > p2Card ? *natureSelectedCard : -*natureSelectedCard;
+                                                    : p1Card > p2Card ? *natureSelectedCard_ : -*natureSelectedCard_;
   const double thisRoundRewardP2 = -thisRoundRewardP1;
 
-  vector<double> newRewards{player1CumulativeReward + thisRoundRewardP1,
-                            player2CumulativeReward + thisRoundRewardP2};
+  vector<double> newRewards{player1CumulativeReward_ + thisRoundRewardP1,
+                            player2CumulativeReward_ + thisRoundRewardP2};
 
   int result = p1Card == p2Card ? 1 : p1Card > p2Card ? 2 : 0;
 
-  if (natureDeck.empty()) {
+  if (natureDeck_.empty()) {
     const auto newStatex = make_shared<IIGoofSpielState>(domain, *this, p1Card, p2Card,
                                                          nullopt, newRewards[0], newRewards[1]);
 
@@ -462,7 +462,7 @@ IIGoofSpielState::performActions(const vector<PlayerAction> &actions) const {
 
   } else {
     if (goofdomain->seed) {
-      auto natureCard = *natureDeck.begin();
+      auto natureCard = *natureDeck_.begin();
       const auto newStatex = make_shared<IIGoofSpielState>(domain,
                                                            *this,
                                                            p1Card,
@@ -484,7 +484,7 @@ IIGoofSpielState::performActions(const vector<PlayerAction> &actions) const {
       const auto newOutcome = Outcome(newStatex, newObservations, newRewards);
       newOutcomes.emplace_back(newOutcome, 1.0);
     } else {
-      for (const auto natureCard : natureDeck) {
+      for (const auto natureCard : natureDeck_) {
         const auto newStatex = make_shared<IIGoofSpielState>(domain,
                                                              *this,
                                                              p1Card,
@@ -504,7 +504,7 @@ IIGoofSpielState::performActions(const vector<PlayerAction> &actions) const {
 
         const auto newOutcome = Outcome(newStatex, newObservations, newRewards);
 
-        newOutcomes.emplace_back(newOutcome, 1.0 / natureDeck.size());
+        newOutcomes.emplace_back(newOutcome, 1.0 / natureDeck_.size());
       }
     }
   }

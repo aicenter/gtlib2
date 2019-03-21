@@ -90,7 +90,7 @@ getAllNodesInTheInformationSetWithNatureProbability(const shared_ptr<AOH> &infSe
             if (observationIdToCheck == node->getLastObservationIdOfCurrentPlayer()) {
               if (actionIndex >= aoh.size()) {
                 if (node->isContainedInInformationSet(infSet)) {
-                  nodes.emplace_back(node, node->natureProbability);
+                  nodes.emplace_back(node, node->natureProbability_);
                   return;
                 }
               }
@@ -119,7 +119,7 @@ getAllNodesInTheInformationSetWithNatureProbability(const shared_ptr<AOH> &infSe
           if (node->getCurrentPlayer() && *node->getCurrentPlayer() == player) {
             if (node->getLastObservationIdOfCurrentPlayer() == observationIdToCheck) {
               if (actionIndex >= aoh.size()) {
-                nodes.emplace_back(node, node->natureProbability);
+                nodes.emplace_back(node, node->natureProbability_);
                 assert(node->isContainedInInformationSet(infSet));
                 return;
               }

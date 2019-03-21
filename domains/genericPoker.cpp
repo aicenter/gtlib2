@@ -40,7 +40,7 @@ size_t GenericPokerAction::getHash() const {
 bool GenericPokerAction::operator==(const Action &that) const {
   if (typeid(*this) == typeid(that)) {
     const auto rhsAction = static_cast<const GenericPokerAction *>(&that);
-    return this->type_ == rhsAction->type_ && this->value_ == rhsAction->value_;
+    return type_ == rhsAction->type_ && value_ == rhsAction->value_;
   }
   return false;
 }
@@ -74,7 +74,7 @@ GenericPokerDomain::GenericPokerDomain(unsigned int maxCardTypes, unsigned int m
     raisesSecondRound.push_back(2 * i);
   }
 
-  maxUtility = ante + betsFirstRound.back() + maxRaisesInRow * raisesFirstRound.back()
+  maxUtility_ = ante + betsFirstRound.back() + maxRaisesInRow * raisesFirstRound.back()
       + betsSecondRound.back() + maxRaisesInRow * raisesSecondRound.back();
   vector<double> rewards(2);
   int size = maxCardTypes * maxCardTypes;
@@ -131,7 +131,7 @@ string GenericPokerDomain::getInfo() const {
   return "Generic Poker:\nMax card types: " + to_string(maxCardTypes) +
       "\nMax cards of each type: " + to_string(maxCardsOfEachType) +
       "\nMax raises in row: " + to_string(maxRaisesInRow) +
-      "\nMax utility: " + to_string(maxUtility) + "\nBets first round: [" +
+      "\nMax utility: " + to_string(maxUtility_) + "\nBets first round: [" +
       bets1.str().substr(0, bets1.str().length() - 2) + "]\nBets second round: [" +
       bets2.str().substr(0, bets2.str().length() - 2) + "]\nRaises first round: [" +
       raises1.str().substr(0, raises1.str().length() - 2) + "]\nRaises second round: [" +

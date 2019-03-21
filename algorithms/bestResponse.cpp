@@ -56,7 +56,7 @@ pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStr
         }
         if ((!node->getCurrentPlayer() || depth <= 0)) {
           return pair<BehavioralStrategy, double>(BehavioralStrategy(),
-                                                  node->rewards[player] * prob);
+                                                  node->rewards_[player] * prob);
         }
         auto infSet = node->getAOHInfSet();
         if (*node->getCurrentPlayer() == player) {
@@ -139,7 +139,7 @@ pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStr
       if (nodesInSameInfSet.find(infSet) == nodesInSameInfSet.end()) {
         nodesInSameInfSet.emplace(infSet, EFGNodesDistribution());
       }
-      nodesInSameInfSet[infSet].emplace_back(node, node->natureProbability);
+      nodesInSameInfSet[infSet].emplace_back(node, node->natureProbability_);
     }
   };
   treeWalkEFG(domain, getAllNodesInInfSet, domain.getMaxDepth());
@@ -184,7 +184,7 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(
 
         if ((!node->getCurrentPlayer() || depth <= 0)) {
           return pair<BehavioralStrategy, double>(BehavioralStrategy(),
-                                                  node->rewards[player] * prob);
+                                                  node->rewards_[player] * prob);
         }
         auto infSet = node->getAOHInfSet();
         if (*node->getCurrentPlayer() == player) {
@@ -294,7 +294,7 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(
       if (nodesInInfSet.find(infSet) == nodesInInfSet.end()) {
         nodesInInfSet.emplace(infSet, EFGNodesDistribution());
       }
-      nodesInInfSet[infSet].emplace_back(node, node->natureProbability);
+      nodesInInfSet[infSet].emplace_back(node, node->natureProbability_);
     }
   };
   treeWalkEFG(domain, getAllNodesInInfSet, domain.getMaxDepth());

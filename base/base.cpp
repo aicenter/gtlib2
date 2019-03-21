@@ -103,7 +103,7 @@ bool Outcome::operator==(const Outcome &rhs) const {
 
 size_t AOH::computeHash() const {
     size_t seed = 0;
-    for (auto actionObservation : aoh) {
+    for (auto actionObservation : aoh_) {
         boost::hash_combine(seed, std::get<0>(actionObservation));
         boost::hash_combine(seed, std::get<1>(actionObservation));
     }
@@ -111,8 +111,8 @@ size_t AOH::computeHash() const {
 }
 
 AOH::AOH(Player player, const vector<ActionObservation> &aoHistory) {
-    aoh = aoHistory;
-    this->player = player;
+    aoh_ = aoHistory;
+    player_ = player;
     hashValue = computeHash();
 }
 
@@ -122,13 +122,13 @@ bool AOH::operator==(const InformationSet &rhs) const {
     // todo: Kuba please finish comment with better explanation :)
     if (typeid(rhs) == typeid(*this)) {
         const auto rhsAOH = static_cast<const AOH *>(&rhs);
-        if (player != rhsAOH->player ||
+        if (player_ != rhsAOH->player_ ||
             hashValue != rhsAOH->hashValue ||
-            aoh.size() != rhsAOH->aoh.size()) {
+            aoh_.size() != rhsAOH->aoh_.size()) {
             return false;
         }
-        for (int i = 0; i < aoh.size(); ++i) {
-            if (aoh[i] != rhsAOH->aoh[i]) {
+        for (int i = 0; i < aoh_.size(); ++i) {
+            if (aoh_[i] != rhsAOH->aoh_[i]) {
                 return false;
             }
         }
@@ -138,14 +138,14 @@ bool AOH::operator==(const InformationSet &rhs) const {
 }
 
 int AOH::getNumberOfActions() const {
-    return static_cast<int> (aoh.size()) - 1;
+    return static_cast<int> (aoh_.size()) - 1;
 }
 
 string AOH::toString() const {
-    string s = "Player: " + to_string(player) + ",  init observation:" +
-        to_string(aoh.front().second) + ", hash value: " +
+    string s = "Player: " + to_string(player_) + ",  init observation:" +
+        to_string(aoh_.front().second) + ", hash value: " +
         to_string(hashValue) + "\n";
-    for (const auto &i : aoh) {
+    for (const auto &i : aoh_) {
         s += "Action: " + to_string(std::get<0>(i)) + ", Obs: " + to_string(std::get<1>(i)) + " | ";
     }
     return s;
@@ -154,7 +154,7 @@ string AOH::toString() const {
 State::State(Domain *domain) : domain(domain) {}
 
 Domain::Domain(unsigned int maxDepth, unsigned int numberOfPlayers) :
-    maxDepth(maxDepth), numberOfPlayers(numberOfPlayers), maxUtility(0) {}
+    maxDepth(maxDepth), numberOfPlayers(numberOfPlayers), maxUtility_(0) {}
 
 const OutcomeDistribution &Domain::getRootStatesDistribution() const {
     return rootStatesDistribution;

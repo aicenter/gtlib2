@@ -41,7 +41,7 @@ namespace chess {
         int x;
         int y;
         Square(int p1,int p2): x(p1), y(p2) {}
-        inline bool operator==(const Square &that) const { return this->x == that.x && this->y == that.y; }
+        inline bool operator==(const Square &that) const { return x == that.x && y == that.y; }
     };
 
     /*
@@ -138,10 +138,10 @@ namespace chess {
          */
         void update();
         inline pieceName getKind() const {
-            return this->kind;
+            return kind;
         }
         inline void setBoard(const GTLib2::domains::KriegspielState* s) {
-            this->board = s;
+            board = s;
         }
 
         /*
@@ -161,7 +161,7 @@ namespace chess {
         void reset();
         void setHasMoved(bool);
         inline const GTLib2::domains::KriegspielState* getBoard() const {
-            return this->board;
+            return board;
         }
         virtual shared_ptr<AbstractPiece> clone() const = 0;
     protected:
@@ -413,7 +413,7 @@ namespace GTLib2 {
              */
             inline vector<Player> getPlayers() const final {
                 vector<Player> v;
-                if(!this->gameHasEnded || this->moveHistory->size() == this->domain->getMaxDepth()) v.emplace_back(playerOnTheMove);
+                if(!gameHasEnded || moveHistory->size() == domain->getMaxDepth()) v.emplace_back(playerOnTheMove);
                 return v;
             }
 
@@ -518,13 +518,13 @@ namespace GTLib2 {
             bool coordOutOfBounds(chess::Square) const;
 
             /*
-             * Returns this->playerInCheck
+             * Returns playerInCheck
              */
             int isPlayerInCheck() const;
 
             /*
              * Checks whether the player currently on the move is in check
-             * The result is stored in this->playerInCheck (either chess::WHITE/chess::BLACK if a player is in check, -1 otherwise)
+             * The result is stored in playerInCheck (either chess::WHITE/chess::BLACK if a player is in check, -1 otherwise)
              */
             void checkPlayerInCheck();
 

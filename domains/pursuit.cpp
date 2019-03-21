@@ -38,7 +38,7 @@ PursuitAction::PursuitAction(ActionId id, int move) : Action(id), move_(move) {}
 bool PursuitAction::operator==(const Action &that) const {
   if (typeid(*this) == typeid(that)) {
     const auto rhsAction = static_cast<const PursuitAction *>(&that);
-    return this->move_ == rhsAction->move_;
+    return move_ == rhsAction->move_;
   }
   return false;
 }

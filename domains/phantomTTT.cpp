@@ -39,7 +39,7 @@ PhantomTTTAction::PhantomTTTAction(ActionId id, int move) : Action(id), move_(mo
 bool PhantomTTTAction::operator==(const Action &that) const {
   if (typeid(*this) == typeid(that)) {
     const auto rhsAction = static_cast<const PhantomTTTAction *>(&that);
-    return this->move_ == rhsAction->move_;
+    return move_ == rhsAction->move_;
   }
   return false;
 }

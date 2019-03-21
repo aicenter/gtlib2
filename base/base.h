@@ -240,22 +240,22 @@ class AOH: public InformationSet {
     bool operator==(const InformationSet &rhs) const override;
 
     inline Player getPlayer() const {
-        return player;
+        return player_;
     }
     inline ObservationId getInitialObservationId() const {
-        return aoh.front().second;
+        return aoh_.front().second;
     }
     inline vector<ActionObservation> getAOHistory() const {
-        return aoh;
+        return aoh_;
     }
 
     string toString() const override;
 
  private:
     size_t computeHash() const;
-    vector<ActionObservation> aoh;
+    vector<ActionObservation> aoh_;
     size_t hashValue;
-    Player player;
+    Player player_;
 };
 
 /**
@@ -351,11 +351,11 @@ class Domain {
     }
 
     inline int getMaxUtility() const {
-        return maxUtility;
+        return maxUtility_;
     }
 
     inline int getMinUtility() const {
-        return -maxUtility;
+        return -maxUtility_;
     }
 
     /**
@@ -367,7 +367,7 @@ class Domain {
     OutcomeDistribution rootStatesDistribution;
     unsigned int maxDepth;
     unsigned int numberOfPlayers;
-    int maxUtility;
+    int maxUtility_;
 };
 }  // namespace GTLib2
 

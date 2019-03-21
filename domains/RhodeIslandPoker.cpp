@@ -38,7 +38,7 @@ RhodeIslandPokerAction::RhodeIslandPokerAction(ActionId id, int type, int value)
 bool RhodeIslandPokerAction::operator==(const Action &that) const {
   if (typeid(*this) == typeid(that)) {
     const auto rhsAction = static_cast<const RhodeIslandPokerAction *>(&that);
-    return this->type_ == rhsAction->type_ && this->value_ == rhsAction->value_;
+    return type_ == rhsAction->type_ && value_ == rhsAction->value_;
   }
   return false;
 }
