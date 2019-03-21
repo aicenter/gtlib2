@@ -42,9 +42,8 @@ bool OshiZumoAction::operator==(const Action &that) const {
 
 
 size_t OshiZumoAction::getHash() const {
-    size_t seed = 0;
-    boost::hash_combine(seed, bid);
-    return seed;
+    std::hash<size_t> h;
+    return h(bid);
 }
 
 
