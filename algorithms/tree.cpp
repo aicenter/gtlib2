@@ -40,7 +40,7 @@ namespace algorithms {
 
 void buildTree(EFGCache *cache, int maxDepth) {
     auto traverse = [&cache, maxDepth](const shared_ptr<EFGNode> &node, const auto &traverse) {
-        if (node->getDepth() > maxDepth) return;
+        if (node->getDepth() >= maxDepth) return;
 
         for (const auto &action : node->availableActions()) {
             for (auto const &nodeDist : cache->getChildrenFor(node, action)) {

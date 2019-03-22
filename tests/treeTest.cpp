@@ -40,7 +40,7 @@ using algorithms::buildTree;
 
 BOOST_AUTO_TEST_SUITE(EFGTests)
 
-BOOST_AUTO_TEST_CASE(BuildTree) {
+BOOST_AUTO_TEST_CASE(BuildTreeMaxDepth) {
     MatchingPenniesDomain mp;
     auto rootNodes = createRootEFGNodes(mp.getRootStatesDistribution());
     EFGCache cache(rootNodes);
@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(BuildTree) {
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[1]));
 
     rootNode->performAction(actions[0]);
-    rootNode->performAction(actions[0]);
+    rootNode->performAction(actions[1]);
     BOOST_CHECK(!cache.hasChildren(rootNode));
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[0]));
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[1]));
@@ -65,6 +65,48 @@ BOOST_AUTO_TEST_CASE(BuildTree) {
     BOOST_CHECK(cache.hasChildren(rootNode, actions[0]));
     BOOST_CHECK(cache.hasChildren(rootNode, actions[1]));
     // todo: make test(s) based on comparing domain statistics
+}
+
+
+BOOST_AUTO_TEST_CASE(BuildTreeLimitedDepth) {
+    MatchingPenniesDomain mp;
+    auto rootNodes = createRootEFGNodes(mp.getRootStatesDistribution());
+    EFGCache cache(rootNodes);
+
+    auto rootNode = rootNodes[0].first;
+    auto actions = rootNode->availableActions();
+    BOOST_CHECK(cache.hasNode(rootNode));
+    BOOST_CHECK(cache.hasInfoset(rootNode->getAOHInfSet()));
+    BOOST_CHECK(!cache.hasChildren(rootNode));
+    BOOST_CHECK(!cache.hasChildren(rootNode, actions[0]));
+    BOOST_CHECK(!cache.hasChildren(rootNode, actions[1]));
+
+    auto node0 = rootNode->performAction(actions[0])[0].first;
+    auto node1 = rootNode->performAction(actions[1])[0].first;
+    BOOST_CHECK(!cache.hasChildren(rootNode));
+    BOOST_CHECK(!cache.hasChildren(rootNode, actions[0]));
+    BOOST_CHECK(!cache.hasChildren(rootNode, actions[1]));
+
+    buildTree(&cache, 0);
+    BOOST_CHECK(!cache.hasChildren(rootNode));
+    BOOST_CHECK(!cache.hasChildren(rootNode, actions[0]));
+    BOOST_CHECK(!cache.hasChildren(rootNode, actions[1]));
+    BOOST_CHECK(!cache.hasChildren(node0));
+    BOOST_CHECK(!cache.hasChildren(node1));
+
+    buildTree(&cache, 1);
+    BOOST_CHECK(cache.hasChildren(rootNode));
+    BOOST_CHECK(cache.hasChildren(rootNode, actions[0]));
+    BOOST_CHECK(cache.hasChildren(rootNode, actions[1]));
+    BOOST_CHECK(!cache.hasChildren(node0));
+    BOOST_CHECK(!cache.hasChildren(node1));
+
+    buildTree(&cache, 2);
+    BOOST_CHECK(cache.hasChildren(rootNode));
+    BOOST_CHECK(cache.hasChildren(rootNode, actions[0]));
+    BOOST_CHECK(cache.hasChildren(rootNode, actions[1]));
+    BOOST_CHECK(cache.hasChildren(node0));
+    BOOST_CHECK(cache.hasChildren(node1));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
