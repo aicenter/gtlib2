@@ -346,11 +346,10 @@ EFGCache::EFGCache(const OutcomeDistribution &rootProbDist)
 const EFGNodesDistribution &
 EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action) {
     auto maybeNode = nodesChildren_.find(node);
-    if (maybeNode == nodesChildren_.end()) {
-        // Node not found -- maybe trying to get children
-        // for a node gotten outside from cache?
-        assert(false);
-    }
+
+    // Node not found -- maybe trying to get children
+    // for a node gotten outside from cache?
+    assert(maybeNode != nodesChildren_.end());
 
     // fetch from cache if possible
     auto & nodeDist = maybeNode->second;
@@ -380,17 +379,17 @@ void EFGCache::updateInfosets(const shared_ptr<EFGNode> &node) {
 
     for (Player pl: node->getState()->getPlayers()) {
         auto infoset = node->getAOHAugInfSet(pl);
-        auto maybe_infoset = infoset2nodes_.find(infoset);
+        auto maybeInfoset = infoset2nodes_.find(infoset);
 
-        if (maybe_infoset == infoset2nodes_.end()) {
+        if (maybeInfoset == infoset2nodes_.end()) {
             // infoset not found yet, initialize it with this node
             infosets.emplace_back(infoset);
             infoset2nodes_.emplace(infoset, vector<shared_ptr<EFGNode>>{node});
         } else {
             // infoset found, append this node
-            infoset = maybe_infoset->first;
+            infoset = maybeInfoset->first;
             infosets.emplace_back(infoset);
-            maybe_infoset->second.push_back(node);
+            maybeInfoset->second.push_back(node);
         }
     }
     node2infosets_.emplace(node, infosets);

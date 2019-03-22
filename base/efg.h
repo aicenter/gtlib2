@@ -61,10 +61,7 @@ typedef vector<EFGDistEntry> EFGNodesDistribution;
 /**
  * Distribution of nodes after following a specified action.
  */
-typedef unordered_map<
-    shared_ptr<Action>,
-    EFGNodesDistribution
-> EFGActionNodesDistribution;
+typedef unordered_map<shared_ptr<Action>, EFGNodesDistribution> EFGActionNodesDistribution;
 
 /**
  * EFGNode is a class that represents node in an extensive form game (EFG).
@@ -291,10 +288,7 @@ class EFGCache {
      *
      * Note that parent nodes are saved in each respective EFGNode.
      */
-    unordered_map<
-        shared_ptr<EFGNode>,
-        EFGActionNodesDistribution
-    > nodesChildren_;
+    unordered_map<shared_ptr<EFGNode>, EFGActionNodesDistribution> nodesChildren_;
 
  public:
     EFGCache(const OutcomeDistribution &rootProbDist);
@@ -302,15 +296,15 @@ class EFGCache {
 
     inline bool hasChildren(const shared_ptr<EFGNode> &node) {
         auto it = nodesChildren_.find(node);
-        if(it == nodesChildren_.end()) return false;
-        auto & distributionEntry = it->second;
+        if (it == nodesChildren_.end()) return false;
+        auto &distributionEntry = it->second;
         return !distributionEntry.empty();
     }
 
     inline bool hasChildren(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action) {
         auto it = nodesChildren_.find(node);
-        if(it == nodesChildren_.end()) return false;
-        auto & distributionEntry = it->second;
+        if (it == nodesChildren_.end()) return false;
+        auto &distributionEntry = it->second;
         return distributionEntry.find(action) != distributionEntry.end();
     }
 
@@ -322,8 +316,7 @@ class EFGCache {
         return infoset2nodes_.find(augInfoset) != infoset2nodes_.end();
     }
 
-    inline const vector<shared_ptr<EFGNode>> &
-    getNodesFor(const shared_ptr<AOH> &augInfoset) {
+    inline const vector<shared_ptr<EFGNode>> & getNodesFor(const shared_ptr<AOH> &augInfoset) {
         return infoset2nodes_[augInfoset];
     }
 
