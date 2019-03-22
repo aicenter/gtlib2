@@ -335,7 +335,8 @@ class Domain {
     virtual ~Domain() = default;
 
     /**
-     * Returns distributions of the root states.
+     * Returns the roots of the trees of the domain forest
+     * with the probability of each tree.
      */
     const OutcomeDistribution &getRootStatesDistribution() const;
 
