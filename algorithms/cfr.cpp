@@ -144,7 +144,7 @@ CFRiterations(const Domain &domain, int iterations) {
     }
     return ev;
   };
-  auto rootNodes = createRootEFGNodesFromInitialOutcomeDistribution(
+  auto rootNodes = createRootEFGNodes(
       domain.getRootStatesDistribution());
 
   for (int i = 0; i < iterations; ++i) {
@@ -260,7 +260,7 @@ CFRiterationsAOH(const Domain &domain, int iterations) {
     }
     return ev;
   };
-  auto rootNodes = createRootEFGNodesFromInitialOutcomeDistribution(
+  auto rootNodes = createRootEFGNodes(
       domain.getRootStatesDistribution());
 
   for (int i = 0; i < iterations; ++i) {

@@ -30,7 +30,7 @@
 namespace GTLib2 {
 namespace algorithms {
 EFGNodesDistribution
-createRootEFGNodesFromInitialOutcomeDistribution(const OutcomeDistribution &probDist) {
+createRootEFGNodes(const OutcomeDistribution &probDist) {
   EFGNodesDistribution nodes;
 
   for (auto &outcomeProb : probDist) {
@@ -155,7 +155,7 @@ getAllNodesInTheInformationSetWithNatureProbability(const shared_ptr<AOH> &infSe
 //
 //        treeWalkEFG(domain, checkAndAdd, domain.getMaxDepth());
 
-  auto rootNodes = createRootEFGNodesFromInitialOutcomeDistribution(
+  auto rootNodes = createRootEFGNodes(
       domain.getRootStatesDistribution());
 
   for (const auto &rootNode : rootNodes) {

@@ -68,11 +68,16 @@ typedef uint8_t Player;
 
 /**
  * Support ids up to size of the address space (64bit)
+ *
+ * For a given State/EFGNode/InformationSet, IDs should be indexed
+ * from 0 to N-1, where N is the number of available actions.
  */
 typedef size_t ActionId;
 
 /**
  * Support ids up to size of the address space (64bit)
+ *
+ * Unlike ActionId, the values of ObservationId *do not* need to be indexed from 0 to N-1.
  */
 typedef size_t ObservationId;
 
@@ -458,10 +463,10 @@ struct equal_to<shared_ptr<ActionSequence>> {
     bool operator()(const shared_ptr<ActionSequence> &a,
                     const shared_ptr<ActionSequence> &b) const {
         hash<shared_ptr<ActionSequence>> hasher;
-        if (hasher(a) != hasher(b) || (*a).size() != (*b).size()) {
+        if (hasher(a) != hasher(b) || a->size() != b->size()) {
             return false;
         }
-        for (int i = 0; i <= (*a).size(); i++) {
+        for (int i = 0; i <= a->size(); i++) {
             if ((*a)[i] != (*b)[i]) {
                 return false;
             }

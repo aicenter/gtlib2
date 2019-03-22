@@ -1,0 +1,70 @@
+/*
+    Copyright 2019 Faculty of Electrical Engineering at CTU in Prague
+
+    This file is part of Game Theoretic Library.
+
+    Game Theoretic Library is free software: you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public License
+    as published by the Free Software Foundation, either version 3
+    of the License, or (at your option) any later version.
+
+    Game Theoretic Library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with Game Theoretic Library.
+
+    If not, see <http://www.gnu.org/licenses/>.
+*/
+
+
+#include "base/efg.h"
+
+#include "algorithms/common.h"
+#include "domains/matching_pennies.h"
+#include "tests/domainsTest.h"
+#include <boost/test/unit_test.hpp>
+
+
+namespace GTLib2 {
+
+using domains::MatchingPenniesDomain;
+using domains::MatchingPenniesAction;
+using domains::Heads;
+using domains::Tails;
+using algorithms::createRootEFGNodes;
+
+BOOST_AUTO_TEST_SUITE(EFGTests)
+
+BOOST_AUTO_TEST_CASE(CacheHit) {
+    MatchingPenniesDomain mp;
+    auto rootNodes = createRootEFGNodes(
+        mp.getRootStatesDistribution());
+    EFGCache cache(rootNodes);
+
+    auto rootNode = rootNodes[0].first;
+    auto anAction = rootNode->availableActions()[0];
+    BOOST_CHECK(cache.hasNode(rootNode));
+    BOOST_CHECK(cache.hasInfoset(rootNode->getAOHInfSet()));
+    BOOST_CHECK(!cache.hasChildren(rootNode));
+    BOOST_CHECK(!cache.hasChildren(rootNode, anAction));
+
+    rootNode->performAction(anAction);
+    BOOST_CHECK(!cache.hasChildren(rootNode));
+    BOOST_CHECK(!cache.hasChildren(rootNode, anAction));
+
+    cache.getChildrenFor(rootNode, anAction);
+    BOOST_CHECK(cache.hasChildren(rootNode));
+    BOOST_CHECK(cache.hasChildren(rootNode, anAction));
+
+    // check that getting children doesn't create new uses of shared pointer
+    long old_use_cnt = rootNode.use_count();
+    cache.getChildrenFor(rootNode, anAction);
+    BOOST_CHECK(old_use_cnt - rootNode.use_count() == 0);
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+
+}  // namespace GTLib2
