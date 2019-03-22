@@ -340,7 +340,7 @@ EFGCache::EFGCache(const GTLib2::EFGNodesDistribution &rootNodesDist) {
 }
 
 EFGCache::EFGCache(const OutcomeDistribution &rootProbDist)
-    : EFGCache(algorithms::createRootEFGNodesFromInitialOutcomeDistribution(rootProbDist)) {
+    : EFGCache(algorithms::createRootEFGNodes(rootProbDist)) {
 }
 
 const EFGNodesDistribution &

@@ -57,7 +57,7 @@ void treeWalkEFG(const Domain &domain, EFGNodeCallback function, int maxDepth) {
         }
     };
 
-    auto rootNodes = createRootEFGNodesFromInitialOutcomeDistribution(
+    auto rootNodes = createRootEFGNodes(
         domain.getRootStatesDistribution());
     for (const auto &nodeDist : rootNodes) {
         traverse(nodeDist.first, traverse);

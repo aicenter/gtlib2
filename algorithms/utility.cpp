@@ -75,7 +75,7 @@ pair<double, double> computeUtilityTwoPlayersGame(const Domain &domain,
 
   double player1Utility = 0.0;
   double player2Utility = 0.0;
-  auto rootNodes = createRootEFGNodesFromInitialOutcomeDistribution(
+  auto rootNodes = createRootEFGNodes(
       domain.getRootStatesDistribution());
   for (auto nodeProb : rootNodes) {
     auto utility = calculate(nodeProb.first, nodeProb.second);

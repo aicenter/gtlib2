@@ -34,13 +34,13 @@ using domains::MatchingPenniesDomain;
 using domains::MatchingPenniesAction;
 using domains::Heads;
 using domains::Tails;
-using algorithms::createRootEFGNodesFromInitialOutcomeDistribution;
+using algorithms::createRootEFGNodes;
 
 BOOST_AUTO_TEST_SUITE(EFGTests)
 
 BOOST_AUTO_TEST_CASE(CacheHit) {
     MatchingPenniesDomain mp;
-    auto rootNodes = createRootEFGNodesFromInitialOutcomeDistribution(
+    auto rootNodes = createRootEFGNodes(
         mp.getRootStatesDistribution());
     EFGCache cache(rootNodes);
 
