@@ -25,7 +25,7 @@
 #include "algorithms/bestResponse.h"
 #include "base/efg.h"
 #include "algorithms/common.h"
-#include "algorithms/treeWalk.h"
+#include "algorithms/tree.h"
 
 using std::cout;
 

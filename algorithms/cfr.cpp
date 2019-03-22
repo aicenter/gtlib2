@@ -22,7 +22,7 @@
 
 #include <unordered_set>
 #include "algorithms/cfr.h"
-#include "algorithms/treeWalk.h"
+#include "algorithms/tree.h"
 #include "algorithms/common.h"
 #include "algorithms/utility.h"
 

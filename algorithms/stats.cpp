@@ -26,7 +26,7 @@
 #include <unordered_map>
 #include <memory>
 
-#include "treeWalk.h"
+#include "tree.h"
 
 using std::unordered_set;
 using std::cout;

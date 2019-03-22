@@ -23,7 +23,7 @@
 #include "tests/domainsTest.h"
 
 #include <memory>
-#include "algorithms/treeWalk.h"
+#include "algorithms/tree.h"
 
 #include <boost/test/unit_test.hpp>
 #include <domains/matching_pennies.h>

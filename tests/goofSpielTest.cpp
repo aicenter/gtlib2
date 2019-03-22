@@ -26,7 +26,7 @@
 #include "algorithms/cfr.h"
 #include "algorithms/common.h"
 #include "algorithms/equilibrium.h"
-#include "algorithms/treeWalk.h"
+#include "algorithms/tree.h"
 #include "algorithms/stats.h"
 #include "algorithms/utility.h"
 #include "domains/goofSpiel.h"

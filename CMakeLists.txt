@@ -109,7 +109,7 @@ set(SOURCE_FILES
         algorithms/equilibrium.h algorithms/equilibrium.cpp
         algorithms/normalFormLP.h algorithms/normalFormLP.cpp
         algorithms/stats.h algorithms/stats.cpp
-        algorithms/treeWalk.h algorithms/treeWalk.cpp
+        algorithms/tree.h algorithms/tree.cpp
         algorithms/utility.h algorithms/utility.cpp
         # base
         base/base.h base/base.cpp
@@ -136,6 +136,7 @@ set(TEST_FILES
         tests/kriegSpielTest.cpp
         tests/matchingPenniesTest.cpp
         tests/efgTest.cpp
+        tests/treeTest.cpp
         )
 
 # -------------------- Executables, linking --------------------

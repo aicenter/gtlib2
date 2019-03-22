@@ -22,7 +22,7 @@
 
 #include <utility>
 #include "algorithms/common.h"
-#include "algorithms/treeWalk.h"
+#include "algorithms/tree.h"
 
 
 #pragma clang diagnostic push

@@ -33,7 +33,7 @@
 #include "algorithms/cfr.h"
 #include "algorithms/common.h"
 #include "algorithms/normalFormLP.h"
-#include "algorithms/treeWalk.h"
+#include "algorithms/tree.h"
 #include "algorithms/bestResponse.h"
 #include "algorithms/equilibrium.h"
 #include "domains/goofSpiel.h"

@@ -25,7 +25,7 @@
 
 #include "algorithms/utility.h"
 #include "algorithms/common.h"
-#include "algorithms/treeWalk.h"
+#include "algorithms/tree.h"
 
 namespace GTLib2 {
 namespace algorithms {
