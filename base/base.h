@@ -463,10 +463,10 @@ struct equal_to<shared_ptr<ActionSequence>> {
     bool operator()(const shared_ptr<ActionSequence> &a,
                     const shared_ptr<ActionSequence> &b) const {
         hash<shared_ptr<ActionSequence>> hasher;
-        if (hasher(a) != hasher(b) || (*a).size() != (*b).size()) {
+        if (hasher(a) != hasher(b) || a->size() != b->size()) {
             return false;
         }
-        for (int i = 0; i <= (*a).size(); i++) {
+        for (int i = 0; i <= a->size(); i++) {
             if ((*a)[i] != (*b)[i]) {
                 return false;
             }
