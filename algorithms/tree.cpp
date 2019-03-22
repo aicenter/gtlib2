@@ -20,12 +20,13 @@
 */
 
 
-#include "algorithms/treeWalk.h"
+#include "algorithms/tree.h"
 
 #include <unordered_set>
 #include <utility>
 #include <boost/range/combine.hpp>
 
+#include "base/efg.h"
 #include "algorithms/common.h"
 
 using std::unordered_set;
@@ -37,6 +38,21 @@ using std::cout;
 namespace GTLib2 {
 namespace algorithms {
 
+void buildTree(EFGCache *cache, int maxDepth) {
+    auto traverse = [&cache, maxDepth](const shared_ptr<EFGNode> &node, const auto &traverse) {
+        if (node->getDepth() > maxDepth) return;
+
+        for (const auto &action : node->availableActions()) {
+            for (auto const &nodeDist : cache->getChildrenFor(node, action)) {
+                traverse(nodeDist.first, traverse);
+            }
+        }
+    };
+
+    for (const auto &nodeDist : cache->getRootNodes()) {
+        traverse(nodeDist.first, traverse);
+    }
+}
 
 void treeWalkEFG(const Domain &domain, EFGNodeCallback function, int maxDepth) {
     auto traverse = [&function, &domain, maxDepth]
@@ -57,9 +73,7 @@ void treeWalkEFG(const Domain &domain, EFGNodeCallback function, int maxDepth) {
         }
     };
 
-    auto rootNodes = createRootEFGNodes(
-        domain.getRootStatesDistribution());
-    for (const auto &nodeDist : rootNodes) {
+    for (const auto &nodeDist : createRootEFGNodes(domain.getRootStatesDistribution())) {
         traverse(nodeDist.first, traverse);
     }
 }

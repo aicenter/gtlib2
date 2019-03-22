@@ -32,6 +32,11 @@ namespace algorithms {
 typedef std::function<void(shared_ptr<EFGNode>)> EFGNodeCallback;
 
 /**
+ * Create complete cache
+ */
+void buildTree(EFGCache *cache, int maxDepth);
+
+/**
  * Call supplied function at each EFGNode of the EFG tree, including leaves.
  * The tree is walked as DFS up to maximum specified depth.
  */
