@@ -310,8 +310,7 @@ class EFGCache {
         return infoset2nodes_[augInfoset];
     }
 
-    inline const vector<shared_ptr<AOH>> &
-    getInfosetsFor(const shared_ptr<EFGNode> &node) {
+    inline const vector<shared_ptr<AOH>> & getInfosetsFor(const shared_ptr<EFGNode> &node) {
         return node2infosets_[node];
     }
 
@@ -324,8 +323,7 @@ class EFGCache {
      * This function cannot be called on terminal nodes, as infosets are not defined there.
      * It also crashes if you ask for infoset for a node which is not saved in this cache.
      */
-    inline const shared_ptr<AOH> &
-    getInfosetFor(const shared_ptr<EFGNode> &node) {
+    inline const shared_ptr<AOH> & getInfosetFor(const shared_ptr<EFGNode> &node) {
         return node2infosets_[node][*node->getCurrentPlayer()];
     }
 
@@ -347,6 +345,10 @@ class EFGCache {
      */
     const EFGNodesDistribution &
     getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action);
+
+    inline const EFGNodesDistribution & getRootNodes() {
+        return rootNodes_;
+    }
 
  private:
     void updateInfosets(const shared_ptr<EFGNode> &node);
