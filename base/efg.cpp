@@ -375,7 +375,7 @@ EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Actio
 
     // create new nodes and save them to cache
     auto newDist = node->performAction(action);
-    nodeDist.insert(std::make_pair(action, newDist));
+    nodeDist.emplace(std::make_pair(action, newDist));
 
     for (auto &[childNode, _]: newDist) {
         createNode(childNode);
