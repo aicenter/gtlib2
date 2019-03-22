@@ -41,6 +41,7 @@ public:
 class OshiZumoDomain : public Domain {
 public:
     OshiZumoDomain(int startingCoins, int startingLoc, int minBid);
+    OshiZumoDomain(int startingCoins, int startingLoc, int minBod, bool optimalEndGame);
     string getInfo() const override;
     vector<Player> getPlayers() const override;
     const int startingCoins;
@@ -48,6 +49,8 @@ public:
     // wrestler starts in the middle(3):                                 0123456
     const int startingLocation;
     const int minBid;
+    // play optimal moves, if one player cannot bid anymore
+    const bool optimalEndGame;
 };
 
 class OshiZumoState : public State {

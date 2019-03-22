@@ -29,6 +29,7 @@
 #include <domains/matching_pennies.h>
 #include "domains/goofSpiel.h"
 #include "domains/genericPoker.h"
+#include "domains/oshiZumo.h"
 
 
 namespace GTLib2 {
@@ -38,6 +39,7 @@ using domains::IIGoofSpielDomain;
 using domains::GenericPokerDomain;
 using domains::MatchingPenniesDomain;
 using domains::SimultaneousMatchingPenniesDomain;
+using domains::OshiZumoDomain;
 using algorithms::treeWalkEFG;
 
 bool isDomainZeroSum(const Domain &domain) {
@@ -60,12 +62,18 @@ GoofSpielDomain gs4(3, 4, nullopt);
 GoofSpielDomain gs5(4, 4, nullopt);
 GenericPokerDomain gp1(2, 2, 2, 2, 2);
 GenericPokerDomain gp2(3, 3, 1, 2, 3);
+OshiZumoDomain oz1(3, 3, 1);
+OshiZumoDomain oz2(3, 0, 1);
+OshiZumoDomain oz3(1, 3, 0);
+OshiZumoDomain oz4(3, 3, 1, false);
+OshiZumoDomain oz5(5, 3, 1, false);
 MatchingPenniesDomain mp1;
 SimultaneousMatchingPenniesDomain mp2;
 
 Domain* testDomains[] = { // NOLINT(cert-err58-cpp)
     & gs1, & gs2, & gs3, & gs4, & gs5,
     & gp1, & gp2,
+    & oz1, & oz2, & oz3, & oz4, & oz5,
     & mp1, & mp2,
 };
 
