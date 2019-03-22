@@ -294,19 +294,9 @@ class EFGCache {
     EFGCache(const OutcomeDistribution &rootProbDist);
     EFGCache(const EFGNodesDistribution &rootNodes);
 
-    inline bool hasChildren(const shared_ptr<EFGNode> &node) {
-        auto it = nodesChildren_.find(node);
-        if (it == nodesChildren_.end()) return false;
-        auto &distributionEntry = it->second;
-        return !distributionEntry.empty();
-    }
+    bool hasChildren(const shared_ptr<EFGNode> &node);
 
-    inline bool hasChildren(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action) {
-        auto it = nodesChildren_.find(node);
-        if (it == nodesChildren_.end()) return false;
-        auto &distributionEntry = it->second;
-        return distributionEntry.find(action) != distributionEntry.end();
-    }
+    bool hasChildren(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action);
 
     inline bool hasNode(const shared_ptr<EFGNode> &node) {
         return node2infosets_.find(node) != node2infosets_.end();

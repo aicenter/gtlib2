@@ -50,20 +50,20 @@ EFGNodesDistribution EFGNode::performAction(const shared_ptr<Action> &action) co
                       return (a.first < b.first);
                   });
 
-        for (auto &i : state->getDomain()->getPlayers()) {
+        for (auto &player : state->getDomain()->getPlayers()) {
             auto action2 = std::find_if(actionsToBePerformed.begin(), actionsToBePerformed.end(),
-                                        [&i](pair<int, shared_ptr<Action>> const &elem) {
-                                            return elem.first == i;
+                                        [&player](pair<int, shared_ptr<Action>> const &elem) {
+                                            return elem.first == player;
                                         });
             if (action2 == actionsToBePerformed.end()) {
                 actionsToBePerformed.emplace(
-                    actionsToBePerformed.begin() + i, i, make_shared<Action>(NO_ACTION));
+                    actionsToBePerformed.begin() + player, player, make_shared<Action>(NO_ACTION));
             }
         }
 
         // Last player in the round. So we proceed to the next state
         auto probDist = state->performActions(actionsToBePerformed);
-        for (auto const&[outcome, prob] : probDist) {  // works in GCC 7.3
+        for (auto const&[outcome, prob] : probDist) {
 
             auto newNode = make_shared<EFGNode>(outcome.state, shared_from_this(),
                                                 outcome.observations, outcome.rewards,
@@ -71,8 +71,8 @@ EFGNodesDistribution EFGNode::performAction(const shared_ptr<Action> &action) co
             newNodes.emplace_back(newNode, prob);
         }
     } else {
-        auto
-            newNode = make_shared<EFGNode>(shared_from_this(), actionsToBePerformed, action, depth);
+        auto newNode = make_shared<EFGNode>(shared_from_this(),
+            actionsToBePerformed, action, depth);
         newNodes.emplace_back(newNode, 1.0);
     }
     return newNodes;
@@ -343,6 +343,21 @@ EFGCache::EFGCache(const OutcomeDistribution &rootProbDist)
     : EFGCache(algorithms::createRootEFGNodes(rootProbDist)) {
 }
 
+bool EFGCache::hasChildren(const shared_ptr<EFGNode> &node) {
+    auto it = nodesChildren_.find(node);
+    if (it == nodesChildren_.end()) return false;
+    auto &distributionEntry = it->second;
+    return !distributionEntry.empty();
+}
+
+bool EFGCache::hasChildren(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action) {
+    auto it = nodesChildren_.find(node);
+    if (it == nodesChildren_.end()) return false;
+    auto &distributionEntry = it->second;
+    return distributionEntry.find(action) != distributionEntry.end();
+}
+
+
 const EFGNodesDistribution &
 EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action) {
     auto maybeNode = nodesChildren_.find(node);
@@ -352,7 +367,7 @@ EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Actio
     assert(maybeNode != nodesChildren_.end());
 
     // fetch from cache if possible
-    auto & nodeDist = maybeNode->second;
+    auto &nodeDist = maybeNode->second;
     auto actionDist = nodeDist.find(action);
     if (actionDist != nodeDist.end()) {
         return actionDist->second;
