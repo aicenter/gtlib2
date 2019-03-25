@@ -57,18 +57,17 @@ NormalFormLP::NormalFormLP(const unsigned int _p1_actions, const unsigned int _p
   BuildModel(&tmp);
 }
 
-NormalFormLP::NormalFormLP(const shared_ptr<Domain> _game,
-                           unique_ptr<LPSolver> _lp_solver) {
+NormalFormLP::NormalFormLP(const Domain &_game, unique_ptr<LPSolver> _lp_solver) {
   lp_solver_ = std::move(_lp_solver);
 
-  Player player1 = _game->getPlayers()[0];
-  Player player2 = _game->getPlayers()[1];
-  auto player1InfSetsAndActions = generateInformationSetsAndAvailableActions(*_game, player1);
-  auto player2InfSetsAndActions = generateInformationSetsAndAvailableActions(*_game, player2);
+  Player player1 = _game.getPlayers()[0];
+  Player player2 = _game.getPlayers()[1];
+  auto player1InfSetsAndActions = generateInformationSetsAndAvailableActions(_game, player1);
+  auto player2InfSetsAndActions = generateInformationSetsAndAvailableActions(_game, player2);
   auto player1PureStrats = generateAllPureStrategies(player1InfSetsAndActions);
   auto player2PureStrats = generateAllPureStrategies(player2InfSetsAndActions);
   auto utilityMatrixPlayer1 =
-      constructUtilityMatrixFor(*_game, player1, player1PureStrats, player2PureStrats);
+      constructUtilityMatrixFor(_game, player1, player1PureStrats, player2PureStrats);
   rows_ = std::get<1>(utilityMatrixPlayer1);
   cols_ = std::get<2>(utilityMatrixPlayer1);
   BuildModel(&std::get<0>(utilityMatrixPlayer1));

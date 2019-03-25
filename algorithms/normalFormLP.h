@@ -50,8 +50,7 @@ namespace algorithms {
  */
 class NormalFormLP {
  public:
-  explicit NormalFormLP(shared_ptr<Domain> _game,
-                        unique_ptr<LPSolver> _lp_solver);
+  explicit NormalFormLP(const Domain &_game, unique_ptr<LPSolver> _lp_solver);
 
   explicit NormalFormLP(const unsigned int _p1_actions, const unsigned int _p2_actions,
                         const vector<double> &_utilities,
@@ -61,7 +60,7 @@ class NormalFormLP {
                         const vector<vector<double>> &_utilities,
                         unique_ptr<LPSolver> _lp_solver);
 
-  virtual ~NormalFormLP();
+  ~NormalFormLP();
 
   double SolveGame();
 
@@ -81,13 +80,10 @@ class NormalFormLP {
 
  protected:
   unique_ptr<LPSolver> lp_solver_;
-
+  double value_of_the_game_ = NAN;
   unsigned int rows_;
   unsigned int cols_;
   const bool OUTPUT = true;
-
-  double value_of_the_game_ = NAN;
-
   bool model_ready_ = false;
   bool model_solved_ = false;
 
