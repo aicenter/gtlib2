@@ -51,7 +51,6 @@ namespace GTLib2 {
 // Maximum number of players we consider at any game
 #define GAME_MAX_PLAYERS 2
 
-// These will be defined later.
 class Action;
 class Observation;
 class Outcome;
@@ -142,7 +141,7 @@ class Action {
     virtual size_t getHash() const;
 
  protected:
-    ActionId id;
+    ActionId id_;
 };
 
 /**
@@ -150,7 +149,7 @@ class Action {
  *
  * It is useful for example in phantom games.
  */
-const ActionId NO_ACTION = SIZE_MAX;
+constexpr ActionId NO_ACTION = SIZE_MAX;
 
 /**
  * Observation is an abstract class that represents observations, which are identified by their id.
@@ -174,13 +173,13 @@ class Observation {
     virtual size_t getHash() const;
 
  protected:
-    ObservationId id;
+    ObservationId id_;
 };
 
 /**
  * Special value of observation id, indicating no observation has been made.
  */
-const ObservationId NO_OBSERVATION = SIZE_MAX;
+constexpr ObservationId NO_OBSERVATION = SIZE_MAX;
 
 /**
  * Outcome is a class that represents outcomes, or edges of the domain graph.
@@ -192,14 +191,13 @@ const ObservationId NO_OBSERVATION = SIZE_MAX;
 */
 class Outcome {
  public:
-    Outcome(
-        shared_ptr<State> s,
-        vector<shared_ptr<Observation>> observations,
-        vector<double> rewards);
+    Outcome(shared_ptr<State> s,
+            vector<shared_ptr<Observation>> observations,
+            vector<double> rewards);
 
-    shared_ptr<State> state;
-    vector<shared_ptr<Observation>> observations;
-    vector<double> rewards;
+    shared_ptr<State> state_;
+    vector<shared_ptr<Observation>> observations_;
+    vector<double> rewards_;
 
     size_t getHash() const;
 
@@ -207,9 +205,9 @@ class Outcome {
 };
 
 /**
- * InformationSet is an abstract class that represents information sets.
+ * Abstract class that represents information sets.
  *
- * For the use in the code, refer to AOH class.
+ * For the actual use in the code, refer to AOH class.
  */
 class InformationSet {
  public:
@@ -223,7 +221,9 @@ class InformationSet {
 };
 
 /**
- * AOH is a class that represents action-observation history.
+ * AOH is a class that represents action-observation history,
+ * a variant of how infosets can be implemented if observations
+ * are part of the domain description.
  *
  * It contains
  * - player id, and
@@ -238,29 +238,29 @@ class AOH: public InformationSet {
     int getNumberOfActions() const;
 
     inline size_t getHash() const final {
-        return hashValue;
+        return hashValue_;
     }
 
     // Overloaded for comparing two AOHs
     bool operator==(const InformationSet &rhs) const override;
 
     inline Player getPlayer() const {
-        return player;
+        return player_;
     }
     inline ObservationId getInitialObservationId() const {
-        return aoh.front().second;
+        return aoh_.front().second;
     }
     inline vector<ActionObservation> getAOHistory() const {
-        return aoh;
+        return aoh_;
     }
 
     string toString() const override;
 
  private:
     size_t computeHash() const;
-    vector<ActionObservation> aoh;
-    size_t hashValue;
-    Player player;
+    vector<ActionObservation> aoh_;
+    size_t hashValue_;
+    Player player_;
 };
 
 /**
@@ -308,11 +308,11 @@ class State {
     virtual size_t getHash() const;
 
     inline Domain *getDomain() const {
-        return domain;
+        return domain_;
     }
 
  protected:
-    Domain *domain;
+    Domain *domain_;
 };
 
 /**
@@ -346,22 +346,22 @@ class Domain {
      * Returns number of players in the game.
      */
     inline unsigned int getNumberOfPlayers() const {
-        return numberOfPlayers;
+        return numberOfPlayers_;
     }
 
     /**
      * Returns default maximal depth used in algorithms.
      */
     inline unsigned int getMaxDepth() const {
-        return maxDepth;
+        return maxDepth_;
     }
 
     inline int getMaxUtility() const {
-        return maxUtility;
+        return maxUtility_;
     }
 
     inline int getMinUtility() const {
-        return -maxUtility;
+        return -maxUtility_;
     }
 
     /**
@@ -370,86 +370,78 @@ class Domain {
     virtual string getInfo() const = 0;
 
  protected:
-    OutcomeDistribution rootStatesDistribution;
-    unsigned int maxDepth;
-    unsigned int numberOfPlayers;
-    int maxUtility;
+    OutcomeDistribution rootStatesDistribution_;
+    unsigned int maxDepth_;
+    unsigned int numberOfPlayers_;
+    int maxUtility_;
 };
 }  // namespace GTLib2
 
 namespace std { // NOLINT(cert-dcl58-cpp)
 
-using GTLib2::Action;
-using GTLib2::Observation;
-using GTLib2::Outcome;
-using GTLib2::State;
-using GTLib2::InformationSet;
-using GTLib2::AOH;
-using GTLib2::ActionSequence;
-
 template<>
-struct hash<shared_ptr<InformationSet>> {
-    size_t operator()(shared_ptr<InformationSet> const &p) const {
+struct hash<shared_ptr<GTLib2::InformationSet>> {
+    size_t operator()(shared_ptr<GTLib2::InformationSet> const &p) const {
         return p->getHash();
     }
 };
 
 template<>
-struct equal_to<shared_ptr<InformationSet>> {
-    bool operator()(shared_ptr<InformationSet> const &a,
-                    shared_ptr<InformationSet> const &b) const {
+struct equal_to<shared_ptr<GTLib2::InformationSet>> {
+    bool operator()(shared_ptr<GTLib2::InformationSet> const &a,
+                    shared_ptr<GTLib2::InformationSet> const &b) const {
         return *a == *b;
     }
 };
 
 template<>
-struct hash<InformationSet *> {
-    size_t operator()(InformationSet const *p) const {
+struct hash<GTLib2::InformationSet *> {
+    size_t operator()(GTLib2::InformationSet const *p) const {
         return p->getHash();
     }
 };
 
 template<>
-struct equal_to<InformationSet *> {
-    bool operator()(InformationSet *a,
-                    InformationSet *b) const {
+struct equal_to<GTLib2::InformationSet *> {
+    bool operator()(GTLib2::InformationSet *a,
+                    GTLib2::InformationSet *b) const {
         return *a == *b;
     }
 };
 
 template<>
-struct hash<shared_ptr<AOH>> {
-    size_t operator()(shared_ptr<AOH> const &p) const {
+struct hash<shared_ptr<GTLib2::AOH>> {
+    size_t operator()(shared_ptr<GTLib2::AOH> const &p) const {
         return p->getHash();
     }
 };
 
 template<>
-struct equal_to<shared_ptr<AOH>> {
-    bool operator()(shared_ptr<AOH> const &a,
-                    shared_ptr<AOH> const &b) const {
+struct equal_to<shared_ptr<GTLib2::AOH>> {
+    bool operator()(shared_ptr<GTLib2::AOH> const &a,
+                    shared_ptr<GTLib2::AOH> const &b) const {
         return *a == *b;
     }
 };
 
 template<>
-struct hash<shared_ptr<Action>> {
-    size_t operator()(const shared_ptr<Action> &p) const {
+struct hash<shared_ptr<GTLib2::Action>> {
+    size_t operator()(const shared_ptr<GTLib2::Action> &p) const {
         return p->getHash();
     }
 };
 
 template<>
-struct equal_to<shared_ptr<Action>> {
-    bool operator()(const shared_ptr<Action> &a,
-                    const shared_ptr<Action> &b) const {
+struct equal_to<shared_ptr<GTLib2::Action>> {
+    bool operator()(const shared_ptr<GTLib2::Action> &a,
+                    const shared_ptr<GTLib2::Action> &b) const {
         return *a == *b;
     }
 };
 
 template<>
-struct hash<shared_ptr<ActionSequence>> {
-    size_t operator()(const shared_ptr<ActionSequence> &seq) const {
+struct hash<shared_ptr<GTLib2::ActionSequence>> {
+    size_t operator()(const shared_ptr<GTLib2::ActionSequence> &seq) const {
         size_t seed = 0;
         for (const auto &action : (*seq)) {
             boost::hash_combine(seed, action.first);
@@ -460,10 +452,10 @@ struct hash<shared_ptr<ActionSequence>> {
 };
 
 template<>
-struct equal_to<shared_ptr<ActionSequence>> {
-    bool operator()(const shared_ptr<ActionSequence> &a,
-                    const shared_ptr<ActionSequence> &b) const {
-        hash<shared_ptr<ActionSequence>> hasher;
+struct equal_to<shared_ptr<GTLib2::ActionSequence>> {
+    bool operator()(const shared_ptr<GTLib2::ActionSequence> &a,
+                    const shared_ptr<GTLib2::ActionSequence> &b) const {
+        hash<shared_ptr<GTLib2::ActionSequence>> hasher;
         if (hasher(a) != hasher(b) || a->size() != b->size()) {
             return false;
         }
@@ -477,11 +469,11 @@ struct equal_to<shared_ptr<ActionSequence>> {
 };
 
 template<>
-struct hash<ActionSequence> {
-    size_t operator()(const ActionSequence &seq) const {
+struct hash<GTLib2::ActionSequence> {
+    size_t operator()(const GTLib2::ActionSequence &seq) const {
         size_t seed = 0;
-        hash<shared_ptr<InformationSet>> hasher;
-        hash<shared_ptr<Action>> hasher2;
+        hash<shared_ptr<GTLib2::InformationSet>> hasher;
+        hash<shared_ptr<GTLib2::Action>> hasher2;
         for (const auto &action : seq) {
             boost::hash_combine(seed, hasher(action.first));
             boost::hash_combine(seed, hasher2(action.second));
@@ -491,10 +483,10 @@ struct hash<ActionSequence> {
 };
 
 template<>
-struct equal_to<ActionSequence> {
-    bool operator()(const ActionSequence &a,
-                    const ActionSequence &b) const {
-        hash<ActionSequence> hasher;
+struct equal_to<GTLib2::ActionSequence> {
+    bool operator()(const GTLib2::ActionSequence &a,
+                    const GTLib2::ActionSequence &b) const {
+        hash<GTLib2::ActionSequence> hasher;
         if (hasher(a) != hasher(b) || a.size() != b.size()) {
             return false;
         }
@@ -509,46 +501,46 @@ struct equal_to<ActionSequence> {
 };
 
 template<>
-struct hash<shared_ptr<Observation>> {
-    size_t operator()(const shared_ptr<Observation> &p) const {
+struct hash<shared_ptr<GTLib2::Observation>> {
+    size_t operator()(const shared_ptr<GTLib2::Observation> &p) const {
         return p->getHash();
     }
 };
 
 template<>
-struct equal_to<shared_ptr<Observation>> {
-    bool operator()(const shared_ptr<Observation> &a,
-                    const shared_ptr<Observation> &b) const {
+struct equal_to<shared_ptr<GTLib2::Observation>> {
+    bool operator()(const shared_ptr<GTLib2::Observation> &a,
+                    const shared_ptr<GTLib2::Observation> &b) const {
         return *a == *b;
     }
 };
 
 template<>
-struct hash<shared_ptr<State>> {
-    size_t operator()(const shared_ptr<State> &p) const {
+struct hash<shared_ptr<GTLib2::State>> {
+    size_t operator()(const shared_ptr<GTLib2::State> &p) const {
         return p->getHash();
     }
 };
 
 template<>
-struct equal_to<shared_ptr<State>> {
-    bool operator()(const shared_ptr<State> &a,
-                    const shared_ptr<State> &b) const {
+struct equal_to<shared_ptr<GTLib2::State>> {
+    bool operator()(const shared_ptr<GTLib2::State> &a,
+                    const shared_ptr<GTLib2::State> &b) const {
         return *a == *b;
     }
 };
 
 template<>
-struct hash<Outcome> {
-    size_t operator()(const Outcome &p) const {
+struct hash<GTLib2::Outcome> {
+    size_t operator()(const GTLib2::Outcome &p) const {
         return p.getHash();
     }
 };
 
 template<>
-struct equal_to<Outcome> {
-    bool operator()(const Outcome &a,
-                    const Outcome &b) const {
+struct equal_to<GTLib2::Outcome> {
+    bool operator()(const GTLib2::Outcome &a,
+                    const GTLib2::Outcome &b) const {
         return a == b;
     }
 };

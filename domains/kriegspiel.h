@@ -293,7 +293,7 @@ namespace GTLib2 {
             KriegspielAction(ActionId id, pair<shared_ptr<AbstractPiece>, chess::Square>, chess::Square);
             explicit KriegspielAction(ActionId id);
             inline string toString() const final {
-                if(id == NO_ACTION)
+                if(id_ == NO_ACTION)
                     return "No action";
                 return move_.first->toString() + coordToString(move_.second);
             }
@@ -350,7 +350,7 @@ namespace GTLib2 {
 
             // Returns description.
             inline string toString() const final {
-                if (id == 1)
+                if (id_ == 1)
                     return "Success";
                 return "Fail";
             };
@@ -413,7 +413,7 @@ namespace GTLib2 {
              */
             inline vector<Player> getPlayers() const final {
                 vector<Player> v;
-                if(!this->gameHasEnded || this->moveHistory->size() == this->domain->getMaxDepth()) v.emplace_back(playerOnTheMove);
+                if(!this->gameHasEnded || this->moveHistory->size() == domain_->getMaxDepth()) v.emplace_back(playerOnTheMove);
                 return v;
             }
 

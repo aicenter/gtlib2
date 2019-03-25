@@ -43,7 +43,7 @@ using algorithms::treeWalkEFG;
 bool isDomainZeroSum(const Domain &domain) {
   int num_violations = 0;
   auto countViolations = [&num_violations](shared_ptr<EFGNode> node) {
-    if (node->rewards[0] != -node->rewards[1]) num_violations++;
+    if (node->rewards_[0] != -node->rewards_[1]) num_violations++;
   };
 
   treeWalkEFG(domain, countViolations, domain.getMaxDepth());

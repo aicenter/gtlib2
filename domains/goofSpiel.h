@@ -44,7 +44,7 @@ class GoofSpielAction : public Action {
   string toString() const override;
   bool operator==(const Action &that) const override;
   size_t getHash() const override;
-  int cardNumber;
+  int cardNumber_;
 };
 
 class GoofSpielObservation : public Observation {
@@ -52,9 +52,9 @@ class GoofSpielObservation : public Observation {
   GoofSpielObservation(int id, optional<int> newBid, optional<int> player1LastCard,
                        optional<int> player2LastCard);
 
-  optional<int> newBid;
-  optional<int> player1LastCard;
-  optional<int> player2LastCard;
+  optional<int> newBid_;
+  optional<int> player1LastCard_;
+  optional<int> player2LastCard_;
 };
 
 class IIGoofSpielObservation : public Observation {
@@ -62,9 +62,9 @@ class IIGoofSpielObservation : public Observation {
   IIGoofSpielObservation(int id, optional<int> newBid, optional<int> myLastCard,
                          optional<int> result);
 
-  optional<int> newBid;
-  optional<int> myLastCard;
-  optional<int> result;
+  optional<int> newBid_;
+  optional<int> myLastCard_;
+  optional<int> result_;
 };
 
 class GoofSpielDomain : public Domain {
@@ -73,8 +73,8 @@ class GoofSpielDomain : public Domain {
   GoofSpielDomain(int numberOfCards, unsigned int maxDepth, optional<unsigned long int> seed);
   string getInfo() const override;
   vector<Player> getPlayers() const override;
-  const int numberOfCards;
-  const int seed;
+  const int numberOfCards_;
+  const int seed_;
 };
 
 class IIGoofSpielDomain : public Domain {
@@ -83,8 +83,8 @@ class IIGoofSpielDomain : public Domain {
   IIGoofSpielDomain(int numberOfCards, unsigned int maxDepth, optional<unsigned long int> seed);
   string getInfo() const override;
   vector<Player> getPlayers() const override;
-  const int numberOfCards;
-  const int seed;
+  const int numberOfCards_;
+  const int seed_;
 };
 
 class GoofSpielState : public State {
@@ -109,15 +109,15 @@ class GoofSpielState : public State {
 
   size_t getHash() const override;
 
-  vector<int> player1Deck;
-  vector<int> player2Deck;
-  vector<int> natureDeck;
-  vector<int> player1PlayedCards;
-  vector<int> player2PlayedCards;
-  vector<int> naturePlayedCards;
-  optional<int> natureSelectedCard;  // Not in the deck
-  double player1CumulativeReward;
-  double player2CumulativeReward;
+  vector<int> player1Deck_;
+  vector<int> player2Deck_;
+  vector<int> natureDeck_;
+  vector<int> player1PlayedCards_;
+  vector<int> player2PlayedCards_;
+  vector<int> naturePlayedCards_;
+  optional<int> natureSelectedCard_;  // Not in the deck
+  double player1CumulativeReward_;
+  double player2CumulativeReward_;
 };
 
 class IIGoofSpielState : public GoofSpielState {

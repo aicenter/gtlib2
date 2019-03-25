@@ -36,9 +36,9 @@ createRootEFGNodes(const OutcomeDistribution &probDist) {
   for (auto &outcomeProb : probDist) {
     auto &outcome = outcomeProb.first;
     auto prob = outcomeProb.second;
-    auto node = make_shared<EFGNode>(outcome.state, nullptr,
-                                     outcome.observations,
-                                     outcome.rewards,
+    auto node = make_shared<EFGNode>(outcome.state_, nullptr,
+                                     outcome.observations_,
+                                     outcome.rewards_,
                                      prob, nullptr, 0);
     nodes.emplace_back(move(node), prob);
   }
@@ -90,7 +90,7 @@ getAllNodesInTheInformationSetWithNatureProbability(const shared_ptr<AOH> &infSe
             if (observationIdToCheck == node->getLastObservationIdOfCurrentPlayer()) {
               if (actionIndex >= aoh.size()) {
                 if (node->isContainedInInformationSet(infSet)) {
-                  nodes.emplace_back(node, node->natureProbability);
+                  nodes.emplace_back(node, node->natureProbability_);
                   return;
                 }
               }
@@ -119,7 +119,7 @@ getAllNodesInTheInformationSetWithNatureProbability(const shared_ptr<AOH> &infSe
           if (node->getCurrentPlayer() && *node->getCurrentPlayer() == player) {
             if (node->getLastObservationIdOfCurrentPlayer() == observationIdToCheck) {
               if (actionIndex >= aoh.size()) {
-                nodes.emplace_back(node, node->natureProbability);
+                nodes.emplace_back(node, node->natureProbability_);
                 assert(node->isContainedInInformationSet(infSet));
                 return;
               }

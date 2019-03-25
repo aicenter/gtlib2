@@ -80,7 +80,7 @@ class NormalFormLP {
   void SaveLP(const char *_file);
 
  protected:
-  unique_ptr<LPSolver> lp_solver;
+  unique_ptr<LPSolver> lp_solver_;
 
   unsigned int rows_;
   unsigned int cols_;

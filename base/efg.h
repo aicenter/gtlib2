@@ -195,12 +195,12 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
      */
     optional<Player> getCurrentPlayer() const;
 
-    vector<double> rewards;
+    vector<double> rewards_;
 
     /**
      * Nature reach probability from root
      */
-    double natureProbability;
+    double natureProbability_;
 
     bool operator==(const EFGNode &rhs) const;
 
@@ -208,16 +208,16 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
     vector<ActionObservation> getAOH(Player player) const;
     bool compareAOH(const EFGNode &rhs) const;
     size_t getHashedAOHs() const;
-    vector<shared_ptr<Observation>> observations;
-    vector<PlayerAction> performedActionsInThisRound;
-    vector<Player> remainingPlayersInTheRound;
+    vector<shared_ptr<Observation>> observations_;
+    vector<PlayerAction> performedActionsInThisRound_;
+    vector<Player> remainingPlayersInTheRound_;
     // todo: const for member variables and constructors?
-    shared_ptr<State> state;
-    shared_ptr<EFGNode const> parent;
-    shared_ptr<Action> incomingAction;  // Action performed in the parent node.
-    optional<Player> currentPlayer = nullopt;
-    mutable size_t hashAOH = 0;
-    int depth;
+    shared_ptr<State> state_;
+    shared_ptr<EFGNode const> parent_;
+    shared_ptr<Action> incomingAction_;  // Action performed in the parent node.
+    optional<Player> currentPlayer_ = nullopt;
+    mutable size_t hashAOH_ = 0;
+    int depth_;
 };
 };  // namespace GTLib2
 

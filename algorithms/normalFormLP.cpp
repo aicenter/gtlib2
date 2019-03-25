@@ -31,7 +31,7 @@ NormalFormLP::NormalFormLP(const unsigned int _p1_actions, const unsigned int _p
                            const vector<double> &_utilities,
                            unique_ptr<LPSolver> _lp_solver) {
   ValidateInput(_p1_actions, _p2_actions, _utilities);
-  lp_solver = std::move(_lp_solver);
+  lp_solver_ = std::move(_lp_solver);
   rows_ = _p2_actions;
   cols_ = _p1_actions;
   BuildModel(&_utilities);
@@ -40,7 +40,7 @@ NormalFormLP::NormalFormLP(const unsigned int _p1_actions, const unsigned int _p
 NormalFormLP::NormalFormLP(const unsigned int _p1_actions, const unsigned int _p2_actions,
                            const vector<vector<double>> &_utilities,
                            unique_ptr<LPSolver> _lp_solver) {
-  lp_solver = std::move(_lp_solver);
+  lp_solver_ = std::move(_lp_solver);
   rows_ = _p2_actions;
   cols_ = _p1_actions;
 
@@ -59,7 +59,7 @@ NormalFormLP::NormalFormLP(const unsigned int _p1_actions, const unsigned int _p
 
 NormalFormLP::NormalFormLP(const shared_ptr<Domain> _game,
                            unique_ptr<LPSolver> _lp_solver) {
-  lp_solver = std::move(_lp_solver);
+  lp_solver_ = std::move(_lp_solver);
 
   Player player1 = _game->getPlayers()[0];
   Player player2 = _game->getPlayers()[1];
@@ -82,21 +82,21 @@ void NormalFormLP::CleanModel() {
   model_ready_ = false;
   model_solved_ = false;
   value_of_the_game_ = NAN;
-  lp_solver->CleanModel();
+  lp_solver_->CleanModel();
 }
 
 double NormalFormLP::SolveGame() {
   if (!model_ready_)
     throw(-1);
 
-  value_of_the_game_ = lp_solver->SolveGame();
+  value_of_the_game_ = lp_solver_->SolveGame();
   model_solved_ = true;
   return value_of_the_game_;
 }
 
 void NormalFormLP::BuildModel(const vector<double> *_utility_matrix) {
   assert(_utility_matrix != nullptr);
-  lp_solver->BuildModel(rows_, cols_, _utility_matrix, OUTPUT);
+  lp_solver_->BuildModel(rows_, cols_, _utility_matrix, OUTPUT);
 
   model_ready_ = true;
 }
@@ -113,12 +113,12 @@ vector<double> NormalFormLP::GetStrategy(int _player) {
   if (_player == 0) {
     result.reserve(cols_);
     for (int i = 0; i < cols_; ++i) {
-      result.emplace_back(lp_solver->GetValue(i));
+      result.emplace_back(lp_solver_->GetValue(i));
     }
   } else {
     result.reserve(rows_);
     for (int i = 0; i < rows_; ++i) {
-      result.emplace_back(-lp_solver->GetDual(i));
+      result.emplace_back(-lp_solver_->GetDual(i));
     }
   }
   return result;
@@ -181,7 +181,7 @@ void NormalFormLP::ChangeOutcome(const int _action_for_p1,
     throw(-1);
   }
   // constrain. variable
-  lp_solver->SetConstraintCoefForVariable(_action_for_p2,
+  lp_solver_->SetConstraintCoefForVariable(_action_for_p2,
                                           _action_for_p1, _new_utility);
   model_solved_ = false;
 }
@@ -190,7 +190,7 @@ void NormalFormLP::SaveLP(const char *_file) {
   if (!model_ready_) {
     throw(-1);
   }
-  lp_solver->SaveLP(_file);
+  lp_solver_->SaveLP(_file);
 }
 
 void NormalFormLP::AddRows(const vector<vector<double>> &_utility_for_cols) {
@@ -202,7 +202,7 @@ void NormalFormLP::AddRows(const vector<vector<double>> &_utility_for_cols) {
     throw(-1);
   }
 
-  lp_solver->AddRows(cols_, _utility_for_cols);
+  lp_solver_->AddRows(cols_, _utility_for_cols);
 
   rows_ += new_rows;
 }
@@ -216,7 +216,7 @@ void NormalFormLP::AddCols(const vector<vector<double>> &_utility_for_rows) {
     throw(-1);
   }
 
-  lp_solver->AddCols(rows_, _utility_for_rows);
+  lp_solver_->AddCols(rows_, _utility_for_rows);
 
   cols_ += new_cols;
 }

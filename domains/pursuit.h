@@ -65,7 +65,7 @@ class PursuitAction : public Action {
 
   // Returns move description.
   inline string toString() const final {
-    if (id == NO_ACTION)
+    if (id_ == NO_ACTION)
       return "NoA";
     return movedes_[move_];
   }
@@ -272,9 +272,9 @@ class PursuitDomain : public Domain {
 
   vector<Player> getPlayers() const final;
 
-  vector<double> probability;  // probability of stay or move
-  int height;
-  int width;
+  vector<double> probability_;  // probability of stay or move
+  int height_;
+  int width_;
 };
 
 /**

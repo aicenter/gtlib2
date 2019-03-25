@@ -30,15 +30,15 @@ namespace chess {
     boardInfo BoardFactory::create(BOARD b, GTLib2::domains::KriegspielState * s) {
         switch(b) {
             case STANDARD:
-                return this->createStandard(s);
+                return createStandard(s);
             case MICROCHESS:
-                return this->createMicrochess(s);
+                return createMicrochess(s);
             case MINIMAL3x3:
-                return this->createMinimal(s);
+                return createMinimal(s);
             case DEMICHESS:
-                return this->createDemichess(s);
+                return createDemichess(s);
             case SILVERMAN4BY4:
-                return this->createSilverman4x4(s);
+                return createSilverman4x4(s);
         }
     }
 
@@ -249,7 +249,7 @@ namespace chess {
         for(string row: rows) {
             for(char& c: row) {
                 if(!isdigit(c)) {
-                    shared_ptr<AbstractPiece> piece = this->createPiece(c, x, y, b);
+                    shared_ptr<AbstractPiece> piece = createPiece(c, x, y, b);
                     blackKing = c == 'k' ? piece : blackKing;
                     whiteKing = c == 'K' ? piece : whiteKing;
                     if(piece->getKind() == ROOK) {
@@ -313,8 +313,8 @@ namespace chess {
             case 'b':
                 return make_shared<Bishop>(static_cast<pieceName>(pieceChar), isupper(c) ? chess::WHITE : chess::BLACK, s, b);
             case 'p':
-                auto p = make_shared<Pawn>(static_cast<pieceName>(pieceChar), isupper(c) ? chess::WHITE : chess::BLACK, s, b, this->pawnid);
-                this->pawnid += 2;
+                auto p = make_shared<Pawn>(static_cast<pieceName>(pieceChar), isupper(c) ? chess::WHITE : chess::BLACK, s, b, pawnid_);
+                pawnid_ += 2;
                 return p;
         }
     }

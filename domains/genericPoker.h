@@ -51,7 +51,7 @@ class GenericPokerAction : public Action {
 
   // Returns move description.
   inline string toString() const final {
-    if (id == NO_ACTION)
+    if (id_ == NO_ACTION)
       return "NoA";
     switch (type_) {
       case Check: return "Check";
@@ -94,7 +94,7 @@ class GenericPokerObservation : public Observation {
 
   // Returns description.
   inline string toString() const final {
-    if (id == NO_OBSERVATION)
+    if (id_ == NO_OBSERVATION)
       return "NoOb";
     switch (type_) {
       case PlayCard: return "Card number is " + to_string(value_);
@@ -155,19 +155,19 @@ class GenericPokerState : public State {
   inline string toString() const override {
     return "Player 0 card: " + to_string(player1Card_) + "\nPlayer 1 card: " +
         to_string(player2Card_) + "\nNature card: " + to_string(natureCard_.value_or(-1)) +
-        "\nPlayer on move: " + to_string(players_[0]) + "\nPot: " + to_string(pot) +
-        "\nReward for first player: " + to_string(firstPlayerReward) +
-        "\nLast action: " + (lastAction ? lastAction->toString() : "Nothing") +
+        "\nPlayer on move: " + to_string(players_[0]) + "\nPot: " + to_string(pot_) +
+        "\nReward for first player: " + to_string(firstPlayerReward_) +
+        "\nLast action: " + (lastAction_ ? lastAction_->toString() : "Nothing") +
         "\nRound: " + to_string(round_) + "\nContinuous raise count: " +
         to_string(continuousRaiseCount_) + "\n";
   }
 
  protected:
   vector<Player> players_;
-  shared_ptr<GenericPokerAction> lastAction;
+  shared_ptr<GenericPokerAction> lastAction_;
   optional<int> natureCard_;
-  double pot;
-  double firstPlayerReward;
+  double pot_;
+  double firstPlayerReward_;
   int player1Card_;
   int player2Card_;
   int round_;
@@ -204,16 +204,16 @@ class GenericPokerDomain : public Domain {
     return {0, 1};
   }
 
-  vector<int> betsFirstRound;
-  vector<int> raisesFirstRound;
-  vector<int> betsSecondRound;
-  vector<int> raisesSecondRound;
-  const unsigned int maxCardTypes;   // numbers
-  const unsigned int maxCardsOfEachType;  // colors
-  const unsigned int maxRaisesInRow;
-  const unsigned int maxDifferentBets;
-  const unsigned int maxDifferentRaises;
-  const unsigned int ante;
+  vector<int> betsFirstRound_;
+  vector<int> raisesFirstRound_;
+  vector<int> betsSecondRound_;
+  vector<int> raisesSecondRound_;
+  const unsigned int maxCardTypes_;   // numbers
+  const unsigned int maxCardsOfEachType_;  // colors
+  const unsigned int maxRaisesInRow_;
+  const unsigned int maxDifferentBets_;
+  const unsigned int maxDifferentRaises_;
+  const unsigned int ante_;
   const int TERMINAL_ROUND = 4;
 };
 }  // namespace domains

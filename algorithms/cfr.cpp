@@ -86,7 +86,7 @@ CFRiterations(const Domain &domain, int iterations) {
     const int currentplayer = *node->getCurrentPlayer();
 
     if (node->isTerminal()) {
-      return node->rewards[player];
+      return node->rewards_[player];
     }
 
     if (firstIteration) {
@@ -99,7 +99,7 @@ CFRiterations(const Domain &domain, int iterations) {
     }
     auto&[infSet, actions, newNodesVec] = efgnodes.at(node);
     if (actions.empty()) {
-      return node->rewards[player];
+      return node->rewards_[player];
     }
     const auto K = static_cast<const unsigned int>(actions.size());
     if (firstIteration && regrets.find(infSet) == regrets.end()) {
@@ -182,7 +182,7 @@ CFRiterationsAOH(const Domain &domain, int iterations) {
     const int currentplayer = *node->getCurrentPlayer();
 
     if (node->getCurrentPlayer() == nullopt || node->getDepth() == domain.getMaxDepth()) {
-      return node->rewards[player];
+      return node->rewards_[player];
     }
 
     if (firstIteration) {

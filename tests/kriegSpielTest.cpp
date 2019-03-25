@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_SUITE(KriegSpiel);
 
 BOOST_AUTO_TEST_CASE(pinning) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
-    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state;
+    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
     auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
     BOOST_CHECK(ks->getAvailableActionsFor(0).size() == 20);
     ks->clearBoard();
@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(pinning) {
 
 BOOST_AUTO_TEST_CASE(enPassant) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
-    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state;
+    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
     auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
     ks->clearBoard();
 
@@ -81,7 +81,7 @@ BOOST_AUTO_TEST_CASE(enPassant) {
     }
 
     Outcome newState = ks->performActions(v)[0].first;
-    auto newBoard = dynamic_cast<domains::KriegspielState*>(newState.state.get());
+    auto newBoard = dynamic_cast<domains::KriegspielState*>(newState.state_.get());
     //a black pawn's valid move should now be to capture en passant
     Square sq(5, 3);
     auto newBlackPawn = newBoard->getPiecesOfColorAndKind(1, PAWN)[0];
@@ -98,14 +98,14 @@ BOOST_AUTO_TEST_CASE(enPassant) {
         }
     }
 
-    Outcome lastState = newState.state->performActions(v)[0].first;
-    auto lastBoard = dynamic_cast<domains::KriegspielState*>(lastState.state.get());
+    Outcome lastState = newState.state_->performActions(v)[0].first;
+    auto lastBoard = dynamic_cast<domains::KriegspielState*>(lastState.state_.get());
     BOOST_CHECK(lastBoard->getPiecesOfColor(0).size() + lastBoard->getPiecesOfColor(1).size() == 3);
 }
 
 BOOST_AUTO_TEST_CASE(invalidMoving) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
-    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state;
+    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
     auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
     ks->clearBoard();
 
@@ -140,12 +140,12 @@ BOOST_AUTO_TEST_CASE(invalidMoving) {
     }
 
     Outcome newState = ks->performActions(v)[0].first;
-    BOOST_CHECK(newState.observations[0]->getId() == v[0].second.get()->getId() && newState.observations[1]->getId() == NO_OBSERVATION);
+    BOOST_CHECK(newState.observations_[0]->getId() == v[0].second.get()->getId() && newState.observations_[1]->getId() == NO_OBSERVATION);
 }
 
 BOOST_AUTO_TEST_CASE(checking) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
-    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state;
+    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
     auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
     ks->clearBoard();
 
@@ -173,7 +173,7 @@ BOOST_AUTO_TEST_CASE(checking) {
     }
 
     Outcome newState = ks->performActions(v)[0].first;
-    auto newBoard = dynamic_cast<domains::KriegspielState*>(newState.state.get());
+    auto newBoard = dynamic_cast<domains::KriegspielState*>(newState.state_.get());
     BOOST_CHECK(newBoard->isPlayerInCheck());
     auto newBlackKing = newBoard->getPiecesOfColorAndKind(1, KING)[0];
     BOOST_CHECK(newBlackKing->getAllValidMoves()->size() == 2);
@@ -181,7 +181,7 @@ BOOST_AUTO_TEST_CASE(checking) {
 
 BOOST_AUTO_TEST_CASE(doublechecking) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
-    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state;
+    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
     auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
     ks->clearBoard();
 
@@ -215,7 +215,7 @@ BOOST_AUTO_TEST_CASE(doublechecking) {
     }
 
     Outcome newState = ks->performActions(v)[0].first;
-    auto newBoard = dynamic_cast<domains::KriegspielState*>(newState.state.get());
+    auto newBoard = dynamic_cast<domains::KriegspielState*>(newState.state_.get());
     BOOST_CHECK(newBoard->isPlayerInCheck());
     //the only valid move for black should be Kf7
     auto newBlackBishop = newBoard->getPiecesOfColorAndKind(1, BISHOP)[0];
@@ -227,7 +227,7 @@ BOOST_AUTO_TEST_CASE(doublechecking) {
 
 BOOST_AUTO_TEST_CASE(castling) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
-    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state;
+    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
     auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
     ks->clearBoard();
 
@@ -260,13 +260,13 @@ BOOST_AUTO_TEST_CASE(castling) {
     }
 
     Outcome newState = ks->performActions(v)[0].first;
-    auto newBoard = dynamic_cast<GTLib2::domains::KriegspielState*>(newState.state.get());
+    auto newBoard = dynamic_cast<GTLib2::domains::KriegspielState*>(newState.state_.get());
     AbstractPiece* newWhiteKing = newBoard->getPiecesOfColorAndKind(0, KING)[0].get();
     AbstractPiece* newWhiteRookShort = newBoard->getPiecesOfColorAndKind(0, ROOK)[1].get();
     BOOST_CHECK(newWhiteKing->getPosition().x == 7 && newWhiteKing->getPosition().y == 1 && newWhiteRookShort->getPosition().x == 6 && newWhiteRookShort->getPosition().y == 1);
 
     domains::KriegspielDomain d2(4, 4, BOARD::STANDARD);
-    shared_ptr<State> s2 = d2.getRootStatesDistribution()[0].first.state;
+    shared_ptr<State> s2 = d2.getRootStatesDistribution()[0].first.state_;
     auto ks2 = dynamic_cast<domains::KriegspielState*>(s2.get());
     ks2->clearBoard();
     whiteKing = make_shared<King>(KING, 0, Square(5, 1), ks);
@@ -293,7 +293,7 @@ BOOST_AUTO_TEST_CASE(castling) {
     }
 
     Outcome lastState = ks2->performActions(v)[0].first;
-    auto lastBoard = dynamic_cast<GTLib2::domains::KriegspielState*>(lastState.state.get());
+    auto lastBoard = dynamic_cast<GTLib2::domains::KriegspielState*>(lastState.state_.get());
     AbstractPiece* newWhiteKing2 = lastBoard->getPiecesOfColorAndKind(0, KING)[0].get();
     AbstractPiece* newWhiteRookLong = lastBoard->getPiecesOfColorAndKind(0, ROOK)[0].get();
     BOOST_CHECK(newWhiteKing2->getPosition().x == 3 && newWhiteKing2->getPosition().y == 1 && newWhiteRookLong->getPosition().x == 4 && newWhiteRookLong->getPosition().y == 1);
@@ -301,7 +301,7 @@ BOOST_AUTO_TEST_CASE(castling) {
 
 BOOST_AUTO_TEST_CASE(castleDeny) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
-    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state;
+    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
     auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
     ks->clearBoard();
 
@@ -337,7 +337,7 @@ BOOST_AUTO_TEST_CASE(castleDeny) {
 
     //short castle should be invalid
     Outcome newState = ks->performActions(v)[0].first;
-    BOOST_CHECK(newState.observations[0]->getId() == v[0].second.get()->getId() && newState.observations[1]->getId() == NO_OBSERVATION);
+    BOOST_CHECK(newState.observations_[0]->getId() == v[0].second.get()->getId() && newState.observations_[1]->getId() == NO_OBSERVATION);
 
     //reset the board
     ks->clearBoard();
@@ -366,12 +366,12 @@ BOOST_AUTO_TEST_CASE(castleDeny) {
     }
 
     newState = ks->performActions(v)[0].first;
-    BOOST_CHECK(newState.observations[0]->getId() == v[0].second.get()->getId() && newState.observations[1]->getId() == NO_OBSERVATION);
+    BOOST_CHECK(newState.observations_[0]->getId() == v[0].second.get()->getId() && newState.observations_[1]->getId() == NO_OBSERVATION);
 }
 
 BOOST_AUTO_TEST_CASE(cutting) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
-    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state;
+    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
     auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
     ks->clearBoard();
 
@@ -405,13 +405,13 @@ BOOST_AUTO_TEST_CASE(cutting) {
 
     Outcome newState = ks->performActions(v)[0].first;
     //after Rh8 there should be only 3 pieces left - the black rook is cut
-    auto newBoard = dynamic_cast<GTLib2::domains::KriegspielState*>(newState.state.get());
+    auto newBoard = dynamic_cast<GTLib2::domains::KriegspielState*>(newState.state_.get());
     BOOST_CHECK(newBoard->getPiecesOfColor(0).size() + newBoard->getPiecesOfColor(1).size() == 3);
 }
 
 BOOST_AUTO_TEST_CASE(gameOverWin) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
-    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state;
+    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
     auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
     ks->clearBoard();
 
@@ -443,12 +443,12 @@ BOOST_AUTO_TEST_CASE(gameOverWin) {
     }
 
     Outcome newState = ks->performActions(v)[0].first;
-    BOOST_CHECK(newState.rewards[0] == 1 && newState.rewards[1] == 0);
+    BOOST_CHECK(newState.rewards_[0] == 1 && newState.rewards_[1] == 0);
 }
 
 BOOST_AUTO_TEST_CASE(gameOverDraw) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
-    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state;
+    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
     auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
     ks->clearBoard();
 
@@ -477,12 +477,12 @@ BOOST_AUTO_TEST_CASE(gameOverDraw) {
 
     Outcome newState = ks->performActions(v)[0].first;
     //after Rh8 there should be only 3 pieces left - the black rook is cut
-    BOOST_CHECK(newState.rewards[0] == 0.5 && newState.rewards[1] == 0.5);
+    BOOST_CHECK(newState.rewards_[0] == 0.5 && newState.rewards_[1] == 0.5);
 }
 
 BOOST_AUTO_TEST_CASE(PAWNPromotion) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
-    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state;
+    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
     auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
     ks->clearBoard();
 
@@ -510,14 +510,14 @@ BOOST_AUTO_TEST_CASE(PAWNPromotion) {
     }
 
     Outcome newState = ks->performActions(v)[0].first;
-    auto newBoard = dynamic_cast<domains::KriegspielState*>(newState.state.get());
+    auto newBoard = dynamic_cast<domains::KriegspielState*>(newState.state_.get());
     //after Rh8 there should be only 3 pieces left - the black rook is cut
     BOOST_CHECK(newBoard->getPiecesOfColor(0).size() == 2 && newBoard->getPiecesOfColorAndKind(0, QUEEN).size() == 1);
 }
 
 BOOST_AUTO_TEST_CASE(protection) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
-    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state;
+    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
     auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
     ks->clearBoard();
     ks->setPlayerOnMove(chess::BLACK);
@@ -544,7 +544,7 @@ BOOST_AUTO_TEST_CASE(protection) {
     }
 
     Outcome newState = ks->performActions(v)[0].first;
-    auto newBoard = dynamic_cast<domains::KriegspielState*>(newState.state.get());
+    auto newBoard = dynamic_cast<domains::KriegspielState*>(newState.state_.get());
 
     v.clear();
     for(shared_ptr<Action> a: newBoard->getAvailableActionsFor(0)) {
@@ -557,12 +557,12 @@ BOOST_AUTO_TEST_CASE(protection) {
     }
     newState = newBoard->performActions(v)[0].first;
 
-    BOOST_CHECK(newState.observations[0]->getId() == v[0].second.get()->getId() && newState.observations[1]->getId() == NO_OBSERVATION);
+    BOOST_CHECK(newState.observations_[0]->getId() == v[0].second.get()->getId() && newState.observations_[1]->getId() == NO_OBSERVATION);
 }
 
 BOOST_AUTO_TEST_CASE(randomPin) {
         domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
-        shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state;
+        shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
         auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
         ks->clearBoard();
         ks->setPlayerOnMove(BLACK);
@@ -599,7 +599,7 @@ BOOST_AUTO_TEST_CASE(randomPin) {
         }
 
         Outcome newState = ks->performActions(v)[0].first;
-        auto newBoard = dynamic_cast<domains::KriegspielState*>(newState.state.get());
+        auto newBoard = dynamic_cast<domains::KriegspielState*>(newState.state_.get());
 
         v.clear();
         for(shared_ptr<Action> a: newBoard->getAvailableActionsFor(0)) {
@@ -613,12 +613,12 @@ BOOST_AUTO_TEST_CASE(randomPin) {
 
         Outcome lastState = newBoard->performActions(v)[0].first;
 
-        BOOST_CHECK(lastState.observations[0]->getId() == v[0].second.get()->getId() && lastState.observations[1]->getId() == NO_OBSERVATION);
+        BOOST_CHECK(lastState.observations_[0]->getId() == v[0].second.get()->getId() && lastState.observations_[1]->getId() == NO_OBSERVATION);
 }
 
 BOOST_AUTO_TEST_CASE(randomGameOver) {
         domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
-        shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state;
+        shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
         auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
         ks->clearBoard();
         ks->setPlayerOnMove(BLACK);
@@ -653,12 +653,12 @@ BOOST_AUTO_TEST_CASE(randomGameOver) {
 
         Outcome newState = ks->performActions(v)[0].first;
 
-        BOOST_CHECK(newState.rewards[0] == 0 && newState.rewards[1] == 1);
+        BOOST_CHECK(newState.rewards_[0] == 0 && newState.rewards_[1] == 1);
 }
 
 BOOST_AUTO_TEST_CASE(piercingProtection) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
-    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state;
+    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
     auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
     ks->clearBoard();
     ks->setPlayerOnMove(1);
@@ -692,12 +692,12 @@ BOOST_AUTO_TEST_CASE(piercingProtection) {
 
     Outcome newState = ks->performActions(v)[0].first;
 
-    BOOST_CHECK(newState.rewards[0] == 0.5 && newState.rewards[1] == 0.5);
+    BOOST_CHECK(newState.rewards_[0] == 0.5 && newState.rewards_[1] == 0.5);
 }
 
 BOOST_AUTO_TEST_CASE(gameOverTest) {
     domains::KriegspielDomain d(4, 4, BOARD::MINIMAL3x3);
-    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state;
+    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
     auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
 
     vector<PlayerAction> v;
@@ -711,7 +711,7 @@ BOOST_AUTO_TEST_CASE(gameOverTest) {
     }
 
     Outcome newState = ks->performActions(v)[0].first;
-    auto newBoard = dynamic_cast<domains::KriegspielState*>(newState.state.get());
+    auto newBoard = dynamic_cast<domains::KriegspielState*>(newState.state_.get());
 
     v.clear();
     for(shared_ptr<Action> a: newBoard->getAvailableActionsFor(1)) {
@@ -724,7 +724,7 @@ BOOST_AUTO_TEST_CASE(gameOverTest) {
     }
 
     Outcome lastState = newBoard->performActions(v)[0].first;
-    auto lastBoard = dynamic_cast<domains::KriegspielState*>(lastState.state.get());
+    auto lastBoard = dynamic_cast<domains::KriegspielState*>(lastState.state_.get());
 
     v.clear();
     for(shared_ptr<Action> a: lastBoard->getAvailableActionsFor(0)) {
@@ -738,7 +738,7 @@ BOOST_AUTO_TEST_CASE(gameOverTest) {
 
     Outcome lastsState = lastBoard->performActions(v)[0].first;
 
-    BOOST_CHECK(lastsState.rewards[0] == 1 && lastsState.rewards[1] == 0);
+    BOOST_CHECK(lastsState.rewards_[0] == 1 && lastsState.rewards_[1] == 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
