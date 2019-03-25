@@ -550,6 +550,21 @@ struct equal_to<GTLib2::Outcome> {
         return a == b;
     }
 };
+
+template<
+    typename T,
+    typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type
+>
+std::ostream &
+operator<<(std::ostream &ss, std::vector<T> arr) {
+    ss << "[";
+    for (auto x : arr) {
+        ss << x << ", ";
+    }
+    ss << "]";
+    return ss;
+}
+
 }  // namespace std
 
 

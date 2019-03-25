@@ -29,13 +29,6 @@
 namespace GTLib2 {
 namespace algorithms {
 
-#define PRINT_ARRAY(ostr, ARR) \
-    ostr << "[";               \
-    for (auto x : ARR) {       \
-        ostr << x << ", ";     \
-    }                          \
-    ostr << "]\n";
-
 /**
  * Capture various domain statistics, for each player if possible.
  */
@@ -55,11 +48,11 @@ struct DomainStatistics {
     operator<<(std::ostream &ss, DomainStatistics const &stats) {
         ss << std::endl;
         ss << "States:              \t" << stats.num_states << std::endl;
-        ss << "Histories:           \t"; PRINT_ARRAY(ss, stats.num_histories);
+        ss << "Histories:           \t" << stats.num_histories << std::endl;
         ss << "Terminals:           \t" << stats.num_terminals << std::endl;
         ss << "EFG nodes:           \t" << stats.num_nodes << std::endl;
-        ss << "Infosets:            \t"; PRINT_ARRAY(ss, stats.num_infosets);
-        ss << "Sequences:           \t"; PRINT_ARRAY(ss, stats.num_sequences);
+        ss << "Infosets:            \t" << stats.num_infosets << std::endl;
+        ss << "Sequences:           \t" << stats.num_sequences << std::endl;
         ss << "Depth of game state: \t" << stats.max_StateDepth << std::endl;
         ss << "Depth of EFG:        \t" << stats.max_EFGDepth << std::endl;
         ss << std::endl;
