@@ -47,7 +47,8 @@ class EFGNode;
 class EFGCache;
 
 /**
- * The probability of given EFGNode following after performing some action.
+ * The chance probability of an EFGNode after performing some action,
+ * i.e. not from the root, but from a parent node `h` to it's child `g` -- $\pi_c(g|h)$.
  */
 typedef pair<shared_ptr<EFGNode>, double> EFGDistEntry;
 
@@ -59,9 +60,11 @@ typedef pair<shared_ptr<EFGNode>, double> EFGDistEntry;
 typedef vector<EFGDistEntry> EFGNodesDistribution;
 
 /**
- * Distribution of nodes after following a specified action.
+ * Distribution of nodes after following a specified action id.
+ *
+ * Note that action ids are indexed from 0..N-1
  */
-typedef unordered_map<shared_ptr<Action>, EFGNodesDistribution> EFGActionNodesDistribution;
+typedef vector<shared_ptr<EFGNodesDistribution>> EFGActionNodesDistribution;
 
 /**
  * EFGNode is a class that represents node in an extensive form game (EFG).
@@ -286,7 +289,8 @@ class EFGCache {
     /**
      * Specify that in a given node, with which action new distribution of nodes can be obtained.
      *
-     * Note that parent nodes are saved in each respective EFGNode.
+     * Note that if you need to access parent nodes, they are saved in each respective node:
+     * EFGNode::getParent
      */
     unordered_map<shared_ptr<EFGNode>, EFGActionNodesDistribution> nodesChildren_;
 
@@ -312,6 +316,10 @@ class EFGCache {
 
     inline const vector<shared_ptr<AOH>> & getInfosetsFor(const shared_ptr<EFGNode> &node) {
         return node2infosets_[node];
+    }
+
+    long countAugInfosets() {
+        return infoset2nodes_.size();
     }
 
     /**
@@ -345,6 +353,14 @@ class EFGCache {
      */
     const EFGNodesDistribution &
     getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action);
+
+    /**
+     * Retrieve children for the node after following any action.
+     *
+     * The nodes are saved in the cache along their augmented infoset identification.
+     */
+    const EFGActionNodesDistribution &
+    getChildrenFor(const shared_ptr<EFGNode> &node);
 
     inline const EFGNodesDistribution & getRootNodes() {
         return rootNodes_;

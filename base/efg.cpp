@@ -347,15 +347,20 @@ EFGCache::EFGCache(const OutcomeDistribution &rootProbDist)
 bool EFGCache::hasChildren(const shared_ptr<EFGNode> &node) {
     auto it = nodesChildren_.find(node);
     if (it == nodesChildren_.end()) return false;
+
     auto &distributionEntry = it->second;
-    return !distributionEntry.empty();
+    for(auto ptr : distributionEntry) {
+        if(ptr != nullptr) return true;
+    }
+    return false;
 }
 
 bool EFGCache::hasChildren(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action) {
     auto it = nodesChildren_.find(node);
     if (it == nodesChildren_.end()) return false;
     auto &distributionEntry = it->second;
-    return distributionEntry.find(action) != distributionEntry.end();
+    auto id = action->getId();
+    return distributionEntry.size() >= id && distributionEntry[id] != nullptr;
 }
 
 
@@ -368,15 +373,18 @@ EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Actio
     assert(maybeNode != nodesChildren_.end());
 
     // fetch from cache if possible
+    const auto actionId = action->getId();
     auto &nodeDist = maybeNode->second;
-    auto actionDist = nodeDist.find(action);
-    if (actionDist != nodeDist.end()) {
-        return actionDist->second;
+    if (nodeDist.size() >= actionId && nodeDist[actionId] != nullptr) {
+        return *nodeDist[action->getId()];
     }
 
     // create new nodes and save them to cache
+    if(nodeDist.size() < actionId) {
+        nodeDist.resize(actionId, nullptr);
+    }
     auto newDist = node->performAction(action);
-    nodeDist.emplace(std::make_pair(action, newDist));
+    nodeDist.at(actionId) = make_shared<EFGNodesDistribution>(newDist);
 
     for (auto &[childNode, _]: newDist) {
         createNode(childNode);
@@ -385,9 +393,42 @@ EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Actio
 
     // retrieve from map directly to return a reference,
     // this is guaranteed to exist there since we've just inserted it
-    return nodesChildren_
-        .find(node)->second
-        .find(action)->second;
+    return *nodesChildren_.find(node)->second[actionId];
+}
+
+const EFGActionNodesDistribution & EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node) {
+    auto maybeNode = nodesChildren_.find(node);
+
+    // Node not found -- maybe trying to get children
+    // for a node gotten outside from cache?
+    assert(maybeNode != nodesChildren_.end());
+
+    // fetch from cache if possible
+    auto &nodeDist = maybeNode->second;
+    // check if we have all the actions
+    // todo: improve using countAvailableActions ?
+
+    auto actions = node->availableActions();
+    if(nodeDist.size() < actions.size()) {
+        nodeDist.resize(actions.size(), nullptr);
+    }
+
+    // add (possibly) missing actions
+    for(auto &action : actions) {
+        if(nodeDist[action->getId()] != nullptr) {
+            continue;
+        }
+
+        auto newDist = node->performAction(action);
+        nodeDist.at(action->getId()) = make_shared<EFGNodesDistribution>(newDist);
+
+        for (auto &[childNode, _]: newDist) {
+            createNode(childNode);
+            updateInfosets(childNode);
+        }
+    }
+
+    return nodeDist;
 }
 
 void EFGCache::updateInfosets(const shared_ptr<EFGNode> &node) {
@@ -412,7 +453,9 @@ void EFGCache::updateInfosets(const shared_ptr<EFGNode> &node) {
 }
 
 void EFGCache::createNode(const shared_ptr<EFGNode> &node) {
-    nodesChildren_.emplace(node, EFGActionNodesDistribution());
+    // todo: improve using countAvailableActions()
+    // 4 because it's a somewhat reasonable number of actions in a domain
+    nodesChildren_.emplace(node, EFGActionNodesDistribution(4, nullptr));
 }
 
 }  // namespace GTLib2
