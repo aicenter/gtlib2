@@ -123,17 +123,21 @@ set(SOURCE_FILES
         domains/phantomTTT.h domains/phantomTTT.cpp
         domains/pursuit.h domains/pursuit.cpp
         domains/RhodeIslandPoker.h domains/RhodeIslandPoker.cpp
+        domains/oshiZumo.h domains/oshiZumo.cpp
         # LPSolvers
         LPsolvers/LPSolver.h
         # utils
         utils/utils.h
         utils/functools.h
+        #utils/highQualityRandom.h utils/highQualityRandom.cpp
         )
 set(TEST_FILES
         tests/domainsTest.h tests/domainsTest.cpp
         tests/genericPokerTest.cpp
         tests/goofSpielTest.cpp
         tests/kriegSpielTest.cpp
+        tests/matchingPenniesTest.cpp
+        tests/oshiZumoTest.cpp
         tests/matchingPenniesTest.cpp
         tests/efgTest.cpp
         tests/treeTest.cpp
