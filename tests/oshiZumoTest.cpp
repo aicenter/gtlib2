@@ -116,15 +116,6 @@ BOOST_AUTO_TEST_CASE(builtAndCheckGameTree){
     }
 }
 
-BOOST_AUTO_TEST_CASE(noBidsWithNoCoins){
-    OshiZumoDomain ozd(3, 3, 1);
-    shared_ptr<State> s = ozd.getRootStatesDistribution()[0].first.state;
-    auto rootState = dynamic_cast<OshiZumoState*>(s.get());
-
-    rootState->coins[0] = 0;
-    auto actions = rootState->getAvailableActionsFor(0); // only possible action should be bid 0
-    BOOST_CHECK_EQUAL(actions.size(), 1);
-}
 
 BOOST_AUTO_TEST_CASE(correctRewardsDistribution){
     OshiZumoDomain ozd(3, 0, 1);
