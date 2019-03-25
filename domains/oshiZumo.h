@@ -24,6 +24,7 @@
 #ifndef GTLIB2_OSHIZUMO_H
 #define GTLIB2_OSHIZUMO_H
 
+#include <ostream>
 #include "base/base.h"
 
 /*
@@ -37,6 +38,7 @@ public:
     explicit OshiZumoAction(ActionId id, int bid);
     bool operator==(const Action &that) const override;
     size_t getHash() const override;
+    string toString() const;
 
     inline int getBid() const {
         return bid_;

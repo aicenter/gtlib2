@@ -21,7 +21,7 @@
 
 #include <boost/test/unit_test.hpp>
 #include "algorithms/stats.h"
-#include "algorithms/treeWalk.h"
+#include "algorithms/tree.h"
 #include "algorithms/utility.h"
 #include "algorithms/bestResponse.h"
 #include "algorithms/cfr.h"
