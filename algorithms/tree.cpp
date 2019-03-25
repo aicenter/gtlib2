@@ -38,8 +38,13 @@ using std::cout;
 namespace GTLib2 {
 namespace algorithms {
 
-void buildTree(EFGCache *cache, int maxDepth) {
-    auto traverse = [&cache, maxDepth](const shared_ptr<EFGNode> &node, const auto &traverse) {
+void treeWalkEFG(EFGCache *cache, EFGNodeCallback function, int maxDepth) {
+    auto traverse = [&function, &cache, maxDepth]
+        (const shared_ptr<EFGNode> &node, const auto &traverse) {
+
+        // Call the provided function on the current node.
+        function(node);
+
         if (node->getDepth() >= maxDepth) return;
 
         for (const auto &action : node->availableActions()) {
@@ -63,11 +68,8 @@ void treeWalkEFG(const Domain &domain, EFGNodeCallback function, int maxDepth) {
 
         if (node->getDepth() >= maxDepth) return;
 
-        const auto actions = node->availableActions();
-        for (const auto &action : actions) {
-            // Non-deterministic - can get multiple nodes due to chance
-            auto nodesDistribution = node->performAction(action);
-            for (auto const &nodeDist : nodesDistribution) {
+        for (const auto &action : node->availableActions()) {
+            for (auto const &nodeDist : node->performAction(action)) {
                 traverse(nodeDist.first, traverse);
             }
         }
