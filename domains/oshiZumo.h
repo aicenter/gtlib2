@@ -26,6 +26,9 @@
 
 #include "base/base.h"
 
+/*
+ * Oshi Zumo domain implementation. For game rules go to: http://mlanctot.info/files/papers/aij-2psimmove.pdf, p.43
+ */
 namespace GTLib2{
 namespace domains{
 
@@ -34,10 +37,13 @@ public:
     explicit OshiZumoAction(ActionId id, int bid);
     bool operator==(const Action &that) const override;
     size_t getHash() const override;
-    int getBid() const;
+
+    inline int getBid() const {
+        return bid_;
+    }
 
 private:
-    int bid;
+    int bid_;
 };
 
 class OshiZumoDomain : public Domain {
@@ -56,10 +62,22 @@ public:
      */
     OshiZumoDomain(int startingCoins, int startingLoc, int minBod, bool optimalEndGame);
     string getInfo() const override;
-    vector<Player> getPlayers() const override;
-    const int getStartingLocation() const;
-    const int getMinBid() const;
-    const bool isOptimalEndGame() const;
+    inline vector<Player> getPlayers() const final{
+        return {0, 1};
+    }
+
+    inline const int getStartingLocation() const {
+        return startingLocation_;
+    }
+
+    inline const int getMinBid() const {
+        return minBid_;
+    }
+
+    inline const bool isOptimalEndGame() const {
+        return optimalEndGame_;
+    }
+
 
 private:
     const int startingCoins_;
@@ -81,11 +99,11 @@ public:
     bool operator==(const State &that) const override;
     size_t getHash() const override;
 
-    int getWrestlerLocation() const {
+    inline int getWrestlerLocation() const {
         return wrestlerLocation_;
     }
 
-    const vector<int> &getCoins() const {
+    inline const vector<int> &getCoins() const {
         return coins_;
     }
 
@@ -99,6 +117,11 @@ class OshiZumoObservation : public Observation {
 public:
     explicit OshiZumoObservation(int opponentBid);
 
+    inline int getOpponentBid() const {
+        return opponentBid_;
+    }
+
+private:
     int opponentBid_;
 
 };
