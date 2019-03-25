@@ -70,7 +70,7 @@ BOOST_AUTO_TEST_CASE(best_response_test) {
     MatchingPenniesDomain d;
 
     auto initNodes =
-        algorithms::createRootEFGNodesFromInitialOutcomeDistribution(
+        algorithms::createRootEFGNodes(
             d.getRootStatesDistribution());
     auto firstNode = (*initNodes.begin()).first;
 

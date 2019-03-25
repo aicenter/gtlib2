@@ -144,7 +144,7 @@ pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStr
   };
   treeWalkEFG(domain, getAllNodesInInfSet, domain.getMaxDepth());
 
-  auto initNodesProb = createRootEFGNodesFromInitialOutcomeDistribution(
+  auto initNodesProb = createRootEFGNodes(
       domain.getRootStatesDistribution());
   BehavioralStrategy brs;
   double expVal = 0.0;
@@ -299,7 +299,7 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(
   };
   treeWalkEFG(domain, getAllNodesInInfSet, domain.getMaxDepth());
 
-  auto initNodesProb = createRootEFGNodesFromInitialOutcomeDistribution(
+  auto initNodesProb = createRootEFGNodes(
       domain.getRootStatesDistribution());
   BehavioralStrategy brs;
   double expVal = 0.0;
