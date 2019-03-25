@@ -97,11 +97,18 @@ typedef vector<distributionEntry> OutcomeDistribution;
 
 /**
  * Behavioral strategy at given infoset: with what probability given action should be played?
+ *
+ * This should be **per player only**.
  */
 typedef unordered_map<
     shared_ptr<InformationSet>,
     unordered_map<shared_ptr<Action>, double>
 > BehavioralStrategy;
+
+/**
+ * Specify behavioral strategy for each player.
+ */
+typedef vector<BehavioralStrategy> StrategyProfile;
 
 /**
  * List of actions that had to be taken at information sets to get to current EFG node.
@@ -285,8 +292,7 @@ class State {
     /**
      * Performs actions given by player->action map
      */
-    virtual OutcomeDistribution performActions(
-        const vector<PlayerAction> &actions) const = 0;
+    virtual OutcomeDistribution performActions(const vector<PlayerAction> &actions) const = 0;
 
     /**
      * Returns players that can play in this state
