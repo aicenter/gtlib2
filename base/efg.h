@@ -198,6 +198,9 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
      */
     optional<Player> getCurrentPlayer() const;
 
+    /**
+     * Cumulative rewards we have gotten on the path from the root to this node
+     */
     vector<double> rewards_;
 
     /**
