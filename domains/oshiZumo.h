@@ -34,29 +34,44 @@ public:
     explicit OshiZumoAction(ActionId id, int bid);
     bool operator==(const Action &that) const override;
     size_t getHash() const override;
+    int getBid() const;
 
+private:
     int bid;
 };
 
 class OshiZumoDomain : public Domain {
 public:
+    /*
+     * @param startingCoins number of coins each player has at beginning of a game
+     * @param startingLoc starting position of wrestler, if startingLoc = 3, then there is (2*3 + 1) = 7 locations, wrestler is in the middle
+     * @param minBid minimum allowed bid by player per round
+     */
     OshiZumoDomain(int startingCoins, int startingLoc, int minBid);
+    /*
+     * @param startingCoins number of coins each player has at beginning of a game
+     * @param startingLoc starting position of wrestler, if startingLoc = 3, then there is (2*3 + 1) = 7 locations, wrestler is in the middle
+     * @param minBid minimum allowed bid by player per round
+     * @param optimalEndGame allow to simulate end optimal game, if one of the players can only bid 0
+     */
     OshiZumoDomain(int startingCoins, int startingLoc, int minBod, bool optimalEndGame);
     string getInfo() const override;
     vector<Player> getPlayers() const override;
-    const int startingCoins;
-    // if startingLocation = 3, then there is (2*3 + 1) = 7 locations:   ---W---
-    // wrestler starts in the middle(3):                                 0123456
-    const int startingLocation;
-    const int minBid;
-    // play optimal moves, if one player cannot bid anymore
-    const bool optimalEndGame;
+    const int getStartingLocation() const;
+    const int getMinBid() const;
+    const bool isOptimalEndGame() const;
+
+private:
+    const int startingCoins_;
+    const int startingLocation_;
+    const int minBid_;
+    const bool optimalEndGame_;
 };
 
 class OshiZumoState : public State {
 public:
     OshiZumoState(Domain *domain, int wrestlerPosition, int startingCoins);
-    OshiZumoState(Domain *domain, int wrestlerPosition, vector<int> coins);
+    OshiZumoState(Domain *domain, int wrestlerPosition, vector<int> coinsPerPlayer);
     vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
     OutcomeDistribution
     performActions(const vector<PlayerAction> &actions) const override;
@@ -66,16 +81,25 @@ public:
     bool operator==(const State &that) const override;
     size_t getHash() const override;
 
-    int wrestlerLocation;
-    vector<int> coins;
+    int getWrestlerLocation() const {
+        return wrestlerLocation_;
+    }
+
+    const vector<int> &getCoins() const {
+        return coins_;
+    }
+
+private:
+    int wrestlerLocation_;
+    vector<int> coins_;
 
 };
 
 class OshiZumoObservation : public Observation {
 public:
-    explicit OshiZumoObservation(int otherBid);
+    explicit OshiZumoObservation(int opponentBid);
 
-    int otherBid;
+    int opponentBid_;
 
 };
 } // namespace domains
