@@ -37,10 +37,10 @@ bool OshiZumoAction::operator==(const Action &that) const {
     const auto otherAction = static_cast<const OshiZumoAction *>(&that);
 
     return (this->bid_ == otherAction->bid_
-            && this->id == otherAction->id);
+            && this->id_ == otherAction->id_);
 }
 string OshiZumoAction::toString() const {
-    return  "id: " + std::to_string(id) +
+    return  "id: " + std::to_string(id_) +
             "bid: " + std::to_string(bid_);
 }
 
@@ -68,7 +68,7 @@ OshiZumoDomain::OshiZumoDomain(int startingCoins, int startingLoc, int minBid, b
     vector<double> rewards{0.0, 0.0};
     Outcome outcome(rootState, observations, rewards);
 
-    rootStatesDistribution.emplace_back(outcome, 1.0);
+    rootStatesDistribution_.emplace_back(outcome, 1.0);
 }
 
 
@@ -77,7 +77,7 @@ string OshiZumoDomain::getInfo() const {
            "\nStarting coins_: " + std::to_string(startingCoins_) +
            "\nStartingLocation: " + std::to_string(startingLocation_) +
            "\nMinimum bid: " + std::to_string(minBid_) +
-           "\nMax depth: " + std::to_string(maxDepth) + '\n';
+           "\nMax depth: " + std::to_string(maxDepth_) + '\n';
 }
 
 
@@ -93,7 +93,7 @@ OshiZumoState::OshiZumoState(Domain *domain, int wrestlerPosition, vector<int> c
 
 vector<shared_ptr<Action>> OshiZumoState::getAvailableActionsFor(Player player) const {
     vector<shared_ptr<Action>> actions;
-    const auto OZdomain = static_cast<OshiZumoDomain *>(domain);
+    const auto OZdomain = static_cast<OshiZumoDomain *>(domain_);
     int id = 0;
     if (coins_[player] >= OZdomain->getMinBid()) {
         for (int bid = OZdomain->getMinBid(); bid <= coins_[player]; bid++) {
@@ -110,7 +110,7 @@ vector<shared_ptr<Action>> OshiZumoState::getAvailableActionsFor(Player player) 
 OutcomeDistribution OshiZumoState::performActions(const vector<PlayerAction> &actions) const {
     auto p1Action = dynamic_cast<OshiZumoAction *>(actions[0].second.get());
     auto p2Action = dynamic_cast<OshiZumoAction *>(actions[1].second.get());
-    const auto OZdomain = static_cast<OshiZumoDomain *>(domain);
+    const auto OZdomain = static_cast<OshiZumoDomain *>(domain_);
     assert(p1Action != nullptr && p2Action != nullptr);
 
     vector<int> newCoins(coins_);
@@ -139,7 +139,7 @@ OutcomeDistribution OshiZumoState::performActions(const vector<PlayerAction> &ac
         }
     }
 
-    auto newState = make_shared<OshiZumoState>(domain, newWrestlerLocation, newCoins);
+    auto newState = make_shared<OshiZumoState>(domain_, newWrestlerLocation, newCoins);
     shared_ptr<OshiZumoObservation> newObserP1 = make_shared<OshiZumoObservation>(p2Action->getBid());
     shared_ptr<OshiZumoObservation> newObserP2 = make_shared<OshiZumoObservation>(p1Action->getBid());
     vector<shared_ptr<Observation>> observations{newObserP1, newObserP2};
@@ -168,7 +168,7 @@ vector<Player> OshiZumoState::getPlayers() const {
 }
 
 bool OshiZumoState::isGameEnd() const {
-    const auto OZdomain = static_cast<OshiZumoDomain *>(domain);
+    const auto OZdomain = static_cast<OshiZumoDomain *>(domain_);
     return (wrestlerLocation_ < 0
             || wrestlerLocation_ > (2 * OZdomain->getStartingLocation())
             || (coins_[0] < OZdomain->getMinBid() && coins_[1] < OZdomain->getMinBid())
@@ -176,7 +176,7 @@ bool OshiZumoState::isGameEnd() const {
 }
 
 string OshiZumoState::toString() const {
-    const auto OZdomain = static_cast<OshiZumoDomain *>(domain);
+    const auto OZdomain = static_cast<OshiZumoDomain *>(domain_);
     string str = "Coins: " +
                  to_string(coins_[0]) + ", " + to_string(coins_[1]) + ", bids: " + "\n\n";
     for (auto i = 0; i < 2 * OZdomain->getStartingLocation() + 1; i++) {

@@ -123,9 +123,9 @@ BOOST_AUTO_TEST_CASE(correctRewardsDistribution){
 
     auto getRewards = [&rew](shared_ptr<EFGNode> node){
         if (node->isTerminal()){
-            if (node->rewards[0] == 0) {
+            if (node->rewards_[0] == 0) {
                 rew[0]++;
-            } else if (node->rewards[0] == 1){
+            } else if (node->rewards_[0] == 1){
                 rew[1]++;
             } else {
                 rew[2]++;
