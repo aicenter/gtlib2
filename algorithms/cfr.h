@@ -25,35 +25,36 @@
 
 #include <vector>
 #include <utility>
+#include "base/efg.h"
 #include "base/base.h"
 
 namespace GTLib2 {
 namespace algorithms {
-BehavioralStrategy getStrategyFor(const Domain &domain,
-                                  int player,
-                                  const unordered_map<shared_ptr<InformationSet>,
-                                                      pair<vector<double>, vector<double>>> &allMP);
 
 /**
- * The main function for CFR algorithm returning utility.
+ * Container for regrets and average strategy accumulators
  */
-pair<double, double> CFR(const Domain &domain, int iterations);
+class CFRData: public EFGCache {
+
+ public:
+    typedef vector<double> Regrets;
+    typedef vector<double> AvgStratAccumulator;
+
+    unordered_map<shared_ptr<AOH>, pair<Regrets, AvgStratAccumulator>> infosetData;
+};
 
 /**
- * The function for CFR iteration.
- * Implementation based on Algorithm 1 in M. Lanctot PhD thesis.
- * It should be a first choice.
+ * Calculate average strategy for each player
  */
-unordered_map<shared_ptr<InformationSet>, pair<vector<double>, vector<double>>>
-CFRiterations(const Domain &domain, int iterations);
+StrategyProfile getStrategy(CFRData *data);
 
 /**
- * The function for CFR iteration.
- * Implementation based on Algorithm 1 in M. Lanctot PhD thesis.
- * AOhistory created in iterations, not in nodes.
+ * Run CFR on EFG tree for a number of iterations for both players.
+ *
+ * This implementation is based on Algorithm 1 in M. Lanctot PhD thesis.
  */
-unordered_map<shared_ptr<InformationSet>, pair<vector<double>, vector<double>>>
-CFRiterationsAOH(const Domain &domain, int iterations);
+void CFRiterations(CFRData *data, int numIterations);
+
 }  // namespace algorithms
 }  // namespace GTLib2
 
