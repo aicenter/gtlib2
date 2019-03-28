@@ -93,6 +93,11 @@ PursuitState::PursuitState(Domain *domain, const vector<Pos> &p, double prob) :
   std::iota(players_.begin(), players_.end(), 0);
 }
 
+// todo: this is only hotfix
+int PursuitState::countAvailableActionsFor(Player player) const {
+  return static_cast<int>(getAvailableActionsFor(player).size());
+}
+
 vector<shared_ptr<Action>> PursuitState::getAvailableActionsFor(Player player) const {
   auto list = vector<shared_ptr<Action>>();
   for (int i = 1; i < players_.size(); ++i) {

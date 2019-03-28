@@ -57,6 +57,11 @@ PhantomTTTState::PhantomTTTState(Domain *domain, vector<vector<int>> p,
   strings_ = vector<string>(2);
 }
 
+// todo: this is only hotfix
+int PhantomTTTState::countAvailableActionsFor(Player player) const {
+  return static_cast<int>(getAvailableActionsFor(player).size());
+}
+
 vector<shared_ptr<Action>> PhantomTTTState::getAvailableActionsFor(Player player) const {
   auto list = vector<shared_ptr<Action>>();
   int count = 0;

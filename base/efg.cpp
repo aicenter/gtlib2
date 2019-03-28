@@ -118,6 +118,13 @@ EFGNode::EFGNode(shared_ptr<EFGNode const> parent,
     parent_ = move(parent);
 }
 
+int EFGNode::countAvailableActions() const {
+    if (currentPlayer_) {
+        return state_->countAvailableActionsFor(*currentPlayer_);
+    }
+    return 0;
+}
+
 vector<shared_ptr<Action>> EFGNode::availableActions() const {
     if (currentPlayer_) {
         return state_->getAvailableActionsFor(*currentPlayer_);
@@ -289,10 +296,10 @@ ObservationId EFGNode::getLastObservationIdOfCurrentPlayer() const {
 }
 
 string EFGNode::toString() const {
-    string s = "Player: " + to_string(*currentPlayer_) + ", incoming action: ";
+    string s = "Player: " + to_string(*currentPlayer_) + "\nIncoming action: ";
     s += incomingAction_ ? incomingAction_->toString() : "none (root)";
     s += ", nature probability: " + to_string(natureProbability_) + "\n" +
-        state_->toString() + "\nRewards: [";
+        "State: "+ state_->toString() + "\nRewards: [";
     std::stringstream rews;
     std::copy(rewards_.begin(), rewards_.end(), std::ostream_iterator<int>(rews, ", "));
     std::stringstream rem;
@@ -307,7 +314,6 @@ string EFGNode::toString() const {
     for (auto &i : performedActionsInThisRound_) {
         s += to_string(i.first) + "  " + i.second->toString() + "\n";
     }
-    s += "\n";
     return s;
 }
 
@@ -336,7 +342,7 @@ EFGCache::EFGCache(const GTLib2::EFGNodesDistribution &rootNodesDist) {
     rootNodes_ = rootNodesDist;
     for (auto &[node, _]: rootNodesDist) {
         createNode(node);
-        updateInfosets(node);
+        updateAugInfosets(node);
     }
 }
 
@@ -380,15 +386,13 @@ EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Actio
     }
 
     // create new nodes and save them to cache
-    if(nodeDist.size() < actionId) {
-        nodeDist.resize(actionId, nullptr);
-    }
+    assert(nodeDist.size() > actionId);
     auto newDist = node->performAction(action);
     nodeDist.at(actionId) = make_shared<EFGNodesDistribution>(newDist);
 
     for (auto &[childNode, _]: newDist) {
         createNode(childNode);
-        updateInfosets(childNode);
+        updateAugInfosets(childNode);
     }
 
     // retrieve from map directly to return a reference,
@@ -403,18 +407,10 @@ const EFGActionNodesDistribution & EFGCache::getChildrenFor(const shared_ptr<EFG
     // for a node gotten outside from cache?
     assert(maybeNode != nodesChildren_.end());
 
-    // fetch from cache if possible
     auto &nodeDist = maybeNode->second;
-    // check if we have all the actions
-    // todo: improve using countAvailableActions ?
-
-    auto actions = node->availableActions();
-    if(nodeDist.size() < actions.size()) {
-        nodeDist.resize(actions.size(), nullptr);
-    }
 
     // add (possibly) missing actions
-    for(auto &action : actions) {
+    for(auto &action : node->availableActions()) {
         if(nodeDist[action->getId()] != nullptr) {
             continue;
         }
@@ -424,17 +420,17 @@ const EFGActionNodesDistribution & EFGCache::getChildrenFor(const shared_ptr<EFG
 
         for (auto &[childNode, _]: newDist) {
             createNode(childNode);
-            updateInfosets(childNode);
+            updateAugInfosets(childNode);
         }
     }
 
     return nodeDist;
 }
 
-void EFGCache::updateInfosets(const shared_ptr<EFGNode> &node) {
+void EFGCache::updateAugInfosets(const shared_ptr<EFGNode> &node) {
     vector<shared_ptr<AOH>> infosets;
 
-    for (Player pl: node->getState()->getPlayers()) {
+    for (Player pl = 0; pl < GAME_MAX_PLAYERS; pl++) {
         auto infoset = node->getAOHAugInfSet(pl);
         auto maybeInfoset = infoset2nodes_.find(infoset);
 
@@ -449,13 +445,14 @@ void EFGCache::updateInfosets(const shared_ptr<EFGNode> &node) {
             maybeInfoset->second.push_back(node);
         }
     }
+    assert (infosets.size() == GAME_MAX_PLAYERS);
     node2infosets_.emplace(node, infosets);
 }
 
 void EFGCache::createNode(const shared_ptr<EFGNode> &node) {
-    // todo: improve using countAvailableActions()
-    // 4 because it's a somewhat reasonable number of actions in a domain
-    nodesChildren_.emplace(node, EFGActionNodesDistribution(4, nullptr));
+    nodesChildren_.emplace(node,
+        EFGActionNodesDistribution(
+            static_cast<unsigned long>(node->countAvailableActions()), nullptr));
 }
 
 }  // namespace GTLib2

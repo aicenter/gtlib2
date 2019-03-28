@@ -794,6 +794,11 @@ namespace GTLib2 {
             rootStatesDistribution_.push_back(pair<Outcome, double>(move(o), 1.0));
         }
 
+        // todo: this is only hotfix
+        int KriegspielState::countAvailableActionsFor(Player player) const {
+            return static_cast<int>(getAvailableActionsFor(player).size());
+        }
+
         vector<shared_ptr<Action>> KriegspielState::getAvailableActionsFor(Player player) const {
             auto list = vector<shared_ptr<Action>>();
             if(player != this->playerOnTheMove || this->gameHasEnded || this->moveHistory->size() == this->legalMaxDepth) {

@@ -138,6 +138,11 @@ string GenericPokerDomain::getInfo() const {
       raises2.str().substr(0, raises2.str().length() - 2) + "]\n";
 }
 
+// todo: this is only hotfix
+int GenericPokerState::countAvailableActionsFor(Player player) const {
+  return static_cast<int>(getAvailableActionsFor(player).size());
+}
+
 vector<shared_ptr<Action>> GenericPokerState::getAvailableActionsFor(Player player) const {
   auto list = vector<shared_ptr<Action>>();
   int count = 0;

@@ -109,6 +109,12 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
     double getProbabilityOfActionsSeqOfPlayer(int player, const BehavioralStrategy &strat) const;
 
     /**
+     * Returns number of available actions for the current player
+     * Leaves have zero available actions.
+     */
+    int countAvailableActions() const;
+
+    /**
      * Returns available actions for the current player
      * Leaves do not have any available actions.
      */
@@ -370,7 +376,7 @@ class EFGCache {
     }
 
  private:
-    void updateInfosets(const shared_ptr<EFGNode> &node);
+    void updateAugInfosets(const shared_ptr<EFGNode> &node);
     void createNode(const shared_ptr<EFGNode> &node);
 
 };

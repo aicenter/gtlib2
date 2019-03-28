@@ -46,6 +46,11 @@ vector<Player> MatchingPenniesDomain::getPlayers() const {
   return {0, 1};
 }
 
+// todo: this is only hotfix
+int MatchingPenniesState::countAvailableActionsFor(Player player) const {
+  return static_cast<int>(getAvailableActionsFor(player).size());
+}
+
 vector<shared_ptr<Action>> MatchingPenniesState::getAvailableActionsFor(Player player) const {
   vector<shared_ptr<Action>> actions = vector<shared_ptr<Action>>();
   if (player == 0 && player1_ == Nothing && player2_ == Nothing) {
@@ -184,6 +189,11 @@ SimultaneousMatchingPenniesState::SimultaneousMatchingPenniesState(Domain *domai
   if (player2_ == Nothing) {
     players_.push_back(1);
   }
+}
+
+// todo: this is only hotfix
+int SimultaneousMatchingPenniesState::countAvailableActionsFor(Player player) const {
+  return static_cast<int>(getAvailableActionsFor(player).size());
 }
 
 vector<shared_ptr<Action>>

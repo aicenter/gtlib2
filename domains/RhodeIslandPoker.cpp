@@ -182,6 +182,11 @@ string RhodeIslandPokerDomain::getInfo() const {
       raises3.str().substr(0, raises3.str().length() - 2) + "]\n";
 }
 
+// todo: this is only hotfix
+int RhodeIslandPokerState::countAvailableActionsFor(Player player) const {
+  return static_cast<int>(getAvailableActionsFor(player).size());
+}
+
 vector<shared_ptr<Action>> RhodeIslandPokerState::getAvailableActionsFor(Player player) const {
   auto list = vector<shared_ptr<Action>>();
   int count = 0;

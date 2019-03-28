@@ -100,6 +100,7 @@ class GoofSpielState : public State {
                  double player1CumulativeReward,
                  double player2CumulativeReward);
 
+  int countAvailableActionsFor(Player player) const override;
   vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
   OutcomeDistribution performActions(
       const vector<PlayerAction> &actions) const override;
