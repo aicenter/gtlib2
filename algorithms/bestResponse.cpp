@@ -59,7 +59,11 @@ pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStr
                                                   node->rewards_[player] * prob);
         }
         auto infSet = node->getAOHInfSet();
-        if (*node->getCurrentPlayer() == player) {
+        // todo: not sure why, but putting directly
+        //    if(*node->getCurrentPlayer() == player)
+        //    does not work :/ why?
+        Player curPlayer = *node->getCurrentPlayer();
+        if (curPlayer == player) {
           // Player's node
           EFGNodesDistribution allNodesInTheSameInfSet;
           if (nodesInSameInfSet.find(infSet) != nodesInSameInfSet.end()) {

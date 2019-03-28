@@ -87,5 +87,28 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomain) {
 
 BOOST_AUTO_TEST_SUITE_END()
 
+BOOST_AUTO_TEST_CASE(CheckConvergenceInMediumSizeDomain) {
+    domains::IIGoofSpielDomain domain(2, 2, nullopt);
+//    domains::IIGoofSpielDomain domain(4, 4, nullopt);
+
+    CFRData data(domain.getRootStatesDistribution());
+    buildForest(&data);
+
+    CFRiterations(&data, 2);
+//    CFRiterations(&data, 100);
+
+    auto profile = algorithms::getAverageStrategy(&data);
+    // todo: this breaks, I'm not sure why :/
+    auto bestResp1 = algorithms::bestResponseTo(profile[0], Player(1), Player(0), domain).second;
+    auto bestResp2 = algorithms::bestResponseTo(profile[1], Player(0), Player(1), domain).second;
+    double utility = algorithms::computeUtilityTwoPlayersGame(
+        domain, profile[0], profile[1], Player(0), Player(1)).first;
+
+    // todo: update the utilities
+    BOOST_CHECK(std::abs(utility + 0.220125) <= 0.0001);
+    BOOST_CHECK(std::abs(bestResp1 - 0.113038) <= 0.0001);
+    BOOST_CHECK(std::abs(bestResp2 - 0.570683) <= 0.0001);
+
+BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace GTLib2
