@@ -46,8 +46,15 @@ void treeWalkEFG(EFGCache *cache, EFGNodeCallback function, int maxDepth);
 /**
  * Create complete cache up to specified depth
  */
-inline void buildTree(EFGCache *cache, int maxDepth) {
+inline void buildForest(EFGCache *cache, int maxDepth) {
     treeWalkEFG(cache, [](shared_ptr<EFGNode> _){}, maxDepth);
+}
+
+/**
+ * Create complete cache up to specified depth
+ */
+inline void buildForest(EFGCache *cache) {
+    treeWalkEFG(cache, [](shared_ptr<EFGNode> _){}, INT_MAX);
 }
 
 /**

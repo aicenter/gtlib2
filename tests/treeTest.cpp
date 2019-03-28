@@ -36,7 +36,7 @@ using domains::MatchingPenniesAction;
 using domains::Heads;
 using domains::Tails;
 using algorithms::createRootEFGNodes;
-using algorithms::buildTree;
+using algorithms::buildForest;
 
 BOOST_AUTO_TEST_SUITE(EFGTests)
 
@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE(BuildTreeMaxDepth) {
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[0]));
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[1]));
 
-    buildTree(&cache, mp.getMaxDepth());
+    buildForest(&cache, mp.getMaxDepth());
 
     BOOST_CHECK(cache.hasChildren(rootNode));
     BOOST_CHECK(cache.hasChildren(rootNode, actions[0]));
@@ -87,21 +87,21 @@ BOOST_AUTO_TEST_CASE(BuildTreeLimitedDepth) {
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[0]));
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[1]));
 
-    buildTree(&cache, 0);
+    buildForest(&cache, 0);
     BOOST_CHECK(!cache.hasChildren(rootNode));
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[0]));
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[1]));
     BOOST_CHECK(!cache.hasChildren(node0));
     BOOST_CHECK(!cache.hasChildren(node1));
 
-    buildTree(&cache, 1);
+    buildForest(&cache, 1);
     BOOST_CHECK(cache.hasChildren(rootNode));
     BOOST_CHECK(cache.hasChildren(rootNode, actions[0]));
     BOOST_CHECK(cache.hasChildren(rootNode, actions[1]));
     BOOST_CHECK(!cache.hasChildren(node0));
     BOOST_CHECK(!cache.hasChildren(node1));
 
-    buildTree(&cache, 2);
+    buildForest(&cache, 2);
     BOOST_CHECK(cache.hasChildren(rootNode));
     BOOST_CHECK(cache.hasChildren(rootNode, actions[0]));
     BOOST_CHECK(cache.hasChildren(rootNode, actions[1]));
