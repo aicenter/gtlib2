@@ -141,6 +141,7 @@ set(TEST_FILES
         tests/matchingPenniesTest.cpp
         tests/efgTest.cpp
         tests/treeTest.cpp
+        tests/cfrTest.cpp
         )
 
 # -------------------- Executables, linking --------------------

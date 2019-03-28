@@ -25,6 +25,7 @@
 
 #include <vector>
 #include <utility>
+#include "domains/matching_pennies.h"
 #include "base/efg.h"
 #include "base/base.h"
 
@@ -37,6 +38,9 @@ namespace algorithms {
 class CFRData: public EFGCache {
 
  public:
+    inline explicit CFRData(const OutcomeDistribution &rootProbDist) : EFGCache(rootProbDist) {}
+    inline explicit CFRData(const EFGNodesDistribution &rootNodes) : EFGCache(rootNodes) {}
+
     typedef vector<double> Regrets;
     typedef vector<double> AvgStratAccumulator;
 
@@ -46,7 +50,13 @@ class CFRData: public EFGCache {
 /**
  * Calculate average strategy for each player
  */
-StrategyProfile getStrategy(CFRData *data);
+StrategyProfile getAverageStrategy(CFRData *data);
+
+double CFRiteration(
+    CFRData *data,
+    const shared_ptr<EFGNode> &node,
+    const double pi[2],
+    const Player exploringPl);
 
 /**
  * Run CFR on EFG tree for a number of iterations for both players.

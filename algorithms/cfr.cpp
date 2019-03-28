@@ -32,7 +32,7 @@ namespace GTLib2 {
 namespace algorithms {
 
 
-StrategyProfile getStrategy(CFRData *data) {
+StrategyProfile getAverageStrategy(CFRData *data) {
     auto profile = StrategyProfile(2);
     auto numInfosets = static_cast<unsigned long>(data->countAugInfosets() / 2);
     data->infosetData.reserve(numInfosets);
@@ -41,7 +41,8 @@ StrategyProfile getStrategy(CFRData *data) {
         if (node->isTerminal()) return;
 
         auto infoSet = node->getAOHInfSet();
-        BehavioralStrategy *playerStrategy = &profile[*node->getCurrentPlayer()];
+        Player curPlayer = *node->getCurrentPlayer();
+        BehavioralStrategy *playerStrategy = &profile[curPlayer];
         if (playerStrategy->find(infoSet) != playerStrategy->end()) return;
 
         auto actionDistribution = unordered_map<shared_ptr<Action>, double>();
@@ -51,9 +52,9 @@ StrategyProfile getStrategy(CFRData *data) {
         for (double d : acc) sum += d;
 
         for (auto &action : node->availableActions()) {
-            actionDistribution.at(action) = sum == 0.0
-                                            ? 1.0 / acc.size()
-                                            : acc[action->getId()] / sum;
+            actionDistribution.emplace(make_pair(action, sum == 0.0
+                                                         ? 1.0 / acc.size()
+                                                         : acc[action->getId()] / sum));
         }
         playerStrategy->emplace(infoSet, actionDistribution);
     };
@@ -63,74 +64,78 @@ StrategyProfile getStrategy(CFRData *data) {
 }
 
 void CFRiterations(CFRData *data, int numIterations) {
-    const auto iteration = [&data]
-        (const shared_ptr<EFGNode> &node,
-         const double pi[2],
-         const Player exploringPl,
-         const auto &iteration) {
-
-        if (pi[0] == 0 && pi[1] == 0) {
-            return 0.0;
-        }
-
-        if (node->isTerminal()) {
-            return node->rewards_[exploringPl];
-        }
-
-        const int actingPl = *node->getCurrentPlayer();
-        const int oppExploringPl = 1 - exploringPl;
-        const auto &infoSet = data->getInfosetFor(node);
-        const auto &children = data->getChildrenFor(node);
-        const unsigned long K = children.size();
-        auto &infosetData = data->infosetData;
-
-        if (infosetData.find(infoSet) == infosetData.end()) {
-            infosetData.emplace(make_pair(infoSet, make_pair(
-                CFRData::Regrets(K, 0.0), CFRData::AvgStratAccumulator(K, 0.0))));
-        }
-        auto&[reg, acc] = infosetData.at(infoSet);
-
-        double R = 0.0;
-        for (double ri : reg) {
-            R += max(0.0, ri);
-        }
-        auto rmProbs = new double[K]{1. / K};
-        if (R > 0) {
-            for (int i = 0; i < K; i++) {
-                rmProbs[i] = max(0.0, reg[i] / R);
-            }
-        }
-
-        auto cfva = new double[K];
-        double cfvInfoset = 0.0;
-        for (int ai = 0; ai != children.size(); ai++) {
-            for (const auto &[nextNode, prob] : *children[ai]) {
-                double new_pi[2] = {pi[0], pi[1]};
-                // let's put chance probs into opponent's reach probs.
-                new_pi[oppExploringPl] *= prob;
-                new_pi[actingPl] *= rmProbs[ai];
-
-                cfva[ai] += prob * iteration(nextNode, new_pi, exploringPl, iteration);
-            }
-            cfvInfoset += rmProbs[ai] * cfva[ai];
-        }
-
-        if (actingPl == exploringPl) {
-            for (int j = 0; j != K; j++) {
-                reg[j] += (cfva[j] - cfvInfoset) * pi[oppExploringPl];
-                acc[j] += pi[exploringPl] * rmProbs[j];
-            }
-        }
-
-        return cfvInfoset;
-    };
-
+    // todo: check that tree is built
     for (int i = 0; i < numIterations; ++i) {
         for (const auto &[node, prob] : data->getRootNodes()) {
-            iteration(node, new double[2]{1., prob}, Player(0), iteration);
-            iteration(node, new double[2]{prob, 1.}, Player(1), iteration);
+            CFRiteration(data, node, new double[2]{1., prob}, Player(0));
+            CFRiteration(data, node, new double[2]{prob, 1.}, Player(1));
         }
     }
+}
+
+double CFRiteration(CFRData *data,
+                    const shared_ptr<EFGNode> &node,
+                    const double pi[2],
+                    const Player exploringPl) {
+
+    if (pi[0] == 0 && pi[1] == 0) {
+        return 0.0;
+    }
+
+    if (node->isTerminal()) {
+        return node->rewards_[exploringPl];
+    }
+
+    const int actingPl = *node->getCurrentPlayer();
+    const int oppExploringPl = 1 - exploringPl;
+    const auto &children = data->getChildrenFor(node);
+    const auto &infoSet = data->getInfosetFor(node);
+    const unsigned long K = children.size();
+    auto &infosetData = data->infosetData;
+
+    if (infosetData.find(infoSet) == infosetData.end()) {
+        infosetData.emplace(make_pair(infoSet, make_pair(
+            CFRData::Regrets(K, 0.0), CFRData::AvgStratAccumulator(K, 0.0))));
+    }
+    auto&[reg, acc] = infosetData.at(infoSet);
+
+    double R = 0.0;
+    for (double ri : reg) {
+        R += max(0.0, ri);
+    }
+    auto rmProbs = new double[K];
+    if (R > 0) {
+        for (int i = 0; i < K; i++) {
+            rmProbs[i] = max(0.0, reg[i] / R);
+        }
+    } else {
+        std::fill_n(rmProbs, K, 1.0 / K);
+    }
+    auto cfva = new double[K];
+    double cfvInfoset = 0.0;
+    std::fill_n(cfva, K, 0.0);
+
+    for (int ai = 0; ai != children.size(); ai++) {
+        for (const auto &[nextNode, prob] : *children[ai]) {
+            // let's put chance probs into opponent's reach probs.
+            double new_pi[2] = {pi[0], pi[1]};
+            new_pi[oppExploringPl] *= prob;
+            new_pi[actingPl] *= rmProbs[ai];
+
+            double incr = prob * CFRiteration(data, nextNode, new_pi, exploringPl);
+            cfva[ai] += incr;
+        }
+        cfvInfoset += rmProbs[ai] * cfva[ai];
+    }
+
+    if (actingPl == exploringPl) {
+        for (int i = 0; i < K; i++) {
+            reg[i] += (cfva[i] - cfvInfoset) * pi[oppExploringPl];
+            acc[i] += pi[exploringPl] * rmProbs[i];
+        }
+    }
+
+    return cfvInfoset;
 }
 
 }  // namespace algorithms
