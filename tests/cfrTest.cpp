@@ -21,6 +21,7 @@
 
 
 #include "algorithms/cfr.h"
+#include "algorithms/strategy.h"
 #include "domains/matching_pennies.h"
 #include "tests/domainsTest.h"
 #include <boost/test/unit_test.hpp>

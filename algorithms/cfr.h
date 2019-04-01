@@ -55,10 +55,6 @@ class CFRData: public EFGCache {
     unordered_map<shared_ptr<AOH>, InfosetData> infosetData;
 };
 
-/**
- * Calculate average strategy for each player.
- */
-StrategyProfile getAverageStrategy(CFRData *data);
 
 double CFRiteration(CFRData *data, const shared_ptr<EFGNode> &node,
                     const std::array<double, 2> pi, const Player exploringPl);

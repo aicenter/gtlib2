@@ -109,6 +109,7 @@ set(SOURCE_FILES
         algorithms/equilibrium.h algorithms/equilibrium.cpp
         algorithms/normalFormLP.h algorithms/normalFormLP.cpp
         algorithms/stats.h algorithms/stats.cpp
+        algorithms/strategy.cpp algorithms/strategy.h
         algorithms/tree.h algorithms/tree.cpp
         algorithms/utility.h algorithms/utility.cpp
         # base
