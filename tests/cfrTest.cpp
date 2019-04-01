@@ -85,29 +85,39 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomain) {
     BOOST_CHECK(cfvInfoset == -0.5);
 }
 
-BOOST_AUTO_TEST_SUITE_END()
 
-BOOST_AUTO_TEST_CASE(CheckConvergenceInMediumSizeDomain) {
-    domains::IIGoofSpielDomain domain(2, 2, nullopt);
-//    domains::IIGoofSpielDomain domain(4, 4, nullopt);
-
+BOOST_AUTO_TEST_CASE(CheckConvergenceInSmallDomain) {
+    domains::IIGoofSpielDomain domain(3, 3, nullopt);
     CFRData data(domain.getRootStatesDistribution());
     buildForest(&data);
 
-    CFRiterations(&data, 2);
-//    CFRiterations(&data, 100);
+    double expectedUtilities[] =
+        {0.00467926, 0.00251501, 0.00171567, 0.00130139, 0.00104813, 0.000877345, 0.000754399,
+         0.000661667, 0.000589232, 0.00053109};
+    double expectedBestResp0[] =
+        {0.0353826, 0.0176913, 0.0117942, 0.00884565, 0.00707652, 0.0058971, 0.00505466, 0.00442283,
+         0.0039314, 0.00353826};
+    double expectedBestResp1[] =
+        {0.0334574, 0.016742, 0.0111643, 0.00837431, 0.00669999, 0.00558362, 0.00478614, 0.00418799,
+         0.00372274, 0.00335053};
 
-    auto profile = algorithms::getAverageStrategy(&data);
-    // todo: this breaks, I'm not sure why :/
-    auto bestResp1 = algorithms::bestResponseTo(profile[0], Player(1), Player(0), domain).second;
-    auto bestResp2 = algorithms::bestResponseTo(profile[1], Player(0), Player(1), domain).second;
-    double utility = algorithms::computeUtilityTwoPlayersGame(
-        domain, profile[0], profile[1], Player(0), Player(1)).first;
 
-    // todo: update the utilities
-    BOOST_CHECK(std::abs(utility + 0.220125) <= 0.0001);
-    BOOST_CHECK(std::abs(bestResp1 - 0.113038) <= 0.0001);
-    BOOST_CHECK(std::abs(bestResp2 - 0.570683) <= 0.0001);
+    for (int i = 0; i < 10; ++i) {
+        CFRiterations(&data, 50);
+        auto profile = algorithms::getAverageStrategy(&data);
+        auto
+            bestResp0 = algorithms::bestResponseTo(profile[0], Player(0), Player(1), domain).second;
+        auto
+            bestResp1 = algorithms::bestResponseTo(profile[1], Player(1), Player(0), domain).second;
+        double utility = algorithms::computeUtilityTwoPlayersGame(
+            domain, profile[0], profile[1], Player(0), Player(1)).first;
+
+        BOOST_CHECK(std::abs(utility - expectedUtilities[i]) <= 0.0001);
+        BOOST_CHECK(std::abs(bestResp0 - expectedBestResp0[i]) <= 0.0001);
+        BOOST_CHECK(std::abs(bestResp1 - expectedBestResp1[i]) <= 0.0001);
+    }
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()
 
