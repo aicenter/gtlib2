@@ -139,7 +139,7 @@ class EFGCache {
     /**
      * Create complete cache
      */
-    inline void buildForest() { buildForest(INT_MAX); }
+    void buildForest();
 
  protected:
     void updateAugInfosets(const shared_ptr<EFGNode> &node);
