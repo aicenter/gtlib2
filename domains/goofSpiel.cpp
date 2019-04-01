@@ -195,7 +195,7 @@ GoofSpielState::GoofSpielState(Domain *domain,
 
 // todo: this is only hotfix
 int GoofSpielState::countAvailableActionsFor(Player player) const {
-  return static_cast<int>(getAvailableActionsFor(player).size());
+  return int(getAvailableActionsFor(player).size());
 }
 
 vector<shared_ptr<Action>> GoofSpielState::getAvailableActionsFor(const Player player) const {

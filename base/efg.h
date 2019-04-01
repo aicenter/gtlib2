@@ -368,8 +368,7 @@ class EFGCache {
      *
      * The nodes are saved in the cache along their augmented infoset identification.
      */
-    const EFGActionNodesDistribution &
-    getChildrenFor(const shared_ptr<EFGNode> &node);
+    const EFGActionNodesDistribution & getChildrenFor(const shared_ptr<EFGNode> &node);
 
     inline const EFGNodesDistribution & getRootNodes() {
         return rootNodes_;

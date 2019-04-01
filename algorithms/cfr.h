@@ -56,19 +56,15 @@ class CFRData: public EFGCache {
 };
 
 /**
- * Calculate average strategy for each player
+ * Calculate average strategy for each player.
  */
 StrategyProfile getAverageStrategy(CFRData *data);
 
-double CFRiteration(
-    CFRData *data,
-    const shared_ptr<EFGNode> &node,
-    const std::array<double, 2>pi,
-    const Player exploringPl);
+double CFRiteration(CFRData *data, const shared_ptr<EFGNode> &node,
+                    const std::array<double, 2> pi, const Player exploringPl);
 
 /**
  * Run CFR on EFG tree for a number of iterations for both players.
- *
  * This implementation is based on Algorithm 1 in M. Lanctot PhD thesis.
  */
 void CFRiterations(CFRData *data, int numIterations);
