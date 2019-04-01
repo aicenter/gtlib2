@@ -37,7 +37,6 @@ using domains::MatchingPenniesDomain;
 using domains::MatchingPenniesAction;
 using algorithms::CFRData;
 using algorithms::CFRiterations;
-using algorithms::buildForest;
 using algorithms::bestResponseTo;
 
 
@@ -46,7 +45,7 @@ BOOST_AUTO_TEST_SUITE(CFRTest)
 BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomain) {
     MatchingPenniesDomain mp;
     CFRData data(mp.getRootStatesDistribution());
-    buildForest(&data);
+    data.buildForest();
     auto rootNode = data.getRootNodes()[0].first;
     auto rootInfoset = rootNode->getAOHInfSet();
     auto childNode = rootNode->performAction(rootNode->availableActions()[0])[0].first;
@@ -90,7 +89,7 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomain) {
 BOOST_AUTO_TEST_CASE(CheckConvergenceInSmallDomain) {
     domains::IIGoofSpielDomain domain(3, 3, nullopt);
     CFRData data(domain.getRootStatesDistribution());
-    buildForest(&data);
+    data.buildForest();
 
     double expectedUtilities[] =
         {0.00467926, 0.00251501, 0.00171567, 0.00130139, 0.00104813, 0.000877345, 0.000754399,

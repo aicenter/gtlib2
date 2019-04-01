@@ -114,6 +114,7 @@ set(SOURCE_FILES
         algorithms/utility.h algorithms/utility.cpp
         # base
         base/base.h base/base.cpp
+        base/cache.cpp base/cache.h
         base/efg.h base/efg.cpp
         # domains
         domains/chessboard_factory.h domains/chessboard_factory.cpp
@@ -132,6 +133,7 @@ set(SOURCE_FILES
         utils/functools.h
         #utils/highQualityRandom.h utils/highQualityRandom.cpp
         )
+
 set(TEST_FILES
         tests/domainsTest.h tests/domainsTest.cpp
         tests/genericPokerTest.cpp
@@ -140,8 +142,7 @@ set(TEST_FILES
         tests/matchingPenniesTest.cpp
         tests/oshiZumoTest.cpp
         tests/matchingPenniesTest.cpp
-        tests/efgTest.cpp
-        tests/treeTest.cpp
+        tests/cacheTest.cpp
         tests/cfrTest.cpp
         )
 

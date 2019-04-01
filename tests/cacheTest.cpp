@@ -21,9 +21,9 @@
 
 
 #include "base/efg.h"
+#include "base/cache.h"
 
 #include "algorithms/common.h"
-#include "algorithms/tree.h"
 #include "domains/matching_pennies.h"
 #include "tests/domainsTest.h"
 #include <boost/test/unit_test.hpp>
@@ -36,11 +36,38 @@ using domains::MatchingPenniesAction;
 using domains::Heads;
 using domains::Tails;
 using algorithms::createRootEFGNodes;
-using algorithms::buildForest;
 
-BOOST_AUTO_TEST_SUITE(EFGTests)
+BOOST_AUTO_TEST_SUITE(CacheTests)
 
-BOOST_AUTO_TEST_CASE(BuildTreeMaxDepth) {
+BOOST_AUTO_TEST_CASE(CacheHit) {
+    MatchingPenniesDomain mp;
+    auto rootNodes = createRootEFGNodes(
+        mp.getRootStatesDistribution());
+    EFGCache cache(rootNodes);
+
+    auto rootNode = rootNodes[0].first;
+    auto anAction = rootNode->availableActions()[0];
+    BOOST_CHECK(cache.hasNode(rootNode));
+    BOOST_CHECK(cache.hasInfoset(rootNode->getAOHInfSet()));
+    BOOST_CHECK(!cache.hasChildren(rootNode));
+    BOOST_CHECK(!cache.hasChildren(rootNode, anAction));
+
+    rootNode->performAction(anAction);
+    BOOST_CHECK(!cache.hasChildren(rootNode));
+    BOOST_CHECK(!cache.hasChildren(rootNode, anAction));
+
+    cache.getChildrenFor(rootNode, anAction);
+    BOOST_CHECK(cache.hasChildren(rootNode));
+    BOOST_CHECK(cache.hasChildren(rootNode, anAction));
+
+    // check that getting children doesn't create new uses of shared pointer
+    long old_use_cnt = rootNode.use_count();
+    cache.getChildrenFor(rootNode, anAction);
+    BOOST_CHECK(old_use_cnt - rootNode.use_count() == 0);
+}
+
+
+BOOST_AUTO_TEST_CASE(BuildCacheMaxDepth) {
     MatchingPenniesDomain mp;
     auto rootNodes = createRootEFGNodes(mp.getRootStatesDistribution());
     EFGCache cache(rootNodes);
@@ -59,7 +86,7 @@ BOOST_AUTO_TEST_CASE(BuildTreeMaxDepth) {
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[0]));
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[1]));
 
-    buildForest(&cache, mp.getMaxDepth());
+    cache.buildForest();
 
     BOOST_CHECK(cache.hasChildren(rootNode));
     BOOST_CHECK(cache.hasChildren(rootNode, actions[0]));
@@ -68,7 +95,7 @@ BOOST_AUTO_TEST_CASE(BuildTreeMaxDepth) {
 }
 
 
-BOOST_AUTO_TEST_CASE(BuildTreeLimitedDepth) {
+BOOST_AUTO_TEST_CASE(BuildCacheLimitedDepth) {
     MatchingPenniesDomain mp;
     auto rootNodes = createRootEFGNodes(mp.getRootStatesDistribution());
     EFGCache cache(rootNodes);
@@ -87,21 +114,21 @@ BOOST_AUTO_TEST_CASE(BuildTreeLimitedDepth) {
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[0]));
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[1]));
 
-    buildForest(&cache, 0);
+    cache.buildForest(0);
     BOOST_CHECK(!cache.hasChildren(rootNode));
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[0]));
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[1]));
     BOOST_CHECK(!cache.hasChildren(node0));
     BOOST_CHECK(!cache.hasChildren(node1));
 
-    buildForest(&cache, 1);
+    cache.buildForest(1);
     BOOST_CHECK(cache.hasChildren(rootNode));
     BOOST_CHECK(cache.hasChildren(rootNode, actions[0]));
     BOOST_CHECK(cache.hasChildren(rootNode, actions[1]));
     BOOST_CHECK(!cache.hasChildren(node0));
     BOOST_CHECK(!cache.hasChildren(node1));
 
-    buildForest(&cache, 2);
+    cache.buildForest(2);
     BOOST_CHECK(cache.hasChildren(rootNode));
     BOOST_CHECK(cache.hasChildren(rootNode, actions[0]));
     BOOST_CHECK(cache.hasChildren(rootNode, actions[1]));

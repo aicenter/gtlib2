@@ -26,9 +26,10 @@
 #include <vector>
 #include <array>
 #include <utility>
-#include "domains/matching_pennies.h"
+
 #include "base/efg.h"
 #include "base/base.h"
+#include "base/cache.h"
 
 namespace GTLib2 {
 namespace algorithms {

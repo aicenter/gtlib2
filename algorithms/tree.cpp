@@ -22,15 +22,9 @@
 
 #include "algorithms/tree.h"
 
-#include <unordered_set>
-#include <utility>
-#include <boost/range/combine.hpp>
-
 #include "base/efg.h"
 #include "algorithms/common.h"
 
-using std::unordered_set;
-using std::cout;
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"

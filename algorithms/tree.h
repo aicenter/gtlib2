@@ -25,6 +25,7 @@
 #include <memory>
 #include "base/base.h"
 #include "base/efg.h"
+#include "base/cache.h"
 
 namespace GTLib2 {
 namespace algorithms {
@@ -42,20 +43,6 @@ void treeWalkEFG(const Domain &domain, EFGNodeCallback function, int maxDepth);
  * The tree is walked as DFS up to maximum specified depth.
  */
 void treeWalkEFG(EFGCache *cache, EFGNodeCallback function, int maxDepth);
-
-/**
- * Create complete cache up to specified depth
- */
-inline void buildForest(EFGCache *cache, int maxDepth) {
-    treeWalkEFG(cache, [](shared_ptr<EFGNode> _){}, maxDepth);
-}
-
-/**
- * Create complete cache up to specified depth
- */
-inline void buildForest(EFGCache *cache) {
-    treeWalkEFG(cache, [](shared_ptr<EFGNode> _){}, INT_MAX);
-}
 
 /**
  * Call supplied function at each EFGNode of the EFG tree, including leaves.

@@ -32,17 +32,15 @@
 namespace GTLib2 {
 namespace algorithms {
 
-EFGNodesDistribution createRootEFGNodes(
-    const OutcomeDistribution &probDist);
+EFGNodesDistribution createRootEFGNodes(const OutcomeDistribution &probDist);
 
 BehavioralStrategy mixedToBehavioralStrategy(const vector<BehavioralStrategy> &pureStrats,
                                              int player1,
                                              const vector<double> &distribution,
                                              const Domain &domain);
 
-EFGNodesDistribution
-getAllNodesInTheInformationSetWithNatureProbability(const shared_ptr<AOH> &infSet,
-                                                    const Domain &domain);
+EFGNodesDistribution getAllNodesInTheInformationSetWithNatureProbability(
+    const shared_ptr<AOH> &infSet, const Domain &domain);
 
 }  // namespace algorithms
 }  // namespace GTLib2
