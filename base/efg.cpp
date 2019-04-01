@@ -236,10 +236,14 @@ size_t EFGNode::getHashedAOHs() const {
 }
 
 size_t EFGNode::getHash() const {
-    auto seed = getHashedAOHs();
-    boost::hash_combine(seed, performedActionsInThisRound_.size());
-    boost::hash_combine(seed, remainingPlayersInTheRound_.size());
-    return seed;
+    if (hashNode_ > 0) {
+        return hashNode_;
+    }
+
+    hashNode_ = getHashedAOHs();
+    boost::hash_combine(hashNode_, performedActionsInThisRound_.size());
+    boost::hash_combine(hashNode_, remainingPlayersInTheRound_.size());
+    return hashNode_;
 }
 
 bool EFGNode::compareAOH(const EFGNode &rhs) const {

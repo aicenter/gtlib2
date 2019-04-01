@@ -227,7 +227,9 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
     shared_ptr<EFGNode const> parent_;
     shared_ptr<Action> incomingAction_;  // Action performed in the parent node.
     optional<Player> currentPlayer_ = nullopt;
+
     mutable size_t hashAOH_ = 0;
+    mutable size_t hashNode_ = 0;
     int depth_;
 };
 };  // namespace GTLib2
