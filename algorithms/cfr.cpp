@@ -20,6 +20,8 @@
 */
 
 
+#include <array>
+
 #include "algorithms/cfr.h"
 #include "algorithms/tree.h"
 #include "algorithms/common.h"
@@ -67,15 +69,15 @@ void CFRiterations(CFRData *data, int numIterations) {
     // todo: check that tree is built
     for (int i = 0; i < numIterations; ++i) {
         for (const auto &[node, prob] : data->getRootNodes()) {
-            CFRiteration(data, node, new double[2]{1., prob}, Player(0));
-            CFRiteration(data, node, new double[2]{prob, 1.}, Player(1));
+            CFRiteration(data, node, std::array<double, 2>{1., prob}, Player(0));
+            CFRiteration(data, node, std::array<double, 2>{prob, 1.}, Player(1));
         }
     }
 }
 
 double CFRiteration(CFRData *data,
                     const shared_ptr<EFGNode> &node,
-                    const double pi[2],
+                    const std::array<double, 2> pi,
                     const Player exploringPl) {
 
     if (pi[0] == 0 && pi[1] == 0) {
@@ -90,7 +92,7 @@ double CFRiteration(CFRData *data,
     const int oppExploringPl = 1 - exploringPl;
     const auto &children = data->getChildrenFor(node);
     const auto &infoSet = data->getInfosetFor(node);
-    const unsigned long K = children.size();
+    const unsigned long numActions = children.size();
     auto &infosetData = data->infosetData;
 
     if (infosetData.find(infoSet) == infosetData.end()) {
@@ -99,38 +101,38 @@ double CFRiteration(CFRData *data,
     }
     auto&[reg, acc] = infosetData.at(infoSet);
 
-    double R = 0.0;
-    for (double ri : reg) {
-        R += max(0.0, ri);
+    double posRegretSum = 0.0;
+    for (double r : reg) {
+        posRegretSum += max(0.0, r);
     }
-    auto rmProbs = new double[K];
-    if (R > 0) {
-        for (int i = 0; i < K; i++) {
-            rmProbs[i] = max(0.0, reg[i] / R);
+    auto rmProbs = vector<double>(numActions);
+    if (posRegretSum > 0) {
+        for (int i = 0; i < numActions; i++) {
+            rmProbs[i] = max(0.0, reg[i] / posRegretSum);
         }
     } else {
-        std::fill_n(rmProbs, K, 1.0 / K);
+        std::fill(rmProbs.begin(), rmProbs.end(), 1.0 / numActions);
     }
-    auto cfva = new double[K];
+    auto cfvAction = vector<double>(numActions);
     double cfvInfoset = 0.0;
-    std::fill_n(cfva, K, 0.0);
+    std::fill(cfvAction.begin(), cfvAction.end(), 0.0);
 
     for (int ai = 0; ai != children.size(); ai++) {
         for (const auto &[nextNode, prob] : *children[ai]) {
             // let's put chance probs into opponent's reach probs.
-            double new_pi[2] = {pi[0], pi[1]};
+            std::array<double, 2> new_pi = {pi[0], pi[1]};
             new_pi[oppExploringPl] *= prob;
             new_pi[actingPl] *= rmProbs[ai];
 
             double incr = prob * CFRiteration(data, nextNode, new_pi, exploringPl);
-            cfva[ai] += incr;
+            cfvAction[ai] += incr;
         }
-        cfvInfoset += rmProbs[ai] * cfva[ai];
+        cfvInfoset += rmProbs[ai] * cfvAction[ai];
     }
 
     if (actingPl == exploringPl) {
-        for (int i = 0; i < K; i++) {
-            reg[i] += (cfva[i] - cfvInfoset) * pi[oppExploringPl];
+        for (int i = 0; i < numActions; i++) {
+            reg[i] += (cfvAction[i] - cfvInfoset) * pi[oppExploringPl];
             acc[i] += pi[exploringPl] * rmProbs[i];
         }
     }

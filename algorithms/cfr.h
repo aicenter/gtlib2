@@ -24,6 +24,7 @@
 #define ALGORITHMS_CFR_H_
 
 #include <vector>
+#include <array>
 #include <utility>
 #include "domains/matching_pennies.h"
 #include "base/efg.h"
@@ -55,7 +56,7 @@ StrategyProfile getAverageStrategy(CFRData *data);
 double CFRiteration(
     CFRData *data,
     const shared_ptr<EFGNode> &node,
-    const double pi[2],
+    const std::array<double, 2>pi,
     const Player exploringPl);
 
 /**
