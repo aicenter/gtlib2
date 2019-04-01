@@ -42,10 +42,17 @@ class CFRData: public EFGCache {
     inline explicit CFRData(const OutcomeDistribution &rootProbDist) : EFGCache(rootProbDist) {}
     inline explicit CFRData(const EFGNodesDistribution &rootNodes) : EFGCache(rootNodes) {}
 
-    typedef vector<double> Regrets;
-    typedef vector<double> AvgStratAccumulator;
+    struct InfosetData {
+        vector<double> regrets;
+        vector<double> avgStratAccumulator;
 
-    unordered_map<shared_ptr<AOH>, pair<Regrets, AvgStratAccumulator>> infosetData;
+        explicit InfosetData(unsigned long numActions) {
+            regrets = vector<double>(numActions, 0.);
+            avgStratAccumulator = vector<double>(numActions, 0.);
+        }
+    };
+
+    unordered_map<shared_ptr<AOH>, InfosetData> infosetData;
 };
 
 /**

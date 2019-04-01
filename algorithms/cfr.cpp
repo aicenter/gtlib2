@@ -48,7 +48,7 @@ StrategyProfile getAverageStrategy(CFRData *data) {
         if (playerStrategy->find(infoSet) != playerStrategy->end()) return;
 
         auto actionDistribution = unordered_map<shared_ptr<Action>, double>();
-        auto acc = std::get<1>(data->infosetData.at(infoSet));
+        auto acc = data->infosetData.at(infoSet).avgStratAccumulator;
 
         double sum = 0.0;
         for (double d : acc) sum += d;
@@ -96,8 +96,7 @@ double CFRiteration(CFRData *data,
     auto &infosetData = data->infosetData;
 
     if (infosetData.find(infoSet) == infosetData.end()) {
-        infosetData.emplace(make_pair(infoSet, make_pair(
-            CFRData::Regrets(K, 0.0), CFRData::AvgStratAccumulator(K, 0.0))));
+        infosetData.emplace(make_pair(infoSet, CFRData::InfosetData(numActions)));
     }
     auto&[reg, acc] = infosetData.at(infoSet);
 
