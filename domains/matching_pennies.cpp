@@ -47,8 +47,8 @@ vector<Player> MatchingPenniesDomain::getPlayers() const {
 }
 
 // todo: this is only hotfix
-int MatchingPenniesState::countAvailableActionsFor(Player player) const {
-  return int(getAvailableActionsFor(player).size());
+unsigned long MatchingPenniesState::countAvailableActionsFor(Player player) const {
+  return getAvailableActionsFor(player).size();
 }
 
 vector<shared_ptr<Action>> MatchingPenniesState::getAvailableActionsFor(Player player) const {
@@ -192,8 +192,8 @@ SimultaneousMatchingPenniesState::SimultaneousMatchingPenniesState(Domain *domai
 }
 
 // todo: this is only hotfix
-int SimultaneousMatchingPenniesState::countAvailableActionsFor(Player player) const {
-  return int(getAvailableActionsFor(player).size());
+unsigned long SimultaneousMatchingPenniesState::countAvailableActionsFor(Player player) const {
+  return getAvailableActionsFor(player).size();
 }
 
 vector<shared_ptr<Action>>

@@ -795,8 +795,8 @@ namespace GTLib2 {
         }
 
         // todo: this is only hotfix
-        int KriegspielState::countAvailableActionsFor(Player player) const {
-            return int(getAvailableActionsFor(player).size());
+        unsigned long  KriegspielState::countAvailableActionsFor(Player player) const {
+            return getAvailableActionsFor(player).size();
         }
 
         vector<shared_ptr<Action>> KriegspielState::getAvailableActionsFor(Player player) const {

@@ -77,7 +77,7 @@ class MatchingPenniesState : public State {
  public:
   MatchingPenniesState(Domain *domain, Move p1, Move p2);
 
-  int countAvailableActionsFor(Player player) const override;
+  unsigned long countAvailableActionsFor(Player player) const override;
   vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
 
   OutcomeDistribution
@@ -101,7 +101,7 @@ class SimultaneousMatchingPenniesState : public State {
  public:
   SimultaneousMatchingPenniesState(Domain *domain, Move p1, Move p2);
 
-  int countAvailableActionsFor(Player player) const override;
+  unsigned long countAvailableActionsFor(Player player) const override;
   vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
 
   OutcomeDistribution

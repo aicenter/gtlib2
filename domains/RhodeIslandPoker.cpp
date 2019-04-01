@@ -183,8 +183,8 @@ string RhodeIslandPokerDomain::getInfo() const {
 }
 
 // todo: this is only hotfix
-int RhodeIslandPokerState::countAvailableActionsFor(Player player) const {
-  return int(getAvailableActionsFor(player).size());
+unsigned long RhodeIslandPokerState::countAvailableActionsFor(Player player) const {
+  return getAvailableActionsFor(player).size();
 }
 
 vector<shared_ptr<Action>> RhodeIslandPokerState::getAvailableActionsFor(Player player) const {

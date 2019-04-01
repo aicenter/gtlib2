@@ -58,8 +58,8 @@ PhantomTTTState::PhantomTTTState(Domain *domain, vector<vector<int>> p,
 }
 
 // todo: this is only hotfix
-int PhantomTTTState::countAvailableActionsFor(Player player) const {
-  return int(getAvailableActionsFor(player).size());
+unsigned long PhantomTTTState::countAvailableActionsFor(Player player) const {
+  return getAvailableActionsFor(player).size();
 }
 
 vector<shared_ptr<Action>> PhantomTTTState::getAvailableActionsFor(Player player) const {

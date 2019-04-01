@@ -139,8 +139,8 @@ string GenericPokerDomain::getInfo() const {
 }
 
 // todo: this is only hotfix
-int GenericPokerState::countAvailableActionsFor(Player player) const {
-  return int(getAvailableActionsFor(player).size());
+unsigned long GenericPokerState::countAvailableActionsFor(Player player) const {
+  return getAvailableActionsFor(player).size();
 }
 
 vector<shared_ptr<Action>> GenericPokerState::getAvailableActionsFor(Player player) const {

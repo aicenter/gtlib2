@@ -141,7 +141,7 @@ class PursuitState : public State {
   // Destructor
   ~PursuitState() override = default;
 
-  int countAvailableActionsFor(Player player) const override;
+  unsigned long countAvailableActionsFor(Player player) const override;
 
   // GetActions returns possible actions for a player in the state.
   vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;

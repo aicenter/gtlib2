@@ -94,8 +94,8 @@ PursuitState::PursuitState(Domain *domain, const vector<Pos> &p, double prob) :
 }
 
 // todo: this is only hotfix
-int PursuitState::countAvailableActionsFor(Player player) const {
-  return int(getAvailableActionsFor(player).size());
+unsigned long PursuitState::countAvailableActionsFor(Player player) const {
+  return getAvailableActionsFor(player).size();
 }
 
 vector<shared_ptr<Action>> PursuitState::getAvailableActionsFor(Player player) const {

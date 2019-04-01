@@ -287,7 +287,7 @@ class State {
     /**
      * Returns number of possible actions for a player in the state.
      */
-    virtual int countAvailableActionsFor(Player player) const = 0;
+    virtual unsigned long countAvailableActionsFor(Player player) const = 0;
 
     /**
      * Returns possible actions for a player in the state.
