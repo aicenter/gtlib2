@@ -56,14 +56,14 @@ class CFRData: public EFGCache {
 };
 
 
-double CFRiteration(CFRData *data, const shared_ptr<EFGNode> &node,
+double CFRiteration(CFRData &data, const shared_ptr<EFGNode> &node,
                     const std::array<double, 2> pi, const Player exploringPl);
 
 /**
  * Run CFR on EFG tree for a number of iterations for both players.
  * This implementation is based on Algorithm 1 in M. Lanctot PhD thesis.
  */
-void CFRiterations(CFRData *data, int numIterations);
+void CFRiterations(CFRData &data, int numIterations);
 
 }  // namespace algorithms
 }  // namespace GTLib2

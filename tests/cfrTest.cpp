@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomain) {
     auto childInfoset = childNode->getAOHInfSet();
 
     // ------ iteration player 0 ------
-    double cfvInfoset = CFRiteration(&data, rootNode, std::array<double, 2>{1., 1.}, Player(0));
+    double cfvInfoset = CFRiteration(data, rootNode, std::array<double, 2>{1., 1.}, Player(0));
     auto&[regRoot, accRoot] = data.infosetData.at(rootInfoset);
     auto&[regChild, accChild] = data.infosetData.at(childInfoset);
     BOOST_CHECK(cfvInfoset == 0.0);
@@ -68,7 +68,7 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomain) {
     BOOST_CHECK(accChild[1] == 0.0);
 
     // ------ iteration player 1 ------
-    cfvInfoset = CFRiteration(&data, rootNode, std::array<double, 2>{1., 1.}, Player(1));
+    cfvInfoset = CFRiteration(data, rootNode, std::array<double, 2>{1., 1.}, Player(1));
     auto &[regRoot2, accRoot2] = data.infosetData.at(rootInfoset);
     auto &[regChild2, accChild2] = data.infosetData.at(childInfoset);
     // does not change regrets / acc for player 0
@@ -104,12 +104,12 @@ BOOST_AUTO_TEST_CASE(CheckConvergenceInSmallDomain) {
 
 
     for (int i = 0; i < 10; ++i) {
-        CFRiterations(&data, 50);
+        CFRiterations(data, 50);
         auto profile = algorithms::getAverageStrategy(&data);
-        auto
-            bestResp0 = algorithms::bestResponseTo(profile[0], Player(0), Player(1), domain).second;
-        auto
-            bestResp1 = algorithms::bestResponseTo(profile[1], Player(1), Player(0), domain).second;
+        auto bestResp0 = algorithms::bestResponseTo(
+            profile[0], Player(0), Player(1), domain).second;
+        auto bestResp1 = algorithms::bestResponseTo(
+            profile[1], Player(1), Player(0), domain).second;
         double utility = algorithms::computeUtilityTwoPlayersGame(
             domain, profile[0], profile[1], Player(0), Player(1)).first;
 

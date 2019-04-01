@@ -34,17 +34,17 @@ namespace GTLib2 {
 namespace algorithms {
 
 
-void CFRiterations(CFRData *data, int numIterations) {
+void CFRiterations(CFRData &data, int numIterations) {
     // todo: check that tree is built
     for (int i = 0; i < numIterations; ++i) {
-        for (const auto &[node, prob] : data->getRootNodes()) {
+        for (const auto &[node, prob] : data.getRootNodes()) {
             CFRiteration(data, node, std::array<double, 2>{1., prob}, Player(0));
             CFRiteration(data, node, std::array<double, 2>{prob, 1.}, Player(1));
         }
     }
 }
 
-double CFRiteration(CFRData *data,
+double CFRiteration(CFRData &data,
                     const shared_ptr<EFGNode> &node,
                     const std::array<double, 2> pi,
                     const Player exploringPl) {
@@ -59,10 +59,10 @@ double CFRiteration(CFRData *data,
 
     const int actingPl = *node->getCurrentPlayer();
     const int oppExploringPl = 1 - exploringPl;
-    const auto &children = data->getChildrenFor(node);
-    const auto &infoSet = data->getInfosetFor(node);
+    const auto &children = data.getChildrenFor(node);
+    const auto &infoSet = data.getInfosetFor(node);
     const unsigned long numActions = children.size();
-    auto &infosetData = data->infosetData;
+    auto &infosetData = data.infosetData;
 
     if (infosetData.find(infoSet) == infosetData.end()) {
         infosetData.emplace(make_pair(infoSet, CFRData::InfosetData(numActions)));
