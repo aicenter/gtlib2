@@ -131,3 +131,11 @@ How to:
   `Settings / Editor / File and Code Templates / Includes / File Header (adjusting the header of the class)`
 - Eclipse: https://stackoverflow.com/questions/2604424/how-can-i-add-a-default-header-to-my-source-files-automatically-in-eclipse
   
+## Profiling code
+
+You may want to profile your code. You can use valgrind:
+
+    cd cmake-build-debug
+    valgrind --tool=callgrind ./main [arguments]
+
+It will produce files `callgrind.out.#` which can be opened and analyzed in `KCacheGrind` utility. 
