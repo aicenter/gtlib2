@@ -29,10 +29,6 @@ namespace GTLib2 {
 
 EFGCache::EFGCache(const GTLib2::EFGNodesDistribution &rootNodesDist) {
     rootNodes_ = rootNodesDist;
-    for (auto &[node, _]: rootNodesDist) {
-        createNode(node);
-        updateAugInfosets(node);
-    }
 }
 
 EFGCache::EFGCache(const OutcomeDistribution &rootProbDist)
@@ -43,11 +39,16 @@ bool EFGCache::hasChildren(const shared_ptr<EFGNode> &node) {
     auto it = nodesChildren_.find(node);
     if (it == nodesChildren_.end()) return false;
 
-    auto &distributionEntry = it->second;
-    for (auto ptr : distributionEntry) {
-        if (ptr != nullptr) return true;
+    auto &nodeDist = it->second;
+    bool hasMissing = false;
+    for (auto &ptr : nodeDist) {
+        if (ptr == nullptr) {
+            hasMissing = true;
+            break;
+        }
     }
-    return false;
+
+    return !hasMissing;
 }
 
 bool EFGCache::hasChildren(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action) {
@@ -58,72 +59,111 @@ bool EFGCache::hasChildren(const shared_ptr<EFGNode> &node, const shared_ptr<Act
     return distributionEntry.size() >= id && distributionEntry[id] != nullptr;
 }
 
-
-const EFGNodesDistribution &
-EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action) {
+EFGActionNodesDistribution &EFGCache::getCachedNode(const shared_ptr<EFGNode> &node) {
     auto maybeNode = nodesChildren_.find(node);
 
     // Node not found -- maybe trying to get children
     // for a node gotten outside from cache?
-    assert(maybeNode != nodesChildren_.end());
+    if (maybeNode == nodesChildren_.end()) {
+
+        // rootNodes cannot be initialized in constructor,
+        // because createNode is a virtual function that can be overriden in child classes
+        // https://www.artima.com/cppsource/nevercall.html
+
+        for (auto &rootNode : rootNodes_) {
+            if (rootNode.first == node) {
+                createNode(rootNode.first);
+                // createNode must append to nodesChildren
+                return nodesChildren_[node];
+            }
+        }
+
+        // not found even in root nodes :/
+        assert(false);
+    }
+
+    return nodesChildren_[node];
+}
+
+
+const EFGNodesDistribution
+&EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action) {
+
+    auto &cachedNodeDist = getCachedNode(node);
 
     // fetch from cache if possible
     const auto actionId = action->getId();
-    auto &nodeDist = maybeNode->second;
-    if (nodeDist.size() >= actionId && nodeDist[actionId] != nullptr) {
-        return *nodeDist[action->getId()];
+    if (cachedNodeDist.size() >= actionId && cachedNodeDist[actionId] != nullptr) {
+        return *cachedNodeDist[action->getId()];
     }
 
     // create new nodes and save them to cache
-    assert(nodeDist.size() > actionId);
+    assert(cachedNodeDist.size() > actionId);
     auto newDist = node->performAction(action);
-    nodeDist.at(actionId) = make_shared<EFGNodesDistribution>(newDist);
+    cachedNodeDist[actionId] = make_shared<EFGNodesDistribution>(newDist);
 
     for (auto &[childNode, _]: newDist) {
-        createNode(childNode);
-        updateAugInfosets(childNode);
+        this->createNode(childNode);
     }
 
     // retrieve from map directly to return a reference,
     // this is guaranteed to exist there since we've just inserted it
-    return *nodesChildren_.find(node)->second[actionId];
+    return *nodesChildren_[node][actionId];
 }
 
 const EFGActionNodesDistribution &EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node) {
-    auto maybeNode = nodesChildren_.find(node);
+    auto &cachedNodeDist = getCachedNode(node);
 
-    // Node not found -- maybe trying to get children
-    // for a node gotten outside from cache?
-    assert(maybeNode != nodesChildren_.end());
+    // Check that we have built all of the actions
+    if (builtForest_) return cachedNodeDist;
 
-    auto &nodeDist = maybeNode->second;
-    if (builtForest_) return nodeDist;
-
-    bool hasMissing = false;
-    for (auto &ptr : nodeDist) {
-        if (ptr == nullptr) hasMissing = true;
+    int missingIdx = -1;
+    for (auto &ptr : cachedNodeDist) {
+        if (ptr == nullptr) {
+            missingIdx = true;
+            break;
+        }
     }
-    if (!hasMissing) return nodeDist;
+    if (missingIdx == -1) return cachedNodeDist;
 
-    // add missing actions
-    for (auto &action : node->availableActions()) {
-        if (nodeDist[action->getId()] != nullptr) {
+    // Add missing actions
+    auto actions = node->availableActions();
+    for (int i = missingIdx; i < actions.size(); ++i) {
+        if (cachedNodeDist[i] != nullptr) {
             continue;
         }
 
-        auto newDist = node->performAction(action);
-        nodeDist.at(action->getId()) = make_shared<EFGNodesDistribution>(newDist);
+        auto newDist = node->performAction(actions[i]);
+        cachedNodeDist[i] = make_shared<EFGNodesDistribution>(newDist);
 
         for (auto &[childNode, _]: newDist) {
-            createNode(childNode);
-            updateAugInfosets(childNode);
+            this->createNode(childNode);
         }
     }
 
-    return nodeDist;
+    return cachedNodeDist;
 }
 
-void EFGCache::updateAugInfosets(const shared_ptr<EFGNode> &node) {
+void EFGCache::createNode(const shared_ptr<EFGNode> &node) {
+    nodesChildren_.emplace(
+        node, EFGActionNodesDistribution(node->countAvailableActions(), nullptr));
+}
+
+void EFGCache::buildForest(int maxDepth) {
+    algorithms::treeWalkEFG(this, [](shared_ptr<EFGNode> _) {}, maxDepth);
+}
+
+void EFGCache::buildForest() {
+    buildForest(INT_MAX);
+    builtForest_ = true;
+}
+
+void InfosetCache::createNode(const shared_ptr<GTLib2::EFGNode> &node) {
+    EFGCache::createNode(node);
+    updateAugInfosets(node);
+}
+
+void InfosetCache::updateAugInfosets(const shared_ptr<EFGNode> &node) {
     vector<shared_ptr<AOH>> infosets;
 
     for (Player pl = 0; pl < GAME_MAX_PLAYERS; pl++) {
@@ -143,20 +183,6 @@ void EFGCache::updateAugInfosets(const shared_ptr<EFGNode> &node) {
     }
     assert (infosets.size() == GAME_MAX_PLAYERS);
     node2infosets_.emplace(node, infosets);
-}
-
-void EFGCache::createNode(const shared_ptr<EFGNode> &node) {
-    nodesChildren_.emplace(
-        node, EFGActionNodesDistribution(node->countAvailableActions(), nullptr));
-}
-
-void EFGCache::buildForest(int maxDepth) {
-    algorithms::treeWalkEFG(this, [](shared_ptr<EFGNode> _) {}, maxDepth);
-}
-
-void EFGCache::buildForest() {
-    buildForest(INT_MAX);
-    builtForest_ = true;
 }
 
 } // namespace GTLib2

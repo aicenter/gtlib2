@@ -37,11 +37,11 @@ namespace algorithms {
 /**
  * Container for regrets and average strategy accumulators
  */
-class CFRData: public EFGCache {
+class CFRData: public InfosetCache {
 
  public:
-    inline explicit CFRData(const OutcomeDistribution &rootProbDist) : EFGCache(rootProbDist) {}
-    inline explicit CFRData(const EFGNodesDistribution &rootNodes) : EFGCache(rootNodes) {}
+    inline explicit CFRData(const OutcomeDistribution &rootProbDist) : InfosetCache(rootProbDist) {}
+    inline explicit CFRData(const EFGNodesDistribution &rootNodes) : InfosetCache(rootNodes) {}
 
     struct InfosetData {
         vector<double> regrets;

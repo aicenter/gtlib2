@@ -45,14 +45,6 @@ class EFGCache {
     EFGNodesDistribution rootNodes_;
 
     /**
-     * Many EFGNodes can belong to many (augmented) infosets.
-     *
-     * These two fields together represent a bipartite graph.
-     */
-    unordered_map<shared_ptr<EFGNode>, vector<shared_ptr<AOH>>> node2infosets_;
-    unordered_map<shared_ptr<AOH>, vector<shared_ptr<EFGNode>>> infoset2nodes_;
-
-    /**
      * Specify that in a given node, with which action new distribution of nodes can be obtained.
      *
      * Note that if you need to access parent nodes, they are saved in each respective node:
@@ -64,13 +56,70 @@ class EFGCache {
     explicit EFGCache(const OutcomeDistribution &rootProbDist);
     explicit EFGCache(const EFGNodesDistribution &rootNodes);
 
+    /**
+     * Check if cache contains all the children for given node (after following any action).
+     */
     bool hasChildren(const shared_ptr<EFGNode> &node);
 
+    /**
+     * Check if cache contains children of for a given (node, action)
+     */
     bool hasChildren(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action);
 
     inline bool hasNode(const shared_ptr<EFGNode> &node) {
-        return node2infosets_.find(node) != node2infosets_.end();
+        return nodesChildren_.find(node) != nodesChildren_.end();
     }
+
+    /**
+     * Retrieve children for the node after following some action.
+     *
+     * The nodes are saved in the cache along their augmented infoset identification.
+     */
+    const EFGNodesDistribution &
+    getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action);
+
+    /**
+     * Retrieve children for the node after following any action.
+     *
+     * The nodes are saved in the cache along their augmented infoset identification.
+     */
+    const EFGActionNodesDistribution &getChildrenFor(const shared_ptr<EFGNode> &node);
+
+    inline const EFGNodesDistribution &getRootNodes() {
+        return rootNodes_;
+    }
+
+    /**
+     * Create complete cache up to specified depth
+     */
+    void buildForest(int maxDepth);
+
+    /**
+     * Create complete cache
+     */
+    void buildForest();
+
+ protected:
+    virtual void createNode(const shared_ptr<EFGNode> &node);
+    EFGActionNodesDistribution &getCachedNode(const shared_ptr<EFGNode> &shared_ptr);
+
+ private:
+    bool builtForest_ = false;
+};
+
+class InfosetCache: public EFGCache {
+    /**
+     * Many EFGNodes can belong to many (augmented) infosets.
+     *
+     * These two fields together represent a bipartite graph.
+     */
+    unordered_map<shared_ptr<EFGNode>, vector<shared_ptr<AOH>>> node2infosets_;
+    unordered_map<shared_ptr<AOH>, vector<shared_ptr<EFGNode>>> infoset2nodes_;
+
+ public:
+    inline explicit InfosetCache(const OutcomeDistribution &rootProbDist)
+        : EFGCache(rootProbDist) {}
+    inline explicit InfosetCache(const EFGNodesDistribution &rootNodes) : EFGCache(rootNodes) {}
 
     inline bool hasInfoset(const shared_ptr<AOH> &augInfoset) {
         return infoset2nodes_.find(augInfoset) != infoset2nodes_.end();
@@ -112,44 +161,13 @@ class EFGCache {
         return node2infosets_[node][player];
     }
 
-    /**
-     * Retrieve children for the node after following some action.
-     *
-     * The nodes are saved in the cache along their augmented infoset identification.
-     */
-    const EFGNodesDistribution &
-    getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action);
-
-    /**
-     * Retrieve children for the node after following any action.
-     *
-     * The nodes are saved in the cache along their augmented infoset identification.
-     */
-    const EFGActionNodesDistribution &getChildrenFor(const shared_ptr<EFGNode> &node);
-
-    inline const EFGNodesDistribution &getRootNodes() {
-        return rootNodes_;
-    }
-
-    /**
-     * Create complete cache up to specified depth
-     */
-    void buildForest(int maxDepth);
-
-    /**
-     * Create complete cache
-     */
-    void buildForest();
-
  protected:
+    void createNode(const shared_ptr<EFGNode> &node) override;
     void updateAugInfosets(const shared_ptr<EFGNode> &node);
-    void createNode(const shared_ptr<EFGNode> &node);
 
- private:
-    bool builtForest_ = false;
 };
 
-} // namespace GTLib2
+}; // namespace GTLib2
 
 
 #endif //GTLIB2_CACHE_H

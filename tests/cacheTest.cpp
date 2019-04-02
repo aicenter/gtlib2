@@ -43,26 +43,29 @@ BOOST_AUTO_TEST_CASE(CacheHit) {
     MatchingPenniesDomain mp;
     auto rootNodes = createRootEFGNodes(
         mp.getRootStatesDistribution());
-    EFGCache cache(rootNodes);
+    InfosetCache cache(rootNodes);
 
     auto rootNode = rootNodes[0].first;
-    auto anAction = rootNode->availableActions()[0];
-    BOOST_CHECK(cache.hasNode(rootNode));
-    BOOST_CHECK(cache.hasInfoset(rootNode->getAOHInfSet()));
+    auto actions = rootNode->availableActions();
+    BOOST_CHECK(!cache.hasNode(rootNode));
+    BOOST_CHECK(!cache.hasInfoset(rootNode->getAOHInfSet()));
     BOOST_CHECK(!cache.hasChildren(rootNode));
-    BOOST_CHECK(!cache.hasChildren(rootNode, anAction));
+    BOOST_CHECK(!cache.hasChildren(rootNode, actions[0]));
 
-    rootNode->performAction(anAction);
+    rootNode->performAction(actions[0]);
     BOOST_CHECK(!cache.hasChildren(rootNode));
-    BOOST_CHECK(!cache.hasChildren(rootNode, anAction));
+    BOOST_CHECK(!cache.hasChildren(rootNode, actions[0]));
 
-    cache.getChildrenFor(rootNode, anAction);
+    cache.getChildrenFor(rootNode, actions[0]);
+    BOOST_CHECK(!cache.hasChildren(rootNode));
+    BOOST_CHECK(cache.hasChildren(rootNode, actions[0]));
+    cache.getChildrenFor(rootNode, actions[1]);
     BOOST_CHECK(cache.hasChildren(rootNode));
-    BOOST_CHECK(cache.hasChildren(rootNode, anAction));
+    BOOST_CHECK(cache.hasChildren(rootNode, actions[1]));
 
     // check that getting children doesn't create new uses of shared pointer
     long old_use_cnt = rootNode.use_count();
-    cache.getChildrenFor(rootNode, anAction);
+    cache.getChildrenFor(rootNode, actions[0]);
     BOOST_CHECK(old_use_cnt - rootNode.use_count() == 0);
 }
 
@@ -70,24 +73,27 @@ BOOST_AUTO_TEST_CASE(CacheHit) {
 BOOST_AUTO_TEST_CASE(BuildCacheMaxDepth) {
     MatchingPenniesDomain mp;
     auto rootNodes = createRootEFGNodes(mp.getRootStatesDistribution());
-    EFGCache cache(rootNodes);
+    InfosetCache cache(rootNodes);
 
     auto rootNode = rootNodes[0].first;
     auto actions = rootNode->availableActions();
-    BOOST_CHECK(cache.hasNode(rootNode));
-    BOOST_CHECK(cache.hasInfoset(rootNode->getAOHInfSet()));
+    BOOST_CHECK(!cache.hasNode(rootNode));
+    BOOST_CHECK(!cache.hasInfoset(rootNode->getAOHInfSet()));
     BOOST_CHECK(!cache.hasChildren(rootNode));
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[0]));
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[1]));
 
     rootNode->performAction(actions[0]);
     rootNode->performAction(actions[1]);
+    BOOST_CHECK(!cache.hasNode(rootNode));
+    BOOST_CHECK(!cache.hasInfoset(rootNode->getAOHInfSet()));
     BOOST_CHECK(!cache.hasChildren(rootNode));
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[0]));
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[1]));
 
     cache.buildForest();
-
+    BOOST_CHECK(cache.hasNode(rootNode));
+    BOOST_CHECK(cache.hasInfoset(rootNode->getAOHInfSet()));
     BOOST_CHECK(cache.hasChildren(rootNode));
     BOOST_CHECK(cache.hasChildren(rootNode, actions[0]));
     BOOST_CHECK(cache.hasChildren(rootNode, actions[1]));
@@ -98,23 +104,27 @@ BOOST_AUTO_TEST_CASE(BuildCacheMaxDepth) {
 BOOST_AUTO_TEST_CASE(BuildCacheLimitedDepth) {
     MatchingPenniesDomain mp;
     auto rootNodes = createRootEFGNodes(mp.getRootStatesDistribution());
-    EFGCache cache(rootNodes);
+    InfosetCache cache(rootNodes);
 
     auto rootNode = rootNodes[0].first;
     auto actions = rootNode->availableActions();
-    BOOST_CHECK(cache.hasNode(rootNode));
-    BOOST_CHECK(cache.hasInfoset(rootNode->getAOHInfSet()));
+    BOOST_CHECK(!cache.hasNode(rootNode));
+    BOOST_CHECK(!cache.hasInfoset(rootNode->getAOHInfSet()));
     BOOST_CHECK(!cache.hasChildren(rootNode));
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[0]));
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[1]));
 
     auto node0 = rootNode->performAction(actions[0])[0].first;
     auto node1 = rootNode->performAction(actions[1])[0].first;
+    BOOST_CHECK(!cache.hasNode(rootNode));
+    BOOST_CHECK(!cache.hasInfoset(rootNode->getAOHInfSet()));
     BOOST_CHECK(!cache.hasChildren(rootNode));
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[0]));
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[1]));
 
     cache.buildForest(0);
+    BOOST_CHECK(!cache.hasNode(rootNode));
+    BOOST_CHECK(!cache.hasInfoset(rootNode->getAOHInfSet()));
     BOOST_CHECK(!cache.hasChildren(rootNode));
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[0]));
     BOOST_CHECK(!cache.hasChildren(rootNode, actions[1]));
@@ -122,6 +132,8 @@ BOOST_AUTO_TEST_CASE(BuildCacheLimitedDepth) {
     BOOST_CHECK(!cache.hasChildren(node1));
 
     cache.buildForest(1);
+    BOOST_CHECK(cache.hasNode(rootNode));
+    BOOST_CHECK(cache.hasInfoset(rootNode->getAOHInfSet()));
     BOOST_CHECK(cache.hasChildren(rootNode));
     BOOST_CHECK(cache.hasChildren(rootNode, actions[0]));
     BOOST_CHECK(cache.hasChildren(rootNode, actions[1]));
@@ -129,6 +141,8 @@ BOOST_AUTO_TEST_CASE(BuildCacheLimitedDepth) {
     BOOST_CHECK(!cache.hasChildren(node1));
 
     cache.buildForest(2);
+    BOOST_CHECK(cache.hasNode(rootNode));
+    BOOST_CHECK(cache.hasInfoset(rootNode->getAOHInfSet()));
     BOOST_CHECK(cache.hasChildren(rootNode));
     BOOST_CHECK(cache.hasChildren(rootNode, actions[0]));
     BOOST_CHECK(cache.hasChildren(rootNode, actions[1]));
