@@ -93,12 +93,13 @@ public:
     OshiZumoState(Domain *domain, int wrestlerPosition, int startingCoins);
     OshiZumoState(Domain *domain, int wrestlerPosition, vector<int> coinsPerPlayer);
     vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
+    int countAvailableActionsFor(Player player) const override;
     OutcomeDistribution
     performActions(const vector<PlayerAction> &actions) const override;
     vector<Player> getPlayers() const override;
     bool isGameEnd() const;
     string toString() const override;
-    bool operator==(const State &that) const override;
+    bool operator==(const State &rhs) const override;
     size_t getHash() const override;
 
     inline int getWrestlerLocation() const {

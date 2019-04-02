@@ -106,6 +106,15 @@ vector<shared_ptr<Action>> OshiZumoState::getAvailableActionsFor(Player player) 
     return actions;
 }
 
+int OshiZumoState::countAvailableActionsFor(Player player) const {
+    const auto OZdomain = static_cast<OshiZumoDomain *>(domain_);
+    if (coins_[player] >= OZdomain->getMinBid()) {
+        return coins_[player] - OZdomain->getMinBid() + 1;
+    } else {
+        return 1;
+    }
+}
+
 
 OutcomeDistribution OshiZumoState::performActions(const vector<PlayerAction> &actions) const {
     auto p1Action = dynamic_cast<OshiZumoAction *>(actions[0].second.get());
@@ -187,11 +196,12 @@ string OshiZumoState::toString() const {
 }
 
 
-bool OshiZumoState::operator==(const State &that) const {
-    auto other = static_cast<const OshiZumoState &>(that);
-    return other.coins_[0] == coins_[0]
-           && other.coins_[1] == coins_[1]
-           && other.wrestlerLocation_ == wrestlerLocation_;
+bool OshiZumoState::operator==(const State &rhs) const {
+    auto ozState = dynamic_cast<const OshiZumoState &>(rhs);
+
+    return ozState.coins_[0] == coins_[0]
+           && ozState.coins_[1] == coins_[1]
+           && ozState.wrestlerLocation_ == wrestlerLocation_;
 }
 
 
