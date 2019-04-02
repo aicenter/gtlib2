@@ -93,7 +93,7 @@ public:
     OshiZumoState(Domain *domain, int wrestlerPosition, int startingCoins);
     OshiZumoState(Domain *domain, int wrestlerPosition, vector<int> coinsPerPlayer);
     vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
-    int countAvailableActionsFor(Player player) const override;
+    unsigned long countAvailableActionsFor(Player player) const override;
     OutcomeDistribution
     performActions(const vector<PlayerAction> &actions) const override;
     vector<Player> getPlayers() const override;

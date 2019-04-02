@@ -106,7 +106,7 @@ vector<shared_ptr<Action>> OshiZumoState::getAvailableActionsFor(Player player) 
     return actions;
 }
 
-int OshiZumoState::countAvailableActionsFor(Player player) const {
+unsigned long OshiZumoState::countAvailableActionsFor(Player player) const {
     const auto OZdomain = static_cast<OshiZumoDomain *>(domain_);
     if (coins_[player] >= OZdomain->getMinBid()) {
         return coins_[player] - OZdomain->getMinBid() + 1;
