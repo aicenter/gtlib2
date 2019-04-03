@@ -32,10 +32,10 @@ namespace GTLib2 {
  * Save EFG tree structure in a cache.
  *
  * Calls from EFGNode::performAction() are not cached, so at each call a copy is created.
- * This structure is a caching wrapper built on top of EFGNode.
- * It also caches the retrieval of (augmented) information sets and the nodes within them.
+ * This structure is a caching wrapper built on top of EFGNode to prevent duplicate calls
+ * for creation of children EFGNodes.
  *
- * You can extend this cache to save more information needed by your algoritm.
+ * You can extend this cache to save more information needed by your algorithm.
  */
 class EFGCache {
 
@@ -107,7 +107,11 @@ class EFGCache {
     bool builtForest_ = false;
 };
 
+/**
+ * Add caching of (augmented) information sets and the nodes within them.
+ */
 class InfosetCache: public EFGCache {
+
     /**
      * Many EFGNodes can belong to many (augmented) infosets.
      *
@@ -133,7 +137,7 @@ class InfosetCache: public EFGCache {
         return node2infosets_[node];
     }
 
-    long countAugInfosets() {
+    inline long countAugInfosets() {
         return infoset2nodes_.size();
     }
 
