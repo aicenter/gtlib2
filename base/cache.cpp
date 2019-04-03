@@ -86,9 +86,8 @@ EFGActionNodesDistribution &EFGCache::getCachedNode(const shared_ptr<EFGNode> &n
 }
 
 
-const EFGNodesDistribution
-&EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action) {
-
+const EFGNodesDistribution &
+EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action) {
     auto &cachedNodeDist = getCachedNode(node);
 
     // fetch from cache if possible
@@ -118,9 +117,9 @@ const EFGActionNodesDistribution &EFGCache::getChildrenFor(const shared_ptr<EFGN
     if (builtForest_) return cachedNodeDist;
 
     int missingIdx = -1;
-    for (auto &ptr : cachedNodeDist) {
-        if (ptr == nullptr) {
-            missingIdx = true;
+    for (int i = 0; i < cachedNodeDist.size(); i++) {
+        if (cachedNodeDist[i] == nullptr) {
+            missingIdx = i;
             break;
         }
     }
@@ -129,9 +128,7 @@ const EFGActionNodesDistribution &EFGCache::getChildrenFor(const shared_ptr<EFGN
     // Add missing actions
     auto actions = node->availableActions();
     for (int i = missingIdx; i < actions.size(); ++i) {
-        if (cachedNodeDist[i] != nullptr) {
-            continue;
-        }
+        if (cachedNodeDist[i] != nullptr) continue;
 
         auto newDist = node->performAction(actions[i]);
         cachedNodeDist[i] = make_shared<EFGNodesDistribution>(newDist);
