@@ -51,16 +51,16 @@ class GamePlayingAlgorithm {
     /**
      * Run one step of the algorithm and improve play distribution in current infoset.
      *
-     * Provide the infoset in which this algorithm should currently play.
-     * It will always be only infosets of the specified player.
-     * If optional is empty, it means root iterations should be done.
+     * Infoset in which this algorithm should currently play is provided.
+     * It will always be only infosets of the previously specified player.
+     * If currentInfoset is empty, it means root iterations (preplay) should be done.
      *
      * @return whether algorithm decided to continue to play (true) or give up the game (false).
      */
     virtual bool runIteration(const optional<shared_ptr<AOH>> &currentInfoset) = 0;
 
     /**
-     * Return probabilities by which the next action should be selected.
+     * Return probability distribution by which the next action should be selected.
      * They must sum up to 1.
      */
     virtual vector<double> playDistribution(const shared_ptr<AOH> &currentInfoset) = 0;

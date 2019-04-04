@@ -27,6 +27,7 @@
 #include <algorithms/common.h>
 
 using namespace std::chrono;
+using GTLib2::algorithms::createRootEFGNodes;
 
 namespace GTLib2 {
 
@@ -41,7 +42,7 @@ bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
         auto duration = duration_cast<microseconds>(t2 - t1).count();
         budgetUs -= duration;
     }
-    if (budgetUs < -100) std::cerr << "Budget missed by " << budgetUs << " microseconds\n";
+    if (budgetUs < -100) std::cerr << "Budget missed by " << budgetUs << " us\n";
 
     return continuePlay;
 }
@@ -65,7 +66,8 @@ bool FixedActionPlayer::runIteration(const optional<shared_ptr<AOH>> &currentInf
 
 vector<double> FixedActionPlayer::playDistribution(const shared_ptr<AOH> &currentInfoset) {
     auto nodes = _cache.getNodesFor(currentInfoset);
-    int numActions = int(nodes[0]->countAvailableActions()); // must be int due to modulo operations
+    // must be signed due to modulo operations
+    int numActions = int(nodes[0]->countAvailableActions());
     auto dist = vector<double>(numActions, 0.);
     dist[(numActions + (_actionIdx % numActions)) % numActions] = 1.;
     return dist;
@@ -77,9 +79,7 @@ int pickAction(const EFGNodesDistribution &probs,
                std::mt19937 &generator) {
     double p = uniformDist(generator);
     int i = -1;
-    while (p > 0) {
-        p -= probs[++i].second;
-    }
+    while (p > 0) p -= probs[++i].second;
     assert(i < probs.size());
     return i;
 }
@@ -89,12 +89,9 @@ int pickAction(const vector<double> &probs,
                std::mt19937 &generator) {
     double p = uniformDist(generator);
     int i = -1;
-    while (p > 0) {
-        p -= probs[++i];
-    }
+    while (p > 0) p -= probs[++i];
     assert(i < probs.size());
     return i;
-
 }
 
 vector<double> playMatch(const Domain &domain,
@@ -107,14 +104,12 @@ vector<double> playMatch(const Domain &domain,
         preplayBudgetMicrosec.size() == moveBudgetMicrosec.size());
 
     unsigned long numAlgs = algorithmInitializers.size();
-
     auto algs = vector<unique_ptr<GamePlayingAlgorithm>>(numAlgs);
     auto continuePlay = vector<bool>(numAlgs, true);
 
     for (int i = 0; i < numAlgs; ++i) {
         algs[i] = algorithmInitializers[i](domain, Player(i));
     }
-
     for (int i = 0; i < numAlgs; ++i) {
         continuePlay[i] = playForMicroseconds(algs[i], nullopt, preplayBudgetMicrosec[i]);
     }
@@ -123,10 +118,9 @@ vector<double> playMatch(const Domain &domain,
     auto uniformDist = std::uniform_real_distribution<double>(0.0, 1.0);
 
     shared_ptr<EFGNode> node;
-    EFGNodesDistribution nodesDistribution = algorithms::createRootEFGNodes(
-        domain.getRootStatesDistribution());
-    int chanceAction = pickAction(nodesDistribution, uniformDist, generator);
-    node = nodesDistribution[chanceAction].first;
+    EFGNodesDistribution nodesDist = createRootEFGNodes(domain.getRootStatesDistribution());
+    int chanceAction = pickAction(nodesDist, uniformDist, generator);
+    node = nodesDist[chanceAction].first;
 
     while (!node->isTerminal()) {
         auto infoset = node->getAOHInfSet();
@@ -143,9 +137,9 @@ vector<double> playMatch(const Domain &domain,
         assert(probs.size() == actions.size());
 
         int playerAction = pickAction(probs, uniformDist, generator);
-        nodesDistribution = node->performAction(actions[playerAction]);
-        chanceAction = pickAction(nodesDistribution, uniformDist, generator);
-        node = nodesDistribution[chanceAction].first;
+        nodesDist = node->performAction(actions[playerAction]);
+        chanceAction = pickAction(nodesDist, uniformDist, generator);
+        node = nodesDist[chanceAction].first;
     }
 
     return node->rewards_;

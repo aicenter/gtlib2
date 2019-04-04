@@ -24,9 +24,6 @@
 #include "base/cache.h"
 #include "base/algorithm.h"
 
-#include "algorithms/common.h"
-#include "domains/matching_pennies.h"
-#include "tests/domainsTest.h"
 #include <boost/test/unit_test.hpp>
 #include <domains/goofSpiel.h>
 
@@ -34,10 +31,6 @@
 namespace GTLib2 {
 
 using domains::IIGoofSpielDomain;
-using domains::MatchingPenniesAction;
-using domains::Heads;
-using domains::Tails;
-using algorithms::createRootEFGNodes;
 
 BOOST_AUTO_TEST_SUITE(AlgorithmTest)
 
@@ -46,12 +39,11 @@ BOOST_AUTO_TEST_CASE(PlayMatchSmallGame) {
     PreparedAlgorithm lastAction = createInitializer<FixedActionPlayer>(-1);
 
     domains::IIGoofSpielDomain domain(3, 3, 0);
-    vector<double> expectedUtilities = vector<double> { 1., -1. };
-    vector<double> actualUtilities = playMatch(domain,
-        vector<PreparedAlgorithm> { firstAction, lastAction},
-        vector<int> { 10000, 10000 }, vector<int> { 10, 10 }, 0);
-    BOOST_CHECK_EQUAL( actualUtilities, expectedUtilities );
-
+    vector<double> expectedUtilities = vector<double>{1., -1.};
+    vector<double> actualUtilities = playMatch(
+        domain, vector<PreparedAlgorithm>{firstAction, lastAction},
+        vector<int>{10000, 10000}, vector<int>{10, 10}, 0);
+    BOOST_CHECK_EQUAL(actualUtilities, expectedUtilities);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
