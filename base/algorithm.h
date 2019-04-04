@@ -46,50 +46,32 @@ class GamePlayingAlgorithm {
      * Algorithm is not allowed to run any computation in constructor.
      */
     GamePlayingAlgorithm(const Domain &domain, Player actingPlayer)
-        : domain_(domain), actingPlayer_(actingPlayer), currentInfoset_(nullopt) {};
+        : domain_(domain), actingPlayer_(actingPlayer) {};
 
     /**
      * Run one step of the algorithm and improve play distribution in current infoset.
+     *
+     * Provide the infoset in which this algorithm should currently play.
+     * It will always be only infosets of the specified player.
+     * If optional is empty, it means root iterations should be done.
+     *
+     * @return whether algorithm decided to continue to play (true) or give up the game (false).
      */
-    virtual void runIteration() = 0;
+    virtual bool runIteration(const optional<shared_ptr<AOH>> &currentInfoset) = 0;
 
     /**
      * Return probabilities by which the next action should be selected.
      * They must sum up to 1.
      */
-    virtual vector<double> playDistribution() = 0;
-
-    inline bool hasGivenUp() { return givenUp_; }
-
-    /**
-     * Run iterations for given time budget in microseconds.
-     */
-    virtual void runMicroseconds(int budget) final;
-
-    /**
-     * Set the infoset in which this algorithm currently plays.
-     * It will always be set only into infosets of the specified player.
-     */
-    inline virtual void setCurrentInfoset(const shared_ptr<AOH> &currentInfoset) final {
-        currentInfoset_ = currentInfoset;
-    };
-
- protected:
-    /**
-     * Giving up is a non-reversible action. Afterwards algorithm will play random moves.
-     */
-    inline void giveUp() {
-        givenUp_ = true;
-    }
-
-    /**
-     * Algorithm can access this field to get the current infoset.
-     */
-    optional<shared_ptr<AOH>> currentInfoset_;
-
- private:
-    bool givenUp_ = false;
+    virtual vector<double> playDistribution(const shared_ptr<AOH> &currentInfoset) = 0;
 };
+
+/**
+ * Run iterations of give algorithm for a given time budget in microseconds.
+ */
+bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
+                         const optional<shared_ptr<AOH>> &currentInfoset,
+                         long budgetUs);
 
 /**
  * Random player gives up right away, and the rest of the match is played uniformly randomly.
@@ -97,9 +79,9 @@ class GamePlayingAlgorithm {
 class RandomPlayer: public GamePlayingAlgorithm {
  public:
     inline RandomPlayer(const Domain &domain, Player actingPlayer)
-        : GamePlayingAlgorithm(domain, actingPlayer) { giveUp(); }
-    inline void runIteration() override {} ;
-    inline vector<double> playDistribution() override {};
+        : GamePlayingAlgorithm(domain, actingPlayer) {}
+    inline bool runIteration(const optional<shared_ptr<AOH>> &currentInfoset) override { return false; };
+    inline vector<double> playDistribution(const shared_ptr<AOH> &currentInfoset) override {};
 };
 
 /**
@@ -109,8 +91,8 @@ class RandomPlayer: public GamePlayingAlgorithm {
 class FixedActionPlayer: public GamePlayingAlgorithm {
  public:
     explicit FixedActionPlayer(const Domain &domain, Player actingPlayer, int action);
-    void runIteration() override;
-    vector<double> playDistribution() override;
+    bool runIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
+    vector<double> playDistribution(const shared_ptr<AOH> &currentInfoset) override;
  private:
     InfosetCache _cache;
     const int _action;
@@ -121,7 +103,7 @@ typedef std::function<std::unique_ptr<GamePlayingAlgorithm>(const Domain &, Play
 
 template<typename T, typename... Args>
 PreparedAlgorithm createInitializer(Args... args) {
-    return [=](const Domain & domain, Player pl) -> std::unique_ptr<GamePlayingAlgorithm> {
+    return [=](const Domain &domain, Player pl) -> std::unique_ptr<GamePlayingAlgorithm> {
         return std::make_unique<T>(domain, pl, args ...);
     };
 }

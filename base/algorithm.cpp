@@ -30,48 +30,51 @@ using namespace std::chrono;
 
 namespace GTLib2 {
 
-void GamePlayingAlgorithm::runMicroseconds(int budget) {
-    while (budget > 0) {
+bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
+                         const optional<shared_ptr<AOH>> &currentInfoset,
+                         long budgetUs) {
+    bool continuePlay = true;
+    while (budgetUs > 0 && continuePlay) {
         high_resolution_clock::time_point t1 = high_resolution_clock::now();
-        runIteration();
+        continuePlay = alg->runIteration(currentInfoset);
         high_resolution_clock::time_point t2 = high_resolution_clock::now();
         auto duration = duration_cast<microseconds>(t2 - t1).count();
-        budget -= duration;
+        budgetUs -= duration;
     }
-    if(budget < -100) std::cerr << "Budget missed by " << budget << "us\n";
+    if (budgetUs < -100) std::cerr << "Budget missed by " << budgetUs << "us\n";
+
+    return continuePlay;
 }
 
 
 FixedActionPlayer::FixedActionPlayer(const Domain &domain, Player actingPlayer, int action)
     : GamePlayingAlgorithm(domain, actingPlayer),
-    _cache(InfosetCache(domain_.getRootStatesDistribution())),
-    _action(action) {}
+      _cache(InfosetCache(domain_.getRootStatesDistribution())),
+      _action(action) {}
 
-void FixedActionPlayer::runIteration() {
-    if(currentInfoset_ == nullopt) {
-        if(_cache.isCompletelyBuilt()) return;
+bool FixedActionPlayer::runIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
+    if (currentInfoset == nullopt) {
+        if (_cache.isCompletelyBuilt()) return true;
         _cache.buildForest();
-        return;
+        return true;
     }
 
-    auto nodes = _cache.getNodesFor(*currentInfoset_);
-    if(nodes.empty()) {
-        giveUp();
-    }
+    auto nodes = _cache.getNodesFor(*currentInfoset);
+    return !nodes.empty();
 }
 
-vector<double> FixedActionPlayer::playDistribution() {
-    auto nodes = _cache.getNodesFor(*currentInfoset_);
+vector<double> FixedActionPlayer::playDistribution(const shared_ptr<AOH> &currentInfoset) {
+    auto nodes = _cache.getNodesFor(currentInfoset);
     int numActions = int(nodes[0]->countAvailableActions()); // must be int due to modulo operations
     auto dist = vector<double>(numActions, 0.);
-    dist[ (numActions + (_action % numActions)) % numActions ] = 1.;
+    dist[(numActions + (_action % numActions)) % numActions] = 1.;
     return dist;
 }
 
 
 int pickAction(const EFGNodesDistribution &probs,
-                        std::uniform_real_distribution<double> &uniformDist,
-                        std::mt19937 &generator) {
+               std::uniform_real_distribution<double> &uniformDist,
+               std::mt19937 &generator) {
     double p = uniformDist(generator);
     int i = -1;
     while (p > 0) {
@@ -82,8 +85,8 @@ int pickAction(const EFGNodesDistribution &probs,
 }
 
 int pickAction(const vector<double> &probs,
-                        std::uniform_real_distribution<double> &uniformDist,
-                        std::mt19937 &generator) {
+               std::uniform_real_distribution<double> &uniformDist,
+               std::mt19937 &generator) {
     double p = uniformDist(generator);
     int i = -1;
     while (p > 0) {
@@ -105,15 +108,15 @@ vector<double> playMatch(const Domain &domain,
 
     unsigned long numAlgs = algorithmInitializers.size();
 
-    vector<unique_ptr<GamePlayingAlgorithm>> algs =
-        vector<unique_ptr<GamePlayingAlgorithm>>(algorithmInitializers.size());
+    auto algs = vector<unique_ptr<GamePlayingAlgorithm>>(numAlgs);
+    auto continuePlay = vector<bool>(numAlgs, true);
 
     for (int i = 0; i < numAlgs; ++i) {
         algs[i] = algorithmInitializers[i](domain, Player(i));
     }
 
     for (int i = 0; i < numAlgs; ++i) {
-        algs[i]->runMicroseconds(preplayBudgetMicrosec[i]);
+        continuePlay[i] = playForMicroseconds(algs[i], nullopt, preplayBudgetMicrosec[i]);
     }
 
     auto generator = std::mt19937(matchSeed);
@@ -127,19 +130,16 @@ vector<double> playMatch(const Domain &domain,
 
     while (!node->isTerminal()) {
         auto infoset = node->getAOHInfSet();
+        auto actions = node->availableActions();
         Player pl = *node->getCurrentPlayer();
 
-        vector<double> probs;
-        if (!algs[pl]->hasGivenUp()) {
-            algs[pl]->setCurrentInfoset(infoset);
-            algs[pl]->runMicroseconds(moveBudgetMicrosec[pl]);
-            probs = algs[pl]->playDistribution();
-        } else {
-            const auto numActions = node->countAvailableActions();
-            probs = vector<double>(numActions, 1. / numActions);
-        }
+        if (continuePlay[pl])
+            continuePlay[pl] = playForMicroseconds(algs[pl], infoset, moveBudgetMicrosec[pl]);
 
-        auto actions = node->availableActions();
+        vector<double> probs = continuePlay[pl]
+                               ? algs[pl]->playDistribution(infoset)
+                               : vector<double>(actions.size(), 1. / actions.size());
+
         assert(probs.size() == actions.size());
 
         int playerAction = pickAction(probs, uniformDist, generator);
