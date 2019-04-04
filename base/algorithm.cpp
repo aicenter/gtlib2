@@ -135,6 +135,9 @@ vector<double> playMatch(const Domain &domain,
                                : vector<double>(actions.size(), 1. / actions.size());
 
         assert(probs.size() == actions.size());
+        double sumProbs = 0.0;
+        for (double prob : probs) sumProbs += prob;
+        assert(fabs(1.0-sumProbs) < 1e-9);
 
         int playerAction = pickAction(probs, uniformDist, generator);
         nodesDist = node->performAction(actions[playerAction]);
