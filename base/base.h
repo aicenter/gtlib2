@@ -242,7 +242,9 @@ class AOH: public InformationSet {
  public:
     AOH(Player player, const vector<ActionObservation> &aoHistory);
 
-    int getNumberOfActions() const;
+    inline unsigned long getSize() const {
+        return aoh_.size();
+    }
 
     inline size_t getHash() const final {
         return hashValue_;

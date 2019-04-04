@@ -48,8 +48,8 @@ class CFRData: public InfosetCache {
         vector<double> avgStratAccumulator;
 
         explicit InfosetData(unsigned long numActions) {
-            regrets = vector<double>(numActions, 0.);
-            avgStratAccumulator = vector<double>(numActions, 0.);
+            regrets = vector<double>(numActions, 0.0);
+            avgStratAccumulator = vector<double>(numActions, 0.0);
         }
     };
 

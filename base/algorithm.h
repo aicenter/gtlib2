@@ -1,0 +1,146 @@
+#include <utility>
+
+/*
+    Copyright 2019 Faculty of Electrical Engineering at CTU in Prague
+
+    This file is part of Game Theoretic Library.
+
+    Game Theoretic Library is free software: you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public License
+    as published by the Free Software Foundation, either version 3
+    of the License, or (at your option) any later version.
+
+    Game Theoretic Library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public 
+    License along with Game Theoretic Library.
+
+    If not, see <http://www.gnu.org/licenses/>.
+*/
+
+
+#ifndef GTLIB2_GAMEPLAYINGALGORITHM_H
+#define GTLIB2_GAMEPLAYINGALGORITHM_H
+
+#include "base/base.h"
+#include "base/efg.h"
+#include "base/cache.h"
+#include <random>
+
+namespace GTLib2 {
+
+/**
+ * Algorithm that is capable of playing games by being supplied
+ * current infoset, domain and for which player to play.
+ */
+class GamePlayingAlgorithm {
+ public:
+    const Domain &domain_;
+    const Player actingPlayer_;
+
+    /**
+     * Prepare for playing game on specified domain.
+     * Algorithm is not allowed to run any computation in constructor.
+     */
+    GamePlayingAlgorithm(const Domain &domain, Player actingPlayer)
+        : domain_(domain), actingPlayer_(actingPlayer), currentInfoset_(nullopt) {};
+
+    /**
+     * Run one step of the algorithm and improve play distribution in current infoset.
+     */
+    virtual void runIteration() = 0;
+
+    /**
+     * Return probabilities by which the next action should be selected.
+     * They must sum up to 1.
+     */
+    virtual vector<double> playDistribution() = 0;
+
+    inline bool hasGivenUp() { return givenUp_; }
+
+    /**
+     * Run iterations for given time budget in microseconds.
+     */
+    virtual void runMicroseconds(int budget) final;
+
+    /**
+     * Set the infoset in which this algorithm currently plays.
+     * It will always be set only into infosets of the specified player.
+     */
+    inline virtual void setCurrentInfoset(const shared_ptr<AOH> &currentInfoset) final {
+        currentInfoset_ = currentInfoset;
+    };
+
+ protected:
+    /**
+     * Giving up is a non-reversible action. Afterwards algorithm will play random moves.
+     */
+    inline void giveUp() {
+        givenUp_ = true;
+    }
+
+    /**
+     * Algorithm can access this field to get the current infoset.
+     */
+    optional<shared_ptr<AOH>> currentInfoset_;
+
+ private:
+    bool givenUp_ = false;
+};
+
+/**
+ * Random player gives up right away, and the rest of the match is played uniformly randomly.
+ */
+class RandomPlayer: public GamePlayingAlgorithm {
+ public:
+    inline RandomPlayer(const Domain &domain, Player actingPlayer)
+        : GamePlayingAlgorithm(domain, actingPlayer) { giveUp(); }
+    inline void runIteration() override {} ;
+    inline vector<double> playDistribution() override {};
+};
+
+/**
+ * Player that always chooses specified fixed action.
+ * You can use modulo algebra to specify the action, even with negative integers.
+ */
+class FixedActionPlayer: public GamePlayingAlgorithm {
+ public:
+    explicit FixedActionPlayer(const Domain &domain, Player actingPlayer, int action);
+    void runIteration() override;
+    vector<double> playDistribution() override;
+ private:
+    InfosetCache _cache;
+    const int _action;
+};
+
+typedef std::function<std::unique_ptr<GamePlayingAlgorithm>(const Domain &, Player)>
+    PreparedAlgorithm;
+
+template<typename T, typename... Args>
+PreparedAlgorithm createInitializer(Args... args) {
+    return [=](const Domain & domain, Player pl) -> std::unique_ptr<GamePlayingAlgorithm> {
+        return std::make_unique<T>(domain, pl, args ...);
+    };
+}
+
+/**
+ * Play match between given algorithms, for a given number of microseconds in the root (preplay)
+ * and another time budget for each move. Return terminal utilities for each algorithm.
+ *
+ * You can prepare the algorithm by calling
+ * @code
+ * DomainInitilizer preparedAlg = createInitializer<MyAlg>( my_alg_params );
+ * @endcode
+ */
+vector<double> playMatch(const Domain &domain,
+                         vector<PreparedAlgorithm> algorithmInitializers,
+                         vector<int> preplayBudgetMicrosec,
+                         vector<int> moveBudgetMicrosec,
+                         unsigned long matchSeed);
+}  // namespace GTLib2
+
+
+#endif //GTLIB2_GAMEPLAYINGALGORITHM_H

@@ -113,6 +113,7 @@ set(SOURCE_FILES
         algorithms/tree.h algorithms/tree.cpp
         algorithms/utility.h algorithms/utility.cpp
         # base
+        base/algorithm.cpp base/algorithm.h
         base/base.h base/base.cpp
         base/cache.cpp base/cache.h
         base/efg.h base/efg.cpp
@@ -132,7 +133,8 @@ set(SOURCE_FILES
         utils/utils.h
         utils/functools.h
         #utils/highQualityRandom.h utils/highQualityRandom.cpp
-        )
+
+)
 
 set(TEST_FILES
         tests/domainsTest.h tests/domainsTest.cpp
@@ -144,7 +146,9 @@ set(TEST_FILES
         tests/matchingPenniesTest.cpp
         tests/cacheTest.cpp
         tests/cfrTest.cpp
-        )
+        tests/algorithmTest.cpp
+
+)
 
 # -------------------- Executables, linking --------------------
 

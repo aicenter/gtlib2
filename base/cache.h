@@ -99,6 +99,10 @@ class EFGCache {
      */
     void buildForest();
 
+    inline bool isCompletelyBuilt() {
+        return builtForest_;
+    }
+
  protected:
     virtual void createNode(const shared_ptr<EFGNode> &node);
     EFGActionNodesDistribution &getCachedNode(const shared_ptr<EFGNode> &shared_ptr);

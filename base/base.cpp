@@ -137,10 +137,6 @@ bool AOH::operator==(const InformationSet &rhs) const {
     return false;
 }
 
-int AOH::getNumberOfActions() const {
-    return static_cast<int> (aoh_.size()) - 1;
-}
-
 string AOH::toString() const {
     string s = "Player: " + to_string(player_) + ",  init observation:" +
         to_string(aoh_.front().second) + ", hash value: " +

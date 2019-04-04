@@ -28,9 +28,6 @@ namespace algorithms {
 
 StrategyProfile getAverageStrategy(CFRData *data) {
     auto profile = StrategyProfile(2);
-    auto numInfosets = static_cast<unsigned long>(data->countAugInfosets() / 2);
-    data->infosetData.reserve(numInfosets);
-
     auto getStrategy = [&profile, &data](shared_ptr<EFGNode> node) {
         if (node->isTerminal()) return;
 
