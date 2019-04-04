@@ -41,16 +41,16 @@ bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
         auto duration = duration_cast<microseconds>(t2 - t1).count();
         budgetUs -= duration;
     }
-    if (budgetUs < -100) std::cerr << "Budget missed by " << budgetUs << "us\n";
+    if (budgetUs < -100) std::cerr << "Budget missed by " << budgetUs << " microseconds\n";
 
     return continuePlay;
 }
 
 
-FixedActionPlayer::FixedActionPlayer(const Domain &domain, Player actingPlayer, int action)
+FixedActionPlayer::FixedActionPlayer(const Domain &domain, Player actingPlayer, int actionIdx)
     : GamePlayingAlgorithm(domain, actingPlayer),
       _cache(InfosetCache(domain_.getRootStatesDistribution())),
-      _action(action) {}
+      _actionIdx(actionIdx) {}
 
 bool FixedActionPlayer::runIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
     if (currentInfoset == nullopt) {
@@ -67,7 +67,7 @@ vector<double> FixedActionPlayer::playDistribution(const shared_ptr<AOH> &curren
     auto nodes = _cache.getNodesFor(currentInfoset);
     int numActions = int(nodes[0]->countAvailableActions()); // must be int due to modulo operations
     auto dist = vector<double>(numActions, 0.);
-    dist[(numActions + (_action % numActions)) % numActions] = 1.;
+    dist[(numActions + (_actionIdx % numActions)) % numActions] = 1.;
     return dist;
 }
 

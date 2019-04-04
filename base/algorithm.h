@@ -90,12 +90,12 @@ class RandomPlayer: public GamePlayingAlgorithm {
  */
 class FixedActionPlayer: public GamePlayingAlgorithm {
  public:
-    explicit FixedActionPlayer(const Domain &domain, Player actingPlayer, int action);
+    explicit FixedActionPlayer(const Domain &domain, Player actingPlayer, int actionIdx);
     bool runIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
     vector<double> playDistribution(const shared_ptr<AOH> &currentInfoset) override;
  private:
     InfosetCache _cache;
-    const int _action;
+    const int _actionIdx;
 };
 
 typedef std::function<std::unique_ptr<GamePlayingAlgorithm>(const Domain &, Player)>
