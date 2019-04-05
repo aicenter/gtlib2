@@ -58,7 +58,7 @@ class CFRData: public InfosetCache {
 
 
 double CFRiteration(CFRData &data, const shared_ptr<EFGNode> &node,
-                    const std::array<double, 2> pi, const Player exploringPl);
+                    const std::array<double, 3> reachProbs, const Player exploringPl);
 
 /**
  * Run CFR on EFG tree for a number of iterations for both players.

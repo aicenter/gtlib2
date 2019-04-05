@@ -38,18 +38,20 @@ void CFRiterations(CFRData &data, int numIterations) {
     // todo: check that tree is built
     for (int i = 0; i < numIterations; ++i) {
         for (const auto &[node, prob] : data.getRootNodes()) {
-            CFRiteration(data, node, std::array<double, 2>{1., prob}, Player(0));
-            CFRiteration(data, node, std::array<double, 2>{prob, 1.}, Player(1));
+            CFRiteration(data, node, std::array<double, 3>{1., prob, 1.}, Player(0));
+            CFRiteration(data, node, std::array<double, 3>{prob, 1., 1.}, Player(1));
         }
     }
 }
 
+constexpr int CHANCE_PLAYER = 2;
+
 double CFRiteration(CFRData &data,
                     const shared_ptr<EFGNode> &node,
-                    const std::array<double, 2> pi,
+                    const std::array<double, 3> reachProbs,
                     const Player exploringPl) {
 
-    if (pi[0] == 0 && pi[1] == 0) {
+    if (reachProbs[0] == 0 && reachProbs[1] == 0) {
         return 0.0;
     }
 
@@ -86,22 +88,22 @@ double CFRiteration(CFRData &data,
     std::fill(cfvAction.begin(), cfvAction.end(), 0.0);
 
     for (int ai = 0; ai != children.size(); ai++) {
-        for (const auto &[nextNode, prob] : *children[ai]) {
+        for (const auto &[nextNode, chanceProb] : *children[ai]) {
             // let's put chance probs into opponent's reach probs.
-            std::array<double, 2> new_pi = {pi[0], pi[1]};
-            new_pi[oppExploringPl] *= prob;
-            new_pi[actingPl] *= rmProbs[ai];
+            std::array<double, 3> newReachProbs = {
+                reachProbs[0], reachProbs[1], reachProbs[CHANCE_PLAYER]};
+            newReachProbs[CHANCE_PLAYER] *= chanceProb;
+            newReachProbs[actingPl] *= rmProbs[ai];
 
-            double incr = prob * CFRiteration(data, nextNode, new_pi, exploringPl);
-            cfvAction[ai] += incr;
+            cfvAction[ai] += chanceProb * CFRiteration(data, nextNode, newReachProbs, exploringPl);
         }
         cfvInfoset += rmProbs[ai] * cfvAction[ai];
     }
 
     if (actingPl == exploringPl) {
         for (int i = 0; i < numActions; i++) {
-            reg[i] += (cfvAction[i] - cfvInfoset) * pi[oppExploringPl];
-            acc[i] += pi[exploringPl] * rmProbs[i];
+            reg[i] += (cfvAction[i] - cfvInfoset) * reachProbs[oppExploringPl] * reachProbs[CHANCE_PLAYER];
+            acc[i] += reachProbs[exploringPl] * rmProbs[i];
         }
     }
 
