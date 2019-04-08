@@ -85,10 +85,10 @@ void CFRAlgorithm::nodeUpdateRegrets(shared_ptr<EFGNode> node) {
 
     const auto &infoSet = cache_.getInfosetFor(node);
     auto &infosetData = cache_.infosetData;
-    auto&[reg, acc, regUpdates] = infosetData.at(infoSet);
-    for (int i = 0; i < reg.size(); ++i) {
-        reg[i] += regUpdates[i];
-        regUpdates[i] = 0.;
+    auto &data = infosetData.at(infoSet);
+    for (int i = 0; i < data.regrets.size(); ++i) {
+        data.regrets[i] += data.regretUpdates[i];
+        data.regretUpdates[i] = 0.;
     }
 }
 
@@ -135,9 +135,10 @@ double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
     const auto &children = cache_.getChildrenFor(node);
     const auto &infoSet = cache_.getInfosetFor(node);
     const auto numActions = children.size();
-    auto &infosetData = cache_.infosetData;
-
-    auto&[reg, acc, regUpdates] = infosetData.at(infoSet);
+    auto &infosetData = cache_.infosetData.at(infoSet);
+    auto &reg = infosetData.regrets;
+    auto &acc = infosetData.avgStratAccumulator;
+    auto &regUpdates = infosetData.regretUpdates;
 
     double posRegretSum = 0.0;
     for (double r : reg) {
@@ -169,12 +170,14 @@ double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
 
     if (actingPl == updatingPl) {
         for (int i = 0; i < numActions; i++) {
-            double newRegret = (cfvAction[i] - cfvInfoset)
-                * reachProbs[oppExploringPl] * reachProbs[CHANCE_PLAYER];
-
-            ((settings_.cfrUpdating == HistoriesUpdating)
-             ? reg[i] : regUpdates[i]) += newRegret;
-            acc[i] += reachProbs[updatingPl] * rmProbs[i];
+            if (!infosetData.fixRMStrategy) {
+                ((settings_.cfrUpdating == HistoriesUpdating) ? reg[i] : regUpdates[i]) +=
+                    (cfvAction[i] - cfvInfoset)
+                        * reachProbs[oppExploringPl] * reachProbs[CHANCE_PLAYER];
+            }
+            if (!infosetData.fixAvgStrategy) {
+                acc[i] += reachProbs[updatingPl] * rmProbs[i];
+            }
         }
     }
 

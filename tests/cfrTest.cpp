@@ -51,37 +51,41 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomain) {
     auto rootInfoset = rootNode->getAOHInfSet();
     auto childNode = rootNode->performAction(rootNode->availableActions()[0])[0].first;
     auto childInfoset = childNode->getAOHInfSet();
+    auto& rootData = data.infosetData.at(rootInfoset);
+    auto& childData = data.infosetData.at(childInfoset);
+    BOOST_CHECK(!rootData.fixRMStrategy);
+    BOOST_CHECK(!childData.fixRMStrategy);
+    BOOST_CHECK(!rootData.fixAvgStrategy);
+    BOOST_CHECK(!childData.fixAvgStrategy);
+    BOOST_CHECK(rootData.regretUpdates.size() == 0);
+    BOOST_CHECK(childData.regretUpdates.size() == 0);
 
     // ------ iteration player 0 ------
     double cfvInfoset = cfr.runIteration(rootNode, std::array<double, 3>{1., 1., 1.}, Player(0));
-    auto&[regRoot, accRoot, regUpdRoot] = data.infosetData.at(rootInfoset);
-    auto&[regChild, accChild, regUpdChild] = data.infosetData.at(childInfoset);
     BOOST_CHECK(cfvInfoset == 0.0);
-    BOOST_CHECK(regRoot[0] == 0.0);
-    BOOST_CHECK(regRoot[1] == 0.0);
-    BOOST_CHECK(accRoot[0] == 0.5);
-    BOOST_CHECK(accRoot[1] == 0.5);
+    BOOST_CHECK(rootData.regrets[0] == 0.0);
+    BOOST_CHECK(rootData.regrets[1] == 0.0);
+    BOOST_CHECK(rootData.avgStratAccumulator[0] == 0.5);
+    BOOST_CHECK(rootData.avgStratAccumulator[1] == 0.5);
     // does not change regrets / acc for player 1
-    BOOST_CHECK(regChild[0] == 0.0);
-    BOOST_CHECK(regChild[1] == 0.0);
-    BOOST_CHECK(accChild[0] == 0.0);
-    BOOST_CHECK(accChild[1] == 0.0);
+    BOOST_CHECK(childData.regrets[0] == 0.0);
+    BOOST_CHECK(childData.regrets[1] == 0.0);
+    BOOST_CHECK(childData.avgStratAccumulator[0] == 0.0);
+    BOOST_CHECK(childData.avgStratAccumulator[1] == 0.0);
 
     // ------ iteration player 1 ------
     cfvInfoset = cfr.runIteration(rootNode, std::array<double, 3>{1., 1., 1.}, Player(1));
-    auto &[regRoot2, accRoot2, regUpdRoot2] = data.infosetData.at(rootInfoset);
-    auto &[regChild2, accChild2, regUpdChild2] = data.infosetData.at(childInfoset);
-    // does not change regrets / acc for player 0
-    BOOST_CHECK(regRoot2[0] == 0.0);
-    BOOST_CHECK(regRoot2[1] == 0.0);
-    BOOST_CHECK(accRoot2[0] == 0.5);
-    BOOST_CHECK(accRoot2[1] == 0.5);
-    BOOST_CHECK(regChild2[0] == 0.5);
-    BOOST_CHECK(regChild2[1] == 0.5);
+    // does not change regrets / acc for player 0 but it does for player 1!!
+    BOOST_CHECK(rootData.regrets[0] == 0.0);
+    BOOST_CHECK(rootData.regrets[1] == 0.0);
+    BOOST_CHECK(rootData.avgStratAccumulator[1] == 0.5);
+    BOOST_CHECK(rootData.avgStratAccumulator[0] == 0.5);
+    BOOST_CHECK(childData.regrets[0] == 0.5);
+    BOOST_CHECK(childData.regrets[1] == 0.5);
     // acc is not two equal numbers because first
     // the left node is traversed and then the right node of the infoset
-    BOOST_CHECK(accChild2[0] == 0.5);
-    BOOST_CHECK(accChild2[1] == 1.5);
+    BOOST_CHECK(childData.avgStratAccumulator[0] == 0.5);
+    BOOST_CHECK(childData.avgStratAccumulator[1] == 1.5);
     // this is also why cfv is not zero
     BOOST_CHECK(cfvInfoset == -0.5);
 }
@@ -98,55 +102,149 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomainForInfosetUpdatingCFR) {
     auto rootInfoset = rootNode->getAOHInfSet();
     auto childNode = rootNode->performAction(rootNode->availableActions()[0])[0].first;
     auto childInfoset = childNode->getAOHInfSet();
+    auto& rootData = data.infosetData.at(rootInfoset);
+    auto& childData = data.infosetData.at(childInfoset);
+    BOOST_CHECK(!rootData.fixRMStrategy);
+    BOOST_CHECK(!childData.fixRMStrategy);
+    BOOST_CHECK(!rootData.fixAvgStrategy);
+    BOOST_CHECK(!childData.fixAvgStrategy);
+    BOOST_CHECK(rootData.regretUpdates.size() == 2);
+    BOOST_CHECK(childData.regretUpdates.size() == 2);
 
     // ------ iteration player 0 ------
     double cfvInfoset = cfr.runIteration(rootNode, std::array<double, 3>{1., 1., 1.}, Player(0));
     cfr.delayedApplyRegretUpdates();
-    auto&[regRoot, accRoot, regUpdRoot] = data.infosetData.at(rootInfoset);
-    auto&[regChild, accChild, regUpdChild] = data.infosetData.at(childInfoset);
     BOOST_CHECK(cfvInfoset == 0.0);
-    BOOST_CHECK(regRoot[0] == 0.0);
-    BOOST_CHECK(regRoot[1] == 0.0);
-    BOOST_CHECK(accRoot[0] == 0.5);
-    BOOST_CHECK(accRoot[1] == 0.5);
+    BOOST_CHECK(rootData.regrets[0] == 0.0);
+    BOOST_CHECK(rootData.regrets[1] == 0.0);
+    BOOST_CHECK(rootData.regretUpdates[0] == 0.0);
+    BOOST_CHECK(rootData.regretUpdates[1] == 0.0);
+    BOOST_CHECK(rootData.avgStratAccumulator[0] == 0.5);
+    BOOST_CHECK(rootData.avgStratAccumulator[1] == 0.5);
     // does not change regrets / acc for player 1
-    BOOST_CHECK(regChild[0] == 0.0);
-    BOOST_CHECK(regChild[1] == 0.0);
-    BOOST_CHECK(accChild[0] == 0.0);
-    BOOST_CHECK(accChild[1] == 0.0);
+    BOOST_CHECK(childData.regrets[0] == 0.0);
+    BOOST_CHECK(childData.regrets[1] == 0.0);
+    BOOST_CHECK(childData.regretUpdates[0] == 0.0);
+    BOOST_CHECK(childData.regretUpdates[1] == 0.0);
+    BOOST_CHECK(childData.avgStratAccumulator[0] == 0.0);
+    BOOST_CHECK(childData.avgStratAccumulator[1] == 0.0);
 
     // ------ iteration player 1 ------
     cfvInfoset = cfr.runIteration(rootNode, std::array<double, 3>{1., 1., 1.}, Player(1));
     cfr.delayedApplyRegretUpdates();
-    auto &[regRoot2, accRoot2, regUpdRoot2] = data.infosetData.at(rootInfoset);
-    auto &[regChild2, accChild2, regUpdChild2] = data.infosetData.at(childInfoset);
     // does not change regrets / acc for player 0
-    BOOST_CHECK(regRoot2[0] == 0.0);
-    BOOST_CHECK(regRoot2[1] == 0.0);
-    BOOST_CHECK(accRoot2[0] == 0.5);
-    BOOST_CHECK(accRoot2[1] == 0.5);
-    BOOST_CHECK(regChild2[0] == 0.0);
-    BOOST_CHECK(regChild2[1] == 0.0);
-    BOOST_CHECK(accChild2[0] == 1.0);
-    BOOST_CHECK(accChild2[1] == 1.0);
+    BOOST_CHECK(rootData.regrets[0] == 0.0);
+    BOOST_CHECK(rootData.regrets[1] == 0.0);
+    BOOST_CHECK(rootData.regretUpdates[0] == 0.0);
+    BOOST_CHECK(rootData.regretUpdates[1] == 0.0);
+    BOOST_CHECK(rootData.avgStratAccumulator[0] == 0.5);
+    BOOST_CHECK(rootData.avgStratAccumulator[1] == 0.5);
+    // for player 1 it does not change regrets but changes acc
+    BOOST_CHECK(childData.regrets[0] == 0.0);
+    BOOST_CHECK(childData.regrets[1] == 0.0);
+    BOOST_CHECK(childData.regretUpdates[0] == 0.0);
+    BOOST_CHECK(childData.regretUpdates[1] == 0.0);
+    BOOST_CHECK(childData.avgStratAccumulator[0] == 1.0);
+    BOOST_CHECK(childData.avgStratAccumulator[1] == 1.0);
     BOOST_CHECK(cfvInfoset == 0.0);
 
+    // ------ many iterations ------
     cfr.runIterations(100);
-    auto &[regRoot100, accRoot100, regUpdRoot100] = data.infosetData.at(rootInfoset);
-    auto &[regChild100, accChild100, regUpdChild100] = data.infosetData.at(childInfoset);
-    BOOST_CHECK(regRoot100[0] == 0.0);
-    BOOST_CHECK(regRoot100[1] == 0.0);
-    BOOST_CHECK(accRoot100[0] == 50.5);
-    BOOST_CHECK(accRoot100[1] == 50.5);
-    BOOST_CHECK(regChild100[0] == 0.0);
-    BOOST_CHECK(regChild100[1] == 0.0);
+    BOOST_CHECK(rootData.regrets[0] == 0.0);
+    BOOST_CHECK(rootData.regrets[1] == 0.0);
+    BOOST_CHECK(rootData.regretUpdates[0] == 0.0);
+    BOOST_CHECK(rootData.regretUpdates[1] == 0.0);
+    BOOST_CHECK(rootData.avgStratAccumulator[0] == 50.5);
+    BOOST_CHECK(rootData.avgStratAccumulator[1] == 50.5);
+    // for player 1 it does not change regrets but changes acc
+    BOOST_CHECK(childData.regrets[0] == 0.0);
+    BOOST_CHECK(childData.regrets[1] == 0.0);
+    BOOST_CHECK(childData.regretUpdates[0] == 0.0);
+    BOOST_CHECK(childData.regretUpdates[1] == 0.0);
     // Accumulators are not the same in root/child, because player1 histories
     // have been updated more times. This is ok, since we will calculate weighted
     // sum of these to get the average strategy. These increments are always added
     // by a constant number of times more (by each history in infoset) and they
     // will cancel out.
-    BOOST_CHECK(accChild100[0] == 101.0);
-    BOOST_CHECK(accChild100[1] == 101.0);
+    BOOST_CHECK(childData.avgStratAccumulator[0] == 101.0);
+    BOOST_CHECK(childData.avgStratAccumulator[1] == 101.0);
+}
+
+
+BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomainFixStrategy) {
+    MatchingPenniesDomain domain;
+    auto settings = CFRSettings();
+    settings.cfrUpdating = InfosetsUpdating;
+    CFRAlgorithm cfr(domain, Player(0), settings);
+    auto& data = cfr.getCache();
+    data.buildForest();
+    auto rootNode = data.getRootNodes()[0].first;
+    auto rootInfoset = rootNode->getAOHInfSet();
+    auto childNode = rootNode->performAction(rootNode->availableActions()[0])[0].first;
+    auto childInfoset = childNode->getAOHInfSet();
+    auto& rootData = data.infosetData.at(rootInfoset);
+    auto& childData = data.infosetData.at(childInfoset);
+    rootData.regrets[0] = 0.75;
+    rootData.regrets[1] = 0.25;
+    childData.avgStratAccumulator[0] = 0.125;
+    childData.avgStratAccumulator[1] = 0.875;
+    rootData.fixRMStrategy = true;
+    childData.fixAvgStrategy = true;
+    BOOST_CHECK(rootData.fixRMStrategy);
+    BOOST_CHECK(!childData.fixRMStrategy);
+    BOOST_CHECK(!rootData.fixAvgStrategy);
+    BOOST_CHECK(childData.fixAvgStrategy);
+    BOOST_CHECK(rootData.regretUpdates.size() == 2);
+    BOOST_CHECK(childData.regretUpdates.size() == 2);
+
+    // ------ iteration player 0 ------
+    double cfvInfoset = cfr.runIteration(rootNode, std::array<double, 3>{1., 1., 1.}, Player(0));
+    cfr.delayedApplyRegretUpdates();
+    BOOST_CHECK(cfvInfoset == 0.0);
+    BOOST_CHECK(rootData.regrets[0] == 0.75);
+    BOOST_CHECK(rootData.regrets[1] == 0.25);
+    BOOST_CHECK(rootData.regretUpdates[0] == 0.0);
+    BOOST_CHECK(rootData.regretUpdates[1] == 0.0);
+    BOOST_CHECK(rootData.avgStratAccumulator[0] == 0.75);
+    BOOST_CHECK(rootData.avgStratAccumulator[1] == 0.25);
+    BOOST_CHECK(childData.regrets[0] == 0.0);
+    BOOST_CHECK(childData.regrets[1] == 0.0);
+    BOOST_CHECK(childData.regretUpdates[0] == 0.0);
+    BOOST_CHECK(childData.regretUpdates[1] == 0.0);
+    BOOST_CHECK(childData.avgStratAccumulator[0] == 0.125);
+    BOOST_CHECK(childData.avgStratAccumulator[1] == 0.875);
+
+    // ------ iteration player 1 ------
+    cfvInfoset = cfr.runIteration(rootNode, std::array<double, 3>{1., 1., 1.}, Player(1));
+    cfr.delayedApplyRegretUpdates();
+    BOOST_CHECK(rootData.regrets[0] == 0.75);
+    BOOST_CHECK(rootData.regrets[1] == 0.25);
+    BOOST_CHECK(rootData.regretUpdates[0] == 0.0);
+    BOOST_CHECK(rootData.regretUpdates[1] == 0.0);
+    BOOST_CHECK(rootData.avgStratAccumulator[0] == 0.75);
+    BOOST_CHECK(rootData.avgStratAccumulator[1] == 0.25);
+    BOOST_CHECK(childData.regrets[0] == -0.5);
+    BOOST_CHECK(childData.regrets[1] == 0.5);
+    BOOST_CHECK(childData.regretUpdates[0] == 0.0);
+    BOOST_CHECK(childData.regretUpdates[1] == 0.0);
+    BOOST_CHECK(childData.avgStratAccumulator[0] == 0.125);
+    BOOST_CHECK(childData.avgStratAccumulator[1] == 0.875);
+    BOOST_CHECK(cfvInfoset == 0.0);
+
+    // ------ many iterations ------
+    cfr.runIterations(100);
+    BOOST_CHECK(rootData.regrets[0] == 0.75);
+    BOOST_CHECK(rootData.regrets[1] == 0.25);
+    BOOST_CHECK(rootData.regretUpdates[0] == 0.0);
+    BOOST_CHECK(rootData.regretUpdates[1] == 0.0);
+    BOOST_CHECK(rootData.avgStratAccumulator[0] == 75.75);
+    BOOST_CHECK(rootData.avgStratAccumulator[1] == 25.25);
+    BOOST_CHECK(childData.regrets[0] == -100.5);
+    BOOST_CHECK(childData.regrets[1] == 0.5);
+    BOOST_CHECK(childData.regretUpdates[0] == 0.0);
+    BOOST_CHECK(childData.regretUpdates[1] == 0.0);
+    BOOST_CHECK(childData.avgStratAccumulator[0] == 0.125);
+    BOOST_CHECK(childData.avgStratAccumulator[1] == 0.875);
 }
 
 

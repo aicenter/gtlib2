@@ -74,6 +74,16 @@ class CFRData: public InfosetCache {
         vector<double> avgStratAccumulator;
         vector<double> regretUpdates;
 
+        /**
+         * Disable updating RM strategy in this infoset
+         */
+        bool fixRMStrategy = false;
+
+        /**
+         * Disable updating avg strategy accumulator in this infoset
+         */
+        bool fixAvgStrategy = false;
+
         explicit InfosetData(unsigned long numActions, CFRUpdating updatingPolicy) {
             regrets = vector<double>(numActions, 0.0);
             avgStratAccumulator = vector<double>(numActions, 0.0);
@@ -88,7 +98,7 @@ class CFRData: public InfosetCache {
     void createNode(const shared_ptr<EFGNode> &node) override {
         InfosetCache::createNode(node);
 
-        if(node->isTerminal()) return;
+        if (node->isTerminal()) return;
 
         auto infoSet = node->getAOHInfSet();
         if (infosetData.find(infoSet) == infosetData.end()) {
