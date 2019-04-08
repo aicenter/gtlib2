@@ -59,14 +59,14 @@ class EFGCache {
     /**
      * Check if cache contains all the children for given node (after following any action).
      */
-    bool hasChildren(const shared_ptr<EFGNode> &node);
+    bool hasChildren(const shared_ptr<EFGNode> &node) const;
 
     /**
      * Check if cache contains children of for a given (node, action)
      */
-    bool hasChildren(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action);
+    bool hasChildren(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action) const;
 
-    inline bool hasNode(const shared_ptr<EFGNode> &node) {
+    inline bool hasNode(const shared_ptr<EFGNode> &node) const {
         return nodesChildren_.find(node) != nodesChildren_.end();
     }
 
@@ -85,15 +85,21 @@ class EFGCache {
      */
     const EFGActionNodesDistribution &getChildrenFor(const shared_ptr<EFGNode> &node);
 
-    inline const EFGNodesDistribution &getRootNodes() {
+    inline const EFGNodesDistribution &getRootNodes() const {
         return rootNodes_;
     }
 
-    const vector<shared_ptr<EFGNode>> getNodes() {
-        vector<shared_ptr<EFGNode>> keys(nodesChildren_.size());
-        transform(nodesChildren_.begin(), nodesChildren_.end(),
-                  keys.begin(), [](auto pair) { return pair.first; });
-        return keys;
+    /**
+     * Get copy of all the nodes that are present in the cache.
+     */
+    vector<shared_ptr<EFGNode>> getNodes() const;
+
+    /**
+     * Get a reference to the (parent -> children) map.
+     */
+    inline const unordered_map<shared_ptr<EFGNode>, EFGActionNodesDistribution> &
+    getNodesChildren() const {
+        return nodesChildren_;
     }
 
     /**
@@ -106,7 +112,7 @@ class EFGCache {
      */
     void buildForest();
 
-    inline bool isCompletelyBuilt() {
+    inline bool isCompletelyBuilt() const {
         return builtForest_;
     }
 

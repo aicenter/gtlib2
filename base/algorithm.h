@@ -39,14 +39,14 @@ namespace GTLib2 {
 class GamePlayingAlgorithm {
  public:
     const Domain &domain_;
-    const Player actingPlayer_;
+    const Player playingPlayer_;
 
     /**
      * Prepare for playing game on specified domain.
      * Algorithm is not allowed to run any computation in constructor.
      */
-    GamePlayingAlgorithm(const Domain &domain, Player actingPlayer)
-        : domain_(domain), actingPlayer_(actingPlayer) {};
+    GamePlayingAlgorithm(const Domain &domain, Player playingPlayer)
+        : domain_(domain), playingPlayer_(playingPlayer) {};
 
     /**
      * Run one step of the algorithm and improve play distribution in current infoset.
@@ -57,13 +57,13 @@ class GamePlayingAlgorithm {
      *
      * @return whether algorithm decided to continue to play (true) or give up the game (false).
      */
-    virtual bool runIteration(const optional<shared_ptr<AOH>> &currentInfoset) = 0;
+    virtual bool runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) = 0;
 
     /**
      * Return probability distribution by which the next action should be selected.
      * They must sum up to 1.
      */
-    virtual vector<double> playDistribution(const shared_ptr<AOH> &currentInfoset) = 0;
+    virtual vector<double> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) = 0;
 };
 
 /**
@@ -78,10 +78,10 @@ bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
  */
 class RandomPlayer: public GamePlayingAlgorithm {
  public:
-    inline RandomPlayer(const Domain &domain, Player actingPlayer)
-        : GamePlayingAlgorithm(domain, actingPlayer) {}
-    inline bool runIteration(const optional<shared_ptr<AOH>> &currentInfoset) override { return false; };
-    inline vector<double> playDistribution(const shared_ptr<AOH> &currentInfoset) override {};
+    inline RandomPlayer(const Domain &domain, Player playingPlayer)
+        : GamePlayingAlgorithm(domain, playingPlayer) {}
+    inline bool runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override { return false; };
+    inline vector<double> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override {};
 };
 
 /**
@@ -90,12 +90,12 @@ class RandomPlayer: public GamePlayingAlgorithm {
  */
 class FixedActionPlayer: public GamePlayingAlgorithm {
  public:
-    explicit FixedActionPlayer(const Domain &domain, Player actingPlayer, int actionIdx);
-    bool runIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
-    vector<double> playDistribution(const shared_ptr<AOH> &currentInfoset) override;
+    explicit FixedActionPlayer(const Domain &domain, Player playingPlayer, int actionIdx);
+    bool runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
+    vector<double> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override;
  private:
-    InfosetCache _cache;
-    const int _actionIdx;
+    InfosetCache cache_;
+    const int actionIdx_;
 };
 
 typedef std::function<std::unique_ptr<GamePlayingAlgorithm>(const Domain &, Player)>

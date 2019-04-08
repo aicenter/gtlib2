@@ -32,19 +32,20 @@
 
 
 namespace GTLib2 {
+namespace algorithms {
 
 using domains::MatchingPenniesDomain;
 using domains::MatchingPenniesAction;
 using algorithms::CFRData;
-using algorithms::CFRiterations;
 using algorithms::bestResponseTo;
 
 
 BOOST_AUTO_TEST_SUITE(CFRTest)
 
 BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomain) {
-    MatchingPenniesDomain mp;
-    CFRData data(mp.getRootStatesDistribution());
+    MatchingPenniesDomain domain;
+    CFRAlgorithm cfr(domain, Player(0));
+    auto& data = cfr.getCache();
     data.buildForest();
     auto rootNode = data.getRootNodes()[0].first;
     auto rootInfoset = rootNode->getAOHInfSet();
@@ -52,7 +53,7 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomain) {
     auto childInfoset = childNode->getAOHInfSet();
 
     // ------ iteration player 0 ------
-    double cfvInfoset = CFRiteration(data, rootNode, std::array<double, 3>{1., 1., 1.}, Player(0));
+    double cfvInfoset = cfr.runIteration(rootNode, std::array<double, 3>{1., 1., 1.}, Player(0));
     auto&[regRoot, accRoot] = data.infosetData.at(rootInfoset);
     auto&[regChild, accChild] = data.infosetData.at(childInfoset);
     BOOST_CHECK(cfvInfoset == 0.0);
@@ -67,7 +68,7 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomain) {
     BOOST_CHECK(accChild[1] == 0.0);
 
     // ------ iteration player 1 ------
-    cfvInfoset = CFRiteration(data, rootNode, std::array<double, 3>{1., 1., 1.}, Player(1));
+    cfvInfoset = cfr.runIteration(rootNode, std::array<double, 3>{1., 1., 1.}, Player(1));
     auto &[regRoot2, accRoot2] = data.infosetData.at(rootInfoset);
     auto &[regChild2, accChild2] = data.infosetData.at(childInfoset);
     // does not change regrets / acc for player 0
@@ -88,8 +89,8 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomain) {
 
 BOOST_AUTO_TEST_CASE(CheckConvergenceInSmallDomain) {
     domains::IIGoofSpielDomain domain(3, 3, nullopt);
-    CFRData data(domain.getRootStatesDistribution());
-    data.buildForest();
+    CFRAlgorithm cfr(domain, Player(0));
+    auto& data = cfr.getCache();
 
     double expectedUtilities[] =
         {0.00467926, 0.00251501, 0.00171567, 0.00130139, 0.00104813, 0.000877345, 0.000754399,
@@ -103,7 +104,7 @@ BOOST_AUTO_TEST_CASE(CheckConvergenceInSmallDomain) {
 
 
     for (int i = 0; i < 10; ++i) {
-        CFRiterations(data, 50);
+        cfr.runIterations(50);
         auto profile = algorithms::getAverageStrategy(&data);
         auto bestResp0 = algorithms::bestResponseTo(
             profile[0], Player(0), Player(1), domain).second;
@@ -121,4 +122,5 @@ BOOST_AUTO_TEST_CASE(CheckConvergenceInSmallDomain) {
 
 BOOST_AUTO_TEST_SUITE_END()
 
+}
 }  // namespace GTLib2

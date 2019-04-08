@@ -37,7 +37,7 @@ bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
     bool continuePlay = true;
     while (budgetUs > 0 && continuePlay) {
         high_resolution_clock::time_point t1 = high_resolution_clock::now();
-        continuePlay = alg->runIteration(currentInfoset);
+        continuePlay = alg->runPlayIteration(currentInfoset);
         high_resolution_clock::time_point t2 = high_resolution_clock::now();
         auto duration = duration_cast<microseconds>(t2 - t1).count();
         budgetUs -= duration;
@@ -48,28 +48,28 @@ bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
 }
 
 
-FixedActionPlayer::FixedActionPlayer(const Domain &domain, Player actingPlayer, int actionIdx)
-    : GamePlayingAlgorithm(domain, actingPlayer),
-      _cache(InfosetCache(domain_.getRootStatesDistribution())),
-      _actionIdx(actionIdx) {}
+FixedActionPlayer::FixedActionPlayer(const Domain &domain, Player playingPlayer, int actionIdx)
+    : GamePlayingAlgorithm(domain, playingPlayer),
+      cache_(InfosetCache(domain_.getRootStatesDistribution())),
+      actionIdx_(actionIdx) {}
 
-bool FixedActionPlayer::runIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
+bool FixedActionPlayer::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
     if (currentInfoset == nullopt) {
-        if (_cache.isCompletelyBuilt()) return true;
-        _cache.buildForest();
+        if (cache_.isCompletelyBuilt()) return true;
+        cache_.buildForest();
         return true;
     }
 
-    auto nodes = _cache.getNodesFor(*currentInfoset);
+    auto nodes = cache_.getNodesFor(*currentInfoset);
     return !nodes.empty();
 }
 
-vector<double> FixedActionPlayer::playDistribution(const shared_ptr<AOH> &currentInfoset) {
-    auto nodes = _cache.getNodesFor(currentInfoset);
+vector<double> FixedActionPlayer::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
+    auto nodes = cache_.getNodesFor(currentInfoset);
     // must be signed due to modulo operations
     int numActions = int(nodes[0]->countAvailableActions());
     auto dist = vector<double>(numActions, 0.);
-    dist[(numActions + (_actionIdx % numActions)) % numActions] = 1.;
+    dist[(numActions + (actionIdx_ % numActions)) % numActions] = 1.;
     return dist;
 }
 
@@ -131,7 +131,7 @@ vector<double> playMatch(const Domain &domain,
             continuePlay[pl] = playForMicroseconds(algs[pl], infoset, moveBudgetMicrosec[pl]);
 
         vector<double> probs = continuePlay[pl]
-                               ? algs[pl]->playDistribution(infoset)
+                               ? algs[pl]->getPlayDistribution(infoset)
                                : vector<double>(actions.size(), 1. / actions.size());
 
         assert(probs.size() == actions.size());

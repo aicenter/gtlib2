@@ -27,6 +27,7 @@
 #include <array>
 #include <utility>
 
+#include "base/algorithm.h"
 #include "base/efg.h"
 #include "base/base.h"
 #include "base/cache.h"
@@ -56,15 +57,33 @@ class CFRData: public InfosetCache {
     unordered_map<shared_ptr<AOH>, InfosetData> infosetData;
 };
 
-
-double CFRiteration(CFRData &data, const shared_ptr<EFGNode> &node,
-                    const std::array<double, 3> reachProbs, const Player updatingPl);
+constexpr int CHANCE_PLAYER = 2;
 
 /**
  * Run CFR on EFG tree for a number of iterations for both players.
  * This implementation is based on Algorithm 1 in M. Lanctot PhD thesis.
  */
-void CFRiterations(CFRData &data, int numIterations);
+class CFRAlgorithm: public GamePlayingAlgorithm {
+ public:
+    CFRAlgorithm(const Domain &domain, Player playingPlayer);
+    bool runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
+    vector<double> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override;
+
+    /**
+     * Run an updating iteration for specified player starting at some node.
+     * @return counterfactual value for infoset under current (regret-matching) strategy.
+     */
+    double runIteration(const shared_ptr<EFGNode> &node, const std::array<double, 3> reachProbs,
+                        const Player updatingPl);
+    void runIterations(int numIterations);
+
+    inline CFRData &getCache() {
+        return cache_;
+    }
+
+ private:
+    CFRData cache_;
+};
 
 }  // namespace algorithms
 }  // namespace GTLib2

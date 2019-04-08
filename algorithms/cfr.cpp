@@ -26,6 +26,10 @@
 #include "algorithms/tree.h"
 #include "algorithms/common.h"
 #include "algorithms/utility.h"
+#include "cfr.h"
+#include <algorithm>
+#include <utility>
+
 
 using std::make_pair;
 using std::max;
@@ -33,23 +37,59 @@ using std::max;
 namespace GTLib2 {
 namespace algorithms {
 
+CFRAlgorithm::CFRAlgorithm(const Domain &domain, Player playingPlayer) :
+    GamePlayingAlgorithm(domain, playingPlayer),
+    cache_(CFRData(domain_.getRootStatesDistribution())) {}
 
-void CFRiterations(CFRData &data, int numIterations) {
-    // todo: check that tree is built
+bool CFRAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
+    if (currentInfoset == nullopt) {
+        if (cache_.isCompletelyBuilt()) return true;
+        cache_.buildForest();
+        return true;
+    }
+
+    // the tree has been built before, we must have this infoset in memory
+    assert(!cache_.getNodesFor(*currentInfoset).empty());
+
+    for (const auto &[node, chanceProb] : cache_.getRootNodes()) {
+        runIteration(node, std::array<double, 3>{1., 1., chanceProb}, Player(0));
+        runIteration(node, std::array<double, 3>{1., 1., chanceProb}, Player(1));
+    }
+}
+vector<double> CFRAlgorithm::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
+    const auto &data = cache_.infosetData.at(currentInfoset);
+    const auto &acc = data.avgStratAccumulator;
+
+    double sum = 0.0;
+    for (double d : acc) sum += d;
+
+    vector<double> probs = vector<double>(acc.size());
+    for (int i = 0; i < acc.size(); ++i) {
+        probs[i] = sum == 0.0
+                   ? 1.0 / acc.size()
+                   : acc[i] / sum;
+    }
+    return probs;
+}
+
+
+void CFRAlgorithm::runIterations(int numIterations) {
+    if (!cache_.isCompletelyBuilt()) {
+        cache_.buildForest();
+    }
+
     for (int i = 0; i < numIterations; ++i) {
-        for (const auto &[node, chanceProb] : data.getRootNodes()) {
-            CFRiteration(data, node, std::array<double, 3>{1., 1., chanceProb}, Player(0));
-            CFRiteration(data, node, std::array<double, 3>{1., 1., chanceProb}, Player(1));
+        for (const auto &[node, chanceProb] : cache_.getRootNodes()) {
+            runIteration(node, std::array<double, 3>{1., 1., chanceProb}, Player(0));
+            runIteration(node, std::array<double, 3>{1., 1., chanceProb}, Player(1));
         }
     }
 }
 
-constexpr int CHANCE_PLAYER = 2;
-
-double CFRiteration(CFRData &data,
-                    const shared_ptr<EFGNode> &node,
-                    const std::array<double, 3> reachProbs,
-                    const Player updatingPl) {
+double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
+                                  const std::array<double, 3> reachProbs,
+                                  const Player updatingPl) {
+    assert(cache_.isCompletelyBuilt());
 
     if (reachProbs[0] == 0 && reachProbs[1] == 0) {
         return 0.0;
@@ -61,10 +101,10 @@ double CFRiteration(CFRData &data,
 
     const auto actingPl = *node->getCurrentPlayer();
     const auto oppExploringPl = 1 - updatingPl;
-    const auto &children = data.getChildrenFor(node);
-    const auto &infoSet = data.getInfosetFor(node);
+    const auto &children = cache_.getChildrenFor(node);
+    const auto &infoSet = cache_.getInfosetFor(node);
     const auto numActions = children.size();
-    auto &infosetData = data.infosetData;
+    auto &infosetData = cache_.infosetData;
 
     if (infosetData.find(infoSet) == infosetData.end()) {
         infosetData.emplace(make_pair(infoSet, CFRData::InfosetData(numActions)));
@@ -94,14 +134,15 @@ double CFRiteration(CFRData &data,
             newReachProbs[CHANCE_PLAYER] *= chanceProb;
             newReachProbs[actingPl] *= rmProbs[i];
 
-            cfvAction[i] += chanceProb * CFRiteration(data, nextNode, newReachProbs, updatingPl);
+            cfvAction[i] += chanceProb * runIteration(nextNode, newReachProbs, updatingPl);
         }
         cfvInfoset += rmProbs[i] * cfvAction[i];
     }
 
     if (actingPl == updatingPl) {
         for (int i = 0; i < numActions; i++) {
-            reg[i] += (cfvAction[i] - cfvInfoset) * reachProbs[oppExploringPl] * reachProbs[CHANCE_PLAYER];
+            reg[i] += (cfvAction[i] - cfvInfoset) * reachProbs[oppExploringPl]
+                * reachProbs[CHANCE_PLAYER];
             acc[i] += reachProbs[updatingPl] * rmProbs[i];
         }
     }

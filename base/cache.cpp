@@ -35,7 +35,7 @@ EFGCache::EFGCache(const OutcomeDistribution &rootProbDist)
     : EFGCache(algorithms::createRootEFGNodes(rootProbDist)) {
 }
 
-bool EFGCache::hasChildren(const shared_ptr<EFGNode> &node) {
+bool EFGCache::hasChildren(const shared_ptr<EFGNode> &node) const {
     auto it = nodesChildren_.find(node);
     if (it == nodesChildren_.end()) return false;
 
@@ -51,7 +51,8 @@ bool EFGCache::hasChildren(const shared_ptr<EFGNode> &node) {
     return !hasMissing;
 }
 
-bool EFGCache::hasChildren(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action) {
+bool EFGCache::hasChildren(const shared_ptr<EFGNode> &node,
+                           const shared_ptr<Action> &action) const {
     auto it = nodesChildren_.find(node);
     if (it == nodesChildren_.end()) return false;
     auto &distributionEntry = it->second;
@@ -139,6 +140,13 @@ const EFGActionNodesDistribution &EFGCache::getChildrenFor(const shared_ptr<EFGN
     }
 
     return cachedNodeDist;
+}
+
+vector<shared_ptr<EFGNode>> EFGCache::getNodes() const {
+    vector<shared_ptr<EFGNode>> keys(nodesChildren_.size());
+    transform(nodesChildren_.begin(), nodesChildren_.end(),
+              keys.begin(), [](auto pair) { return pair.first; });
+    return keys;
 }
 
 void EFGCache::createNode(const shared_ptr<EFGNode> &node) {
