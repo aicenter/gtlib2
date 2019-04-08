@@ -261,6 +261,7 @@ bool EFGNode::compareAOH(const EFGNode &rhs) const {
 }
 
 bool EFGNode::operator==(const EFGNode &rhs) const {
+    if (hashNode_ != rhs.hashNode_) return false;
     if (descriptor_.size() != rhs.descriptor_.size()) return false;
     return !memcmp(descriptor_.data(), rhs.descriptor_.data(), descriptor_.size());
 }
