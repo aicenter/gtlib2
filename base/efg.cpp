@@ -70,7 +70,7 @@ EFGNodesDistribution EFGNode::performAction(const shared_ptr<Action> &action) co
         }
     } else {
         auto newNode = make_shared<EFGNode>(shared_from_this(),
-            actionsToBePerformed, action, depth_);
+                                            actionsToBePerformed, action, depth_);
         newNodes.emplace_back(newNode, 1.0);
     }
     return newNodes;
@@ -94,6 +94,9 @@ EFGNode::EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,
     }
     parent_ = move(parent);
     incomingAction_ = move(incomingAction);
+
+    generateDescriptor();
+    generateHash();
 }
 
 EFGNode::EFGNode(shared_ptr<EFGNode const> parent,
@@ -114,6 +117,9 @@ EFGNode::EFGNode(shared_ptr<EFGNode const> parent,
         currentPlayer_ = nullopt;
     }
     parent_ = move(parent);
+
+    generateDescriptor();
+    generateHash();
 }
 
 unsigned long EFGNode::countAvailableActions() const {
@@ -219,31 +225,20 @@ double EFGNode::getProbabilityOfActionsSeqOfPlayer(
     }
 }
 
-size_t EFGNode::getHashedAOHs() const {
-    if (hashAOH_ > 0) {
-        return hashAOH_;
-    }
+void EFGNode::generateDescriptor() const {
     if (parent_) {
-        hashAOH_ = parent_->getHashedAOHs();
-        boost::hash_combine(hashAOH_, incomingAction_->getId());
+        descriptor_ = parent_->descriptor_;
+        descriptor_.push_back(incomingAction_->getId());
     }
     if (!parent_ || depth_ != parent_->depth_) {
-        for (auto &i : observations_) {
-            boost::hash_combine(hashAOH_, i->getId());
+        for (const auto &observation : observations_) {
+            descriptor_.push_back(observation->getId());
         }
     }
-    return hashAOH_;
 }
 
-size_t EFGNode::getHash() const {
-    if (hashNode_ > 0) {
-        return hashNode_;
-    }
-
-    hashNode_ = getHashedAOHs();
-    boost::hash_combine(hashNode_, performedActionsInThisRound_.size());
-    boost::hash_combine(hashNode_, remainingPlayersInTheRound_.size());
-    return hashNode_;
+void EFGNode::generateHash() const {
+    hashNode_ = hashWithSeed(descriptor_.data(), descriptor_.size() * sizeof(uint32_t), 1412914847);
 }
 
 bool EFGNode::compareAOH(const EFGNode &rhs) const {
@@ -266,26 +261,8 @@ bool EFGNode::compareAOH(const EFGNode &rhs) const {
 }
 
 bool EFGNode::operator==(const EFGNode &rhs) const {
-    if (performedActionsInThisRound_.size() != rhs.performedActionsInThisRound_.size() ||
-        observations_.size() != rhs.observations_.size()) {
-        return false;
-    }
-    for (auto const&[player, action] : performedActionsInThisRound_) {  // works in GCC 7.3
-        auto action2 =
-            std::find_if(rhs.performedActionsInThisRound_.begin(),
-                         rhs.performedActionsInThisRound_.end(),
-                         [&player](pair<int, shared_ptr<Action>> const &elem) {
-                             return elem.first == player;
-                         });
-        if (action2 == rhs.performedActionsInThisRound_.end()
-            || !(*action2->second == *action)) {
-            return false;
-        }
-    }
-    return depth_ == rhs.depth_
-        && hashAOH_ == rhs.hashAOH_
-        && remainingPlayersInTheRound_ == rhs.remainingPlayersInTheRound_
-        && compareAOH(rhs);
+    if (descriptor_.size() != rhs.descriptor_.size()) return false;
+    return !memcmp(descriptor_.data(), rhs.descriptor_.data(), descriptor_.size());
 }
 
 int EFGNode::getDistanceFromRoot() const {
@@ -301,7 +278,7 @@ string EFGNode::toString() const {
     string s = "Player: " + to_string(*currentPlayer_) + "\nIncoming action: ";
     s += incomingAction_ ? incomingAction_->toString() : "none (root)";
     s += ", nature probability: " + to_string(natureProbability_) + "\n" +
-        "State: "+ state_->toString() + "\nRewards: [";
+        "State: " + state_->toString() + "\nRewards: [";
     std::stringstream rews;
     std::copy(rewards_.begin(), rewards_.end(), std::ostream_iterator<int>(rews, ", "));
     std::stringstream rem;

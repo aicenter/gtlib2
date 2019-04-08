@@ -33,6 +33,7 @@
 #include <unordered_map>
 #include <boost/functional/hash.hpp>
 #include "utils/utils.h"
+#include "base/hashing.h"
 
 using std::string;
 using std::vector;
@@ -71,14 +72,14 @@ typedef uint8_t Player;
  * For a given State/EFGNode/InformationSet, IDs should be indexed
  * from 0 to N-1, where N is the number of available actions.
  */
-typedef size_t ActionId;
+typedef uint32_t ActionId;
 
 /**
  * Support ids up to size of the address space (64bit)
  *
  * Unlike ActionId, the values of ObservationId *do not* need to be indexed from 0 to N-1.
  */
-typedef size_t ObservationId;
+typedef uint32_t ObservationId;
 
 /**
  * Specify action that given player played.
@@ -156,7 +157,7 @@ class Action {
  *
  * It is useful for example in phantom games.
  */
-constexpr ActionId NO_ACTION = SIZE_MAX;
+constexpr ActionId NO_ACTION = 0xFFFFFFFF;
 
 /**
  * Observation is an abstract class that represents observations, which are identified by their id.
@@ -186,7 +187,7 @@ class Observation {
 /**
  * Special value of observation id, indicating no observation has been made.
  */
-constexpr ObservationId NO_OBSERVATION = SIZE_MAX;
+constexpr ObservationId NO_OBSERVATION = 0xFFFFFFFF;
 
 /**
  * Outcome is a class that represents outcomes, or edges of the domain graph.

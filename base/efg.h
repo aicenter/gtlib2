@@ -34,6 +34,7 @@
 #include <functional>
 
 #include "base/base.h"
+#include "base/hashing.h"
 
 using std::unordered_map;
 using std::unordered_set;
@@ -176,7 +177,9 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
 
     string toString() const;
 
-    size_t getHash() const;
+    inline HashType getHash() const {
+        return hashNode_;
+    };
 
     /**
      * Get the depth in the sense of State depth
@@ -218,7 +221,10 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
  private:
     vector<ActionObservation> getAOH(Player player) const;
     bool compareAOH(const EFGNode &rhs) const;
-    size_t getHashedAOHs() const;
+
+    void generateDescriptor() const;
+    void generateHash() const;
+
     vector<shared_ptr<Observation>> observations_;
     vector<PlayerAction> performedActionsInThisRound_;
     vector<Player> remainingPlayersInTheRound_;
@@ -227,10 +233,10 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
     shared_ptr<EFGNode const> parent_;
     shared_ptr<Action> incomingAction_;  // Action performed in the parent node.
     optional<Player> currentPlayer_ = nullopt;
-
-    mutable size_t hashAOH_ = 0;
-    mutable size_t hashNode_ = 0;
     int depth_;
+
+    mutable HashType hashNode_ = 0;
+    mutable std::vector<uint32_t> descriptor_;
 };
 };  // namespace GTLib2
 
