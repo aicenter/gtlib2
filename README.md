@@ -50,6 +50,8 @@ cmake ..
 make
 ```
 
+Please note there are two ways of building up the project: in _debug_ or _release_. Release uses additional compiler optimizations and runs faster, but takes longer time to build.
+
 # High-level overview
 
 Take a look at `base/` folder, which contains a number of abstract classes which are well documented. 
