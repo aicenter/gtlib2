@@ -37,9 +37,9 @@ namespace algorithms {
 void CFRiterations(CFRData &data, int numIterations) {
     // todo: check that tree is built
     for (int i = 0; i < numIterations; ++i) {
-        for (const auto &[node, prob] : data.getRootNodes()) {
-            CFRiteration(data, node, std::array<double, 3>{1., prob, 1.}, Player(0));
-            CFRiteration(data, node, std::array<double, 3>{prob, 1., 1.}, Player(1));
+        for (const auto &[node, chanceProb] : data.getRootNodes()) {
+            CFRiteration(data, node, std::array<double, 3>{1., 1., chanceProb}, Player(0));
+            CFRiteration(data, node, std::array<double, 3>{1., 1., chanceProb}, Player(1));
         }
     }
 }
@@ -49,21 +49,21 @@ constexpr int CHANCE_PLAYER = 2;
 double CFRiteration(CFRData &data,
                     const shared_ptr<EFGNode> &node,
                     const std::array<double, 3> reachProbs,
-                    const Player exploringPl) {
+                    const Player updatingPl) {
 
     if (reachProbs[0] == 0 && reachProbs[1] == 0) {
         return 0.0;
     }
 
     if (node->isTerminal()) {
-        return node->rewards_[exploringPl];
+        return node->rewards_[updatingPl];
     }
 
-    const int actingPl = *node->getCurrentPlayer();
-    const int oppExploringPl = 1 - exploringPl;
+    const auto actingPl = *node->getCurrentPlayer();
+    const auto oppExploringPl = 1 - updatingPl;
     const auto &children = data.getChildrenFor(node);
     const auto &infoSet = data.getInfosetFor(node);
-    const unsigned long numActions = children.size();
+    const auto numActions = children.size();
     auto &infosetData = data.infosetData;
 
     if (infosetData.find(infoSet) == infosetData.end()) {
@@ -87,23 +87,22 @@ double CFRiteration(CFRData &data,
     double cfvInfoset = 0.0;
     std::fill(cfvAction.begin(), cfvAction.end(), 0.0);
 
-    for (int ai = 0; ai != children.size(); ai++) {
-        for (const auto &[nextNode, chanceProb] : *children[ai]) {
-            // let's put chance probs into opponent's reach probs.
+    for (int i = 0; i != children.size(); i++) {
+        for (const auto &[nextNode, chanceProb] : *children[i]) {
             std::array<double, 3> newReachProbs = {
                 reachProbs[0], reachProbs[1], reachProbs[CHANCE_PLAYER]};
             newReachProbs[CHANCE_PLAYER] *= chanceProb;
-            newReachProbs[actingPl] *= rmProbs[ai];
+            newReachProbs[actingPl] *= rmProbs[i];
 
-            cfvAction[ai] += chanceProb * CFRiteration(data, nextNode, newReachProbs, exploringPl);
+            cfvAction[i] += chanceProb * CFRiteration(data, nextNode, newReachProbs, updatingPl);
         }
-        cfvInfoset += rmProbs[ai] * cfvAction[ai];
+        cfvInfoset += rmProbs[i] * cfvAction[i];
     }
 
-    if (actingPl == exploringPl) {
+    if (actingPl == updatingPl) {
         for (int i = 0; i < numActions; i++) {
             reg[i] += (cfvAction[i] - cfvInfoset) * reachProbs[oppExploringPl] * reachProbs[CHANCE_PLAYER];
-            acc[i] += reachProbs[exploringPl] * rmProbs[i];
+            acc[i] += reachProbs[updatingPl] * rmProbs[i];
         }
     }
 

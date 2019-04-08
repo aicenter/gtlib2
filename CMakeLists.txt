@@ -117,6 +117,7 @@ set(SOURCE_FILES
         base/base.h base/base.cpp
         base/cache.cpp base/cache.h
         base/efg.h base/efg.cpp
+        base/hashing.cpp base/hashing.h
         # domains
         domains/chessboard_factory.h domains/chessboard_factory.cpp
         domains/genericPoker.h domains/genericPoker.cpp
@@ -133,8 +134,7 @@ set(SOURCE_FILES
         utils/utils.h
         utils/functools.h
         #utils/highQualityRandom.h utils/highQualityRandom.cpp
-
-)
+        )
 
 set(TEST_FILES
         tests/domainsTest.h tests/domainsTest.cpp

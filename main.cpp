@@ -54,7 +54,7 @@ using namespace GTLib2;
 int main(int argc, char *argv[]) {
     auto start = std::chrono::high_resolution_clock::now();
 
-    domains::IIGoofSpielDomain domain(4, 4, nullopt);
+    domains::IIGoofSpielDomain domain(5, 5, 0);
     algorithms::CFRData data(domain.getRootStatesDistribution());
     data.buildForest();
     CFRiterations(data, 100);
