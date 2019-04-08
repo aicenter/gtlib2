@@ -29,5 +29,6 @@
 using GTLib2::Domain;
 
 bool isDomainZeroSum(const Domain &domain);
+bool isEFGNodeAndStateConsistent(const Domain &domain);
 
 #endif  // TESTS_TESTUTILS_H_

@@ -89,6 +89,13 @@ class EFGCache {
         return rootNodes_;
     }
 
+    const vector<shared_ptr<EFGNode>> getNodes() {
+        vector<shared_ptr<EFGNode>> keys(nodesChildren_.size());
+        transform(nodesChildren_.begin(), nodesChildren_.end(),
+                  keys.begin(), [](auto pair) { return pair.first; });
+        return keys;
+    }
+
     /**
      * Create complete cache up to specified depth
      */

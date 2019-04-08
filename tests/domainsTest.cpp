@@ -43,18 +43,32 @@ using domains::OshiZumoDomain;
 using algorithms::treeWalkEFG;
 
 bool isDomainZeroSum(const Domain &domain) {
-  int num_violations = 0;
-  auto countViolations = [&num_violations](shared_ptr<EFGNode> node) {
-    if (node->rewards_[0] != -node->rewards_[1]) num_violations++;
-  };
+    int num_violations = 0;
+    auto countViolations = [&num_violations](shared_ptr<EFGNode> node) {
+        if (node->rewards_[0] != -node->rewards_[1]) num_violations++;
+    };
 
-  treeWalkEFG(domain, countViolations, domain.getMaxDepth());
-  return num_violations == 0;
+    treeWalkEFG(domain, countViolations, domain.getMaxDepth());
+    return num_violations == 0;
+}
+
+bool isEFGNodeAndStateConsistent(const Domain &domain) {
+    int num_violations = 0;
+    EFGCache cache(domain.getRootStatesDistribution());
+    cache.buildForest();
+    auto nodes = cache.getNodes();
+    for (const auto &n1: nodes) {
+        for (const auto &n2: nodes) {
+            if (n1 == n2 && (n1->getHash() != n2->getHash() || n1->getState() != n2->getState())) {
+                num_violations++;
+            }
+        }
+    }
+    return num_violations == 0;
 }
 
 BOOST_AUTO_TEST_SUITE(DomainTests)
 
-// todo: make nicer initialization?
 GoofSpielDomain gs1(3, 1, nullopt);
 GoofSpielDomain gs2(3, 2, nullopt);
 GoofSpielDomain gs3(3, 3, nullopt);
@@ -78,9 +92,16 @@ Domain* testDomains[] = { // NOLINT(cert-err58-cpp)
 };
 
 BOOST_AUTO_TEST_CASE(zeroSumGame) {
-  for (auto domain : testDomains) {
-    BOOST_CHECK(isDomainZeroSum(*domain));
-  }
+    for (auto domain : testDomains) {
+        BOOST_CHECK(isDomainZeroSum(*domain));
+    }
+}
+
+BOOST_AUTO_TEST_CASE(checkEFGNodeStateEqualityConsistency) {
+    for (auto domain : testDomains) {
+        std::cout << "checking " << domain->getInfo() << "\n";
+        BOOST_CHECK(isEFGNodeAndStateConsistent(*domain));
+    }
 }
 
 
