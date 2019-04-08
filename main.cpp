@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
     auto start = std::chrono::high_resolution_clock::now();
 
     domains::IIGoofSpielDomain domain(5, 5, 0);
-    algorithms::CFRAlgorithm cfr(domain, Player(0));
+    algorithms::CFRAlgorithm cfr(domain, Player(0), algorithms::CFRSettings());
     cfr.runIterations(100);
 
     auto end = std::chrono::high_resolution_clock::now();

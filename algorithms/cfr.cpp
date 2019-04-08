@@ -29,6 +29,8 @@
 #include "cfr.h"
 #include <algorithm>
 #include <utility>
+#include <functional>
+#include <cstdio>
 
 
 using std::make_pair;
@@ -37,9 +39,10 @@ using std::max;
 namespace GTLib2 {
 namespace algorithms {
 
-CFRAlgorithm::CFRAlgorithm(const Domain &domain, Player playingPlayer) :
+CFRAlgorithm::CFRAlgorithm(const Domain &domain, Player playingPlayer, CFRSettings settings) :
     GamePlayingAlgorithm(domain, playingPlayer),
-    cache_(CFRData(domain_.getRootStatesDistribution())) {}
+    cache_(CFRData(domain_.getRootStatesDistribution(), settings.cfrUpdating)),
+    settings_(settings) {}
 
 bool CFRAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
     if (currentInfoset == nullopt) {
@@ -53,9 +56,13 @@ bool CFRAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfo
 
     for (const auto &[node, chanceProb] : cache_.getRootNodes()) {
         runIteration(node, std::array<double, 3>{1., 1., chanceProb}, Player(0));
+        delayedApplyRegretUpdates();
+
         runIteration(node, std::array<double, 3>{1., 1., chanceProb}, Player(1));
+        delayedApplyRegretUpdates();
     }
 }
+
 vector<double> CFRAlgorithm::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
     const auto &data = cache_.infosetData.at(currentInfoset);
     const auto &acc = data.avgStratAccumulator;
@@ -73,6 +80,26 @@ vector<double> CFRAlgorithm::getPlayDistribution(const shared_ptr<AOH> &currentI
 }
 
 
+void CFRAlgorithm::nodeUpdateRegrets(shared_ptr<EFGNode> node) {
+    if (node->isTerminal()) return;
+
+    const auto &infoSet = cache_.getInfosetFor(node);
+    auto &infosetData = cache_.infosetData;
+    auto&[reg, acc, regUpdates] = infosetData.at(infoSet);
+    for (int i = 0; i < reg.size(); ++i) {
+        reg[i] += regUpdates[i];
+        regUpdates[i] = 0.;
+    }
+}
+
+void CFRAlgorithm::delayedApplyRegretUpdates() {
+    if (settings_.cfrUpdating == InfosetsUpdating) {
+        algorithms::treeWalkEFG(
+            &cache_, [&](shared_ptr<EFGNode> node) { nodeUpdateRegrets(node); });
+    }
+}
+
+
 void CFRAlgorithm::runIterations(int numIterations) {
     if (!cache_.isCompletelyBuilt()) {
         cache_.buildForest();
@@ -81,10 +108,14 @@ void CFRAlgorithm::runIterations(int numIterations) {
     for (int i = 0; i < numIterations; ++i) {
         for (const auto &[node, chanceProb] : cache_.getRootNodes()) {
             runIteration(node, std::array<double, 3>{1., 1., chanceProb}, Player(0));
+            delayedApplyRegretUpdates();
+
             runIteration(node, std::array<double, 3>{1., 1., chanceProb}, Player(1));
+            delayedApplyRegretUpdates();
         }
     }
 }
+
 
 double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
                                   const std::array<double, 3> reachProbs,
@@ -106,10 +137,7 @@ double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
     const auto numActions = children.size();
     auto &infosetData = cache_.infosetData;
 
-    if (infosetData.find(infoSet) == infosetData.end()) {
-        infosetData.emplace(make_pair(infoSet, CFRData::InfosetData(numActions)));
-    }
-    auto&[reg, acc] = infosetData.at(infoSet);
+    auto&[reg, acc, regUpdates] = infosetData.at(infoSet);
 
     double posRegretSum = 0.0;
     for (double r : reg) {
@@ -141,8 +169,11 @@ double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
 
     if (actingPl == updatingPl) {
         for (int i = 0; i < numActions; i++) {
-            reg[i] += (cfvAction[i] - cfvInfoset) * reachProbs[oppExploringPl]
-                * reachProbs[CHANCE_PLAYER];
+            double newRegret = (cfvAction[i] - cfvInfoset)
+                * reachProbs[oppExploringPl] * reachProbs[CHANCE_PLAYER];
+
+            ((settings_.cfrUpdating == HistoriesUpdating)
+             ? reg[i] : regUpdates[i]) += newRegret;
             acc[i] += reachProbs[updatingPl] * rmProbs[i];
         }
     }

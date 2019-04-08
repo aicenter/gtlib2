@@ -45,6 +45,14 @@ void treeWalkEFG(const Domain &domain, EFGNodeCallback function, int maxDepth);
 void treeWalkEFG(EFGCache *cache, EFGNodeCallback function, int maxDepth);
 
 /**
+ * Call supplied function at each EFGNode of the EFG tree supplied by cache, including leaves.
+ * The tree is walked as DFS up to maximum depth as the max of int values.
+ */
+inline void treeWalkEFG(EFGCache *cache, EFGNodeCallback function) {
+    treeWalkEFG(cache, move(function), INT_MAX);
+}
+
+/**
  * Call supplied function at each EFGNode of the EFG tree, including leaves.
  * The tree is walked as DFS up to maximum depth allowed by the domain.
  */
