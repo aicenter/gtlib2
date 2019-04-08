@@ -151,6 +151,37 @@ class CFRAlgorithm: public GamePlayingAlgorithm {
 
 };
 
+struct ExpectedUtility {
+    double rmUtility;
+    double avgUtility;
+
+    ExpectedUtility(double rmUtility, double avgUtility) {
+        this->rmUtility = rmUtility;
+        this->avgUtility = avgUtility;
+    }
+
+    bool operator==(const ExpectedUtility &rhs) const {
+        return rmUtility == rhs.rmUtility && avgUtility == rhs.avgUtility;
+    }
+
+    friend std::ostream &
+    operator<<(std::ostream &ss, ExpectedUtility const &utils) {
+        ss << "RM:  " << utils.rmUtility << "\n";
+        ss << "AVG: " << utils.avgUtility << "\n";
+        return ss;
+    }
+};
+
+vector<double> calcRMProbs(const vector<double> & regrets);
+vector<double> calcAvgProbs(const vector<double> & acc);
+
+/**
+ * Calculate expected utilities under RM / avg strategy for specified node
+ */
+ExpectedUtility calcExpectedUtility(CFRData &cache,
+                                    const shared_ptr<EFGNode> &node,
+                                    Player pl);
+
 }  // namespace algorithms
 }  // namespace GTLib2
 

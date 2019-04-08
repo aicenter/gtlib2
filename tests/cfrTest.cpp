@@ -248,6 +248,36 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomainFixStrategy) {
 }
 
 
+BOOST_AUTO_TEST_CASE(CalcUtilities) {
+    MatchingPenniesDomain domain;
+    CFRData data(domain.getRootStatesDistribution(), InfosetsUpdating);
+    data.buildForest();
+
+    auto rootNode = data.getRootNodes()[0].first;
+    auto rootInfoset = rootNode->getAOHInfSet();
+    auto childNode = rootNode->performAction(rootNode->availableActions()[0])[0].first;
+    auto childInfoset = childNode->getAOHInfSet();
+    auto& rootData = data.infosetData.at(rootInfoset);
+    auto& childData = data.infosetData.at(childInfoset);
+    rootData.regrets[0] = 0.75;
+    rootData.regrets[1] = 0.25;
+    rootData.avgStratAccumulator[0] = 0.125;
+    rootData.avgStratAccumulator[1] = 0.875;
+    childData.regrets[0] = 0.2;
+    childData.regrets[1] = 0.8;
+    childData.avgStratAccumulator[0] = 0.1;
+    childData.avgStratAccumulator[1] = 0.9;
+
+    auto actualRootUtils = calcExpectedUtility(data, rootNode, Player(0));
+    auto actualChildUtils = calcExpectedUtility(data, childNode, Player(0));
+
+    BOOST_CHECK(fabs(actualRootUtils.rmUtility - -0.3) < 1e-9);
+    BOOST_CHECK(fabs(actualRootUtils.avgUtility - 0.6) < 1e-9);
+    BOOST_CHECK(fabs(actualChildUtils.rmUtility - -0.6) < 1e-9);
+    BOOST_CHECK(fabs(actualChildUtils.avgUtility - -0.8) < 1e-9);
+}
+
+
 BOOST_AUTO_TEST_CASE(CheckConvergenceInSmallDomain) {
     domains::IIGoofSpielDomain domain(3, 3, nullopt);
     CFRAlgorithm cfr(domain, Player(0), CFRSettings());

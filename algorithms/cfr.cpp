@@ -66,17 +66,7 @@ bool CFRAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfo
 vector<double> CFRAlgorithm::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
     const auto &data = cache_.infosetData.at(currentInfoset);
     const auto &acc = data.avgStratAccumulator;
-
-    double sum = 0.0;
-    for (double d : acc) sum += d;
-
-    vector<double> probs = vector<double>(acc.size());
-    for (int i = 0; i < acc.size(); ++i) {
-        probs[i] = sum == 0.0
-                   ? 1.0 / acc.size()
-                   : acc[i] / sum;
-    }
-    return probs;
+    return calcAvgProbs(acc);
 }
 
 
@@ -140,18 +130,7 @@ double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
     auto &acc = infosetData.avgStratAccumulator;
     auto &regUpdates = infosetData.regretUpdates;
 
-    double posRegretSum = 0.0;
-    for (double r : reg) {
-        posRegretSum += max(0.0, r);
-    }
-    auto rmProbs = vector<double>(numActions);
-    if (posRegretSum > 0) {
-        for (int i = 0; i < numActions; i++) {
-            rmProbs[i] = max(0.0, reg[i] / posRegretSum);
-        }
-    } else {
-        std::fill(rmProbs.begin(), rmProbs.end(), 1.0 / numActions);
-    }
+    auto rmProbs = calcRMProbs(reg);
     auto cfvAction = vector<double>(numActions);
     double cfvInfoset = 0.0;
     std::fill(cfvAction.begin(), cfvAction.end(), 0.0);
@@ -182,6 +161,62 @@ double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
     }
 
     return cfvInfoset;
+}
+
+vector<double> calcRMProbs(const vector<double> & regrets) {
+    double posRegretSum = 0.0;
+    for (double r : regrets) {
+        posRegretSum += max(0.0, r);
+    }
+
+    auto rmProbs = vector<double>(regrets.size());
+    if (posRegretSum > 0) {
+        for (int i = 0; i < regrets.size(); i++) {
+            rmProbs[i] = max(0.0, regrets[i] / posRegretSum);
+        }
+    } else {
+        std::fill(rmProbs.begin(), rmProbs.end(), 1.0 / regrets.size());
+    }
+    return rmProbs;
+}
+
+vector<double> calcAvgProbs(const vector<double> & acc) {
+    double sum = 0.0;
+    for (double d : acc) sum += d;
+
+    vector<double> probs = vector<double>(acc.size());
+    for (int i = 0; i < acc.size(); ++i) {
+        probs[i] = sum == 0.0
+                   ? 1.0 / acc.size()
+                   : acc[i] / sum;
+    }
+    return probs;
+}
+
+ExpectedUtility calcExpectedUtility(CFRData &cache,
+                                    const shared_ptr<EFGNode> &node,
+                                    Player pl) {
+    if (node->isTerminal()) {
+        return ExpectedUtility(node->rewards_[pl], node->rewards_[pl]);
+    }
+
+    const auto &children = cache.getChildrenFor(node);
+    const auto &infoSet = cache.getInfosetFor(node);
+    auto &infosetData = cache.infosetData.at(infoSet);
+
+    double rmUtility = 0.;
+    double avgUtility = 0.;
+    auto rmProbs = calcRMProbs(infosetData.regrets);
+    auto avgProbs = calcAvgProbs(infosetData.avgStratAccumulator);
+
+    for (int i = 0; i != children.size(); i++) {
+        for (const auto &[nextNode, chanceProb] : *children[i]) {
+            auto childUtils = calcExpectedUtility(cache, nextNode, pl);
+            rmUtility += chanceProb * rmProbs[i] * childUtils.rmUtility;
+            avgUtility += chanceProb * avgProbs[i] * childUtils.avgUtility;
+        }
+    }
+    return ExpectedUtility(rmUtility, avgUtility);
 }
 
 }  // namespace algorithms
