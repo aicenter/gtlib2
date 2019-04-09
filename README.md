@@ -41,6 +41,10 @@ Notice that if you compiled the library with older GCC versions which may not wo
 
 # Build
 
+If you want to use LP solvers (currently CPLEX/GUROBI/GLPK is supported), you have to make sure they are properly installed on your system.
+
+Copy the file `example_BuildConfiguration.txt` to `BuildConfiguration.txt` and optionally enable the solver you'd like to use (set it `ON`). 
+
 Follow the standard cmake build:
 
 ```

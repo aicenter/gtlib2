@@ -913,3 +913,6 @@ _deps
 *.exe
 *.out
 *.app
+
+# Project config
+BuildConfiguration.txt

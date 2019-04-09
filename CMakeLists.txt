@@ -8,9 +8,9 @@ set(CMAKE_CXX_FLAGS_RELEASE "-m64 -msse2 -O3 -ffast-math")
 # link pthread library
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 find_package(Threads REQUIRED)
-if(CMAKE_USE_PTHREADS_INIT)
+if (CMAKE_USE_PTHREADS_INIT)
     set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-pthread")
-endif()
+endif ()
 
 # link boost library
 include_directories(${Boost_INCLUDE_DIR})
@@ -23,70 +23,78 @@ find_package(Boost COMPONENTS unit_test_framework system REQUIRED)
 # add cmake
 include_directories(${CMAKE_SOURCE_DIR})
 
+load_cache(BuildConfiguration.txt)
+
 # -------------------- link LP solvers --------------------
+
 # ------ CPLEX
+if(USE_CPLEX)
+    # try to find cplex library with FindCPLEX.cmake code
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/modules")
+    find_package(CPLEX)
 
-# try to find cplex library with FindCPLEX.cmake code
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/modules")
-find_package(CPLEX)
-
-# if found link libraries and add all .h and .cpp files
-if( CPLEX_FOUND )
-    add_definitions(-DCPLEXFOUND=1)
-    include_directories(${CPLEX_INCLUDE_DIR})
-    link_libraries(${CPLEX_LIBRARY})
-    file(GLOB CPLEX_FILES
-            "LPsolvers/CplexLPSolver.h"
-            "LPsolvers/CplexLPSolver.cpp"
-            )
-    set(CPLEXLIB ilocplex)
+    # if found link libraries and add all .h and .cpp files
+    if (CPLEX_FOUND)
+        add_definitions(-DCPLEXFOUND=1)
+        include_directories(${CPLEX_INCLUDE_DIR})
+        link_libraries(${CPLEX_LIBRARY})
+        file(GLOB CPLEX_FILES
+                "LPsolvers/CplexLPSolver.h"
+                "LPsolvers/CplexLPSolver.cpp"
+                )
+        set(CPLEXLIB ilocplex)
+    endif ()
 endif()
 
 # ------ GLPK
-find_path(GLPK_INCLUDE_DIR NAMES glpk.h PATHS
-        ${GLPK_DIR}/basics/glpk/include
-        ${GLPK_DIR}/include
-        NO_DEFAULT_PATH
-        )
 
-find_path(GLPK_LIBRARY  NAMES libglpk.a PATHS
-        ${GLPK_DIR}/basics/glpk/lib
-        ${GLPK_DIR}/lib
-        NO_DEFAULT_PATH
-        )
-
-if (GLPK_INCLUDE_DIR AND GLPK_LIBRARY)
-    add_definitions(-DGLPKFOUND=1)
-    include_directories(${GLPK_INCLUDE_DIR})
-    link_libraries(${GLPK_LIBRARY})
-    file(GLOB GLPK_FILES
-            "LPsolvers/GlpkLPSolver.h"
-            "LPsolvers/GlpkLPSolver.cpp"
+if(USE_GLPK)
+    find_path(GLPK_INCLUDE_DIR NAMES glpk.h PATHS
+            ${GLPK_DIR}/basics/glpk/include
+            ${GLPK_DIR}/include
+            NO_DEFAULT_PATH
             )
-    set(GLPKLIB glpk)
+
+    find_path(GLPK_LIBRARY NAMES libglpk.a PATHS
+            ${GLPK_DIR}/basics/glpk/lib
+            ${GLPK_DIR}/lib
+            NO_DEFAULT_PATH
+            )
+
+    if (GLPK_INCLUDE_DIR AND GLPK_LIBRARY)
+        add_definitions(-DGLPKFOUND=1)
+        include_directories(${GLPK_INCLUDE_DIR})
+        link_libraries(${GLPK_LIBRARY})
+        file(GLOB GLPK_FILES
+                "LPsolvers/GlpkLPSolver.h"
+                "LPsolvers/GlpkLPSolver.cpp"
+                )
+        set(GLPKLIB glpk)
+    endif ()
 endif()
 
 # ------ GUROBI
-find_path(GUROBI_INCLUDE_DIR NAMES gurobi_c++.h PATHS
-        ${GUROBI_DIR}/include
-        NO_DEFAULT_PATH
-        )
-
-find_PATH(GUROBI_LIBRARY NAMES gurobi80 PATHS
-        ${GUROBI_DIR}/lib
-        NO_DEFAULT_PATH
-        )
-
-if (GUROBI_INCLUDE_DIR AND GUROBI_LIBRARY)
-    add_definitions(-DGUROBIFOUND=1)
-    include_directories(${GUROBI_INCLUDE_DIR})
-    file(GLOB GUROBI_FILES
-            "LPsolvers/GurobiLPSolver.h"
-            "LPsolvers/GurobiLPSolver.cpp"
+if(USE_GUROBI)
+    find_path(GUROBI_INCLUDE_DIR NAMES gurobi_c++.h PATHS
+            ${GUROBI_DIR}/include
+            NO_DEFAULT_PATH
             )
-    set(GUROBILIB "-L${GUROBI_LIBRARY} -lgurobi_c++ -lgurobi80")
-endif()
 
+    find_PATH(GUROBI_LIBRARY NAMES gurobi80 PATHS
+            ${GUROBI_DIR}/lib
+            NO_DEFAULT_PATH
+            )
+
+    if (GUROBI_INCLUDE_DIR AND GUROBI_LIBRARY)
+        add_definitions(-DGUROBIFOUND=1)
+        include_directories(${GUROBI_INCLUDE_DIR})
+        file(GLOB GUROBI_FILES
+                "LPsolvers/GurobiLPSolver.h"
+                "LPsolvers/GurobiLPSolver.cpp"
+                )
+        set(GUROBILIB "-L${GUROBI_LIBRARY} -lgurobi_c++ -lgurobi80")
+    endif ()
+endif ()
 
 # -------------------- Source files --------------------
 
@@ -133,7 +141,6 @@ set(SOURCE_FILES
         # utils
         utils/utils.h
         utils/functools.h
-        #utils/highQualityRandom.h utils/highQualityRandom.cpp
         )
 
 set(TEST_FILES
@@ -147,8 +154,7 @@ set(TEST_FILES
         tests/cacheTest.cpp
         tests/cfrTest.cpp
         tests/algorithmTest.cpp
-
-)
+        )
 
 # -------------------- Executables, linking --------------------
 
