@@ -87,26 +87,5 @@ BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
 //  i.e. given some game position, these are the action available etc.
 //  for inspiration look at kriegspieltest!
 
-// todo: make a fast CFR test!
-//BOOST_AUTO_TEST_CASE(Poker63222CFR100iter) {
-//    domains::GenericPokerDomain domain(6, 3, 2, 2, 2);
-//    auto regrets = algorithms::CFRiterations(domain, 100);
-//    auto strat1 =
-//        algorithms::getStrategyFor(domain, domain.getPlayers()[0], regrets);
-//    auto strat2 =
-//        algorithms::getStrategyFor(domain, domain.getPlayers()[1], regrets);
-//    auto bestResp1 = algorithms::bestResponseTo(
-//        strat2, domain.getPlayers()[1], domain.getPlayers()[0], domain).second;
-//    auto bestResp2 = algorithms::bestResponseTo(
-//        strat1, domain.getPlayers()[0], domain.getPlayers()[1], domain).second;
-//    double utility = algorithms::computeUtilityTwoPlayersGame(
-//        domain, strat1, strat2, domain.getPlayers()[0], domain.getPlayers()[1]
-//    ).first;
-//
-//    BOOST_CHECK(std::abs(utility + 0.220125) <= 0.0001);
-//    BOOST_CHECK(std::abs(bestResp1 - 0.113038) <= 0.0001);
-//    BOOST_CHECK(std::abs(bestResp2 - 0.570683) <= 0.0001);
-//}
-
 BOOST_AUTO_TEST_SUITE_END()
 }

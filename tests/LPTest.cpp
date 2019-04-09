@@ -13,12 +13,15 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with Game Theoretic Library.
+    You should have received a copy of the GNU Lesser General Public 
+    License along with Game Theoretic Library.
 
     If not, see <http://www.gnu.org/licenses/>.
 */
 
+
+#include "LPsolvers/LPSolver.h"
+#if LP_SOLVER != NO_LP_SOLVER
 
 #include "algorithms/bestResponse.h"
 #include "algorithms/common.h"
@@ -27,7 +30,6 @@
 #include "algorithms/utility.h"
 #include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"
-#include "LPsolvers/LPSolver.h"
 
 #include "tests/domainsTest.h"
 #include <boost/test/unit_test.hpp>
@@ -45,46 +47,33 @@ using algorithms::DomainStatistics;
 using algorithms::playOnlyAction;
 
 
-BOOST_AUTO_TEST_SUITE(MatchingPenniesTests)
 
-BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
-    DomainStatistics expectedStat = {
-        .max_EFGDepth   = 2,
-        .max_StateDepth = 2,
-        .num_nodes      = 7,
-        .num_terminals  = 4,
-        .num_states     = 7,
-        .num_histories  = {1, 2},
-        .num_infosets   = {1, 1},
-        .num_sequences  = {3, 3},
-    };
+BOOST_AUTO_TEST_SUITE(LPTests)
 
-    MatchingPenniesDomain testDomain;
-    DomainStatistics actualStat;
-    calculateDomainStatistics(testDomain, &actualStat);
-
-    BOOST_CHECK_EQUAL(actualStat, expectedStat);
+BOOST_AUTO_TEST_CASE(best_response_to_equilibrium) {
+    MatchingPenniesDomain d;
+    auto v = algorithms::findEquilibriumTwoPlayersZeroSum(d);
+    auto strat = std::get<1>(v);
+    auto brsVal = algorithms::bestResponseTo(strat, 0, 1, d, 5);
+    double val = std::get<1>(brsVal);
+    BOOST_CHECK(val == 0.0);
 }
 
-BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizesSimultaneous) {
-    DomainStatistics expectedStat = {
-        .max_EFGDepth   = 2,
-        .max_StateDepth = 1,
-        .num_nodes      = 7,
-        .num_terminals  = 4,
-        .num_states     = 5,
-        .num_histories  = {1, 2},
-        .num_infosets   = {1, 1},
-        .num_sequences  = {3, 3},
-    };
+BOOST_AUTO_TEST_CASE(equilibrium_normal_form_lp_test) {
+    MatchingPenniesDomain d;
+    auto v = algorithms::findEquilibriumTwoPlayersZeroSum(d);
+    auto strat = std::get<1>(v);
+    auto actionHeads = make_shared<MatchingPenniesAction>(Heads);
+    auto actionTails = make_shared<MatchingPenniesAction>(Tails);
+    double headsProb = (*strat.begin()).second[actionHeads->getId()];
+    double tailsProb = (*strat.begin()).second[actionTails->getId()];
 
-    SimultaneousMatchingPenniesDomain testDomain;
-    DomainStatistics actualStat;
-    calculateDomainStatistics(testDomain, &actualStat);
-
-    BOOST_CHECK_EQUAL(actualStat, expectedStat);
+    BOOST_CHECK(std::get<0>(v) == 0);
+    BOOST_CHECK(headsProb == 0.5 && tailsProb == 0.5);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace GTLib2
+
+#endif // LP_SOLVER != NO_LP_SOLVER

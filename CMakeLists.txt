@@ -156,7 +156,9 @@ set(TEST_FILES
         tests/cacheTest.cpp
         tests/cfrTest.cpp
         tests/algorithmTest.cpp
-        )
+        tests/bestResponseTest.cpp
+        tests/utilityTest.cpp
+        tests/LPTest.cpp)
 
 # -------------------- Executables, linking --------------------
 
