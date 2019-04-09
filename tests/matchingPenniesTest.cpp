@@ -45,7 +45,7 @@ using algorithms::DomainStatistics;
 
 BOOST_AUTO_TEST_SUITE(Matching_Pennies)
 
-#if LP_SOLVER != LP_SOLVER
+#if LP_SOLVER != NO_LP_SOLVER
 BOOST_AUTO_TEST_CASE(best_response_to_equilibrium) {
     MatchingPenniesDomain d;
     auto v = algorithms::findEquilibriumTwoPlayersZeroSum(d);
@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE(best_response_to_equilibrium) {
 }
 #endif
 
-#if LP_SOLVER != LP_SOLVER
+#if LP_SOLVER != NO_LP_SOLVER
 BOOST_AUTO_TEST_CASE(equilibrium_normal_form_lp_test) {
     MatchingPenniesDomain d;
     auto v = algorithms::findEquilibriumTwoPlayersZeroSum(d);

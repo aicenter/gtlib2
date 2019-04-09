@@ -23,7 +23,7 @@ find_package(Boost COMPONENTS unit_test_framework system REQUIRED)
 # add cmake
 include_directories(${CMAKE_SOURCE_DIR})
 
-load_cache(BuildConfiguration.txt)
+include(BuildConfiguration.txt)
 
 # -------------------- link LP solvers --------------------
 

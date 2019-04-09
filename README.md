@@ -56,6 +56,9 @@ make
 
 Please note there are two ways of building up the project: in _debug_ or _release_. Release uses additional compiler optimizations and runs faster, but takes longer time to build.
 
+If you want to change your configuration later, you will have to reset CMake cache and rebuild the project:
+- In CLion: `Tools -> CMake -> Reset Cache and Reload Project`
+
 # High-level overview
 
 Take a look at `base/` folder, which contains a number of abstract classes which are well documented. 
