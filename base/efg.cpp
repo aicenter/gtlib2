@@ -217,8 +217,7 @@ double EFGNode::getProbabilityOfActionsSeqOfPlayer(
     if (*parent_->getCurrentPlayer() == player) {
         auto parentInfSet = parent_->getAOHInfSet();
         auto &actionsProbs = strat.at(parentInfSet);
-        double actionProb = (actionsProbs.find(incomingAction_) != actionsProbs.end()) ?
-                            actionsProbs.at(incomingAction_) : 0.0;
+        double actionProb = actionsProbs[incomingAction_->getId()];
         return actionProb * prob;
     } else {
         return prob;

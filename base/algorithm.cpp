@@ -25,6 +25,7 @@
 #include <iostream>
 #include <chrono>
 #include <algorithms/common.h>
+#include "base/random.h"
 
 using namespace std::chrono;
 using GTLib2::algorithms::createRootEFGNodes;
@@ -73,27 +74,6 @@ vector<double> FixedActionPlayer::getPlayDistribution(const shared_ptr<AOH> &cur
     return dist;
 }
 
-
-int pickAction(const EFGNodesDistribution &probs,
-               std::uniform_real_distribution<double> &uniformDist,
-               std::mt19937 &generator) {
-    double p = uniformDist(generator);
-    int i = -1;
-    while (p > 0) p -= probs[++i].second;
-    assert(i < probs.size());
-    return i;
-}
-
-int pickAction(const vector<double> &probs,
-               std::uniform_real_distribution<double> &uniformDist,
-               std::mt19937 &generator) {
-    double p = uniformDist(generator);
-    int i = -1;
-    while (p > 0) p -= probs[++i];
-    assert(i < probs.size());
-    return i;
-}
-
 vector<double> playMatch(const Domain &domain,
                          vector<PreparedAlgorithm> algorithmInitializers,
                          vector<int> preplayBudgetMicrosec,
@@ -119,7 +99,7 @@ vector<double> playMatch(const Domain &domain,
 
     shared_ptr<EFGNode> node;
     EFGNodesDistribution nodesDist = createRootEFGNodes(domain.getRootStatesDistribution());
-    int chanceAction = pickAction(nodesDist, uniformDist, generator);
+    int chanceAction = pickRandom(nodesDist, uniformDist, generator);
     node = nodesDist[chanceAction].first;
 
     while (!node->isTerminal()) {
@@ -139,9 +119,9 @@ vector<double> playMatch(const Domain &domain,
         for (double prob : probs) sumProbs += prob;
         assert(fabs(1.0-sumProbs) < 1e-9);
 
-        int playerAction = pickAction(probs, uniformDist, generator);
+        int playerAction = pickRandom(probs, uniformDist, generator);
         nodesDist = node->performAction(actions[playerAction]);
-        chanceAction = pickAction(nodesDist, uniformDist, generator);
+        chanceAction = pickRandom(nodesDist, uniformDist, generator);
         node = nodesDist[chanceAction].first;
     }
 

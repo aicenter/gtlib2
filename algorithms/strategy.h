@@ -38,7 +38,25 @@ namespace algorithms {
 /**
  * Calculate average strategy for each player.
  */
-StrategyProfile getAverageStrategy(CFRData *data);
+StrategyProfile getAverageStrategy(CFRData &data, int maxDepth);
+
+inline StrategyProfile getAverageStrategy(CFRData &data) {
+    return getAverageStrategy(data, INT_MAX);
+}
+
+/**
+ * Create strategy profile where both players play with uniform strategies.
+ */
+StrategyProfile getUniformStrategy(InfosetCache &data, int maxDepth);
+
+inline StrategyProfile getUniformStrategy(InfosetCache &data) {
+    return getUniformStrategy(data, INT_MAX);
+}
+
+/**
+ * Play selected action with 100% probability in given distribution
+ */
+void playOnlyAction(ProbDistribution &dist, unsigned long actionIdx);
 
 }  // namespace algorithms
 }  // namespace GTLib2

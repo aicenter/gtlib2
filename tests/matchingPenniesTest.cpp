@@ -31,6 +31,7 @@
 
 #include "tests/domainsTest.h"
 #include <boost/test/unit_test.hpp>
+#include <algorithms/strategy.h>
 
 
 namespace GTLib2 {
@@ -41,9 +42,10 @@ using domains::SimultaneousMatchingPenniesDomain;
 using domains::Heads;
 using domains::Tails;
 using algorithms::DomainStatistics;
+using algorithms::playOnlyAction;
 
 
-BOOST_AUTO_TEST_SUITE(Matching_Pennies)
+BOOST_AUTO_TEST_SUITE(MatchingPenniesTests)
 
 #if LP_SOLVER != NO_LP_SOLVER
 BOOST_AUTO_TEST_CASE(best_response_to_equilibrium) {
@@ -63,35 +65,36 @@ BOOST_AUTO_TEST_CASE(equilibrium_normal_form_lp_test) {
     auto strat = std::get<1>(v);
     auto actionHeads = make_shared<MatchingPenniesAction>(Heads);
     auto actionTails = make_shared<MatchingPenniesAction>(Tails);
-    double headsProb = (*strat.begin()).second[actionHeads];
-    double tailsProb = (*strat.begin()).second[actionTails];
+    double headsProb = (*strat.begin()).second[actionHeads->getId()];
+    double tailsProb = (*strat.begin()).second[actionTails->getId()];
 
     BOOST_CHECK(std::get<0>(v) == 0);
     BOOST_CHECK(headsProb == 0.5 && tailsProb == 0.5);
 }
 #endif
 
-BOOST_AUTO_TEST_CASE(best_response_test) {
-    MatchingPenniesDomain d;
+BOOST_AUTO_TEST_CASE(bestResponseSmallDomain) {
+    MatchingPenniesDomain domain;
 
-    auto initNodes =
-        algorithms::createRootEFGNodes(
-            d.getRootStatesDistribution());
-    auto firstNode = (*initNodes.begin()).first;
+    auto initNodes = algorithms::createRootEFGNodes(domain.getRootStatesDistribution());
+    auto tailAction = make_shared<MatchingPenniesAction>(Tails);
+    auto headAction = make_shared<MatchingPenniesAction>(Heads);
 
-    auto player0Is = firstNode->getAOHInfSet();
-    auto secondNode = (*firstNode->performAction(
-        make_shared<MatchingPenniesAction>(Heads)).begin()).first;
-    auto player1Is = secondNode->getAOHInfSet();
+    auto rootNode = initNodes[0].first;
+    auto rootInfoset = rootNode->getAOHInfSet();
+
+    auto childNode = rootNode->performAction(headAction)[0].first;
+    auto childInfoset = childNode->getAOHInfSet();
 
     BehavioralStrategy stratHeads;
-    auto action = make_shared<MatchingPenniesAction>(Heads);
-    stratHeads[player0Is] = {{action, 1.0}};
-    auto brsVal = algorithms::bestResponseTo(stratHeads, 0, 1, d, 5);
-    auto optAction = (*brsVal.first[player1Is].begin()).first;
-    auto tailAction = make_shared<MatchingPenniesAction>(Tails);
+    stratHeads[rootInfoset] = ProbDistribution(2, 0.0);
+    playOnlyAction(stratHeads[rootInfoset], headAction->getId());
 
-    BOOST_CHECK(*optAction == *tailAction);
+    auto brsVal = algorithms::bestResponseTo(stratHeads, Player(0), Player(1), domain, 2);
+    auto brProbs = brsVal.first[childInfoset];
+    auto optAction = *max_element(brProbs.begin(), brProbs.end());
+
+    BOOST_CHECK(optAction == tailAction->getId());
 }
 
 BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {

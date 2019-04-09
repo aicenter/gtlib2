@@ -33,8 +33,8 @@ namespace algorithms {
 pair<double, double> computeUtilityTwoPlayersGame(const Domain &domain,
                                                   const BehavioralStrategy &player1Strat,
                                                   const BehavioralStrategy &player2Strat,
-                                                  const int player1,
-                                                  const int player2) {
+                                                  const Player player1,
+                                                  const Player player2) {
   // Inner function
   std::function<pair<double, double>(shared_ptr<EFGNode>, double)> calculate =
       [&player1Strat, &player2Strat, &player1, &player2, &domain, &calculate]
@@ -42,8 +42,7 @@ pair<double, double> computeUtilityTwoPlayersGame(const Domain &domain,
         auto findActionProb = [](const shared_ptr<AOH> &infSet,
                                  const BehavioralStrategy &strat,
                                  const shared_ptr<Action> &action) -> double {
-          return (strat.at(infSet).find(action) != strat.at(infSet).end()) ?
-                 strat.at(infSet).at(action) : 0.0;
+          return strat.at(infSet)[action->getId()];
         };
 
         if (node->getDepth() == domain.getMaxDepth() || !node->getCurrentPlayer()) {
@@ -61,7 +60,7 @@ pair<double, double> computeUtilityTwoPlayersGame(const Domain &domain,
           if (actionStratProb > 0) {
             // Non-deterministic - can get multiple nodes
             auto newNodes = node->performAction(action);
-            for (auto newNodeProb : newNodes) {
+            for (const auto &newNodeProb : newNodes) {
               auto util = calculate(newNodeProb.first,
                                     actionStratProb * newNodeProb.second * prob);
               p1Util += util.first;
@@ -77,7 +76,7 @@ pair<double, double> computeUtilityTwoPlayersGame(const Domain &domain,
   double player2Utility = 0.0;
   auto rootNodes = createRootEFGNodes(
       domain.getRootStatesDistribution());
-  for (auto nodeProb : rootNodes) {
+  for (const auto &nodeProb : rootNodes) {
     auto utility = calculate(nodeProb.first, nodeProb.second);
     player1Utility += utility.first;
     player2Utility += utility.second;
@@ -119,9 +118,9 @@ vector<BehavioralStrategy> generateAllPureStrategies(
           allPureStrats.push_back(strat);
         } else {
           auto infSetWithActions = infSetsAndActionsVector[setIndex];
-          for (auto action : infSetWithActions.second) {
-            unordered_map<shared_ptr<Action>, double> actionsDistribution =
-                {{action, 1.0}};
+          for (const auto &action : infSetWithActions.second) {
+            auto actionsDistribution = ProbDistribution(infSetWithActions.second.size());
+            actionsDistribution[action->getId()] = 1.0;
             strat[infSetWithActions.first] = actionsDistribution;
             gener(strat, setIndex + 1);
           }

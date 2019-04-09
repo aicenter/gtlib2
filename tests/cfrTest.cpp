@@ -296,7 +296,7 @@ BOOST_AUTO_TEST_CASE(CheckConvergenceInSmallDomain) {
 
     for (int i = 0; i < 10; ++i) {
         cfr.runIterations(50);
-        auto profile = algorithms::getAverageStrategy(&data);
+        auto profile = algorithms::getAverageStrategy(data);
         auto bestResp0 = algorithms::bestResponseTo(
             profile[0], Player(0), Player(1), domain).second;
         auto bestResp1 = algorithms::bestResponseTo(

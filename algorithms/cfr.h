@@ -172,8 +172,8 @@ struct ExpectedUtility {
     }
 };
 
-vector<double> calcRMProbs(const vector<double> & regrets);
-vector<double> calcAvgProbs(const vector<double> & acc);
+ProbDistribution calcRMProbs(const vector<double> & regrets);
+ProbDistribution calcAvgProbs(const vector<double> & acc);
 
 /**
  * Calculate expected utilities under RM / avg strategy for specified node

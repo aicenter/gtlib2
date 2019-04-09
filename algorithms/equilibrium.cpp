@@ -47,8 +47,8 @@ tuple<double, BehavioralStrategy> findEquilibriumTwoPlayersZeroSum(const GTLib2:
 
   double val = solveLP(std::get<1>(utilityMatrixPlayer1), std::get<2>(utilityMatrixPlayer1),
                        std::get<0>(utilityMatrixPlayer1), solution);
-  auto equilibriumStrat = mixedToBehavioralStrategy(player1PureStrats, player1, solution,
-                                                    domain);
+  auto equilibriumStrat = mixedToBehavioralStrategy(
+      domain, player1PureStrats, solution, player1);
   return tuple<double, BehavioralStrategy>(val, equilibriumStrat);
 }
 }  // namespace algorithms

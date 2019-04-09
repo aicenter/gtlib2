@@ -32,7 +32,7 @@
 namespace GTLib2 {
 namespace algorithms {
 
-void treeWalkEFG(EFGCache *cache, EFGNodeCallback function, int maxDepth) {
+void treeWalkEFG(EFGCache &cache, EFGNodeCallback function, int maxDepth) {
     auto traverse = [&function, &cache, maxDepth]
         (const shared_ptr<EFGNode> &node, const auto &traverse) {
 
@@ -42,13 +42,13 @@ void treeWalkEFG(EFGCache *cache, EFGNodeCallback function, int maxDepth) {
         if (node->getDepth() >= maxDepth) return;
 
         for (const auto &action : node->availableActions()) {
-            for (auto const &nodeDist : cache->getChildrenFor(node, action)) {
+            for (auto const &nodeDist : cache.getChildrenFor(node, action)) {
                 traverse(nodeDist.first, traverse);
             }
         }
     };
 
-    for (const auto &nodeDist : cache->getRootNodes()) {
+    for (const auto &nodeDist : cache.getRootNodes()) {
         traverse(nodeDist.first, traverse);
     }
 }

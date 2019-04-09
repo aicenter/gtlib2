@@ -37,8 +37,8 @@ namespace algorithms {
 pair<double, double> computeUtilityTwoPlayersGame(const Domain &domain,
                                                   const BehavioralStrategy &player1Strat,
                                                   const BehavioralStrategy &player2Strat,
-                                                  int player1,
-                                                  int player2);
+                                                  const Player player1,
+                                                  const Player player2);
 
 tuple<vector<double>, unsigned int, unsigned int>
 constructUtilityMatrixFor(const Domain &domain,

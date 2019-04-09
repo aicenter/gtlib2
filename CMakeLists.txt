@@ -125,7 +125,8 @@ set(SOURCE_FILES
         base/base.h base/base.cpp
         base/cache.cpp base/cache.h
         base/efg.h base/efg.cpp
-        base/hashing.cpp base/hashing.h
+        base/hashing.h base/hashing.cpp
+        base/random.h base/random.cpp
         # domains
         domains/chessboard_factory.h domains/chessboard_factory.cpp
         domains/genericPoker.h domains/genericPoker.cpp

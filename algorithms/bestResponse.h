@@ -30,23 +30,25 @@
 namespace GTLib2 {
 namespace algorithms {
 
-pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStrat, int opponent,
-                                                int player, const Domain &domain);
+pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStrat,
+                                                Player opponent, Player player,
+                                                const Domain &domain, int maxDepth);
 
-pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStrat, int opponent,
-                                                int player, const Domain &domain,
-                                                int maxDepth);
-
-pair<BehavioralStrategy, double> bestResponseToPrunning(const BehavioralStrategy &opoStrat,
-                                                        int opponent,
-                                                        int player,
-                                                        const Domain &domain);
+inline pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStrat,
+                                                       Player opponent, Player player,
+                                                       const Domain &domain) {
+    return bestResponseTo(opoStrat, opponent, player, domain, domain.getMaxDepth());
+}
 
 pair<BehavioralStrategy, double> bestResponseToPrunning(const BehavioralStrategy &opoStrat,
-                                                        int opponent,
-                                                        int player,
-                                                        const Domain &domain,
-                                                        int maxDepth);
+                                                        Player opponent, Player player,
+                                                        const Domain &domain, int maxDepth);
+
+inline pair<BehavioralStrategy, double> bestResponseToPrunning(const BehavioralStrategy &opoStrat,
+                                                               Player opponent, Player player,
+                                                               const Domain &domain) {
+    return bestResponseToPrunning(opoStrat, opponent, player, domain, domain.getMaxDepth());
+}
 
 }  // namespace algorithms
 }  // namespace GTLib2

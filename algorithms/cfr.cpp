@@ -84,8 +84,7 @@ void CFRAlgorithm::nodeUpdateRegrets(shared_ptr<EFGNode> node) {
 
 void CFRAlgorithm::delayedApplyRegretUpdates() {
     if (settings_.cfrUpdating == InfosetsUpdating) {
-        algorithms::treeWalkEFG(
-            &cache_, [&](shared_ptr<EFGNode> node) { nodeUpdateRegrets(node); });
+        algorithms::treeWalkEFG(cache_, [&](shared_ptr<EFGNode> node) { nodeUpdateRegrets(node); });
     }
 }
 

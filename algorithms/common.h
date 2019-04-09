@@ -34,10 +34,10 @@ namespace algorithms {
 
 EFGNodesDistribution createRootEFGNodes(const OutcomeDistribution &probDist);
 
-BehavioralStrategy mixedToBehavioralStrategy(const vector<BehavioralStrategy> &pureStrats,
-                                             int player1,
-                                             const vector<double> &distribution,
-                                             const Domain &domain);
+BehavioralStrategy mixedToBehavioralStrategy(const Domain &domain,
+                                             const vector<BehavioralStrategy> &pureStrats,
+                                             const ProbDistribution &distribution,
+                                             Player player);
 
 EFGNodesDistribution getAllNodesInTheInformationSetWithNatureProbability(
     const shared_ptr<AOH> &infSet, const Domain &domain);

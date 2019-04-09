@@ -26,7 +26,7 @@ namespace GTLib2 {
 namespace algorithms {
 
 
-StrategyProfile getAverageStrategy(CFRData *data) {
+StrategyProfile getAverageStrategy(CFRData &data, int maxDepth) {
     auto profile = StrategyProfile(2);
     auto getStrategy = [&profile, &data](shared_ptr<EFGNode> node) {
         if (node->isTerminal()) return;
@@ -36,22 +36,38 @@ StrategyProfile getAverageStrategy(CFRData *data) {
         BehavioralStrategy *playerStrategy = &profile[curPlayer];
         if (playerStrategy->find(infoSet) != playerStrategy->end()) return;
 
-        auto actionDistribution = unordered_map<shared_ptr<Action>, double>();
-        auto acc = data->infosetData.at(infoSet).avgStratAccumulator;
-
-        double sum = 0.0;
-        for (double d : acc) sum += d;
-
-        for (auto &action : node->availableActions()) {
-            actionDistribution.emplace(make_pair(action, sum == 0.0
-                                                         ? 1.0 / acc.size()
-                                                         : acc[action->getId()] / sum));
-        }
-        playerStrategy->emplace(infoSet, actionDistribution);
+        auto acc = data.infosetData.at(infoSet).avgStratAccumulator;
+        playerStrategy->emplace(infoSet, calcAvgProbs(acc));
     };
-    treeWalkEFG(data, getStrategy, INT_MAX);
+    treeWalkEFG(data, getStrategy, maxDepth);
 
     return profile;
+}
+
+
+StrategyProfile getUniformStrategy(InfosetCache &data, int maxDepth) {
+    auto profile = StrategyProfile(2);
+    auto getStrategy = [&profile, &data](shared_ptr<EFGNode> node) {
+        if (node->isTerminal()) return;
+
+        auto infoSet = node->getAOHInfSet();
+        Player curPlayer = *node->getCurrentPlayer();
+        BehavioralStrategy *playerStrategy = &profile[curPlayer];
+        if (playerStrategy->find(infoSet) != playerStrategy->end()) return;
+
+        unsigned long numActions = node->countAvailableActions();
+        playerStrategy->emplace(infoSet, ProbDistribution(numActions, 1. / numActions));
+    };
+    treeWalkEFG(data, getStrategy, maxDepth);
+
+    return profile;
+}
+
+void playOnlyAction(ProbDistribution &dist, unsigned long actionIdx) {
+    assert(actionIdx < dist.size() && actionIdx >= 0);
+    for (int i = 0; i < dist.size(); ++i) {
+        dist[i] = i == actionIdx ? 1.0 : 0.0;
+    }
 }
 
 }  // namespace algorithms
