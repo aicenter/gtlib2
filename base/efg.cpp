@@ -235,6 +235,9 @@ void EFGNode::generateDescriptor() const {
             descriptor_.push_back(observation->getId());
         }
     }
+    if(!isTerminal()) {
+        descriptor_.push_back(*currentPlayer_);
+    }
 }
 
 void EFGNode::generateHash() const {

@@ -219,6 +219,10 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
 
     bool operator==(const EFGNode &rhs) const;
 
+    inline const std::vector<uint32_t>& getDescriptor() const {
+        return descriptor_;
+    }
+
  private:
     vector<ActionObservation> getAOH(Player player) const;
     bool compareAOH(const EFGNode &rhs) const;

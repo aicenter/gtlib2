@@ -154,6 +154,7 @@ set(SOURCE_FILES
         # utils
         utils/utils.h
         utils/functools.h
+        utils/export.cpp utils/export.h
         )
 
 set(TEST_FILES
@@ -170,6 +171,7 @@ set(TEST_FILES
         tests/bestResponseTest.cpp
         tests/utilityTest.cpp
         tests/LPTest.cpp
+        tests/exportTest.cpp
         )
 
 # -------------------- Executables, linking --------------------

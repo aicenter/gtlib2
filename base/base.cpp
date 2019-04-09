@@ -107,6 +107,7 @@ size_t AOH::computeHash() const {
         boost::hash_combine(seed, std::get<0>(actionObservation));
         boost::hash_combine(seed, std::get<1>(actionObservation));
     }
+    boost::hash_combine(seed, player_);
     return seed;
 }
 
