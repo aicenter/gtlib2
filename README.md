@@ -49,6 +49,7 @@ Follow the standard cmake build:
 
 ```
 cd <project directory>
+cp example_BuildConfiguration.txt BuildConfiguration.txt
 mkdir build && cd build
 cmake ..
 make

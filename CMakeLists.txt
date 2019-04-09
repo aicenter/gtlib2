@@ -1,7 +1,19 @@
 cmake_minimum_required(VERSION 3.8)
 project(GTLib2)
 
-#set(CMAKE_VERBOSE_MAKEFILE ON)
+# Custom user-specified build configuration goes here
+# Default is saved in "example_BuildConfiguration.txt"
+# Before build you can just call
+# $ cp example_BuildConfiguration.txt BuildConfiguration.txt
+include(BuildConfiguration.txt)
+
+if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
+    set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE STRING "Choose the type of build." FORCE)
+    # Set the possible values of build type for cmake-gui
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+endif ()
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS_RELEASE "-m64 -msse2 -O3 -ffast-math")
 
@@ -23,12 +35,10 @@ find_package(Boost COMPONENTS unit_test_framework system REQUIRED)
 # add cmake
 include_directories(${CMAKE_SOURCE_DIR})
 
-include(BuildConfiguration.txt)
-
 # -------------------- link LP solvers --------------------
 
 # ------ CPLEX
-if(USE_CPLEX)
+if (USE_CPLEX)
     # try to find cplex library with FindCPLEX.cmake code
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/modules")
     find_package(CPLEX)
@@ -44,11 +54,11 @@ if(USE_CPLEX)
                 )
         set(CPLEXLIB ilocplex)
     endif ()
-endif()
+endif ()
 
 # ------ GLPK
 
-if(USE_GLPK)
+if (USE_GLPK)
     find_path(GLPK_INCLUDE_DIR NAMES glpk.h PATHS
             ${GLPK_DIR}/basics/glpk/include
             ${GLPK_DIR}/include
@@ -71,10 +81,10 @@ if(USE_GLPK)
                 )
         set(GLPKLIB glpk)
     endif ()
-endif()
+endif ()
 
 # ------ GUROBI
-if(USE_GUROBI)
+if (USE_GUROBI)
     find_path(GUROBI_INCLUDE_DIR NAMES gurobi_c++.h PATHS
             ${GUROBI_DIR}/include
             NO_DEFAULT_PATH
@@ -109,6 +119,7 @@ endif ()
 # a build system incorporating the new file.
 #
 # https://stackoverflow.com/a/2110796
+
 set(SOURCE_FILES
         # algorithms
         algorithms/bestResponse.h algorithms/bestResponse.cpp
@@ -158,7 +169,8 @@ set(TEST_FILES
         tests/algorithmTest.cpp
         tests/bestResponseTest.cpp
         tests/utilityTest.cpp
-        tests/LPTest.cpp)
+        tests/LPTest.cpp
+        )
 
 # -------------------- Executables, linking --------------------
 

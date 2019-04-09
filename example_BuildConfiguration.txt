@@ -1,3 +1,6 @@
 option(USE_CPLEX  "Use CPLEX LP solver if found on system"  OFF)
 option(USE_GUROBI "Use GUROBI LP solver if found on system" OFF)
 option(USE_GLPK   "Use GLPK LP solver if found on system"   OFF)
+
+set(default_build_type "Release") # one of "Debug" "Release"
+set(CMAKE_VERBOSE_MAKEFILE OFF)
