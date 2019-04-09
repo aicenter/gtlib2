@@ -27,16 +27,8 @@
 #include "algorithms/equilibrium.h"
 #include "algorithms/utility.h"
 #include "algorithms/common.h"
-#if GUROBIFOUND == 1
-#include "LPsolvers/GurobiLPSolver.h"
-#elif CPLEXFOUND == 1
-#include "LPsolvers/CplexLPSolver.h"
-#elif GLPKFOUND == 1
-#include "LPsolvers/GlpkLPSolver.h"
-#else
-#define SOLVERNOTFOUND 1
+
 #include "LPsolvers/LPSolver.h"
-#endif
 
 
 namespace GTLib2 {

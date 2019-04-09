@@ -137,6 +137,7 @@ set(SOURCE_FILES
         domains/RhodeIslandPoker.h domains/RhodeIslandPoker.cpp
         domains/oshiZumo.h domains/oshiZumo.cpp
         # LPSolvers
+        LPsolvers/AbstractLPSolver.h
         LPsolvers/LPSolver.h
         # utils
         utils/utils.h

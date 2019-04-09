@@ -28,9 +28,9 @@
 #include <gurobi_c++.h>
 #include <vector>
 #include <cmath>
-#include "LPsolvers/LPSolver.h"
+#include "LPsolvers/AbstractLPSolver.h"
 
-class GurobiLPSolver : public LPSolver {
+class GurobiLPSolver : public AbstractLPSolver {
  public:
   GurobiLPSolver();
 

@@ -30,7 +30,7 @@
 #include <vector>
 #include <memory>
 #include "base/efg.h"
-#include "LPsolvers/LPSolver.h"
+#include "LPsolvers/AbstractLPSolver.h"
 #include "algorithms/utility.h"
 #include "algorithms/common.h"
 
@@ -50,15 +50,15 @@ namespace algorithms {
  */
 class NormalFormLP {
  public:
-  explicit NormalFormLP(const Domain &_game, unique_ptr<LPSolver> _lp_solver);
+  explicit NormalFormLP(const Domain &_game, unique_ptr<AbstractLPSolver> _lp_solver);
 
   explicit NormalFormLP(const unsigned int _p1_actions, const unsigned int _p2_actions,
                         const vector<double> &_utilities,
-                        unique_ptr<LPSolver> _lp_solver);
+                        unique_ptr<AbstractLPSolver> _lp_solver);
 
   explicit NormalFormLP(const unsigned int _p1_actions, const unsigned int _p2_actions,
                         const vector<vector<double>> &_utilities,
-                        unique_ptr<LPSolver> _lp_solver);
+                        unique_ptr<AbstractLPSolver> _lp_solver);
 
   ~NormalFormLP();
 
@@ -79,7 +79,7 @@ class NormalFormLP {
   void SaveLP(const char *_file);
 
  protected:
-  unique_ptr<LPSolver> lp_solver_;
+  unique_ptr<AbstractLPSolver> lp_solver_;
   double value_of_the_game_ = NAN;
   unsigned int rows_;
   unsigned int cols_;

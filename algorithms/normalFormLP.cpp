@@ -29,7 +29,7 @@ namespace GTLib2 {
 namespace algorithms {
 NormalFormLP::NormalFormLP(const unsigned int _p1_actions, const unsigned int _p2_actions,
                            const vector<double> &_utilities,
-                           unique_ptr<LPSolver> _lp_solver) {
+                           unique_ptr<AbstractLPSolver> _lp_solver) {
   ValidateInput(_p1_actions, _p2_actions, _utilities);
   lp_solver_ = std::move(_lp_solver);
   rows_ = _p2_actions;
@@ -39,7 +39,7 @@ NormalFormLP::NormalFormLP(const unsigned int _p1_actions, const unsigned int _p
 
 NormalFormLP::NormalFormLP(const unsigned int _p1_actions, const unsigned int _p2_actions,
                            const vector<vector<double>> &_utilities,
-                           unique_ptr<LPSolver> _lp_solver) {
+                           unique_ptr<AbstractLPSolver> _lp_solver) {
   lp_solver_ = std::move(_lp_solver);
   rows_ = _p2_actions;
   cols_ = _p1_actions;
@@ -57,7 +57,7 @@ NormalFormLP::NormalFormLP(const unsigned int _p1_actions, const unsigned int _p
   BuildModel(&tmp);
 }
 
-NormalFormLP::NormalFormLP(const Domain &_game, unique_ptr<LPSolver> _lp_solver) {
+NormalFormLP::NormalFormLP(const Domain &_game, unique_ptr<AbstractLPSolver> _lp_solver) {
   lp_solver_ = std::move(_lp_solver);
 
   Player player1 = _game.getPlayers()[0];

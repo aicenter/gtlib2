@@ -27,9 +27,9 @@
 #include <glpk.h>
 #include <vector>
 #include <cmath>
-#include "LPsolvers/LPSolver.h"
+#include "LPsolvers/AbstractLPSolver.h"
 
-class GlpkLPSolver : public LPSolver {
+class GlpkLPSolver : public AbstractLPSolver {
  public:
   GlpkLPSolver() = default;
 

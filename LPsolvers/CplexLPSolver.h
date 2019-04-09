@@ -27,9 +27,9 @@
 
 #include <ilcplex/ilocplex.h>
 #include <vector>
-#include "LPsolvers/LPSolver.h"
+#include "LPsolvers/AbstractLPSolver.h"
 
-class CplexLPSolver : public LPSolver {
+class CplexLPSolver : public AbstractLPSolver {
  public:
   CplexLPSolver() = default;
 

@@ -27,6 +27,7 @@
 #include "algorithms/utility.h"
 #include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"
+#include "LPsolvers/LPSolver.h"
 
 #include "tests/domainsTest.h"
 #include <boost/test/unit_test.hpp>
@@ -44,6 +45,7 @@ using algorithms::DomainStatistics;
 
 BOOST_AUTO_TEST_SUITE(Matching_Pennies)
 
+#if LP_SOLVER != LP_SOLVER
 BOOST_AUTO_TEST_CASE(best_response_to_equilibrium) {
     MatchingPenniesDomain d;
     auto v = algorithms::findEquilibriumTwoPlayersZeroSum(d);
@@ -52,7 +54,9 @@ BOOST_AUTO_TEST_CASE(best_response_to_equilibrium) {
     double val = std::get<1>(brsVal);
     BOOST_CHECK(val == 0.0);
 }
+#endif
 
+#if LP_SOLVER != LP_SOLVER
 BOOST_AUTO_TEST_CASE(equilibrium_normal_form_lp_test) {
     MatchingPenniesDomain d;
     auto v = algorithms::findEquilibriumTwoPlayersZeroSum(d);
@@ -65,6 +69,7 @@ BOOST_AUTO_TEST_CASE(equilibrium_normal_form_lp_test) {
     BOOST_CHECK(std::get<0>(v) == 0);
     BOOST_CHECK(headsProb == 0.5 && tailsProb == 0.5);
 }
+#endif
 
 BOOST_AUTO_TEST_CASE(best_response_test) {
     MatchingPenniesDomain d;

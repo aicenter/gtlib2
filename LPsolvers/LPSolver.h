@@ -13,15 +13,15 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with Game Theoretic Library.
+    You should have received a copy of the GNU Lesser General Public 
+    License along with Game Theoretic Library.
 
     If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef LPSOLVERS_LPSOLVER_H_
-#define LPSOLVERS_LPSOLVER_H_
+#ifndef GTLIB2_LPSOLVER_H
+#define GTLIB2_LPSOLVER_H
 
 #include <vector>
 #include <iostream>
@@ -30,42 +30,31 @@
 
 using std::vector;
 
-#if SOLVERNOTFOUND
-inline double solveLP(const unsigned int rows,
-                      const unsigned int cols,
-                      const vector<double> &utility_matrix,
-                      vector<double> &solution) {
-  assert(("No LP solver included to project", false));
-  return NAN;
-}
+#define NO_LP_SOLVER 0
+#define GUROBI_SOLVER 1
+#define CPLEX_SOLVER 2
+#define GLPK_SOLVER 3
+
+#if GUROBIFOUND == 1
+    #define LP_SOLVER GUROBI_SOLVER
+    #include "LPsolvers/GurobiLPSolver.h"
+#elif CPLEXFOUND == 1
+    #define LP_SOLVER CPLEX_SOLVER
+    #include "LPsolvers/CplexLPSolver.h"
+#elif GLPKFOUND == 1
+    #define LP_SOLVER GLPK_SOLVER
+    #include "LPsolvers/GlpkLPSolver.h"
+#else
+    #define LP_SOLVER NO_LP_SOLVER
+
+    inline double solveLP(const unsigned int rows,
+                          const unsigned int cols,
+                          const vector<double> &utility_matrix,
+                          vector<double> &solution) {
+        assert(("No LP solver included to project", false));
+        return NAN;
+    }
 #endif
 
-class LPSolver {
- public:
-  // constructor
-  LPSolver() = default;
 
-  // destructor
-  virtual ~LPSolver() = default;
-
-  virtual void CleanModel() = 0;
-
-  virtual double SolveGame() = 0;
-
-  virtual void BuildModel(unsigned int rows, unsigned int cols,
-                          const vector<double> *utility_matrix,
-                          bool OUTPUT) = 0;
-
-  virtual double const GetValue(int index) const = 0;
-
-  virtual double const GetDual(int index) const = 0;
-
-  virtual void SaveLP(const char *file) = 0;
-
-  virtual void SetConstraintCoefForVariable(int constraint, int variable, double new_utility) = 0;
-
-  virtual void AddRows(int cols, const vector<vector<double>> &utility_for_cols) = 0;
-
-  virtual void AddCols(int rows, const vector<vector<double>> &utility_for_rows) = 0;
-};
-#endif  // LPSOLVERS_LPSOLVER_H_
+#endif //GTLIB2_LPSOLVER_H
