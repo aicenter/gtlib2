@@ -22,28 +22,7 @@
 
 #include <chrono>
 #include <algorithms/cfr.h>
-#if GUROBIFOUND == 1
-#include "LPsolvers/GurobiLPSolver.h"
-#elif CPLEXFOUND == 1
-#include "LPsolvers/CplexLPSolver.h"
-#elif GLPKFOUND == 1
-#include "LPsolvers/GlpkLPSolver.h"
-#endif
-#include "base/efg.h"
-#include "base/cache.h"
-#include "algorithms/utility.h"
-#include "algorithms/cfr.h"
-#include "algorithms/common.h"
-#include "algorithms/normalFormLP.h"
-#include "algorithms/tree.h"
-#include "algorithms/bestResponse.h"
-#include "algorithms/equilibrium.h"
 #include "domains/goofSpiel.h"
-#include "domains/phantomTTT.h"
-#include "domains/pursuit.h"
-#include "domains/matching_pennies.h"
-#include "domains/RhodeIslandPoker.h"
-#include "domains/genericPoker.h"
 
 
 using std::endl;
