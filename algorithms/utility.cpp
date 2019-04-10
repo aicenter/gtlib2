@@ -86,7 +86,7 @@ pair<double, double> computeUtilityTwoPlayersGame(const Domain &domain,
 }
 
 unordered_map<shared_ptr<AOH>, vector<shared_ptr<Action>>>
-generateInformationSetsAndAvailableActions(const Domain &domain, const int player) {
+generateInformationSetsAndAvailableActions(const Domain &domain, const Player player) {
   unordered_map<shared_ptr<AOH>, vector<shared_ptr<Action>>> infSetsAndActions;
 
   std::function<void(shared_ptr<EFGNode>)> extract =
@@ -133,7 +133,7 @@ vector<BehavioralStrategy> generateAllPureStrategies(
 }
 
 tuple<vector<double>, unsigned int, unsigned int> constructUtilityMatrixFor(
-    const Domain &domain, const int player,
+    const Domain &domain, const Player player,
     const vector<BehavioralStrategy> &player1PureStrats,
     const vector<BehavioralStrategy> &player2PureStrats) {
 

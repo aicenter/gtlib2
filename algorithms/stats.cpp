@@ -67,7 +67,7 @@ void calculateDomainStatistics(const Domain &domain, DomainStatistics *stats) {
         }
 
         // following stats are only for non-terminal nodes:
-        int player = *node->getCurrentPlayer();
+        Player player = *node->getCurrentPlayer();
         stats->num_histories[player]++;
         auto infSet = node->getAOHInfSet();
         collectIS[player].emplace(infSet);

@@ -160,7 +160,7 @@ class RhodeIslandPokerState : public State {
     return players_;
   }
 
-  int hasPlayerOneWon(const shared_ptr<RhodeIslandPokerAction> & lastAction, int player) const;
+  int hasPlayerOneWon(const shared_ptr<RhodeIslandPokerAction> &lastAction, Player player) const;
 
   bool operator==(const State &rhs) const override;
 

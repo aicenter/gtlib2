@@ -82,7 +82,7 @@ EFGNodesDistribution getAllNodesInTheInformationSetWithNatureProbability(
     vector<pair<shared_ptr<EFGNode>, double>> nodes;
 
     auto aoh = infSet->getAOHistory();
-    int player = infSet->getPlayer();
+    Player player = infSet->getPlayer();
 
     std::function<void(shared_ptr<EFGNode>, int, int)> traverse =
         [&nodes, &aoh, &player, &traverse, &infSet](shared_ptr<EFGNode> node,

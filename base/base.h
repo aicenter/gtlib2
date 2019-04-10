@@ -84,11 +84,13 @@ typedef uint32_t ObservationId;
 /**
  * Specify action that given player played.
  */
+// todo: refactor pair into a more readable struct (avoid using .first/.second)
 typedef pair<Player, shared_ptr<Action>> PlayerAction;
 
 /**
  * The probability of given outcome.
  */
+// todo: refactor pair into a more readable struct (avoid using .first/.second)
 typedef pair<Outcome, double> distributionEntry;
 
 /**
@@ -124,6 +126,7 @@ typedef vector<BehavioralStrategy> StrategyProfile;
 /**
  * List of actions that had to be taken at information sets to get to current EFG node.
  */
+// todo: refactor pair into a more readable struct (avoid using .first/.second)
 typedef vector<pair<shared_ptr<InformationSet>, shared_ptr<Action>>> ActionSequence;
 
 /**
@@ -134,6 +137,7 @@ typedef unordered_map<shared_ptr<ActionSequence>, double> RealizationPlan;
 /**
  * Action observation puts together what observation was made with an action.
  */
+// todo: refactor pair into a more readable struct (avoid using .first/.second)
 typedef pair<ActionId, ObservationId> ActionObservation;
 
 

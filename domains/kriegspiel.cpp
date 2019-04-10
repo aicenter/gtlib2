@@ -1352,7 +1352,7 @@ namespace GTLib2 {
             this->attemptedMoveHistory->push_back(a);
         }
 
-        int KriegspielState::calculateObservation(int player) const {
+        int KriegspielState::calculateObservation(Player player) const {
             auto pawns = getPiecesOfColorAndKind(player, chess::PAWN);
             int toreturn = lastCut;
             for(const shared_ptr<AbstractPiece>& p: pawns) {

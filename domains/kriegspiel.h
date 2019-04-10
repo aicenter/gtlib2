@@ -585,7 +585,7 @@ namespace GTLib2 {
              * @param int the player for which to calculate
              * @returns int the observation
              */
-            int calculateObservation(int player) const;
+            int calculateObservation(Player player) const;
             void setGameHasEnded(bool gameHasEnded);
             void addToHistory(shared_ptr<KriegspielAction>);
             void addToAttemptedMoves(shared_ptr<KriegspielAction>);
@@ -601,7 +601,7 @@ namespace GTLib2 {
             Player playerOnTheMove;
             int lastCut = 0;
             chess::Square enPassantSquare;
-            int playerInCheck = -1;
+            Player playerInCheck = -1;
             int legalMaxDepth;
             bool gameHasEnded = false;
         private:

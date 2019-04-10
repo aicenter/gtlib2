@@ -148,7 +148,7 @@ class GenericPokerState : public State {
     return players_;
   }
 
-  int hasPlayerOneWon(const shared_ptr<GenericPokerAction> & lastAction, int player) const;
+  int hasPlayerOneWon(const shared_ptr<GenericPokerAction> &lastAction, Player player) const;
 
   bool operator==(const State &rhs) const override;
 

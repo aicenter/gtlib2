@@ -114,7 +114,7 @@ class PhantomTTTState : public State {
   // ToString returns state description.
   inline string toString() const override {
     string s;
-    for (int player = 0; player < place_.size(); ++player) {
+    for (Player player = 0; player < place_.size(); ++player) {
       s += "Player: " + to_string(player) + " board:\n";
       for (int i = 0; i < 9; ++i) {
         switch (place_[player][i]) {

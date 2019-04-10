@@ -30,6 +30,7 @@
 namespace GTLib2 {
 namespace algorithms {
 
+// todo: refactor pair into a more readable struct (avoid using .first/.second)
 pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStrat, Player opponent,
                                                 Player player, const Domain &domain,
                                                 int maxDepth);

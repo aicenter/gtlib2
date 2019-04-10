@@ -495,8 +495,8 @@ size_t GenericPokerState::getHash() const {
   return seed;
 }
 
-int GenericPokerState::hasPlayerOneWon(const shared_ptr<GenericPokerAction> & lastAction,
-    int player) const {
+int GenericPokerState::hasPlayerOneWon(
+    const shared_ptr<GenericPokerAction> &lastAction, Player player) const {
   if (lastAction->GetType() == Fold) {
     return player;
   } else if (player1Card_ == player2Card_) {

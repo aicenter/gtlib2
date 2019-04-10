@@ -679,7 +679,7 @@ bool RhodeIslandPokerState::operator==(const State &rhs) const {
         lastAction_ == State.lastAction_;
 }
 int RhodeIslandPokerState::hasPlayerOneWon(const shared_ptr<RhodeIslandPokerAction> &lastAction,
-                                           int player) const {
+                                           Player player) const {
   if (lastAction->GetType() == Fold) {
     return player;
   } else if (natureCard1_.value().second == natureCard2_.value().second &&

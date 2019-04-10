@@ -43,14 +43,14 @@ EFGNodesDistribution EFGNode::performAction(const shared_ptr<Action> &action) co
     EFGNodesDistribution newNodes;
     if (remainingPlayersInTheRound_.size() == 1) {
         std::sort(actionsToBePerformed.begin(), actionsToBePerformed.end(),
-                  [](const pair<int, shared_ptr<Action>> &a,
-                     const pair<int, shared_ptr<Action>> &b) {
+                  [](const pair<Player, shared_ptr<Action>> &a,
+                     const pair<Player, shared_ptr<Action>> &b) {
                       return (a.first < b.first);
                   });
 
         for (auto &player : state_->getDomain()->getPlayers()) {
             auto action2 = std::find_if(actionsToBePerformed.begin(), actionsToBePerformed.end(),
-                                        [&player](pair<int, shared_ptr<Action>> const &elem) {
+                                        [&player](pair<Player, shared_ptr<Action>> const &elem) {
                                             return elem.first == player;
                                         });
             if (action2 == actionsToBePerformed.end()) {
@@ -178,7 +178,7 @@ optional<Player> EFGNode::getCurrentPlayer() const {
     return currentPlayer_;
 }
 
-ActionSequence EFGNode::getActionsSeqOfPlayer(int player) const {
+ActionSequence EFGNode::getActionsSeqOfPlayer(Player player) const {
     auto actSeq = parent_ ? parent_->getActionsSeqOfPlayer(player) : ActionSequence();
     if (parent_ && parent_->currentPlayer_ && *parent_->currentPlayer_ == player) {
         actSeq.emplace_back(parent_->getAOHInfSet(), incomingAction_);
@@ -206,8 +206,8 @@ const shared_ptr<Action> &EFGNode::getIncomingAction() const {
     return incomingAction_;
 }
 
-double EFGNode::getProbabilityOfActionsSeqOfPlayer(
-    int player, const BehavioralStrategy &strat) const {
+double EFGNode::getProbabilityOfActionsSeqOfPlayer(Player player,
+                                                   const BehavioralStrategy &strat) const {
     if (!parent_) {
         return 1.0;
     }

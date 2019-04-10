@@ -42,13 +42,13 @@ pair<double, double> computeUtilityTwoPlayersGame(const Domain &domain,
 
 tuple<vector<double>, unsigned int, unsigned int>
 constructUtilityMatrixFor(const Domain &domain,
-                          int player,
+                          const Player player,
                           const vector<BehavioralStrategy> &player1PureStrats,
                           const vector<BehavioralStrategy> &player2PureStrats);
 
 unordered_map<shared_ptr<AOH>, vector<shared_ptr<Action>>>
 generateInformationSetsAndAvailableActions(const Domain &domain,
-                                           int player);
+                                           const Player player);
 
 vector<BehavioralStrategy>
 generateAllPureStrategies(const unordered_map<shared_ptr<AOH>,

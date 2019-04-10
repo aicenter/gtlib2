@@ -50,6 +50,7 @@ class EFGNode;
  * The chance probability of an EFGNode after performing some action,
  * i.e. not from the root, but from a parent node `h` to it's child `g` -- $\pi_c(g|h)$.
  */
+// todo: refactor pair into a more readable struct (avoid using .first/.second)
 typedef pair<shared_ptr<EFGNode>, double> EFGDistEntry;
 
 /**
@@ -104,9 +105,9 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
     /**
      * Returns the sequence of actions performed by the player since the root.
      */
-    ActionSequence getActionsSeqOfPlayer(int player) const;
+    ActionSequence getActionsSeqOfPlayer(Player player) const;
 
-    double getProbabilityOfActionsSeqOfPlayer(int player, const BehavioralStrategy &strat) const;
+    double getProbabilityOfActionsSeqOfPlayer(Player player, const BehavioralStrategy &strat) const;
 
     /**
      * Returns number of available actions for the current player
