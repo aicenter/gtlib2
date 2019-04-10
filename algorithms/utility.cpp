@@ -42,7 +42,8 @@ pair<double, double> computeUtilityTwoPlayersGame(const Domain &domain,
         auto findActionProb = [](const shared_ptr<AOH> &infSet,
                                  const BehavioralStrategy &strat,
                                  const shared_ptr<Action> &action) -> double {
-          return strat.at(infSet)[action->getId()];
+          return (strat.at(infSet).find(action) != strat.at(infSet).end()) ?
+                 strat.at(infSet).at(action) : 0.0;
         };
 
         if (node->getDepth() == domain.getMaxDepth() || !node->getCurrentPlayer()) {
@@ -118,10 +119,9 @@ vector<BehavioralStrategy> generateAllPureStrategies(
           allPureStrats.push_back(strat);
         } else {
           auto infSetWithActions = infSetsAndActionsVector[setIndex];
-          for (const auto &action : infSetWithActions.second) {
-            auto actionsDistribution = ProbDistribution(infSetWithActions.second.size());
-            actionsDistribution[action->getId()] = 1.0;
-            strat[infSetWithActions.first] = actionsDistribution;
+          for (const auto& action : infSetWithActions.second) {
+            ActionProbDistribution dist = {{action, 1.0}};
+            strat[infSetWithActions.first] = dist;
             gener(strat, setIndex + 1);
           }
         }

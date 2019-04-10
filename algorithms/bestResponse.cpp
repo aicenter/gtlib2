@@ -107,8 +107,7 @@ pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStr
                         bestAction = action;
                     }
                 }
-                brs[infoSet] = ProbDistribution(node->countAvailableActions(), 0.0);
-                brs[infoSet][bestAction->getId()] = 1.0;
+                brs[infoSet] = {{bestAction, 1.0}};
 
                 for (const auto &siblingNatureProb : allNodesInTheSameInfSet) {
                     const auto &sibling = siblingNatureProb.first;
@@ -122,14 +121,17 @@ pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStr
                 BehavioralStrategy brs;
                 auto &stratAtTheNode = opoStrat.at(infoSet);
                 for (const auto &action : node->availableActions()) {
-                    double actionProb = stratAtTheNode[action->getId()];
-                    for (auto childProb : node->performAction(action)) {
-                        auto brs_val = bestResp(childProb.first,
-                                                childProb.first->getDepth() == node->getDepth() ?
-                                                depth : depth - 1,
-                                                prob * childProb.second * actionProb);
-                        val += brs_val.second;
-                        brs.insert(brs_val.first.begin(), brs_val.first.end());
+                    if (stratAtTheNode.find(action) != stratAtTheNode.end()) {
+                        double actionProb = stratAtTheNode.at(action);
+                        for (auto childProb : node->performAction(action)) {
+                            auto brs_val = bestResp(childProb.first,
+                                                    childProb.first->getDepth() == node->getDepth()
+                                                    ?
+                                                    depth : depth - 1,
+                                                    prob * childProb.second * actionProb);
+                            val += brs_val.second;
+                            brs.insert(brs_val.first.begin(), brs_val.first.end());
+                        }
                     }
                 }
                 return pair<BehavioralStrategy, double>(brs, val);
@@ -161,9 +163,10 @@ pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStr
     return pair<BehavioralStrategy, double>(brs, expVal);
 }
 
-pair<BehavioralStrategy, double> bestResponseToPrunning(
-    const BehavioralStrategy &opoStrat, Player opponent, Player player,
-    const Domain &domain, int maxDepth) {
+
+pair<BehavioralStrategy, double> bestResponseToPrunning(const BehavioralStrategy &opoStrat,
+                                                        Player opponent, Player player,
+                                                        const Domain &domain, int maxDepth) {
     unordered_map<shared_ptr<EFGNode>, pair<BehavioralStrategy, double>> cache;
     unordered_map<shared_ptr<InformationSet>, EFGNodesDistribution> nodesInInfSet;
     int nodes = 0;
@@ -253,8 +256,7 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(
                         bestAction = action;
                     }
                 }
-                brs[infoSet] = ProbDistribution(node->countAvailableActions(), 0.0);
-                brs[infoSet][bestAction->getId()] = 1.0;
+                brs[infoSet] = {{bestAction, 1.0}};
 
                 for (const auto &siblingNatureProb : allNodesInTheSameInfSet) {
                     const auto &sibling = siblingNatureProb.first;
@@ -269,15 +271,17 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(
                 BehavioralStrategy brs;
                 auto &stratAtTheNode = opoStrat.at(infoSet);
                 for (const auto &action : node->availableActions()) {
-                    double actionProb = stratAtTheNode[action->getId()];
-                    for (const auto &childProb : node->performAction(action)) {
-                        auto brs_val = bestResp(childProb.first,
-                                                childProb.first->getDepth() ==
-                                                    node->getDepth() ? depth : depth - 1,
-                                                prob * childProb.second * actionProb,
-                                                lowerBound);
-                        val += brs_val.second;
-                        brs.insert(brs_val.first.begin(), brs_val.first.end());
+                    if (stratAtTheNode.find(action) != stratAtTheNode.end()) {
+                        double actionProb = stratAtTheNode.at(action);
+                        for (auto childProb : node->performAction(action)) {
+                            auto brs_val = bestResp(childProb.first,
+                                                    childProb.first->getDepth() ==
+                                                        node->getDepth() ? depth : depth - 1,
+                                                    prob * childProb.second * actionProb,
+                                                    lowerBound);
+                            val += brs_val.second;
+                            brs.insert(brs_val.first.begin(), brs_val.first.end());
+                        }
                     }
                 }
                 return pair<BehavioralStrategy, double>(brs, val);

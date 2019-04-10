@@ -65,8 +65,8 @@ BOOST_AUTO_TEST_CASE(equilibrium_normal_form_lp_test) {
     auto strat = std::get<1>(v);
     auto actionHeads = make_shared<MatchingPenniesAction>(Heads);
     auto actionTails = make_shared<MatchingPenniesAction>(Tails);
-    double headsProb = (*strat.begin()).second[actionHeads->getId()];
-    double tailsProb = (*strat.begin()).second[actionTails->getId()];
+    double headsProb = (*strat.begin()).second[actionHeads];
+    double tailsProb = (*strat.begin()).second[actionTails];
 
     BOOST_CHECK(std::get<0>(v) == 0);
     BOOST_CHECK(headsProb == 0.5 && tailsProb == 0.5);

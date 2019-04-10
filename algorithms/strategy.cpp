@@ -37,7 +37,8 @@ StrategyProfile getAverageStrategy(CFRData &data, int maxDepth) {
         if (playerStrategy->find(infoSet) != playerStrategy->end()) return;
 
         auto acc = data.infosetData.at(infoSet).avgStratAccumulator;
-        playerStrategy->emplace(infoSet, calcAvgProbs(acc));
+        playerStrategy->emplace(infoSet,
+                                mapDistribution(calcAvgProbs(acc), node->availableActions()));
     };
     treeWalkEFG(data, getStrategy, maxDepth);
 
@@ -55,8 +56,11 @@ StrategyProfile getUniformStrategy(InfosetCache &data, int maxDepth) {
         BehavioralStrategy *playerStrategy = &profile[curPlayer];
         if (playerStrategy->find(infoSet) != playerStrategy->end()) return;
 
-        unsigned long numActions = node->countAvailableActions();
-        playerStrategy->emplace(infoSet, ProbDistribution(numActions, 1. / numActions));
+        auto actions = node->availableActions();
+        auto numActions = actions.size();
+        playerStrategy->emplace(infoSet,
+                                mapDistribution(ProbDistribution(numActions, 1. / numActions),
+                                                actions));
     };
     treeWalkEFG(data, getStrategy, maxDepth);
 
@@ -68,6 +72,23 @@ void playOnlyAction(ProbDistribution &dist, unsigned long actionIdx) {
     for (int i = 0; i < dist.size(); ++i) {
         dist[i] = i == actionIdx ? 1.0 : 0.0;
     }
+}
+
+void playOnlyAction(ActionProbDistribution &dist, const shared_ptr<Action> &action) {
+    for (auto &elem : dist) {
+        elem.second = 0.;
+    }
+    dist[action] = 1.0;
+}
+
+ActionProbDistribution mapDistribution(const ProbDistribution &dist,
+                                       const vector<shared_ptr<Action>> &actions) {
+    assert(dist.size() == actions.size());
+    ActionProbDistribution actionDist;
+    for (int i = 0; i < dist.size(); ++i) {
+        actionDist[actions[i]] = dist[i];
+    }
+    return actionDist;
 }
 
 }  // namespace algorithms

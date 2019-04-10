@@ -45,14 +45,14 @@ BOOST_AUTO_TEST_SUITE(CFRTest)
 BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomain) {
     MatchingPenniesDomain domain;
     CFRAlgorithm cfr(domain, Player(0), CFRSettings());
-    auto& data = cfr.getCache();
+    auto &data = cfr.getCache();
     data.buildForest();
     auto rootNode = data.getRootNodes()[0].first;
     auto rootInfoset = rootNode->getAOHInfSet();
     auto childNode = rootNode->performAction(rootNode->availableActions()[0])[0].first;
     auto childInfoset = childNode->getAOHInfSet();
-    auto& rootData = data.infosetData.at(rootInfoset);
-    auto& childData = data.infosetData.at(childInfoset);
+    auto &rootData = data.infosetData.at(rootInfoset);
+    auto &childData = data.infosetData.at(childInfoset);
     BOOST_CHECK(!rootData.fixRMStrategy);
     BOOST_CHECK(!childData.fixRMStrategy);
     BOOST_CHECK(!rootData.fixAvgStrategy);
@@ -96,14 +96,14 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomainForInfosetUpdatingCFR) {
     auto settings = CFRSettings();
     settings.cfrUpdating = InfosetsUpdating;
     CFRAlgorithm cfr(domain, Player(0), settings);
-    auto& data = cfr.getCache();
+    auto &data = cfr.getCache();
     data.buildForest();
     auto rootNode = data.getRootNodes()[0].first;
     auto rootInfoset = rootNode->getAOHInfSet();
     auto childNode = rootNode->performAction(rootNode->availableActions()[0])[0].first;
     auto childInfoset = childNode->getAOHInfSet();
-    auto& rootData = data.infosetData.at(rootInfoset);
-    auto& childData = data.infosetData.at(childInfoset);
+    auto &rootData = data.infosetData.at(rootInfoset);
+    auto &childData = data.infosetData.at(childInfoset);
     BOOST_CHECK(!rootData.fixRMStrategy);
     BOOST_CHECK(!childData.fixRMStrategy);
     BOOST_CHECK(!rootData.fixAvgStrategy);
@@ -176,14 +176,14 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomainFixStrategy) {
     auto settings = CFRSettings();
     settings.cfrUpdating = InfosetsUpdating;
     CFRAlgorithm cfr(domain, Player(0), settings);
-    auto& data = cfr.getCache();
+    auto &data = cfr.getCache();
     data.buildForest();
     auto rootNode = data.getRootNodes()[0].first;
     auto rootInfoset = rootNode->getAOHInfSet();
     auto childNode = rootNode->performAction(rootNode->availableActions()[0])[0].first;
     auto childInfoset = childNode->getAOHInfSet();
-    auto& rootData = data.infosetData.at(rootInfoset);
-    auto& childData = data.infosetData.at(childInfoset);
+    auto &rootData = data.infosetData.at(rootInfoset);
+    auto &childData = data.infosetData.at(childInfoset);
     rootData.regrets[0] = 0.75;
     rootData.regrets[1] = 0.25;
     childData.avgStratAccumulator[0] = 0.125;
@@ -257,8 +257,8 @@ BOOST_AUTO_TEST_CASE(CalcUtilities) {
     auto rootInfoset = rootNode->getAOHInfSet();
     auto childNode = rootNode->performAction(rootNode->availableActions()[0])[0].first;
     auto childInfoset = childNode->getAOHInfSet();
-    auto& rootData = data.infosetData.at(rootInfoset);
-    auto& childData = data.infosetData.at(childInfoset);
+    auto &rootData = data.infosetData.at(rootInfoset);
+    auto &childData = data.infosetData.at(childInfoset);
     rootData.regrets[0] = 0.75;
     rootData.regrets[1] = 0.25;
     rootData.avgStratAccumulator[0] = 0.125;
@@ -281,7 +281,7 @@ BOOST_AUTO_TEST_CASE(CalcUtilities) {
 BOOST_AUTO_TEST_CASE(CheckConvergenceInSmallDomain) {
     domains::IIGoofSpielDomain domain(3, 3, nullopt);
     CFRAlgorithm cfr(domain, Player(0), CFRSettings());
-    auto& data = cfr.getCache();
+    auto &data = cfr.getCache();
 
     double expectedUtilities[] =
         {0.00467926, 0.00251501, 0.00171567, 0.00130139, 0.00104813, 0.000877345, 0.000754399,

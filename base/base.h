@@ -103,11 +103,18 @@ typedef vector<distributionEntry> OutcomeDistribution;
 typedef vector<double> ProbDistribution;
 
 /**
+ * Specify probability for actions in map.
+ * The probabilities of listed actions must sum up to 1.
+ * There might be some actions missing -- it is assumed they have probability 0.
+ */
+typedef unordered_map<shared_ptr<Action>, double> ActionProbDistribution;
+
+/**
  * Behavioral strategy at given infoset: with what probability given action should be played?
  *
  * This should be **per player only**.
  */
-typedef unordered_map<shared_ptr<InformationSet>, ProbDistribution> BehavioralStrategy;
+typedef unordered_map<shared_ptr<InformationSet>, ActionProbDistribution> BehavioralStrategy;
 
 /**
  * Specify behavioral strategy for each player.

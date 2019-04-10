@@ -56,7 +56,10 @@ BehavioralStrategy mixedToBehavioralStrategy(const Domain &domain,
 
         auto infoSet = node->getAOHInfSet();
         if (behavStrat.find(infoSet) == behavStrat.end()) {
-            behavStrat[infoSet] = vector<double>(node->countAvailableActions(), 0.0);
+            behavStrat[infoSet] = unordered_map<shared_ptr<Action>, double>();
+            for (auto &action : node->availableActions()) {
+                behavStrat[infoSet][action] = 0.0;
+            }
         }
     };
 
@@ -64,8 +67,8 @@ BehavioralStrategy mixedToBehavioralStrategy(const Domain &domain,
 
     for (int i = 0; i < pureStrats.size(); ++i) {
         for (const auto &infosetStrat : pureStrats[i]) {
-            for (int j = 0; j < infosetStrat.second.size(); ++j) {
-                behavStrat[infosetStrat.first][j] += infosetStrat.second[j] * distribution[i];
+            for (auto &action : infosetStrat.second) {
+                behavStrat[infosetStrat.first][action.first] += action.second * distribution[i];
             }
         }
     }

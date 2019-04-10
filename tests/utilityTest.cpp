@@ -57,10 +57,10 @@ BOOST_AUTO_TEST_CASE(computeUtilityFullDepthCard4) {
     InfosetCache cache(domain.getRootStatesDistribution());
     StrategyProfile profile = getUniformStrategy(cache);
 
-    auto lowestCardAction = make_shared<GoofSpielAction>(0, 1)->getId();
-    auto secondLowestCardAction = make_shared<GoofSpielAction>(0, 2)->getId();
-    auto thirdLowestCardAction = make_shared<GoofSpielAction>(0, 3)->getId();
-    auto fourthLowestCardAction = make_shared<GoofSpielAction>(0, 4)->getId();
+    auto lowestCardAction = make_shared<GoofSpielAction>(0, 1);
+    auto secondLowestCardAction = make_shared<GoofSpielAction>(0, 2);
+    auto thirdLowestCardAction = make_shared<GoofSpielAction>(0, 3);
+    auto fourthLowestCardAction = make_shared<GoofSpielAction>(0, 4);
 
     auto setAction = [&](shared_ptr<EFGNode> node) {
         auto infoset = node->getAOHInfSet();

@@ -69,14 +69,13 @@ BOOST_AUTO_TEST_CASE(testSmallDomain) {
     auto childInfoset = childNode->getAOHInfSet();
 
     BehavioralStrategy stratHeads;
-    stratHeads[rootInfoset] = ProbDistribution(2, 0.0);
-    playOnlyAction(stratHeads[rootInfoset], headAction->getId());
+    auto action = make_shared<MatchingPenniesAction>(Heads);
+    stratHeads[rootInfoset] = {{action, 1.0}};
 
     auto brsVal = algorithms::bestResponseTo(stratHeads, Player(0), Player(1), domain, 2);
-    auto brProbs = brsVal.first[childInfoset];
-    auto optAction = *max_element(brProbs.begin(), brProbs.end());
+    auto optAction = (*brsVal.first[childInfoset].begin()).first;
 
-    BOOST_CHECK(optAction == tailAction->getId());
+    BOOST_CHECK(*optAction == *tailAction);
 }
 
 BOOST_AUTO_TEST_CASE(bestResponseFullDepthCard4) {
@@ -88,10 +87,10 @@ BOOST_AUTO_TEST_CASE(bestResponseFullDepthCard4) {
     InfosetCache cache(domain.getRootStatesDistribution());
     StrategyProfile profile = getUniformStrategy(cache);
 
-    auto lowestCardAction = make_shared<GoofSpielAction>(0, 1)->getId();
-    auto secondLowestCardAction = make_shared<GoofSpielAction>(0, 2)->getId();
-    auto thirdLowestCardAction = make_shared<GoofSpielAction>(0, 3)->getId();
-    auto fourthLowestCardAction = make_shared<GoofSpielAction>(0, 4)->getId();
+    auto lowestCardAction = make_shared<GoofSpielAction>(0, 1);
+    auto secondLowestCardAction = make_shared<GoofSpielAction>(0, 2);
+    auto thirdLowestCardAction = make_shared<GoofSpielAction>(0, 3);
+    auto fourthLowestCardAction = make_shared<GoofSpielAction>(0, 4);
 
     auto setAction = [&](shared_ptr<EFGNode> node) {
         auto infoset = node->getAOHInfSet();
@@ -121,8 +120,8 @@ BOOST_AUTO_TEST_CASE(bestResponseDepth2Card4) {
     InfosetCache cache(domain.getRootStatesDistribution());
     StrategyProfile profile = getUniformStrategy(cache);
 
-    auto lowestCardAction = make_shared<GoofSpielAction>(0, 1)->getId();
-    auto secondLowestCardAction = make_shared<GoofSpielAction>(0, 2)->getId();
+    auto lowestCardAction = make_shared<GoofSpielAction>(0, 1);
+    auto secondLowestCardAction = make_shared<GoofSpielAction>(0, 2);
 
     auto setAction = [&](shared_ptr<EFGNode> node) {
         auto infoset = node->getAOHInfSet();
@@ -148,7 +147,7 @@ BOOST_AUTO_TEST_CASE(bestResponseDepth1Card13) {
     InfosetCache cache(domain.getRootStatesDistribution());
     StrategyProfile profile = getUniformStrategy(cache, 1);
 
-    auto lowestCardAction = make_shared<GoofSpielAction>(0, 1)->getId();
+    auto lowestCardAction = make_shared<GoofSpielAction>(0, 1);
 
     auto setAction = [&](shared_ptr<EFGNode> node) {
         auto infoset = node->getAOHInfSet();

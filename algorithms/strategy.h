@@ -58,6 +58,15 @@ inline StrategyProfile getUniformStrategy(InfosetCache &data) {
  */
 void playOnlyAction(ProbDistribution &dist, unsigned long actionIdx);
 
+/**
+ * Play selected action with 100% probability in given distribution
+ */
+void playOnlyAction(ActionProbDistribution &dist, const shared_ptr<Action> &action);
+
+
+ActionProbDistribution mapDistribution(const ProbDistribution &dist,
+                                       const vector<shared_ptr<Action>> &actions);
+
 }  // namespace algorithms
 }  // namespace GTLib2
 
