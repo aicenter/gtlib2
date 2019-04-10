@@ -80,13 +80,33 @@ bool areAvailableActionsSorted(const Domain &domain) {
     return num_violations == 0;
 }
 
+bool isDomainMaxUtilityCorrect(const Domain &domain) {
+    double maxLeafUtility = 0;
+    auto countViolations = [&maxLeafUtility](shared_ptr<EFGNode> node) {
+        maxLeafUtility = std::max({node->rewards_[0], node->rewards_[1], maxLeafUtility});
+    };
+
+    treeWalkEFG(domain, countViolations, domain.getMaxDepth());
+    return maxLeafUtility == domain.getMaxUtility();
+}
+
+bool isDomainMaxDepthCorrect(const Domain &domain) {
+    int maxDepth = 0;
+    auto countViolations = [&maxDepth](shared_ptr<EFGNode> node) {
+        maxDepth = std::max(node->getDepth(), maxDepth);
+    };
+
+    treeWalkEFG(domain, countViolations, domain.getMaxDepth());
+    return maxDepth == domain.getMaxDepth();
+}
+
 BOOST_AUTO_TEST_SUITE(DomainTests)
 
-GoofSpielDomain gs1(3, 1, nullopt);
-GoofSpielDomain gs2(3, 2, nullopt);
-GoofSpielDomain gs3(3, 3, nullopt);
-GoofSpielDomain gs4(3, 4, nullopt);
-GoofSpielDomain gs5(4, 4, nullopt);
+GoofSpielDomain gs1(3, nullopt);
+GoofSpielDomain gs2(3, nullopt);
+GoofSpielDomain gs3(3, nullopt);
+GoofSpielDomain gs4(3, nullopt);
+GoofSpielDomain gs5(4, nullopt);
 GenericPokerDomain gp1(2, 2, 2, 2, 2);
 GenericPokerDomain gp2(3, 3, 1, 2, 3);
 OshiZumoDomain oz1(3, 3, 1);
@@ -122,6 +142,20 @@ BOOST_AUTO_TEST_CASE(checkAvailableActionsAreSorted) {
     for (auto domain : testDomains) {
         std::cout << "checking " << domain->getInfo() << "\n";
         BOOST_CHECK(areAvailableActionsSorted(*domain));
+    }
+}
+
+BOOST_AUTO_TEST_CASE(maxUtility) {
+    for (auto domain : testDomains) {
+        std::cout << "checking " << domain->getInfo() << "\n";
+        BOOST_CHECK(isDomainMaxUtilityCorrect(*domain));
+    }
+}
+
+BOOST_AUTO_TEST_CASE(maxDepth) {
+    for (auto domain : testDomains) {
+        std::cout << "checking " << domain->getInfo() << "\n";
+        BOOST_CHECK(isDomainMaxDepthCorrect(*domain));
     }
 }
 
