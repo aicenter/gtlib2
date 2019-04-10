@@ -23,8 +23,6 @@
 #ifndef LPSOLVERS_CPLEXLPSOLVER_H_
 #define LPSOLVERS_CPLEXLPSOLVER_H_
 
-#define IL_STD
-
 #include <ilcplex/ilocplex.h>
 #include <vector>
 #include "LPsolvers/AbstractLPSolver.h"
