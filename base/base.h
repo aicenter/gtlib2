@@ -134,6 +134,15 @@ typedef unordered_map<shared_ptr<ActionSequence>, double> RealizationPlan;
 typedef pair<ActionId, ObservationId> ActionObservation;
 
 
+
+/**
+ * Special value of action id, indicating no action has been taken.
+ *
+ * It is useful for example in phantom games.
+ */
+constexpr ActionId NO_ACTION = 0xFFFFFFFF;
+
+
 /**
  * Action is an abstract class that represents actions, which are identified by their id.
  *
@@ -144,6 +153,7 @@ typedef pair<ActionId, ObservationId> ActionObservation;
 class Action {
  public:
     explicit Action(ActionId id);
+    explicit Action() : Action(NO_ACTION) {};
 
     virtual ~Action() = default;
 
@@ -159,12 +169,11 @@ class Action {
     ActionId id_;
 };
 
+
 /**
- * Special value of action id, indicating no action has been taken.
- *
- * It is useful for example in phantom games.
+ * Special value of observation id, indicating no observation has been made.
  */
-constexpr ActionId NO_ACTION = 0xFFFFFFFF;
+constexpr ObservationId NO_OBSERVATION = 0xFFFFFFFF;
 
 /**
  * Observation is an abstract class that represents observations, which are identified by their id.
@@ -176,6 +185,7 @@ constexpr ActionId NO_ACTION = 0xFFFFFFFF;
 class Observation {
  public:
     explicit Observation(ObservationId id);
+    explicit Observation() : Observation(NO_OBSERVATION) {};
 
     virtual ~Observation() = default;
 
@@ -191,10 +201,6 @@ class Observation {
     ObservationId id_;
 };
 
-/**
- * Special value of observation id, indicating no observation has been made.
- */
-constexpr ObservationId NO_OBSERVATION = 0xFFFFFFFF;
 
 /**
  * Outcome is a class that represents outcomes, or edges of the domain graph.
