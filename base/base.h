@@ -206,18 +206,21 @@ class Observation {
  * Outcome is a class that represents outcomes, or edges of the domain graph.
  *
  * They contain:
- * - rewards for each player,
- * - observations for each player and
- * - a new state.
+ * - a new state,
+ * - observations for each player,
+ * - public observation for all players,
+ * - rewards for each player.
 */
 class Outcome {
  public:
     Outcome(shared_ptr<State> s,
             vector<shared_ptr<Observation>> observations,
+            shared_ptr<Observation> publicObservation,
             vector<double> rewards);
 
     shared_ptr<State> state_;
-    vector<shared_ptr<Observation>> observations_;
+    vector<shared_ptr<Observation>> privateObservations_;
+    shared_ptr<Observation> publicObservation_;
     vector<double> rewards_;
 
     size_t getHash() const;
