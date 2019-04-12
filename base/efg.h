@@ -98,7 +98,8 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
      * Constructor for the new round node
      */
     EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,
-            const vector<shared_ptr<Observation>> &observations,
+            const vector<shared_ptr<Observation>> &privateObservations,
+            const shared_ptr<Observation> &publicObservation,
             const vector<double> &rewards,
             double natureProbability, shared_ptr<Action> incomingAction, int depth);
 
@@ -230,7 +231,8 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
     void generateDescriptor() const;
     void generateHash() const;
 
-    vector<shared_ptr<Observation>> observations_;
+    vector<shared_ptr<Observation>> privateObservations_;
+    shared_ptr<Observation> publicObservation_;
     vector<PlayerAction> performedActionsInThisRound_;
     vector<Player> remainingPlayersInTheRound_;
     // todo: const for member variables and constructors?
