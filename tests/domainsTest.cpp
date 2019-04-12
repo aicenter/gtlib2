@@ -55,7 +55,7 @@ bool isDomainZeroSum(const Domain &domain) {
 bool isEFGNodeAndStateConsistent(const Domain &domain) {
     int num_violations = 0;
     EFGCache cache(domain.getRootStatesDistribution());
-    cache.buildForest();
+    cache.buildForest(domain.getMaxDepth());
     auto nodes = cache.getNodes();
     for (const auto &n1: nodes) {
         for (const auto &n2: nodes) {
@@ -64,6 +64,19 @@ bool isEFGNodeAndStateConsistent(const Domain &domain) {
             }
         }
     }
+    return num_violations == 0;
+}
+
+bool areAvailableActionsSorted(const Domain &domain) {
+    int num_violations = 0;
+    auto countViolations = [&num_violations](shared_ptr<EFGNode> node) {
+        auto actions = node->availableActions();
+        for (int j = 0; j < actions.size(); ++j) {
+            if(actions[j]->getId() != j) num_violations++;
+        }
+    };
+
+    treeWalkEFG(domain, countViolations, domain.getMaxDepth());
     return num_violations == 0;
 }
 
@@ -87,12 +100,13 @@ SimultaneousMatchingPenniesDomain mp2;
 Domain* testDomains[] = { // NOLINT(cert-err58-cpp)
     & gs1, & gs2, & gs3, & gs4, & gs5,
     & gp1, & gp2,
-    & oz1, & oz2, /* & oz3, -- failing test case */ & oz4, & oz5,
+    & oz1, & oz2, & oz3, & oz4, & oz5,
     & mp1, & mp2,
 };
 
 BOOST_AUTO_TEST_CASE(zeroSumGame) {
     for (auto domain : testDomains) {
+        std::cout << "checking " << domain->getInfo() << "\n";
         BOOST_CHECK(isDomainZeroSum(*domain));
     }
 }
@@ -101,6 +115,13 @@ BOOST_AUTO_TEST_CASE(checkEFGNodeStateEqualityConsistency) {
     for (auto domain : testDomains) {
         std::cout << "checking " << domain->getInfo() << "\n";
         BOOST_CHECK(isEFGNodeAndStateConsistent(*domain));
+    }
+}
+
+BOOST_AUTO_TEST_CASE(checkAvailableActionsAreSorted) {
+    for (auto domain : testDomains) {
+        std::cout << "checking " << domain->getInfo() << "\n";
+        BOOST_CHECK(areAvailableActionsSorted(*domain));
     }
 }
 
