@@ -140,7 +140,7 @@ BOOST_AUTO_TEST_CASE(invalidMoving) {
     }
 
     Outcome newState = ks->performActions(v)[0].first;
-    BOOST_CHECK(newState.observations_[0]->getId() == v[0].second.get()->getId() && newState.observations_[1]->getId() == NO_OBSERVATION);
+    BOOST_CHECK(newState.privateObservations_[0]->getId() == v[0].second.get()->getId() && newState.privateObservations_[1]->getId() == NO_OBSERVATION);
 }
 
 BOOST_AUTO_TEST_CASE(checking) {
@@ -337,7 +337,7 @@ BOOST_AUTO_TEST_CASE(castleDeny) {
 
     //short castle should be invalid
     Outcome newState = ks->performActions(v)[0].first;
-    BOOST_CHECK(newState.observations_[0]->getId() == v[0].second.get()->getId() && newState.observations_[1]->getId() == NO_OBSERVATION);
+    BOOST_CHECK(newState.privateObservations_[0]->getId() == v[0].second.get()->getId() && newState.privateObservations_[1]->getId() == NO_OBSERVATION);
 
     //reset the board
     ks->clearBoard();
@@ -366,7 +366,7 @@ BOOST_AUTO_TEST_CASE(castleDeny) {
     }
 
     newState = ks->performActions(v)[0].first;
-    BOOST_CHECK(newState.observations_[0]->getId() == v[0].second.get()->getId() && newState.observations_[1]->getId() == NO_OBSERVATION);
+    BOOST_CHECK(newState.privateObservations_[0]->getId() == v[0].second.get()->getId() && newState.privateObservations_[1]->getId() == NO_OBSERVATION);
 }
 
 BOOST_AUTO_TEST_CASE(cutting) {
@@ -557,7 +557,7 @@ BOOST_AUTO_TEST_CASE(protection) {
     }
     newState = newBoard->performActions(v)[0].first;
 
-    BOOST_CHECK(newState.observations_[0]->getId() == v[0].second.get()->getId() && newState.observations_[1]->getId() == NO_OBSERVATION);
+    BOOST_CHECK(newState.privateObservations_[0]->getId() == v[0].second.get()->getId() && newState.privateObservations_[1]->getId() == NO_OBSERVATION);
 }
 
 BOOST_AUTO_TEST_CASE(randomPin) {
@@ -613,7 +613,7 @@ BOOST_AUTO_TEST_CASE(randomPin) {
 
         Outcome lastState = newBoard->performActions(v)[0].first;
 
-        BOOST_CHECK(lastState.observations_[0]->getId() == v[0].second.get()->getId() && lastState.observations_[1]->getId() == NO_OBSERVATION);
+        BOOST_CHECK(lastState.privateObservations_[0]->getId() == v[0].second.get()->getId() && lastState.privateObservations_[1]->getId() == NO_OBSERVATION);
 }
 
 BOOST_AUTO_TEST_CASE(randomGameOver) {
