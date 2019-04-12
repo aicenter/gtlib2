@@ -45,6 +45,8 @@ using domains::Tails;
 using algorithms::DomainStatistics;
 using algorithms::playOnlyAction;
 using domains::GoofSpielDomain;
+using domains::GoofSpielVariant::IncompleteObservations;
+using domains::GoofSpielVariant::CompleteObservations;
 using domains::GoofSpielAction;
 using algorithms::DomainStatistics;
 using algorithms::treeWalkEFG;
@@ -79,7 +81,7 @@ BOOST_AUTO_TEST_CASE(testSmallDomain) {
 }
 
 BOOST_AUTO_TEST_CASE(bestResponseFullDepthCard4) {
-    GoofSpielDomain domain(4, 4, nullopt);
+    GoofSpielDomain domain(4);
 
     auto player = Player(1);
     auto opponent = Player(0);
@@ -112,7 +114,7 @@ BOOST_AUTO_TEST_CASE(bestResponseFullDepthCard4) {
 }
 
 BOOST_AUTO_TEST_CASE(bestResponseDepth2Card4) {
-    GoofSpielDomain domain(4, 2, nullopt);
+    GoofSpielDomain domain(4);
 
     auto player = Player(1);
     auto opponent = Player(0);
@@ -139,7 +141,7 @@ BOOST_AUTO_TEST_CASE(bestResponseDepth2Card4) {
 }
 
 BOOST_AUTO_TEST_CASE(bestResponseDepth1Card13) {
-    GoofSpielDomain domain(1, nullopt);
+    GoofSpielDomain domain(13);
 
     auto player = Player(1);
     auto opponent = Player(0);
@@ -155,9 +157,9 @@ BOOST_AUTO_TEST_CASE(bestResponseDepth1Card13) {
             playOnlyAction(profile[opponent][infoset], lowestCardAction);
         }
     };
-    algorithms::treeWalkEFG(domain, setAction);
+    algorithms::treeWalkEFG(domain, setAction, 1);
 
-    auto bestResponse = algorithms::bestResponseTo(profile[opponent], opponent, player, domain);
+    auto bestResponse = algorithms::bestResponseTo(profile[opponent], opponent, player, domain, 1);
 
     BOOST_CHECK(std::abs(bestResponse.second - 7) <= 0.001);
 }

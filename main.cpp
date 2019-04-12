@@ -30,13 +30,15 @@ using std::endl;
 using std::cout;
 using namespace GTLib2;
 
-using domains::IIGoofSpielDomain;
+using domains::GoofSpielDomain;
+using domains::GoofSpielVariant ;
 using utils::exportGraphViz;
 using utils::exportGambit;
 
 void exampleBenchmarkCFR() {
     auto start = std::chrono::high_resolution_clock::now();
-    domains::IIGoofSpielDomain domain(5, 5, 0);
+
+    domains::GoofSpielDomain domain(5, 0, GoofSpielVariant::IncompleteObservations);
     algorithms::CFRAlgorithm cfr(domain, Player(0), algorithms::CFRSettings());
     cfr.runIterations(100);
 
@@ -46,7 +48,15 @@ void exampleBenchmarkCFR() {
 }
 
 void exampleExportDomain() {
-    auto iigs3_seed = IIGoofSpielDomain(3, 3, 0);
+    auto gs2 = GoofSpielDomain(2, GoofSpielVariant::CompleteObservations);
+    auto gs3 = GoofSpielDomain(3, GoofSpielVariant::CompleteObservations);
+    auto gs3_seed = GoofSpielDomain(3, 0, GoofSpielVariant::CompleteObservations);
+    auto iigs3 = GoofSpielDomain(3, GoofSpielVariant::IncompleteObservations);
+    auto iigs3_seed = GoofSpielDomain(3, 0, GoofSpielVariant::IncompleteObservations);
+    exportGambit(gs2, "./gs2.gbt");
+    exportGambit(gs3, "./gs3.gbt");
+    exportGambit(gs3_seed, "./gs3_seed.gbt");
+    exportGambit(iigs3, "./iigs3.gbt");
     exportGambit(iigs3_seed, "./iigs3_seed.gbt");
 
     // you can run this for visualization

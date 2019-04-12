@@ -30,7 +30,8 @@
 
 namespace GTLib2 {
 
-using domains::IIGoofSpielDomain;
+using domains::GoofSpielDomain;
+using domains::GoofSpielVariant::IncompleteObservations;
 
 BOOST_AUTO_TEST_SUITE(AlgorithmTest)
 
@@ -38,11 +39,11 @@ BOOST_AUTO_TEST_CASE(PlayMatchSmallGame) {
     PreparedAlgorithm firstAction = createInitializer<FixedActionPlayer>(0);
     PreparedAlgorithm lastAction = createInitializer<FixedActionPlayer>(-1);
 
-    domains::IIGoofSpielDomain domain(3, 3, 0);
+    GoofSpielDomain domain(3, 0, IncompleteObservations);
     vector<double> expectedUtilities = vector<double>{1., -1.};
     vector<double> actualUtilities = playMatch(
         domain, vector<PreparedAlgorithm>{firstAction, lastAction},
-        vector<int>{10000, 10000}, vector<int>{10, 10}, 0);
+        vector<int>{1000, 1000}, vector<int>{10, 10}, 0);
     BOOST_CHECK_EQUAL(actualUtilities, expectedUtilities);
 }
 

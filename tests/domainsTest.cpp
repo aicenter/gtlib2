@@ -35,12 +35,13 @@
 namespace GTLib2 {
 
 using domains::GoofSpielDomain;
-using domains::IIGoofSpielDomain;
 using domains::GenericPokerDomain;
 using domains::MatchingPenniesDomain;
 using domains::SimultaneousMatchingPenniesDomain;
 using domains::OshiZumoDomain;
 using algorithms::treeWalkEFG;
+using domains::GoofSpielVariant::IncompleteObservations;
+using domains::GoofSpielVariant::CompleteObservations;
 
 bool isDomainZeroSum(const Domain &domain) {
     int num_violations = 0;
@@ -102,11 +103,22 @@ bool isDomainMaxDepthCorrect(const Domain &domain) {
 
 BOOST_AUTO_TEST_SUITE(DomainTests)
 
-GoofSpielDomain gs1(3, nullopt);
-GoofSpielDomain gs2(3, nullopt);
-GoofSpielDomain gs3(3, nullopt);
-GoofSpielDomain gs4(3, nullopt);
-GoofSpielDomain gs5(4, nullopt);
+GoofSpielDomain gs1(1, CompleteObservations);
+GoofSpielDomain gs2(2, CompleteObservations);
+GoofSpielDomain gs3(3, CompleteObservations);
+GoofSpielDomain gs4(4, CompleteObservations);
+GoofSpielDomain gs1_seed(1, 0, CompleteObservations);
+GoofSpielDomain gs2_seed(2, 0, CompleteObservations);
+GoofSpielDomain gs3_seed(3, 0, CompleteObservations);
+GoofSpielDomain gs4_seed(4, 0, CompleteObservations);
+GoofSpielDomain iigs1(1, IncompleteObservations);
+GoofSpielDomain iigs2(2, IncompleteObservations);
+GoofSpielDomain iigs3(3, IncompleteObservations);
+GoofSpielDomain iigs4(4, IncompleteObservations);
+GoofSpielDomain iigs1_seed(1, 0, IncompleteObservations);
+GoofSpielDomain iigs2_seed(2, 0, IncompleteObservations);
+GoofSpielDomain iigs3_seed(3, 0, IncompleteObservations);
+GoofSpielDomain iigs4_seed(4, 0, IncompleteObservations);
 GenericPokerDomain gp1(2, 2, 2, 2, 2);
 GenericPokerDomain gp2(3, 3, 1, 2, 3);
 OshiZumoDomain oz1(3, 3, 1);
@@ -118,7 +130,8 @@ MatchingPenniesDomain mp1;
 SimultaneousMatchingPenniesDomain mp2;
 
 Domain* testDomains[] = { // NOLINT(cert-err58-cpp)
-    & gs1, & gs2, & gs3, & gs4, & gs5,
+    & gs1, & gs2, & gs3, & gs4, & gs1_seed, & gs2_seed, & gs3_seed, & gs4_seed,
+    & iigs1, & iigs2, & iigs3, & iigs4, & iigs1_seed, & iigs2_seed, & iigs3_seed, & iigs4_seed,
     & gp1, & gp2,
     & oz1, & oz2, & oz3, & oz4, & oz5,
     & mp1, & mp2,

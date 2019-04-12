@@ -35,11 +35,7 @@
 
 namespace GTLib2 {
 
-using domains::IIGoofSpielDomain;
-using domains::GoofSpielDomain;
 using domains::MatchingPenniesDomain;
-using domains::GenericPokerDomain;
-
 using utils::exportGraphViz;
 using utils::exportGambit;
 

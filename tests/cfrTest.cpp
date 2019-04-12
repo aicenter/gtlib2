@@ -38,7 +38,9 @@ using domains::MatchingPenniesDomain;
 using domains::MatchingPenniesAction;
 using algorithms::CFRData;
 using algorithms::bestResponseTo;
-
+using domains::GoofSpielDomain;
+using domains::GoofSpielVariant::IncompleteObservations;
+using domains::GoofSpielVariant::CompleteObservations;
 
 BOOST_AUTO_TEST_SUITE(CFRTest)
 
@@ -279,7 +281,7 @@ BOOST_AUTO_TEST_CASE(CalcUtilities) {
 
 
 BOOST_AUTO_TEST_CASE(CheckConvergenceInSmallDomain) {
-    domains::IIGoofSpielDomain domain(3, 3, nullopt);
+    GoofSpielDomain domain(3, IncompleteObservations);
     CFRAlgorithm cfr(domain, Player(0), CFRSettings());
     auto &data = cfr.getCache();
 

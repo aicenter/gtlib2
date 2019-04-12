@@ -35,110 +35,84 @@
 using std::experimental::nullopt;
 using std::experimental::optional;
 
-namespace GTLib2 {
-namespace domains {
+namespace GTLib2::domains {
 
-class GoofSpielAction : public Action {
+class GoofSpielAction: public Action {
  public:
-  GoofSpielAction(ActionId id, int card);
-  string toString() const override;
-  bool operator==(const Action &that) const override;
-  size_t getHash() const override;
-  int cardNumber_;
+    GoofSpielAction(ActionId id, int card);
+    string toString() const override;
+    bool operator==(const Action &that) const override;
+    size_t getHash() const override;
+    int cardNumber_;
 };
 
-class GoofSpielObservation : public Observation {
- public:
-  GoofSpielObservation(int id, optional<int> newBid, optional<int> player1LastCard,
-                       optional<int> player2LastCard);
+constexpr int NO_NATURE_CARD = 0;
+constexpr int NO_CARD_OBSERVATION = 0;
 
-  optional<int> newBid_;
-  optional<int> player1LastCard_;
-  optional<int> player2LastCard_;
+class GoofSpielObservation: public Observation {
+ public:
+    GoofSpielObservation(int initialNumOfCards,
+                         const std::array<int, 3> &chosenCards,
+                         const vector<int> &naturePlayedCards,
+                         int roundResult);
+    const int natureCard_; // the bidding card
+    const vector<int> naturePlayedCards_; // all the cards that nature played so far
+    const int player0LastCard_;
+    const int player1LastCard_;
+    const int roundResult_; // for player 0 -- 0 draw, 1 win, -1 lose
 };
 
-class IIGoofSpielObservation : public Observation {
- public:
-  IIGoofSpielObservation(int id, optional<int> newBid, optional<int> myLastCard,
-                         optional<int> result);
+/**
+ * IncompleteObservations correspond to "IIGS",
+ * CompleteObservations correspond to "GS".
+ */
+enum GoofSpielVariant { CompleteObservations, IncompleteObservations };
 
-  optional<int> newBid_;
-  optional<int> myLastCard_;
-  optional<int> result_;
+class GoofSpielDomain: public Domain {
+ public:
+    explicit GoofSpielDomain(int numberOfCards, GoofSpielVariant variant);
+    explicit GoofSpielDomain(int numberOfCards)
+        : GoofSpielDomain(numberOfCards, CompleteObservations) {};
+    explicit GoofSpielDomain(int numberOfCards, int seed, GoofSpielVariant variant);
+    explicit GoofSpielDomain(int numberOfCards, int seed)
+        : GoofSpielDomain(numberOfCards, seed, CompleteObservations) {};
+    string getInfo() const override;
+    vector<Player> getPlayers() const override;
+    const int numberOfCards_;
+    const bool usesSeed_;
+    const GoofSpielVariant variant_;
+
+ private:
+    void initWithoutSeed();
+    void initWithSeed(int seed);
 };
 
-class GoofSpielDomain : public Domain {
+class GoofSpielState: public State {
  public:
-  GoofSpielDomain(unsigned int maxDepth, optional<unsigned long int> seed);
-  GoofSpielDomain(int numberOfCards, unsigned int maxDepth, optional<unsigned long int> seed);
-  string getInfo() const override;
-  vector<Player> getPlayers() const override;
-  const int numberOfCards_;
-  const int seed_;
+    GoofSpielState(Domain *domain,
+                   std::array<vector<int>, 3> playerDecks,
+                   int natureSelectedCard,
+                   vector<double> cumulativeRewards,
+                   std::array<vector<int>, 3> playedCards);
+    GoofSpielState(Domain *domain,
+                   const GoofSpielState &previousState,
+                   std::array<int, 3> roundPlayedCards,
+                   vector<double> cumulativeRewards);
+
+    unsigned long countAvailableActionsFor(Player player) const override;
+    vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
+    OutcomeDistribution performActions(const vector<PlayerAction> &actions) const override;
+    vector<Player> getPlayers() const override;
+    string toString() const override;
+    bool operator==(const State &rhs) const override;
+    size_t getHash() const override;
+
+    std::array<vector<int>, 3> playerDecks_;
+    std::array<vector<int>, 3> playedCards_;
+    int natureSelectedCard_;  // Not in the deck. For the last round it will be NO_NATURE_CARD
+    vector<double> cumulativeRewards_;
 };
 
-class IIGoofSpielDomain : public Domain {
- public:
-  IIGoofSpielDomain(unsigned int maxDepth, optional<unsigned long int> seed);
-  IIGoofSpielDomain(int numberOfCards, unsigned int maxDepth, optional<unsigned long int> seed);
-  string getInfo() const override;
-  vector<Player> getPlayers() const override;
-  const int numberOfCards_;
-  const int seed_;
-};
-
-class GoofSpielState : public State {
- public:
-  GoofSpielState(Domain *domain, vector<int> player1Deck, vector<int> player2Deck,
-                 vector<int> natureDeck, optional<int> natureSelectedCard,
-                 double player1CumulativeReward, double player2CumulativeReward,
-                 vector<int> player1PlayedCards, vector<int> player2PlayedCards,
-                 vector<int> naturePlayedCards);
-
-  GoofSpielState(Domain *domain, const GoofSpielState &previousState, int player1Card,
-                 int player2Card, optional<int> newNatureCard,
-                 double player1CumulativeReward,
-                 double player2CumulativeReward);
-
-  unsigned long countAvailableActionsFor(Player player) const override;
-  vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
-  OutcomeDistribution performActions(
-      const vector<PlayerAction> &actions) const override;
-  vector<Player> getPlayers() const override;
-  string toString() const override;
-  bool operator==(const State &rhs) const override;
-
-  size_t getHash() const override;
-
-  vector<int> player1Deck_;
-  vector<int> player2Deck_;
-  vector<int> natureDeck_;
-  vector<int> player1PlayedCards_;
-  vector<int> player2PlayedCards_;
-  vector<int> naturePlayedCards_;
-  optional<int> natureSelectedCard_;  // Not in the deck
-  double player1CumulativeReward_;
-  double player2CumulativeReward_;
-};
-
-class IIGoofSpielState : public GoofSpielState {
- public:
-  IIGoofSpielState(Domain *domain, vector<int> player1Deck, vector<int> player2Deck,
-                   vector<int> natureDeck, optional<int> natureSelectedCard,
-                   double player1CumulativeReward, double player2CumulativeReward,
-                   vector<int> player1PlayedCards, vector<int> player2PlayedCards,
-                   vector<int> naturePlayedCards);
-
-  IIGoofSpielState(Domain *domain, const GoofSpielState &previousState, int player1Card,
-                   int player2Card, optional<int> newNatureCard,
-                   double player1CumulativeReward,
-                   double player2CumulativeReward);
-
-  OutcomeDistribution performActions(
-      const vector<PlayerAction> &actions) const final;
-};
-
-}  // namespace domains
 }  // namespace GTLib2
 
 #endif  // DOMAINS_GOOFSPIEL_H_
