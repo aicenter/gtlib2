@@ -155,7 +155,7 @@ void exportGraphViz(const Domain &domain, ostream &fs) {
 
     treeWalkEFG(domain, walkPrint);
 
-    fs << "}";
+    fs << "}\n";
 }
 
 void exportGraphViz(const Domain &domain, const string &fileToSave) {
@@ -178,11 +178,10 @@ void exportGambit(const Domain &domain, ostream &fs) {
 
     int terminalIdx = 0, chanceIdx = 0, infosetIdx = 0;
     unordered_map<shared_ptr<AOH>, int> infoset2id;
-    auto walkPrint = [&](shared_ptr<EFGNode> node) {
+
+    auto walkPrint = [&](shared_ptr<EFGNode> node, const auto &walkPrint) {
         auto nodeLabel = ""; //node->toString();
-        for (int j = 0; j < node->getDistanceFromRoot(); ++j) {
-            fs << " ";
-        }
+        for (int j = 0; j < node->getDistanceFromRoot(); ++j) fs << " ";
 
         if (node->isTerminal()) {
             fs << "t \"" << nodeLabel << "\" " << terminalIdx++ << " \"\" { ";
@@ -201,30 +200,37 @@ void exportGambit(const Domain &domain, ostream &fs) {
             isId = infoset2id.find(infoset)->second;
         }
 
+        auto actions = node->availableActions();
         fs << "p \"" << nodeLabel << "\" "
            << (int(*node->getCurrentPlayer())+1) << " " << isId << " \"\" { ";
-        for (const auto &action: node->availableActions()) {
+        for (const auto &action: actions) {
             fs << "\"" << action->toString() << "\" ";
         }
         fs << "} 0\n";
 
-        for (auto &action : node->availableActions()) {
+        for (auto &action : actions) {
             auto children = node->performAction(action);
-            if(children.size() == 1) return;
-
-            for (int j = 0; j < node->getDistanceFromRoot(); ++j) {
-                fs << " ";
+            if(children.size() == 1) {
+                walkPrint(children[0].first, walkPrint);
+                continue;
             }
+
+            for (int j = 0; j < node->getDistanceFromRoot(); ++j) fs << " ";
             fs << "c \"" << nodeLabel << "\" " << chanceIdx++ << " \"\" { ";
             int i = 0;
             for (const auto &[childNode, chanceProb]: children) {
                 fs << "\"" << i++ << "\" " << chanceProb << " ";
             }
             fs << "} 0\n";
+
+            for(auto &[childNode, chanceProb] : children) {
+                walkPrint(childNode, walkPrint);
+            }
         }
     };
 
     auto rootNodes = createRootEFGNodes(domain.getRootStatesDistribution());
+    // write initial chance node if there is one
     if(rootNodes.size() > 1) {
         fs << "c \"" << "" << "\" " << chanceIdx++ << " \"\" { ";
         int i = 0;
@@ -234,7 +240,9 @@ void exportGambit(const Domain &domain, ostream &fs) {
         fs << "} 0\n";
     }
 
-    treeWalkEFG(domain, walkPrint);
+    for (const auto &[rootNode, chanceProb] : rootNodes) {
+        walkPrint(rootNode, walkPrint);
+    }
 }
 
 void exportGambit(const Domain &domain, const string &fileToSave) {
