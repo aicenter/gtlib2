@@ -21,6 +21,7 @@
 
 
 #include <unordered_set>
+#include <sstream>
 
 #include "algorithms/bestResponse.h"
 #include "domains/goofSpiel.h"
@@ -44,31 +45,55 @@ using utils::exportGambit;
 
 BOOST_AUTO_TEST_SUITE(Export);
 
-BOOST_AUTO_TEST_CASE(exportSmallDomain) {
-    auto gs = GoofSpielDomain(2, 2, nullopt);
-    exportGraphViz(gs, "/home/michal/Code/GT/gtlib2/utils/gs.dot");
-    exportGambit(gs, "/home/michal/Code/GT/gtlib2/utils/gs.gbt");
-
-    auto iigs = IIGoofSpielDomain(2, 2, nullopt);
-    exportGraphViz(iigs, "/home/michal/Code/GT/gtlib2/utils/iigs.dot");
-    exportGambit(iigs, "/home/michal/Code/GT/gtlib2/utils/iigs.gbt");
-
-    auto iigs_seed = IIGoofSpielDomain(3, 3, 0);
-    exportGraphViz(iigs_seed, "/home/michal/Code/GT/gtlib2/utils/iigs_seed.dot");
-    exportGambit(iigs_seed, "/home/michal/Code/GT/gtlib2/utils/iigs_seed.gbt");
-
+BOOST_AUTO_TEST_CASE(exportGambitSmallDomain) {
     auto mp = MatchingPenniesDomain();
-    exportGraphViz(mp, "/home/michal/Code/GT/gtlib2/utils/mp.dot");
-    exportGambit(mp, "/home/michal/Code/GT/gtlib2/utils/mp.gbt");
+    std::ostringstream gambit_os;
+    exportGambit(mp, gambit_os);
 
-    auto poker = GenericPokerDomain(2, 2, 1, 2, 1);
-    exportGraphViz(poker, "/home/michal/Code/GT/gtlib2/utils/poker.dot");
-    exportGambit(poker, "/home/michal/Code/GT/gtlib2/utils/poker.gbt");
-
-    // todo: finish test
-    BOOST_CHECK(true);
+    string expectedGambit =
+        R"(EFG 2 R "N6GTLib27domains21MatchingPenniesDomainE" { "Pl0" "Pl1" })" "\n"
+        R"("")" "\n"
+        R"(p "" 1 1 "" { "Heads" "Tails" } 0)" "\n"
+        R"( p "" 2 2 "" { "Heads" "Tails" } 0)" "\n"
+        R"(  t "" 0 "" { 1, -1})" "\n"
+        R"(  t "" 1 "" { -1, 1})" "\n"
+        R"( p "" 2 2 "" { "Heads" "Tails" } 0)" "\n"
+        R"(  t "" 2 "" { -1, 1})" "\n"
+        R"(  t "" 3 "" { 1, -1})" "\n";
+    BOOST_CHECK(expectedGambit == gambit_os.str());
 }
 
+BOOST_AUTO_TEST_CASE(exportGraphvizSmallDomain) {
+    auto mp = MatchingPenniesDomain();
+    std::ostringstream graphviz_os;
+    exportGraphViz(mp, graphviz_os);
+
+    string expectedGraphviz =
+        R"(digraph {)" "\n"
+        R"(	rankdir=LR)" "\n"
+        R"(	graph [fontname=courier])" "\n"
+        R"(	node  [fontname=courier, shape=box, style="filled", fillcolor=white])" "\n"
+        R"(	edge  [fontname=courier])" "\n"
+        R"(	"[2, 2, 0]" -> "[2, 2, 0, 0, 2, 2, 1]" [label="Heads, p=1"])" "\n"
+        R"(	"[2, 2, 0]" [fillcolor="#FF0000", label="", shape=triangle])" "\n"
+        R"(	"[2, 2, 0]" -> "[2, 2, 0, 1, 2, 2, 1]" [label="Tails, p=1"])" "\n"
+        R"(	"[2, 2, 0]" [fillcolor="#FF0000", label="", shape=triangle])" "\n"
+        R"(	"[2, 2, 0, 0, 2, 2, 1]" -> "[2, 2, 0, 0, 2, 2, 1, 0, 0, 0]" [label="Heads, p=1"])" "\n"
+        R"(	"[2, 2, 0, 0, 2, 2, 1]" [fillcolor="#00FF00", label="", shape=invtriangle])" "\n"
+        R"(	"[2, 2, 0, 0, 2, 2, 1]" -> "[2, 2, 0, 0, 2, 2, 1, 1, 1, 0]" [label="Tails, p=1"])" "\n"
+        R"(	"[2, 2, 0, 0, 2, 2, 1]" [fillcolor="#00FF00", label="", shape=invtriangle])" "\n"
+        R"(	"[2, 2, 0, 0, 2, 2, 1, 0, 0, 0]" [fillcolor="#FFFFFF", label="[1, -1]"])" "\n"
+        R"(	"[2, 2, 0, 0, 2, 2, 1, 1, 1, 0]" [fillcolor="#FFFFFF", label="[-1, 1]"])" "\n"
+        R"(	"[2, 2, 0, 1, 2, 2, 1]" -> "[2, 2, 0, 1, 2, 2, 1, 0, 0, 1]" [label="Heads, p=1"])" "\n"
+        R"(	"[2, 2, 0, 1, 2, 2, 1]" [fillcolor="#00FF00", label="", shape=invtriangle])" "\n"
+        R"(	"[2, 2, 0, 1, 2, 2, 1]" -> "[2, 2, 0, 1, 2, 2, 1, 1, 1, 1]" [label="Tails, p=1"])" "\n"
+        R"(	"[2, 2, 0, 1, 2, 2, 1]" [fillcolor="#00FF00", label="", shape=invtriangle])" "\n"
+        R"(	"[2, 2, 0, 1, 2, 2, 1, 0, 0, 1]" [fillcolor="#FFFFFF", label="[-1, 1]"])" "\n"
+        R"(	"[2, 2, 0, 1, 2, 2, 1, 1, 1, 1]" [fillcolor="#FFFFFF", label="[1, -1]"])" "\n"
+        R"(})" "\n";
+
+    BOOST_CHECK(expectedGraphviz == graphviz_os.str());
+}
 BOOST_AUTO_TEST_SUITE_END()
 
 }
