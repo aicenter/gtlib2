@@ -21,18 +21,21 @@
 
 
 #include <chrono>
-#include <algorithms/cfr.h>
+#include "algorithms/cfr.h"
 #include "domains/goofSpiel.h"
+#include "utils/export.h"
 
 
 using std::endl;
 using std::cout;
 using namespace GTLib2;
 
+using domains::IIGoofSpielDomain;
+using utils::exportGraphViz;
+using utils::exportGambit;
 
-int main(int argc, char *argv[]) {
+void exampleBenchmarkCFR() {
     auto start = std::chrono::high_resolution_clock::now();
-
     domains::IIGoofSpielDomain domain(5, 5, 0);
     algorithms::CFRAlgorithm cfr(domain, Player(0), algorithms::CFRSettings());
     cfr.runIterations(100);
@@ -40,5 +43,19 @@ int main(int argc, char *argv[]) {
     auto end = std::chrono::high_resolution_clock::now();
     using ms = std::chrono::duration<int, std::milli>;
     cout << "Time " << std::chrono::duration_cast<ms>(end - start).count() << " ms" << '\n';
+}
+
+void exampleExportDomain() {
+    auto iigs3_seed = IIGoofSpielDomain(3, 3, 0);
+    exportGambit(iigs3_seed, "./iigs3_seed.gbt");
+
+    // you can run this for visualization
+    // $ dot -Tsvg iigs3_seed.dot -o iigs3_seed.svg
+    exportGraphViz(iigs3_seed, "./iigs3_seed.dot");
+}
+
+int main(int argc, char *argv[]) {
+    exampleBenchmarkCFR();
+    exampleExportDomain();
     return 0;
 }
