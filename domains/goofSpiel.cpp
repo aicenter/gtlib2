@@ -150,8 +150,8 @@ void GoofSpielDomain::initWithoutSeed() {
 
 string GoofSpielDomain::getInfo() const {
     string type = (variant_ ? "IIGoofspiel" : "Goofspiel");
-    return type + " with " + std::to_string(numberOfCards_) + " and uses seed "
-        + std::to_string(usesSeed_);
+    return type + " with " + std::to_string(numberOfCards_) + " cards and "
+        + (usesSeed_ ? "fixed nature deck" : "random nature cards");
 }
 
 vector<Player> GoofSpielDomain::getPlayers() const {
