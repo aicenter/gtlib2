@@ -42,14 +42,14 @@ void treeWalkEFG(EFGCache &cache, EFGNodeCallback function, int maxDepth) {
         if (node->getDepth() >= maxDepth) return;
 
         for (const auto &action : node->availableActions()) {
-            for (auto const &nodeDist : cache.getChildrenFor(node, action)) {
-                traverse(nodeDist.first, traverse);
+            for (auto const &[nextNode, chanceProb] : cache.getChildrenFor(node, action)) {
+                traverse(nextNode, traverse);
             }
         }
     };
 
-    for (const auto &nodeDist : cache.getRootNodes()) {
-        traverse(nodeDist.first, traverse);
+    for (const auto &[rootNode, chanceProb] : cache.getRootNodes()) {
+        traverse(rootNode, traverse);
     }
 }
 
@@ -63,14 +63,14 @@ void treeWalkEFG(const Domain &domain, EFGNodeCallback function, int maxDepth) {
         if (node->getDepth() >= maxDepth) return;
 
         for (const auto &action : node->availableActions()) {
-            for (auto const &nodeDist : node->performAction(action)) {
-                traverse(nodeDist.first, traverse);
+            for (auto const &[nextNode, chanceProb] : node->performAction(action)) {
+                traverse(nextNode, traverse);
             }
         }
     };
 
-    for (const auto &nodeDist : createRootEFGNodes(domain.getRootStatesDistribution())) {
-        traverse(nodeDist.first, traverse);
+    for (const auto &[rootNode, chanceProb] : createRootEFGNodes(domain.getRootStatesDistribution())) {
+        traverse(rootNode, traverse);
     }
 }
 
