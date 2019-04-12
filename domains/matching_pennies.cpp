@@ -29,7 +29,7 @@
 
 namespace GTLib2 {
 namespace domains {
-MatchingPenniesDomain::MatchingPenniesDomain() : Domain(std::numeric_limits<int>::max(), 2) {
+MatchingPenniesDomain::MatchingPenniesDomain() : Domain(2, 2) {
   auto rootState = make_shared<MatchingPenniesState>(this, Nothing, Nothing);
 
   auto newObservationP1 = make_shared<MatchingPenniesObservation>(OtherNothing);
@@ -280,7 +280,7 @@ size_t SimultaneousMatchingPenniesState::getHash() const {
 }
 
 SimultaneousMatchingPenniesDomain::SimultaneousMatchingPenniesDomain() :
-    Domain(std::numeric_limits<int>::max(), 2) {
+    Domain(1, 2) {
   auto rootState = make_shared<SimultaneousMatchingPenniesState>(this, Nothing, Nothing);
 
   auto newObservationP1 = make_shared<MatchingPenniesObservation>(OtherNothing);
