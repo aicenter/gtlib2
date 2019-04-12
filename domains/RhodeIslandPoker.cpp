@@ -124,7 +124,7 @@ RhodeIslandPokerDomain::RhodeIslandPokerDomain(unsigned int maxCardTypes,
                                                               PlayCard,
                                                               p2card,
                                                               color2)};
-          Outcome outcome(newState, newObservations, rewards);
+          Outcome outcome(newState, newObservations, shared_ptr<Observation>(), rewards);
 
           rootStatesDistribution_.emplace_back(outcome, prob);
         }
@@ -357,15 +357,20 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
                                                         new_round + 1,
                                                         newLastAction,
                                                         0);
-          Outcome outcome(newState, vector<shared_ptr<Observation>>{
-              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes_,
-                                                       PlayCard,
-                                                       i,
-                                                       j),
-              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes_,
-                                                       PlayCard,
-                                                       i,
-                                                       j)}, vector<double>(2));
+          Outcome outcome(newState,
+                          vector<shared_ptr<Observation>>{
+                              make_shared<RhodeIslandPokerObservation>(
+                                  3 + i + j * pokerDomain->maxCardTypes_,
+                                  PlayCard,
+                                  i,
+                                  j),
+                              make_shared<RhodeIslandPokerObservation>(
+                                  3 + i + j * pokerDomain->maxCardTypes_,
+                                  PlayCard,
+                                  i,
+                                  j)},
+                          shared_ptr<Observation>(),
+                          vector<double>(2));
           newOutcomes.emplace_back(outcome, prob);
         }
       }
@@ -385,15 +390,20 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
                                                         natureCard1_, make_pair(i, j),
                                                         newFirstPlayerReward, new_pot, next_players,
                                                         new_round + 1, newLastAction, 0);
-          Outcome outcome(newState, vector<shared_ptr<Observation>>{
-              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes_,
-                                                       PlayCard,
-                                                       i,
-                                                       j),
-              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes_,
-                                                       PlayCard,
-                                                       i,
-                                                       j)}, vector<double>(2));
+          Outcome outcome(newState,
+                          vector<shared_ptr<Observation>>{
+                              make_shared<RhodeIslandPokerObservation>(
+                                  3 + i + j * pokerDomain->maxCardTypes_,
+                                  PlayCard,
+                                  i,
+                                  j),
+                              make_shared<RhodeIslandPokerObservation>(
+                                  3 + i + j * pokerDomain->maxCardTypes_,
+                                  PlayCard,
+                                  i,
+                                  j)},
+                          shared_ptr<Observation>(),
+                          vector<double>(2));
           newOutcomes.emplace_back(outcome, prob);
         }
       }
@@ -530,15 +540,20 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
                                                         new_round + 1,
                                                         newLastAction,
                                                         0);
-          Outcome outcome(newState, vector<shared_ptr<Observation>>{
-              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes_,
-                                                       PlayCard,
-                                                       i,
-                                                       j),
-              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes_,
-                                                       PlayCard,
-                                                       i,
-                                                       j)}, vector<double>(2));
+          Outcome outcome(newState,
+                          vector<shared_ptr<Observation>>{
+                              make_shared<RhodeIslandPokerObservation>(
+                                  3 + i + j * pokerDomain->maxCardTypes_,
+                                  PlayCard,
+                                  i,
+                                  j),
+                              make_shared<RhodeIslandPokerObservation>(
+                                  3 + i + j * pokerDomain->maxCardTypes_,
+                                  PlayCard,
+                                  i,
+                                  j)},
+                          shared_ptr<Observation>(),
+                          vector<double>(2));
 
           newOutcomes.emplace_back(outcome, prob);
         }
@@ -568,15 +583,20 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
                                                         new_round + 1,
                                                         newLastAction,
                                                         0);
-          Outcome outcome(newState, vector<shared_ptr<Observation>>{
-              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes_,
-                                                       PlayCard,
-                                                       i,
-                                                       j),
-              make_shared<RhodeIslandPokerObservation>(3 + i + j * pokerDomain->maxCardTypes_,
-                                                       PlayCard,
-                                                       i,
-                                                       j)}, vector<double>(2));
+          Outcome outcome(newState,
+                          vector<shared_ptr<Observation>>{
+                              make_shared<RhodeIslandPokerObservation>(
+                                  3 + i + j * pokerDomain->maxCardTypes_,
+                                  PlayCard,
+                                  i,
+                                  j),
+                              make_shared<RhodeIslandPokerObservation>(
+                                  3 + i + j * pokerDomain->maxCardTypes_,
+                                  PlayCard,
+                                  i,
+                                  j)},
+                          shared_ptr<Observation>(),
+                          vector<double>(2));
 
           newOutcomes.emplace_back(outcome, prob);
         }
@@ -610,7 +630,7 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
     int result = hasPlayerOneWon(newLastAction, a1? -1:1);
     rewards = vector<double>{result*newFirstPlayerReward, -result*newFirstPlayerReward};
   }
-  Outcome outcome(newState, observations, rewards);
+  Outcome outcome(newState, observations, shared_ptr<Observation>(), rewards);
   newOutcomes.emplace_back(outcome, 1.0);
 
   return newOutcomes;

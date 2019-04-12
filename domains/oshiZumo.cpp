@@ -66,7 +66,7 @@ OshiZumoDomain::OshiZumoDomain(int startingCoins, int startingLoc, int minBid, b
     vector<shared_ptr<Observation>> observations{make_shared<OshiZumoObservation>(NO_OBSERVATION),
                                                  make_shared<OshiZumoObservation>(NO_OBSERVATION)};
     vector<double> rewards{0.0, 0.0};
-    Outcome outcome(rootState, observations, rewards);
+    Outcome outcome(rootState, observations, shared_ptr<Observation>(), rewards);
 
     rootStatesDistribution_.emplace_back(outcome, 1.0);
 }
@@ -163,7 +163,7 @@ OutcomeDistribution OshiZumoState::performActions(const vector<PlayerAction> &ac
             rewards[1] = -1;
         }
     }
-    Outcome outcome(newState, observations, rewards);
+    Outcome outcome(newState, observations, shared_ptr<Observation>(), rewards);
     OutcomeDistribution distribution;
     distribution.emplace_back(outcome, 1.0);
 

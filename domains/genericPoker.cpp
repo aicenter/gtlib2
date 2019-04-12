@@ -97,7 +97,8 @@ GenericPokerDomain::GenericPokerDomain(unsigned int maxCardTypes, unsigned int m
           make_shared<GenericPokerObservation>(3 + p1card, PlayCard, p1card),
           make_shared<GenericPokerObservation>(3 + p2card, PlayCard, p2card)
       };
-      Outcome outcome(newState, newObservations, rewards);
+      shared_ptr<Observation> publicObservation = make_shared<GenericPokerObservation>(3 + p1card, PlayCard, p1card);
+      Outcome outcome(newState, newObservations, publicObservation, rewards);
 
       rootStatesDistribution_.emplace_back(move(outcome), prob);
     }
@@ -284,9 +285,12 @@ GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
                                                   new_round + 1,
                                                   newLastAction,
                                                   0);
-        Outcome outcome(newState, vector<shared_ptr<Observation>>
-            {make_shared<GenericPokerObservation>(3 + i, PlayCard, i),
-             make_shared<GenericPokerObservation>(3 + i, PlayCard, i)}, vector<double>(2));
+        Outcome outcome(newState,
+                        vector<shared_ptr<Observation>>
+                            {make_shared<GenericPokerObservation>(3 + i, PlayCard, i),
+                             make_shared<GenericPokerObservation>(3 + i, PlayCard, i)},
+                        shared_ptr<Observation>(),
+                        vector<double>(2));
         newOutcomes.emplace_back(move(outcome), prob);
       }
       return newOutcomes;
@@ -399,9 +403,12 @@ GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
                                                   new_round + 1,
                                                   newLastAction,
                                                   0);
-        Outcome outcome(newState, vector<shared_ptr<Observation>>
-            {make_shared<GenericPokerObservation>(3 + i, PlayCard, i),
-             make_shared<GenericPokerObservation>(3 + i, PlayCard, i)}, vector<double>(2));
+        Outcome outcome(newState,
+                        vector<shared_ptr<Observation>>
+                            {make_shared<GenericPokerObservation>(3 + i, PlayCard, i),
+                             make_shared<GenericPokerObservation>(3 + i, PlayCard, i)},
+                        shared_ptr<Observation>(),
+                        vector<double>(2));
         newOutcomes.emplace_back(move(outcome), prob);
       }
       return newOutcomes;
@@ -429,7 +436,7 @@ GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
     int result = hasPlayerOneWon(newLastAction, a1 ? -1 : 1);
     rewards = vector<double>{result*newFirstPlayerReward, -result*newFirstPlayerReward};
   }
-  Outcome outcome(newState, move(observations), rewards);
+  Outcome outcome(newState, move(observations), shared_ptr<Observation>(), rewards);
   newOutcomes.emplace_back(move(outcome), 1.0);
 
   return newOutcomes;

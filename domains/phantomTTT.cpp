@@ -178,7 +178,7 @@ OutcomeDistribution PhantomTTTState::performActions
                 s->strings_[1].append(strings_[1] + "  ||  ACTION: " +
                 (a2 ? a2->toString() : "NoA") + "  | OBS: " + observations[1]->toString());)
   }
-  Outcome o(move(s), observations, rewards);
+  Outcome o(move(s), observations, shared_ptr<Observation>(), rewards);
   OutcomeDistribution prob;
   prob.push_back(pair<Outcome, double>(move(o), 1.0));
   return prob;
@@ -209,7 +209,10 @@ PhantomTTTDomain::PhantomTTTDomain(unsigned int max) :
   auto players = vector<Player>({0});
   vector<double> rewards(2);
   vector<shared_ptr<Observation>> Obs{make_shared<Observation>(NO_OBSERVATION), make_shared<Observation>(NO_OBSERVATION)};
-  Outcome o(make_shared<PhantomTTTState>(this, vec, players), Obs, rewards);
+  Outcome o(make_shared<PhantomTTTState>(this, vec, players),
+            Obs,
+            shared_ptr<Observation>(),
+            rewards);
   rootStatesDistribution_.push_back(pair<Outcome, double>(move(o), 1.0));
 }
 

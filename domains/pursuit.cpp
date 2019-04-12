@@ -214,7 +214,7 @@ PursuitState::performActions(const vector<PlayerAction> &actions2) const {
     })
 
     double p2 = s->prob_ / prob_;
-    Outcome o(move(s), observations, rewards);
+    Outcome o(move(s), observations, shared_ptr<Observation>(), rewards);
     prob.emplace_back(move(o), p2);  // pair of an outcome and its probability
   }
   return prob;
@@ -359,7 +359,7 @@ MMPursuitState::performActions(const vector<PlayerAction> &actions2) const {
           "  | OBS: " + observations[j]->toString());
     })
     double p2 = s->prob_ / prob_;
-    Outcome p(move(s), observations, rewards);
+    Outcome p(move(s), observations, shared_ptr<Observation>(), rewards);
     prob.emplace_back(move(p), p2);  // pair of an outcome and its probability
   }
   return prob;
@@ -478,7 +478,7 @@ ObsPursuitState::performActions(const vector<PlayerAction> &actions2) const {
           "  | OBS: " + observations[j]->toString());
     })
     double p2 = s->prob_ / prob_;
-    Outcome o(move(s), observations, rewards);
+    Outcome o(move(s), observations, shared_ptr<Observation>(), rewards);
     prob.emplace_back(move(o), p2);  // pair of an outcome and its probability
   }
   return prob;
@@ -497,7 +497,7 @@ PursuitDomain::PursuitDomain(unsigned int max,
   for (int j = 0; j < numberOfPlayers; ++j) {
     Obs.push_back(make_shared<Observation>(NO_OBSERVATION));
   }
-  Outcome o(state, Obs, rewards);
+  Outcome o(state, Obs, shared_ptr<Observation>(), rewards);
   rootStatesDistribution_.push_back(pair<Outcome, double>(move(o), 1.0));
 }
 
@@ -527,7 +527,7 @@ PursuitDomain::PursuitDomain(unsigned int max, unsigned int numberOfPlayers,
     Obs.push_back(make_shared<Observation>(NO_OBSERVATION));
   }
 
-  Outcome o(state, Obs, rewards);
+  Outcome o(state, Obs, shared_ptr<Observation>(), rewards);
   rootStatesDistribution_.push_back(pair<Outcome, double>(move(o), 1.0));
 }
 
@@ -546,7 +546,7 @@ PursuitDomain::PursuitDomain(unsigned int max, unsigned int numberOfPlayers,
   for (int j = 0; j < numberOfPlayers; ++j) {
     Obs.push_back(make_shared<Observation>(NO_OBSERVATION));
   }
-  Outcome o(state, Obs, rewards);
+  Outcome o(state, Obs, shared_ptr<Observation>(), rewards);
   rootStatesDistribution_.push_back(pair<Outcome, double>(move(o), 1.0));
 }
 
@@ -585,7 +585,7 @@ PursuitDomainChance::PursuitDomainChance(unsigned int max,
       Obs.push_back(make_shared<Observation>(NO_OBSERVATION));
     }
 
-    Outcome o(state, Obs, rewards);
+    Outcome o(state, Obs, shared_ptr<Observation>(), rewards);
     rootStatesDistribution_
         .push_back(pair<Outcome, double>(move(o), 1.0 / firstPlayerLocation.size()));
   }

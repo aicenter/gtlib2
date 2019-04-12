@@ -718,7 +718,10 @@ namespace GTLib2 {
         KriegspielDomain::KriegspielDomain(unsigned int maxDepth, unsigned int legalMaxDepth, chess::BOARD b):Domain(maxDepth, 2) {
             vector<double> rewards(2);
             vector<shared_ptr<Observation>> Obs{make_shared<Observation>(NO_OBSERVATION), make_shared<Observation>(NO_OBSERVATION)};
-            Outcome o(make_shared<KriegspielState>(this, legalMaxDepth, b), Obs, rewards);
+            Outcome o(make_shared<KriegspielState>(this, legalMaxDepth, b),
+                      Obs,
+                      shared_ptr<Observation>(),
+                      rewards);
             rootStatesDistribution_.push_back(pair<Outcome, double>(move(o), 1.0));
             maxUtility_ = 1;
         }
@@ -790,7 +793,10 @@ namespace GTLib2 {
         KriegspielDomain::KriegspielDomain(unsigned int maxDepth, unsigned int legalMaxDepth, string s): Domain(maxDepth, 2) {
             vector<double> rewards(2);
             vector<shared_ptr<Observation>> Obs{make_shared<Observation>(NO_OBSERVATION), make_shared<Observation>(-1)};
-            Outcome o(make_shared<KriegspielState>(this, legalMaxDepth, s), Obs, rewards);
+            Outcome o(make_shared<KriegspielState>(this, legalMaxDepth, s),
+                      Obs,
+                      shared_ptr<Observation>(),
+                      rewards);
             rootStatesDistribution_.push_back(pair<Outcome, double>(move(o), 1.0));
         }
 
@@ -1045,7 +1051,7 @@ namespace GTLib2 {
             if(rewards[0] != 0 || rewards[1] != 0) {
                 s->setGameHasEnded(true);
             }
-            Outcome o(std::move(s), observations, rewards);
+            Outcome o(std::move(s), observations, shared_ptr<Observation>(), rewards);
             OutcomeDistribution prob;
             prob.push_back(std::pair<Outcome, double>(std::move(o), 1.0));
             return prob;

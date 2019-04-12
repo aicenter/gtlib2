@@ -37,7 +37,7 @@ MatchingPenniesDomain::MatchingPenniesDomain() : Domain(std::numeric_limits<int>
 
   vector<shared_ptr<Observation>> observations{newObservationP1, newObservationP2};
   vector<double> rewards(2);
-  Outcome outcome(rootState, observations, rewards);
+  Outcome outcome(rootState, observations, shared_ptr<Observation>(), rewards);
 
   rootStatesDistribution_.push_back(pair<Outcome, double>(outcome, 1.0));
 }
@@ -119,7 +119,7 @@ MatchingPenniesState::performActions(const vector<PlayerAction> &actions) const 
     }
   }
 
-  Outcome outcome(newState, observations, rewards);
+  Outcome outcome(newState, observations, shared_ptr<Observation>(), rewards);
 
   OutcomeDistribution distr;
   distr.push_back(pair<Outcome, double>(outcome, 1.0));
@@ -247,7 +247,7 @@ const {
     }
   }
 
-  Outcome outcome(newState, observations, rewards);
+  Outcome outcome(newState, observations, shared_ptr<Observation>(), rewards);
 
   OutcomeDistribution distr;
   distr.push_back(pair<Outcome, double>(outcome, 1.0));
@@ -288,7 +288,7 @@ SimultaneousMatchingPenniesDomain::SimultaneousMatchingPenniesDomain() :
 
   vector<shared_ptr<Observation>> observations{newObservationP1, newObservationP2};
   vector<double> rewards(2);
-  Outcome outcome(rootState, observations, rewards);
+  Outcome outcome(rootState, observations, shared_ptr<Observation>(), rewards);
 
   rootStatesDistribution_.push_back(pair<Outcome, double>(outcome, 1.0));
 }
