@@ -27,19 +27,37 @@ namespace domains {
 
 RandomGameAction::RandomGameAction(ActionId id) : Action(id) {}
 
+bool RandomGameAction::operator==(const Action &other) const {
+    if (typeid(*this) != typeid(other)) {
+        return false;
+    }
+    auto otherAction = dynamic_cast<const RandomGameAction &>(other);
+    return this->id_ == otherAction.id_;
+}
+
+size_t RandomGameAction::getHash() const {
+    return Action::getHash();
+}
+
 RandomGameDomain::RandomGameDomain(unsigned int maxDepth, long seed, int maxBranchingFactor,
                                    int maxDifferentObservations, bool binaryUtility,
                                    bool fixedBranchingFactor, int maxCenterModification) :
        Domain(maxDepth, 2), seed_(seed), maxBranchingFactor_(maxBranchingFactor), maxDifferentObservations_(maxDifferentObservations),
        binary_utility_(binaryUtility), fixedBranchingFactor_(fixedBranchingFactor), maxCenterModification_(maxCenterModification) {
 
-    random_ = std::mt19937(seed);
-    auto rootState = make_shared<RandomGameState>(this, randomInt(seed_), 0, 0);
+    assert(maxDepth > 0);
+    assert(maxBranchingFactor > 1);
+    assert(maxDifferentObservations > 0);
+    assert(maxCenterModification > 0);
+
+    std::mt19937 generator(seed);
+    auto rootState = make_shared<RandomGameState>(this, generator(), 0, 0);
     vector<shared_ptr<Observation>> observations{make_shared<RandomGameObservation>(NO_OBSERVATION),
                                                  make_shared<RandomGameObservation>(NO_OBSERVATION)};
     Outcome outcome(rootState, observations, {0.0, 0.0});
     rootStatesDistribution_.emplace_back(outcome, 1.0);
 }
+
 string RandomGameDomain::getInfo() const {
     return "Random Game"
            "\nMax depth: " + to_string(maxDepth_) +
@@ -52,15 +70,20 @@ string RandomGameDomain::getInfo() const {
 
 
 RandomGameState::RandomGameState(Domain *domain, int id, int center, int depth) :
-    State(domain), ID_(id), center_(center), depth_(depth) {}
+    State(domain), stateId_(id), center_(center), depth_(depth) {}
 
 
 vector<shared_ptr<Action>> RandomGameState::getAvailableActionsFor(Player player) const {
     vector<shared_ptr<Action>> actions;
-    const auto RGdomain = static_cast<RandomGameDomain *>(domain_);
+    const auto RGdomain = dynamic_cast<RandomGameDomain *>(domain_);
     int possibleMoves = RGdomain->getMaxBranchingFactor();
-    if (!RGdomain->isFixedBranchingFactor()) possibleMoves = randomIntBound(this->getHash()*player, RGdomain->getMaxBranchingFactor()-1)+2;
-//    std::cout <<"Player " << std::to_string(player) << ": "  << possibleMoves << std::endl;
+    if (!RGdomain->isFixedBranchingFactor()) {
+        std::uniform_int_distribution<int> distribution(2, RGdomain->getMaxBranchingFactor());
+//        std::cout << "this->getHash: " << this->getHash() << std::endl;
+        std::mt19937 generator((stateId_ + center_ + depth_ + player)*31);
+        possibleMoves = distribution(generator);
+    }
+    std::cout <<"Player " << std::to_string(player) << ": "  << possibleMoves << std::endl;
     for (int i = 0; i < possibleMoves; ++i) {
         actions.push_back(make_shared<RandomGameAction>(i));
     }
@@ -68,37 +91,42 @@ vector<shared_ptr<Action>> RandomGameState::getAvailableActionsFor(Player player
 }
 
 OutcomeDistribution RandomGameState::performActions(const vector<PlayerAction> &actions) const {
-    auto RGdomain = static_cast<RandomGameDomain *>(domain_);
-//    auto p1Action = dynamic_cast<RandomGameAction *>(actions[0].second.get());
-//    auto p2Action = dynamic_cast<RandomGameAction *>(actions[1].second.get());
+    auto RGdomain = dynamic_cast<RandomGameDomain *>(domain_);
+    auto p1Action = dynamic_cast<RandomGameAction *>(actions[0].second.get());
+    auto p2Action = dynamic_cast<RandomGameAction *>(actions[1].second.get());
 
-    int newID = randomInt(ID_);
-    double newCenter = center_ + randomIntBound(newID, RGdomain->getMaxCenterModification()*2 + 1) - RGdomain->getMaxCenterModification(); // TODO: range maxCenterModification
-    std::cout << newCenter << std::endl;
-    vector<double> rewards{newCenter, -newCenter};
+    int newID = (stateId_ + p1Action->getId() + p2Action->getId()) * 31 + 17;
+
+    std::mt19937 generator(newID);
+    std::uniform_int_distribution<int> centerDistribution(-RGdomain->getMaxCenterModification(), RGdomain->getMaxCenterModification());
+    int newCenter = center_ + centerDistribution(generator);
+
+//    std::cout << "newCenter: " << newCenter << " newID: " << newID << std::endl;
+
+    vector<double> rewards{0.0, 0.0};
     auto newState = make_shared<RandomGameState>(domain_, newID, newCenter, depth_+1);
-    int observation = randomIntBound(ID_, RGdomain->getMaxDifferentObservations());
+    std::uniform_int_distribution<int> observationDistribution(RGdomain->getMaxDifferentObservations()-1);
+    int observation = observationDistribution(generator);
+
     vector<shared_ptr<Observation>> observations{make_shared<RandomGameObservation>(observation),
                                                  make_shared<RandomGameObservation>(observation)};
-
-    if (RGdomain->getMaxDepth() == newState->depth_){ // endGame
-        double reward = 0.0;
-        if (RGdomain->isBinaryUtility()){
-            reward = newCenter / std::abs(newCenter);
-            rewards[0] = reward;
-            rewards[1] = -reward;
-        }
+    double reward = newCenter;
+    if (RGdomain->getMaxDepth() == newState->depth_ && RGdomain->isBinaryUtility() && newCenter != 0){ // endGame
+        reward = newCenter / std::abs(newCenter);
 //        std::cout << rewards[0] << ":" << rewards[1] << std::endl;
     }
+    rewards[0] = reward;
+    rewards[1] = -reward;
     Outcome outcome(newState, observations, rewards);
-    OutcomeDistribution distribution;
-    distribution.emplace_back(outcome, 1.0);
-    return distribution;
+    OutcomeDistribution dist;
+    dist.emplace_back(outcome, 1.0);
+
+    return dist;
 }
 
 size_t RandomGameState::getHash() const {
     size_t seed = 0;
-    boost::hash_combine(seed, ID_);
+    boost::hash_combine(seed, stateId_);
     boost::hash_combine(seed, center_);
     return seed;
 }
@@ -108,7 +136,25 @@ unsigned long RandomGameState::countAvailableActionsFor(Player player) const {
 }
 
 vector<Player> RandomGameState::getPlayers() const {
+    auto RGdomain = dynamic_cast<RandomGameDomain *>(domain_);
+    if(this->depth_ == RGdomain->getMaxDepth()) return {};
     return {0, 1};
+}
+
+string RandomGameState::toString() const {
+    return  "stateId: " + to_string(stateId_) +
+            "\ncenter: " + to_string(center_) +
+            "\ndepth: " + to_string(depth_) + '\n';
+}
+
+bool RandomGameState::operator==(const State &other) const {
+    if (typeid(*this) != typeid(other)) {
+        return false;
+    }
+    auto otherState = dynamic_cast<const RandomGameState &>(other);
+    return stateId_ == otherState.stateId_ &&
+           center_ == otherState.center_ &&
+           depth_ == otherState.depth_;
 }
 
 

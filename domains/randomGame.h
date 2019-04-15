@@ -33,12 +33,11 @@ namespace domains{
 class RandomGameAction : public Action {
 public:
     explicit RandomGameAction(ActionId id);
-//    bool operator==(const Action &other) const override;
-//    size_t getHash() const override;
-//    string toString() const;
+    bool operator==(const Action &other) const override;
+    size_t getHash() const override;
 
 private:
-    string value_;
+    string value_; //is it important?
 };
 
 class RandomGameDomain : public Domain {
@@ -75,7 +74,6 @@ public:
     }
 
 private:
-    std::mt19937 random_;
     long seed_;
     int maxBranchingFactor_;
     int maxDifferentObservations_;
@@ -91,12 +89,12 @@ public:
     vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
     OutcomeDistribution performActions(const vector<PlayerAction> &actions) const override;
     vector<Player> getPlayers() const override;
-//    string toString() const override;
-//    bool operator==(const State &other) const override;
+    string toString() const override;
+    bool operator==(const State &other) const override;
     size_t getHash() const override;
 
 private:
-    int ID_;
+    int stateId_; //is it important?
     int center_;
     int depth_;
 };
