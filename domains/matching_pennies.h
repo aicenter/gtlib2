@@ -30,8 +30,7 @@
 #include <string>
 #include "base/base.h"
 
-namespace GTLib2 {
-namespace domains {
+namespace GTLib2::domains {
 class MatchingPenniesDomain : public Domain {
  public:
   MatchingPenniesDomain();
@@ -120,7 +119,6 @@ class SimultaneousMatchingPenniesState : public State {
   // ToString returns state description
   string toString() const override;
 };
-}  // namespace domains
 }  // namespace GTLib2
 #endif  // DOMAINS_MATCHING_PENNIES_H_
 

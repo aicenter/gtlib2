@@ -28,11 +28,8 @@
 
 #include "tree.h"
 
-using std::unordered_set;
-using std::cout;
 
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 
 void calculateDomainStatistics(const Domain &domain, DomainStatistics *stats) {
     auto collectIS = unordered_map<int, unordered_set<shared_ptr<AOH>>>();
@@ -92,6 +89,5 @@ void printDomainStatistics(const Domain &domain, std::ostream &ostr) {
     ostr << stats;
 }
 
-}  // namespace algorithms
 }  // namespace GTLib2
 

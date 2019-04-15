@@ -23,7 +23,7 @@
 #ifndef TESTS_TESTUTILS_H_
 #define TESTS_TESTUTILS_H_
 
-#include <algorithms/stats.h>
+#include "base/base.h"
 
 
 using GTLib2::Domain;

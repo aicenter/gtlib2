@@ -25,15 +25,11 @@
 #ifndef DOMAINS_GOOFSPIEL_H_
 #define DOMAINS_GOOFSPIEL_H_
 
-#include <experimental/optional>
 #include <vector>
 #include <string>
 #include <utility>
 #include "base/base.h"
 
-
-using std::experimental::nullopt;
-using std::experimental::optional;
 
 namespace GTLib2::domains {
 

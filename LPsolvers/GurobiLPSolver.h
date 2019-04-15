@@ -25,10 +25,13 @@
 
 
 
-#include <gurobi_c++.h>
-#include <vector>
-#include <cmath>
+#include "base/base.h"
 #include "LPsolvers/AbstractLPSolver.h"
+#include <gurobi_c++.h>
+#include <cmath>
+
+namespace GTLib2::algorithms {
+
 
 class GurobiLPSolver : public AbstractLPSolver {
  public:
@@ -125,4 +128,5 @@ inline double solveLP(const unsigned int rows, const unsigned int cols,
   }
 }
 
+}
 #endif  // LPSOLVERS_GUROBILPSOLVER_H_

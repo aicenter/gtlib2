@@ -27,8 +27,7 @@
 #include "algorithms/common.h"
 #include "algorithms/tree.h"
 
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 
 pair<double, double> computeUtilityTwoPlayersGame(const Domain &domain,
                                                   const BehavioralStrategy &player1Strat,
@@ -159,6 +158,5 @@ tuple<vector<double>, unsigned int, unsigned int> constructUtilityMatrixFor(
   return tuple<vector<double>, unsigned int, unsigned int>(matrix, numberOfRows, numberOfColls);
 }
 
-}  // namespace algorithms
 }  // namespace GTLib2
 #pragma clang diagnostic pop

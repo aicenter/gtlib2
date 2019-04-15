@@ -26,8 +26,7 @@
 #include <iterator>
 #include <algorithm>
 
-namespace GTLib2 {
-namespace domains {
+namespace GTLib2::domains {
 GenericPokerAction::GenericPokerAction(ActionId id, int type, int value) :
     Action(id), type_(type), value_(value) {}
 
@@ -185,8 +184,7 @@ vector<shared_ptr<Action>> GenericPokerState::getAvailableActionsFor(Player play
   return list;
 }
 
-OutcomeDistribution
-GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
+OutcomeDistribution GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
   const auto pokerDomain = static_cast<GenericPokerDomain *>(domain_);
   const auto a1 = dynamic_pointer_cast<GenericPokerAction>(actions[0].second);
   const auto a2 = dynamic_pointer_cast<GenericPokerAction>(actions[1].second);
@@ -518,5 +516,4 @@ int GenericPokerState::hasPlayerOneWon(
     return -1;
   }
 }
-}  // namespace domains
 }  // namespace GTLib2

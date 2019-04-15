@@ -27,7 +27,6 @@
 #include <boost/test/unit_test.hpp>
 #include <domains/goofSpiel.h>
 
-
 namespace GTLib2 {
 
 using domains::GoofSpielDomain;

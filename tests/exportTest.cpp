@@ -33,11 +33,9 @@
 #include <boost/test/unit_test.hpp>
 #include <domains/genericPoker.h>
 
-namespace GTLib2 {
+namespace GTLib2::utils {
 
 using domains::MatchingPenniesDomain;
-using utils::exportGraphViz;
-using utils::exportGambit;
 
 BOOST_AUTO_TEST_SUITE(UtilsTests);
 BOOST_AUTO_TEST_SUITE(Export);

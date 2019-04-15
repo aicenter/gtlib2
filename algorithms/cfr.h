@@ -32,8 +32,7 @@
 #include "base/base.h"
 #include "base/cache.h"
 
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 
 enum AccumulatorWeighting { UniformAccWeighting, LinearAccWeighting };
 
@@ -182,7 +181,6 @@ ExpectedUtility calcExpectedUtility(CFRData &cache,
                                     const shared_ptr<EFGNode> &node,
                                     Player pl);
 
-}  // namespace algorithms
 }  // namespace GTLib2
 
 #endif  // ALGORITHMS_CFR_H_

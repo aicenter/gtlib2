@@ -27,8 +27,7 @@
 #include "base/base.h"
 
 
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 
 // todo: refactor pair into a more readable struct (avoid using .first/.second)
 pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStrat, Player opponent,
@@ -51,7 +50,6 @@ inline pair<BehavioralStrategy, double> bestResponseToPrunning(const BehavioralS
     return bestResponseToPrunning(opoStrat, opponent, player, domain, domain.getMaxDepth());
 }
 
-}  // namespace algorithms
 }  // namespace GTLib2
 
 #endif  // ALGORITHMS_BESTRESPONSE_H_

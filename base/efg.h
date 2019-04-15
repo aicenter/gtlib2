@@ -36,11 +36,6 @@
 #include "base/base.h"
 #include "base/hashing.h"
 
-using std::unordered_map;
-using std::unordered_set;
-using std::experimental::nullopt;
-using std::experimental::optional;
-
 
 namespace GTLib2 {
 
@@ -247,10 +242,9 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
 };
 };  // namespace GTLib2
 
-namespace std { // NOLINT(cert-dcl58-cpp)
-
 using GTLib2::EFGNode;
 
+namespace std { // NOLINT(cert-dcl58-cpp)
 template<>
 struct hash<shared_ptr<EFGNode>> {
     size_t operator()(const shared_ptr<EFGNode> &p) const {

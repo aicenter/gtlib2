@@ -29,8 +29,7 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 
 void treeWalkEFG(EFGCache &cache, EFGNodeCallback function, int maxDepth) {
     auto traverse = [&function, &cache, maxDepth]
@@ -74,7 +73,6 @@ void treeWalkEFG(const Domain &domain, EFGNodeCallback function, int maxDepth) {
     }
 }
 
-}  // namespace algorithms
 }  // namespace GTLib2
 
 #pragma clang diagnostic pop

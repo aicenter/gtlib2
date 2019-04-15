@@ -31,8 +31,7 @@
 #  define DebugString(x) x
 #endif  // MyDEBUG
 
-namespace GTLib2 {
-namespace domains {
+namespace GTLib2::domains {
 PursuitAction::PursuitAction(ActionId id, int move) : Action(id), move_(move) {}
 
 bool PursuitAction::operator==(const Action &that) const {
@@ -603,6 +602,5 @@ PursuitDomainChance::PursuitDomainChance(unsigned int max, unsigned int numberOf
                                                                           vector<double>{0.1,
                                                                                          0.9}) {}
 
-}  // namespace domains
 }  // namespace GTLib2
 #pragma clang diagnostic pop

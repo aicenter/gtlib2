@@ -20,10 +20,12 @@
 */
 
 
+#include "base/base.h"
 #include "algorithms/bestResponse.h"
 #include "algorithms/common.h"
 #include "algorithms/equilibrium.h"
 #include "algorithms/tree.h"
+#include "algorithms/stats.h"
 #include "algorithms/utility.h"
 #include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"
@@ -34,13 +36,8 @@
 #include <algorithms/strategy.h>
 
 
-namespace GTLib2 {
+namespace GTLib2::domains {
 
-using domains::MatchingPenniesDomain;
-using domains::MatchingPenniesAction;
-using domains::SimultaneousMatchingPenniesDomain;
-using domains::Heads;
-using domains::Tails;
 using algorithms::DomainStatistics;
 using algorithms::playOnlyAction;
 

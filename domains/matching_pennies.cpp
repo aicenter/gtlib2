@@ -27,8 +27,7 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
-namespace GTLib2 {
-namespace domains {
+namespace GTLib2::domains {
 MatchingPenniesDomain::MatchingPenniesDomain() : Domain(2, 2) {
   maxUtility_ = 1.0;
   auto rootState = make_shared<MatchingPenniesState>(this, Nothing, Nothing);
@@ -298,6 +297,5 @@ SimultaneousMatchingPenniesDomain::SimultaneousMatchingPenniesDomain() :
 vector<Player> SimultaneousMatchingPenniesDomain::getPlayers() const {
   return {0, 1};
 }
-}  // namespace domains
 }  // namespace GTLib2
 #pragma clang diagnostic pop

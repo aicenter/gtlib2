@@ -23,11 +23,13 @@
 #include "LPsolvers/LPSolver.h"
 #if LP_SOLVER != NO_LP_SOLVER
 
+#include "base/base.h"
 #include "algorithms/bestResponse.h"
 #include "algorithms/common.h"
 #include "algorithms/equilibrium.h"
 #include "algorithms/tree.h"
 #include "algorithms/utility.h"
+#include "algorithms/stats.h"
 #include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"
 
@@ -36,16 +38,13 @@
 #include <algorithms/strategy.h>
 
 
-namespace GTLib2 {
+namespace GTLib2::algorithms {
 
 using domains::MatchingPenniesDomain;
 using domains::MatchingPenniesAction;
 using domains::SimultaneousMatchingPenniesDomain;
 using domains::Heads;
 using domains::Tails;
-using algorithms::DomainStatistics;
-using algorithms::playOnlyAction;
-
 
 
 BOOST_AUTO_TEST_SUITE(AlgorithmsTests)

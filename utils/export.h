@@ -28,17 +28,13 @@
 
 #include <base/base.h>
 
-namespace GTLib2 {
-namespace utils {
-
-using std::ostream;
+namespace GTLib2::utils {
 
 void exportGraphViz(const Domain &domain, const string &fileToSave);
-void exportGraphViz(const Domain &domain, ostream &fs);
+void exportGraphViz(const Domain &domain, std::ostream &fs);
 void exportGambit(const Domain &domain, const string &fileToSave);
-void exportGambit(const Domain &domain, ostream &fs);
+void exportGambit(const Domain &domain, std::ostream &fs);
 
-}
 }
 
 #endif //GTLIB2_EXPORT_H

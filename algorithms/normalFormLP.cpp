@@ -25,8 +25,7 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 NormalFormLP::NormalFormLP(const unsigned int _p1_actions, const unsigned int _p2_actions,
                            const vector<double> &_utilities,
                            unique_ptr<AbstractLPSolver> _lp_solver) {
@@ -219,7 +218,6 @@ void NormalFormLP::AddCols(const vector<vector<double>> &_utility_for_rows) {
 
   cols_ += new_cols;
 }
-}  // namespace algorithms
 }  // namespace GTLib2
 
 #pragma clang diagnostic pop

@@ -31,8 +31,7 @@
 #include "LPsolvers/LPSolver.h"
 
 
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 tuple<double, BehavioralStrategy> findEquilibriumTwoPlayersZeroSum(const GTLib2::Domain &domain) {
   Player player1 = domain.getPlayers()[0];
   Player player2 = domain.getPlayers()[1];
@@ -51,6 +50,5 @@ tuple<double, BehavioralStrategy> findEquilibriumTwoPlayersZeroSum(const GTLib2:
       domain, player1PureStrats, solution, player1);
   return tuple<double, BehavioralStrategy>(val, equilibriumStrat);
 }
-}  // namespace algorithms
 }  // namespace GTLib2
 #pragma clang diagnostic pop

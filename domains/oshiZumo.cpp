@@ -21,8 +21,7 @@
 
 #include "domains/oshiZumo.h"
 
-namespace GTLib2 {
-namespace domains {
+namespace GTLib2::domains {
 
 
 OshiZumoAction::OshiZumoAction(ActionId id, int bid) : Action(id) {
@@ -218,7 +217,6 @@ size_t OshiZumoState::getHash() const {
 OshiZumoObservation::OshiZumoObservation(int opponentBid) :
         Observation(opponentBid), opponentBid_(opponentBid) {}
 
-} // namespace domains
 } // namespace GTLib2
 
 

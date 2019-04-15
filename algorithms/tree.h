@@ -22,13 +22,12 @@
 #ifndef ALGORITHMS_TREEWALK_H_
 #define ALGORITHMS_TREEWALK_H_
 
-#include <memory>
 #include "base/base.h"
+#include <memory>
 #include "base/efg.h"
 #include "base/cache.h"
 
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 
 typedef std::function<void(shared_ptr<EFGNode>)> EFGNodeCallback;
 
@@ -60,6 +59,5 @@ inline void treeWalkEFG(const Domain &domain, EFGNodeCallback function) {
     treeWalkEFG(domain, move(function), domain.getMaxDepth());
 }
 
-}  // namespace algorithms
 }  // namespace GTLib2
 #endif  // ALGORITHMS_TREEWALK_H_

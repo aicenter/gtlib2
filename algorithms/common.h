@@ -29,8 +29,7 @@
 #include "base/base.h"
 #include "base/efg.h"
 
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 
 EFGNodesDistribution createRootEFGNodes(const OutcomeDistribution &probDist);
 
@@ -42,7 +41,6 @@ BehavioralStrategy mixedToBehavioralStrategy(const Domain &domain,
 EFGNodesDistribution getAllNodesInTheInformationSetWithNatureProbability(
     const shared_ptr<AOH> &infSet, const Domain &domain);
 
-}  // namespace algorithms
 }  // namespace GTLib2
 
 #endif  // ALGORITHMS_COMMON_H_

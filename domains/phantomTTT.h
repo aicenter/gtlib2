@@ -30,8 +30,7 @@
 #include <string>
 #include "base/base.h"
 
-namespace GTLib2 {
-namespace domains {
+namespace GTLib2::domains {
 const std::array<string, 9> moved_ = {"top left", "top", "top right",
                                       "left", "center", "right", "bottom left",
                                       "bottom", "bottom right"};
@@ -160,7 +159,6 @@ class PhantomTTTDomain : public Domain {
     return {0, 1};
   }
 };
-}  // namespace domains
 }  // namespace GTLib2
 #endif  // DOMAINS_PHANTOMTTT_H_
 

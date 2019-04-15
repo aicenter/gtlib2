@@ -28,10 +28,8 @@
 #include <sstream>
 #include <algorithm>
 
-using std::make_pair;
 
-namespace GTLib2 {
-namespace domains {
+namespace GTLib2::domains {
 RhodeIslandPokerAction::RhodeIslandPokerAction(ActionId id, int type, int value) :
     Action(id), type_(type), value_(value) {}
 
@@ -767,5 +765,4 @@ int RhodeIslandPokerState::hasPlayerOneWon(const shared_ptr<RhodeIslandPokerActi
   }
 }
 
-}  // namespace domains
 }  // namespace GTLib2

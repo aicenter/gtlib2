@@ -31,8 +31,7 @@
 #  define DebugString(x) x
 #endif  // MyDEBUG
 
-namespace GTLib2 {
-namespace domains {
+namespace GTLib2::domains {
 
 PhantomTTTAction::PhantomTTTAction(ActionId id, int move) : Action(id), move_(move) {}
 
@@ -220,6 +219,5 @@ string PhantomTTTDomain::getInfo() const {
   return "************ Phantom Tic Tac Toe *************\n" +
       rootStatesDistribution_[0].first.state_->toString() + "\n";
 }
-}  // namespace domains
 }  // namespace GTLib2
 #pragma clang diagnostic pop

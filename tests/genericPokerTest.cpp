@@ -27,20 +27,17 @@
 #include "algorithms/common.h"
 #include "algorithms/equilibrium.h"
 #include "algorithms/utility.h"
+#include "algorithms/stats.h"
 #include "domains/genericPoker.h"
 #include "utils/functools.h"
 #include "tests/domainsTest.h"
 
 #include <boost/test/unit_test.hpp>
 
-using std::unordered_set;
 
-namespace GTLib2 {
+namespace GTLib2::domains {
 
-using domains::GenericPokerDomain;
-using domains::GenericPokerAction;
 using algorithms::DomainStatistics;
-using std::unordered_set;
 
 BOOST_AUTO_TEST_SUITE(DomainsTests)
 BOOST_AUTO_TEST_SUITE(GenericPoker)

@@ -20,6 +20,7 @@
 */
 
 
+#include "base/base.h"
 #include <limits>
 #include <algorithm>
 #include "algorithms/bestResponse.h"
@@ -27,10 +28,7 @@
 #include "algorithms/common.h"
 #include "algorithms/tree.h"
 
-using std::cout;
-
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 
 pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStrat,
                                                 Player opponent, Player player,
@@ -312,5 +310,4 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(const BehavioralStrategy
     }
     return pair<BehavioralStrategy, double>(brs, expVal);
 }
-}  // namespace algorithms
 }  // namespace GTLib2

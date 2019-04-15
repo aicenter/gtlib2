@@ -28,8 +28,7 @@
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
 
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 
 EFGNodesDistribution createRootEFGNodes(const OutcomeDistribution &probDist) {
     EFGNodesDistribution nodes;
@@ -159,7 +158,6 @@ EFGNodesDistribution getAllNodesInTheInformationSetWithNatureProbability(
 
     return nodes;
 }
-}  // namespace algorithms
 }  // namespace GTLib2
 
 #pragma clang diagnostic pop

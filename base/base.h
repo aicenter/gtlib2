@@ -30,24 +30,37 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include <unordered_map>
 #include <boost/functional/hash.hpp>
 #include "utils/utils.h"
 #include "base/hashing.h"
 
-using std::string;
-using std::vector;
-using std::move;
-using std::unique_ptr;
-using std::shared_ptr;
-using std::to_string;
-using std::unordered_map;
+namespace GTLib2 {
+
+using std::cerr;
+using std::cout;
+using std::dynamic_pointer_cast;
+using std::endl;
+using std::optional;
+using std::nullopt;
+using std::function;
+using std::make_pair;
 using std::make_shared;
 using std::make_unique;
+using std::move;
 using std::pair;
-using std::dynamic_pointer_cast;
-
-namespace GTLib2 {
+using std::reference_wrapper;
+using std::shared_ptr;
+using std::string;
+using std::to_string;
+using std::unique_ptr;
+using std::unordered_map;
+using std::unordered_set;
+using std::vector;
+using std::tuple;
+using std::max;
+using std::min;
 
 // Maximum number of players we consider at any game
 #define GAME_MAX_PLAYERS 2

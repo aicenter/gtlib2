@@ -19,6 +19,7 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "base/base.h"
 #include <boost/test/unit_test.hpp>
 #include "algorithms/stats.h"
 #include "algorithms/tree.h"
@@ -28,15 +29,10 @@
 #include "utils/functools.h"
 #include "domains/oshiZumo.h"
 
+namespace GTLib2::domains {
 
-using namespace GTLib2;
-
-using domains::OshiZumoDomain;
-using domains::OshiZumoState;
-using domains::OshiZumoAction;
 using algorithms::DomainStatistics;
 using algorithms::treeWalkEFG;
-
 
 BOOST_AUTO_TEST_SUITE(DomainsTests)
 BOOST_AUTO_TEST_SUITE(OshiZumo)
@@ -50,8 +46,8 @@ OshiZumoDomain testDomainsOshiZumo[]{ // NOLINT(cert-err58-cpp)
     OshiZumoDomain(3, 3, 1),
 };
 
-BOOST_AUTO_TEST_CASE(builtAndCheckGameTree){
-    DomainStatistics expectedResults[] {
+BOOST_AUTO_TEST_CASE(builtAndCheckGameTree) {
+    DomainStatistics expectedResults[]{
         {
             .max_EFGDepth = 6,
             .max_StateDepth = 3,
@@ -70,7 +66,7 @@ BOOST_AUTO_TEST_CASE(builtAndCheckGameTree){
             .num_histories = {16, 21},
             .num_infosets = {16, 16},
             .num_sequences = {22, 22},
-        },{
+        }, {
             .max_EFGDepth = 4,
             .max_StateDepth = 2,
             .num_nodes = 20,
@@ -79,7 +75,7 @@ BOOST_AUTO_TEST_CASE(builtAndCheckGameTree){
             .num_histories = {9, 7},
             .num_infosets = {9, 4},
             .num_sequences = {8, 8},
-        },{
+        }, {
             .max_EFGDepth = 6,
             .max_StateDepth = 3,
             .num_nodes = 23,
@@ -88,7 +84,7 @@ BOOST_AUTO_TEST_CASE(builtAndCheckGameTree){
             .num_histories = {4, 7},
             .num_infosets = {4, 4},
             .num_sequences = {8, 8},
-        },{
+        }, {
             .max_EFGDepth = 4,
             .max_StateDepth = 2,
             .num_nodes = 13,
@@ -97,7 +93,7 @@ BOOST_AUTO_TEST_CASE(builtAndCheckGameTree){
             .num_histories = {3, 4},
             .num_infosets = {3, 2},
             .num_sequences = {5, 5},
-        },{
+        }, {
             .max_EFGDepth = 6,
             .max_StateDepth = 3,
             .num_nodes = 30,
@@ -108,7 +104,7 @@ BOOST_AUTO_TEST_CASE(builtAndCheckGameTree){
             .num_sequences = {11, 11},
         }
     };
-    for (auto tuple : zip(testDomainsOshiZumo, expectedResults)){
+    for (auto tuple : zip(testDomainsOshiZumo, expectedResults)) {
         unzip(tuple, testDomain, expectedRes);
         DomainStatistics stats;
         calculateDomainStatistics(testDomain, &stats);
@@ -117,15 +113,15 @@ BOOST_AUTO_TEST_CASE(builtAndCheckGameTree){
 }
 
 
-BOOST_AUTO_TEST_CASE(correctRewardsDistribution){
+BOOST_AUTO_TEST_CASE(correctRewardsDistribution) {
     OshiZumoDomain ozd(3, 0, 1);
     vector<int> rew{0, 0, 0};
 
-    auto getRewards = [&rew](shared_ptr<EFGNode> node){
-        if (node->isTerminal()){
+    auto getRewards = [&rew](shared_ptr<EFGNode> node) {
+        if (node->isTerminal()) {
             if (node->rewards_[0] == 0) {
                 rew[0]++;
-            } else if (node->rewards_[0] == 1){
+            } else if (node->rewards_[0] == 1) {
                 rew[1]++;
             } else {
                 rew[2]++;
@@ -142,3 +138,4 @@ BOOST_AUTO_TEST_CASE(correctRewardsDistribution){
 
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
+}

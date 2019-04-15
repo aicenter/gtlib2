@@ -26,8 +26,7 @@
 #include "base/base.h"
 #include "base/efg.h"
 
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 
 /**
  * Capture various domain statistics, for each player if possible.
@@ -104,7 +103,6 @@ inline void printDomainStatistics(const Domain &domain) {
     printDomainStatistics(domain, std::cout);
 }
 
-}  // namespace algorithms
 }  // namespace GTLib2
 
 #endif  // ALGORITHMS_STATS_H_

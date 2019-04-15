@@ -33,11 +33,7 @@
 #include <cstdio>
 
 
-using std::make_pair;
-using std::max;
-
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 
 CFRAlgorithm::CFRAlgorithm(const Domain &domain, Player playingPlayer, CFRSettings settings) :
     GamePlayingAlgorithm(domain, playingPlayer),
@@ -218,5 +214,4 @@ ExpectedUtility calcExpectedUtility(CFRData &cache,
     return ExpectedUtility(rmUtility, avgUtility);
 }
 
-}  // namespace algorithms
 }  // namespace GTLib2

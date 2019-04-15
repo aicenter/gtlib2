@@ -34,11 +34,8 @@
 #include "algorithms/utility.h"
 #include "algorithms/common.h"
 
-using std::vector;
-using std::shared_ptr;
 
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 /**
  * This class represents the algorithm for solving two-player zero-sum game
  * using a linear program (LP) and normal form.
@@ -98,7 +95,6 @@ class NormalFormLP {
 
   void AddCols(const vector<vector<double>> &_utility_for_rows);
 };
-}  // namespace algorithms
 }  // namespace GTLib2
 
 #endif  // ALGORITHMS_NORMALFORMLP_H_

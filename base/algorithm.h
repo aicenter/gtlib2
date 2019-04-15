@@ -1,5 +1,3 @@
-#include <utility>
-
 /*
     Copyright 2019 Faculty of Electrical Engineering at CTU in Prague
 
@@ -29,6 +27,7 @@
 #include "base/efg.h"
 #include "base/cache.h"
 #include <random>
+#include <utility>
 
 namespace GTLib2 {
 

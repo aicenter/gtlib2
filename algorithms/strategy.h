@@ -28,12 +28,8 @@
 #include "algorithms/common.h"
 #include "algorithms/utility.h"
 
-using std::make_pair;
-using std::max;
 
-
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 
 /**
  * Calculate average strategy for each player.
@@ -67,7 +63,6 @@ void playOnlyAction(ActionProbDistribution &dist, const shared_ptr<Action> &acti
 ActionProbDistribution mapDistribution(const ProbDistribution &dist,
                                        const vector<shared_ptr<Action>> &actions);
 
-}  // namespace algorithms
 }  // namespace GTLib2
 
 

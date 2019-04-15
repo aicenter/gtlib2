@@ -35,24 +35,17 @@
 #include <algorithms/strategy.h>
 
 
-namespace GTLib2 {
+namespace GTLib2::algorithms {
 
 using domains::MatchingPenniesDomain;
 using domains::MatchingPenniesAction;
 using domains::SimultaneousMatchingPenniesDomain;
 using domains::Heads;
 using domains::Tails;
-using algorithms::DomainStatistics;
-using algorithms::playOnlyAction;
 using domains::GoofSpielDomain;
 using domains::GoofSpielVariant::IncompleteObservations;
 using domains::GoofSpielVariant::CompleteObservations;
 using domains::GoofSpielAction;
-using algorithms::DomainStatistics;
-using algorithms::treeWalkEFG;
-using algorithms::getUniformStrategy;
-using algorithms::playOnlyAction;
-using std::unordered_set;
 
 BOOST_AUTO_TEST_SUITE(AlgorithmsTests)
 BOOST_AUTO_TEST_SUITE(BestResponse)

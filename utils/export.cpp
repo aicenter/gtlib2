@@ -27,12 +27,12 @@
 #include <string>
 #include <algorithms/common.h>
 
+#include "base/base.h"
 #include "base/efg.h"
 #include "base/hashing.h"
 #include "algorithms/tree.h"
 
-namespace GTLib2 {
-namespace utils {
+namespace GTLib2::utils {
 
 using std::setw;
 using std::setfill;
@@ -108,7 +108,7 @@ inline string getColor(Player player) {
 
 
 
-void exportGraphViz(const Domain &domain, ostream &fs) {
+void exportGraphViz(const Domain &domain, std::ostream &fs) {
     // Print header
     fs << "digraph {" << std::endl;
     fs << "\trankdir=LR" << std::endl;
@@ -170,7 +170,7 @@ void exportGraphViz(const Domain &domain, const string &fileToSave) {
 }
 
 
-void exportGambit(const Domain &domain, ostream &fs) {
+void exportGambit(const Domain &domain, std::ostream &fs) {
     // Print header
     const auto name = typeid(domain).name();
     fs << "EFG 2 R \"" << name << R"(" { "Pl0" "Pl1" })" << "\n";
@@ -256,5 +256,4 @@ void exportGambit(const Domain &domain, const string &fileToSave) {
     fs.close();
 }
 
-}
 }

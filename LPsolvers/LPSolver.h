@@ -23,17 +23,17 @@
 #ifndef GTLIB2_LPSOLVER_H
 #define GTLIB2_LPSOLVER_H
 
-#include <vector>
+#include "base/base.h"
 #include <iostream>
 #include <cassert>
 #include <cmath>
-
-using std::vector;
 
 #define NO_LP_SOLVER 0
 #define GUROBI_SOLVER 1
 #define CPLEX_SOLVER 2
 #define GLPK_SOLVER 3
+
+namespace GTLib2::algorithms {
 
 #if GUROBIFOUND == 1
     #define LP_SOLVER GUROBI_SOLVER
@@ -56,5 +56,6 @@ using std::vector;
     }
 #endif
 
+}  // namespace GTLib2
 
 #endif //GTLIB2_LPSOLVER_H

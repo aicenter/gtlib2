@@ -40,17 +40,12 @@
 #include <boost/range/combine.hpp>
 #include <boost/test/unit_test.hpp>
 
-namespace GTLib2 {
+namespace GTLib2::domains {
 
-using domains::GoofSpielDomain;
-using domains::GoofSpielAction;
-using domains::GoofSpielVariant::IncompleteObservations;
-using domains::GoofSpielVariant::CompleteObservations;
 using algorithms::DomainStatistics;
 using algorithms::treeWalkEFG;
 using algorithms::getUniformStrategy;
 using algorithms::playOnlyAction;
-using std::unordered_set;
 
 BOOST_AUTO_TEST_SUITE(DomainsTests)
 BOOST_AUTO_TEST_SUITE(GoofSpiel)

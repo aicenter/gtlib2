@@ -26,8 +26,6 @@
 #include "utils/export.h"
 
 
-using std::endl;
-using std::cout;
 using namespace GTLib2;
 
 using domains::GoofSpielDomain;

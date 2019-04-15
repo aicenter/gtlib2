@@ -27,10 +27,13 @@
 #include <algorithms/common.h>
 #include "base/random.h"
 
-using namespace std::chrono;
-using GTLib2::algorithms::createRootEFGNodes;
-
 namespace GTLib2 {
+
+using algorithms::createRootEFGNodes;
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::microseconds;
+
 
 bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
                          const optional<shared_ptr<AOH>> &currentInfoset,

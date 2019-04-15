@@ -21,6 +21,8 @@
 
 
 #include "LPsolvers/GurobiLPSolver.h"
+namespace GTLib2::algorithms {
+
 
 GurobiLPSolver::GurobiLPSolver(): env_(GRBEnv()), model_(GRBModel(env_)) {}
 
@@ -122,4 +124,6 @@ void GurobiLPSolver::AddCols(int rows, const vector<vector<double>> &utility_for
     }
   }
   delete[](new_x);
+}
+
 }

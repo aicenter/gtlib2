@@ -31,13 +31,10 @@
 #include "algorithms/bestResponse.h"
 
 
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 
 using domains::MatchingPenniesDomain;
 using domains::MatchingPenniesAction;
-using algorithms::CFRData;
-using algorithms::bestResponseTo;
 using domains::GoofSpielDomain;
 using domains::GoofSpielVariant::IncompleteObservations;
 using domains::GoofSpielVariant::CompleteObservations;
@@ -318,5 +315,4 @@ BOOST_AUTO_TEST_CASE(CheckConvergenceInSmallDomain) {
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 
-}
 }  // namespace GTLib2

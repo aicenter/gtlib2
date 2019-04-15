@@ -32,16 +32,11 @@
 #include "domains/oshiZumo.h"
 
 
-namespace GTLib2 {
+namespace GTLib2::domains {
 
-using domains::GoofSpielDomain;
-using domains::GenericPokerDomain;
-using domains::MatchingPenniesDomain;
-using domains::SimultaneousMatchingPenniesDomain;
-using domains::OshiZumoDomain;
 using algorithms::treeWalkEFG;
-using domains::GoofSpielVariant::IncompleteObservations;
-using domains::GoofSpielVariant::CompleteObservations;
+using GoofSpielVariant::IncompleteObservations;
+using GoofSpielVariant::CompleteObservations;
 
 bool isDomainZeroSum(const Domain &domain) {
     int num_violations = 0;

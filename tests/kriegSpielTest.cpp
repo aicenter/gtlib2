@@ -25,16 +25,18 @@
 #include "tests/domainsTest.h"
 #include <boost/test/unit_test.hpp>
 
-using namespace GTLib2;
+namespace GTLib2::domains {
+
 using namespace chess;
 
+
 BOOST_AUTO_TEST_SUITE(DomainsTests)
-BOOST_AUTO_TEST_SUITE(KriegSpiel);
+BOOST_AUTO_TEST_SUITE(KriegSpiel)
 
 BOOST_AUTO_TEST_CASE(pinning) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
     shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
-    auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
+    auto ks = dynamic_cast<domains::KriegspielState *>(s.get());
     BOOST_CHECK(ks->getAvailableActionsFor(0).size() == 20);
     ks->clearBoard();
 
@@ -54,7 +56,7 @@ BOOST_AUTO_TEST_CASE(pinning) {
 BOOST_AUTO_TEST_CASE(enPassant) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
     shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
-    auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
+    auto ks = dynamic_cast<domains::KriegspielState *>(s.get());
     ks->clearBoard();
 
     //build a model enPassant situation
@@ -72,9 +74,9 @@ BOOST_AUTO_TEST_CASE(enPassant) {
     ks->updateAllPieces();
 
     vector<PlayerAction> v;
-    for(shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
+    for (shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
         string check = a->toString();
-        if(a->toString() == "Pe4") {
+        if (a->toString() == "Pe4") {
             v.emplace_back(make_pair(0, a));
             v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
@@ -82,17 +84,19 @@ BOOST_AUTO_TEST_CASE(enPassant) {
     }
 
     Outcome newState = ks->performActions(v)[0].first;
-    auto newBoard = dynamic_cast<domains::KriegspielState*>(newState.state_.get());
+    auto newBoard = dynamic_cast<domains::KriegspielState *>(newState.state_.get());
     //a black pawn's valid move should now be to capture en passant
     Square sq(5, 3);
     auto newBlackPawn = newBoard->getPiecesOfColorAndKind(1, PAWN)[0];
-    BOOST_CHECK(std::find(newBlackPawn->getAllValidMoves()->begin(), newBlackPawn->getAllValidMoves()->end(), sq) != newBlackPawn->getAllValidMoves()->end());
+    BOOST_CHECK(std::find(newBlackPawn->getAllValidMoves()->begin(),
+                          newBlackPawn->getAllValidMoves()->end(),
+                          sq) != newBlackPawn->getAllValidMoves()->end());
 
     //make the en passant cut and check figure has been cut
     v.clear();
-    for(shared_ptr<Action> a: newBoard->getAvailableActionsFor(1)) {
+    for (shared_ptr<Action> a: newBoard->getAvailableActionsFor(1)) {
         string check = a->toString();
-        if(a->toString() == "pe3") {
+        if (a->toString() == "pe3") {
             v.emplace_back(make_pair(0, a));
             v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
@@ -100,14 +104,14 @@ BOOST_AUTO_TEST_CASE(enPassant) {
     }
 
     Outcome lastState = newState.state_->performActions(v)[0].first;
-    auto lastBoard = dynamic_cast<domains::KriegspielState*>(lastState.state_.get());
+    auto lastBoard = dynamic_cast<domains::KriegspielState *>(lastState.state_.get());
     BOOST_CHECK(lastBoard->getPiecesOfColor(0).size() + lastBoard->getPiecesOfColor(1).size() == 3);
 }
 
 BOOST_AUTO_TEST_CASE(invalidMoving) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
     shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
-    auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
+    auto ks = dynamic_cast<domains::KriegspielState *>(s.get());
     ks->clearBoard();
 
     //build a model invalid move situation
@@ -131,9 +135,9 @@ BOOST_AUTO_TEST_CASE(invalidMoving) {
 
     //fetch random invalid move
     vector<PlayerAction> v;
-    for(shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
+    for (shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
         string check = a->toString();
-        if(a->toString() == "Qb1") {
+        if (a->toString() == "Qb1") {
             v.emplace_back(make_pair(0, a));
             v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
@@ -141,13 +145,14 @@ BOOST_AUTO_TEST_CASE(invalidMoving) {
     }
 
     Outcome newState = ks->performActions(v)[0].first;
-    BOOST_CHECK(newState.privateObservations_[0]->getId() == v[0].second.get()->getId() && newState.privateObservations_[1]->getId() == NO_OBSERVATION);
+    BOOST_CHECK(newState.privateObservations_[0]->getId() == v[0].second.get()->getId()
+                    && newState.privateObservations_[1]->getId() == NO_OBSERVATION);
 }
 
 BOOST_AUTO_TEST_CASE(checking) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
     shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
-    auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
+    auto ks = dynamic_cast<domains::KriegspielState *>(s.get());
     ks->clearBoard();
 
     //build a model checking situation
@@ -164,9 +169,9 @@ BOOST_AUTO_TEST_CASE(checking) {
 
     //fetch checking move
     vector<PlayerAction> v;
-    for(shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
+    for (shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
         string check = a->toString();
-        if(a->toString() == "Qe8") {
+        if (a->toString() == "Qe8") {
             v.emplace_back(make_pair(0, a));
             v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
@@ -174,7 +179,7 @@ BOOST_AUTO_TEST_CASE(checking) {
     }
 
     Outcome newState = ks->performActions(v)[0].first;
-    auto newBoard = dynamic_cast<domains::KriegspielState*>(newState.state_.get());
+    auto newBoard = dynamic_cast<domains::KriegspielState *>(newState.state_.get());
     BOOST_CHECK(newBoard->isPlayerInCheck());
     auto newBlackKing = newBoard->getPiecesOfColorAndKind(1, KING)[0];
     BOOST_CHECK(newBlackKing->getAllValidMoves()->size() == 2);
@@ -183,7 +188,7 @@ BOOST_AUTO_TEST_CASE(checking) {
 BOOST_AUTO_TEST_CASE(doublechecking) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
     shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
-    auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
+    auto ks = dynamic_cast<domains::KriegspielState *>(s.get());
     ks->clearBoard();
 
     //build a model doublechecking situation
@@ -206,9 +211,9 @@ BOOST_AUTO_TEST_CASE(doublechecking) {
 
     //fetch double check move
     vector<PlayerAction> v;
-    for(shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
+    for (shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
         string check = a->toString();
-        if(a->toString() == "Bb5") {
+        if (a->toString() == "Bb5") {
             v.emplace_back(make_pair(0, a));
             v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
@@ -216,20 +221,22 @@ BOOST_AUTO_TEST_CASE(doublechecking) {
     }
 
     Outcome newState = ks->performActions(v)[0].first;
-    auto newBoard = dynamic_cast<domains::KriegspielState*>(newState.state_.get());
+    auto newBoard = dynamic_cast<domains::KriegspielState *>(newState.state_.get());
     BOOST_CHECK(newBoard->isPlayerInCheck());
     //the only valid move for black should be Kf7
     auto newBlackBishop = newBoard->getPiecesOfColorAndKind(1, BISHOP)[0];
     auto newBlackRook = newBoard->getPiecesOfColorAndKind(1, ROOK)[0];
     auto newBlackKing = newBoard->getPiecesOfColorAndKind(1, KING)[0];
-    BOOST_CHECK(newBlackBishop->getAllValidMoves()->empty() && newBlackRook->getAllValidMoves()->empty() && newBlackKing->getAllValidMoves()->size() == 1);
+    BOOST_CHECK(
+        newBlackBishop->getAllValidMoves()->empty() && newBlackRook->getAllValidMoves()->empty()
+            && newBlackKing->getAllValidMoves()->size() == 1);
 }
 
 
 BOOST_AUTO_TEST_CASE(castling) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
     shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
-    auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
+    auto ks = dynamic_cast<domains::KriegspielState *>(s.get());
     ks->clearBoard();
 
     //build a model castling situation
@@ -251,9 +258,9 @@ BOOST_AUTO_TEST_CASE(castling) {
 
     //fetch castling move
     vector<PlayerAction> v;
-    for(shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
+    for (shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
         string check = a->toString();
-        if(a->toString() == "Kg1") {
+        if (a->toString() == "Kg1") {
             v.emplace_back(make_pair(0, a));
             v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
@@ -261,14 +268,16 @@ BOOST_AUTO_TEST_CASE(castling) {
     }
 
     Outcome newState = ks->performActions(v)[0].first;
-    auto newBoard = dynamic_cast<GTLib2::domains::KriegspielState*>(newState.state_.get());
-    AbstractPiece* newWhiteKing = newBoard->getPiecesOfColorAndKind(0, KING)[0].get();
-    AbstractPiece* newWhiteRookShort = newBoard->getPiecesOfColorAndKind(0, ROOK)[1].get();
-    BOOST_CHECK(newWhiteKing->getPosition().x == 7 && newWhiteKing->getPosition().y == 1 && newWhiteRookShort->getPosition().x == 6 && newWhiteRookShort->getPosition().y == 1);
+    auto newBoard = dynamic_cast<GTLib2::domains::KriegspielState *>(newState.state_.get());
+    AbstractPiece *newWhiteKing = newBoard->getPiecesOfColorAndKind(0, KING)[0].get();
+    AbstractPiece *newWhiteRookShort = newBoard->getPiecesOfColorAndKind(0, ROOK)[1].get();
+    BOOST_CHECK(newWhiteKing->getPosition().x == 7 && newWhiteKing->getPosition().y == 1
+                    && newWhiteRookShort->getPosition().x == 6
+                    && newWhiteRookShort->getPosition().y == 1);
 
     domains::KriegspielDomain d2(4, 4, BOARD::STANDARD);
     shared_ptr<State> s2 = d2.getRootStatesDistribution()[0].first.state_;
-    auto ks2 = dynamic_cast<domains::KriegspielState*>(s2.get());
+    auto ks2 = dynamic_cast<domains::KriegspielState *>(s2.get());
     ks2->clearBoard();
     whiteKing = make_shared<King>(KING, 0, Square(5, 1), ks);
     blackKing = make_shared<King>(KING, 1, Square(2, 8), ks);
@@ -284,9 +293,9 @@ BOOST_AUTO_TEST_CASE(castling) {
 
     //fetch castling move
     v.clear();
-    for(shared_ptr<Action> a: ks2->getAvailableActionsFor(0)) {
+    for (shared_ptr<Action> a: ks2->getAvailableActionsFor(0)) {
         string check = a->toString();
-        if(a->toString() == "Kc1") {
+        if (a->toString() == "Kc1") {
             v.emplace_back(make_pair(0, a));
             v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
@@ -294,16 +303,18 @@ BOOST_AUTO_TEST_CASE(castling) {
     }
 
     Outcome lastState = ks2->performActions(v)[0].first;
-    auto lastBoard = dynamic_cast<GTLib2::domains::KriegspielState*>(lastState.state_.get());
-    AbstractPiece* newWhiteKing2 = lastBoard->getPiecesOfColorAndKind(0, KING)[0].get();
-    AbstractPiece* newWhiteRookLong = lastBoard->getPiecesOfColorAndKind(0, ROOK)[0].get();
-    BOOST_CHECK(newWhiteKing2->getPosition().x == 3 && newWhiteKing2->getPosition().y == 1 && newWhiteRookLong->getPosition().x == 4 && newWhiteRookLong->getPosition().y == 1);
+    auto lastBoard = dynamic_cast<GTLib2::domains::KriegspielState *>(lastState.state_.get());
+    AbstractPiece *newWhiteKing2 = lastBoard->getPiecesOfColorAndKind(0, KING)[0].get();
+    AbstractPiece *newWhiteRookLong = lastBoard->getPiecesOfColorAndKind(0, ROOK)[0].get();
+    BOOST_CHECK(newWhiteKing2->getPosition().x == 3 && newWhiteKing2->getPosition().y == 1
+                    && newWhiteRookLong->getPosition().x == 4
+                    && newWhiteRookLong->getPosition().y == 1);
 }
 
 BOOST_AUTO_TEST_CASE(castleDeny) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
     shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
-    auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
+    auto ks = dynamic_cast<domains::KriegspielState *>(s.get());
     ks->clearBoard();
 
     //build a model castling situation
@@ -327,9 +338,9 @@ BOOST_AUTO_TEST_CASE(castleDeny) {
 
     //fetch castling move
     vector<PlayerAction> v;
-    for(shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
+    for (shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
         string check = a->toString();
-        if(a->toString() == "Kg1") {
+        if (a->toString() == "Kg1") {
             v.emplace_back(make_pair(0, a));
             v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
@@ -338,7 +349,8 @@ BOOST_AUTO_TEST_CASE(castleDeny) {
 
     //short castle should be invalid
     Outcome newState = ks->performActions(v)[0].first;
-    BOOST_CHECK(newState.privateObservations_[0]->getId() == v[0].second.get()->getId() && newState.privateObservations_[1]->getId() == NO_OBSERVATION);
+    BOOST_CHECK(newState.privateObservations_[0]->getId() == v[0].second.get()->getId()
+                    && newState.privateObservations_[1]->getId() == NO_OBSERVATION);
 
     //reset the board
     ks->clearBoard();
@@ -357,9 +369,9 @@ BOOST_AUTO_TEST_CASE(castleDeny) {
 
     //fetch castling move
     v.clear();
-    for(shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
+    for (shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
         string check = a->toString();
-        if(a->toString() == "Kc1") {
+        if (a->toString() == "Kc1") {
             v.emplace_back(make_pair(0, a));
             v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
@@ -367,13 +379,14 @@ BOOST_AUTO_TEST_CASE(castleDeny) {
     }
 
     newState = ks->performActions(v)[0].first;
-    BOOST_CHECK(newState.privateObservations_[0]->getId() == v[0].second.get()->getId() && newState.privateObservations_[1]->getId() == NO_OBSERVATION);
+    BOOST_CHECK(newState.privateObservations_[0]->getId() == v[0].second.get()->getId()
+                    && newState.privateObservations_[1]->getId() == NO_OBSERVATION);
 }
 
 BOOST_AUTO_TEST_CASE(cutting) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
     shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
-    auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
+    auto ks = dynamic_cast<domains::KriegspielState *>(s.get());
     ks->clearBoard();
 
     //build a model cutting situation
@@ -381,7 +394,7 @@ BOOST_AUTO_TEST_CASE(cutting) {
     shared_ptr<King> whiteKing = make_shared<King>(KING, 0, Square(5, 1), ks);
     shared_ptr<King> blackKing = make_shared<King>(KING, 1, Square(2, 8), ks);
 
-    shared_ptr<Rook> blackRook = make_shared<Rook>(ROOK, 1, Square(8,8), ks);
+    shared_ptr<Rook> blackRook = make_shared<Rook>(ROOK, 1, Square(8, 8), ks);
     shared_ptr<Rook> whiteRook = make_shared<Rook>(ROOK, 0, Square(8, 1), ks);
 
     ks->insertPiece(whiteRook);
@@ -395,9 +408,9 @@ BOOST_AUTO_TEST_CASE(cutting) {
 
     //fetch castling move
     vector<PlayerAction> v;
-    for(shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
+    for (shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
         string check = a->toString();
-        if(a->toString() == "Rh8") {
+        if (a->toString() == "Rh8") {
             v.emplace_back(make_pair(0, a));
             v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
@@ -406,14 +419,14 @@ BOOST_AUTO_TEST_CASE(cutting) {
 
     Outcome newState = ks->performActions(v)[0].first;
     //after Rh8 there should be only 3 pieces left - the black rook is cut
-    auto newBoard = dynamic_cast<GTLib2::domains::KriegspielState*>(newState.state_.get());
+    auto newBoard = dynamic_cast<GTLib2::domains::KriegspielState *>(newState.state_.get());
     BOOST_CHECK(newBoard->getPiecesOfColor(0).size() + newBoard->getPiecesOfColor(1).size() == 3);
 }
 
 BOOST_AUTO_TEST_CASE(gameOverWin) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
     shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
-    auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
+    auto ks = dynamic_cast<domains::KriegspielState *>(s.get());
     ks->clearBoard();
 
     //build a model game over situation
@@ -434,9 +447,9 @@ BOOST_AUTO_TEST_CASE(gameOverWin) {
 
     //fetch game winning move
     vector<PlayerAction> v;
-    for(shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
+    for (shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
         string check = a->toString();
-        if(a->toString() == "Rf8") {
+        if (a->toString() == "Rf8") {
             v.emplace_back(make_pair(0, a));
             v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
@@ -450,7 +463,7 @@ BOOST_AUTO_TEST_CASE(gameOverWin) {
 BOOST_AUTO_TEST_CASE(gameOverDraw) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
     shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
-    auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
+    auto ks = dynamic_cast<domains::KriegspielState *>(s.get());
     ks->clearBoard();
 
     //build a model game drawing situation
@@ -467,9 +480,9 @@ BOOST_AUTO_TEST_CASE(gameOverDraw) {
 
     //fetch game winning move
     vector<PlayerAction> v;
-    for(shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
+    for (shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
         string check = a->toString();
-        if(a->toString() == "Ke6") {
+        if (a->toString() == "Ke6") {
             v.emplace_back(make_pair(0, a));
             v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
@@ -484,7 +497,7 @@ BOOST_AUTO_TEST_CASE(gameOverDraw) {
 BOOST_AUTO_TEST_CASE(PAWNPromotion) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
     shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
-    auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
+    auto ks = dynamic_cast<domains::KriegspielState *>(s.get());
     ks->clearBoard();
 
     //build a model game drawing situation
@@ -501,9 +514,9 @@ BOOST_AUTO_TEST_CASE(PAWNPromotion) {
 
     //fetch game winning move
     vector<PlayerAction> v;
-    for(shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
+    for (shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
         string check = a->toString();
-        if(a->toString() == "Pe8") {
+        if (a->toString() == "Pe8") {
             v.emplace_back(make_pair(0, a));
             v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
@@ -511,15 +524,16 @@ BOOST_AUTO_TEST_CASE(PAWNPromotion) {
     }
 
     Outcome newState = ks->performActions(v)[0].first;
-    auto newBoard = dynamic_cast<domains::KriegspielState*>(newState.state_.get());
+    auto newBoard = dynamic_cast<domains::KriegspielState *>(newState.state_.get());
     //after Rh8 there should be only 3 pieces left - the black rook is cut
-    BOOST_CHECK(newBoard->getPiecesOfColor(0).size() == 2 && newBoard->getPiecesOfColorAndKind(0, QUEEN).size() == 1);
+    BOOST_CHECK(newBoard->getPiecesOfColor(0).size() == 2
+                    && newBoard->getPiecesOfColorAndKind(0, QUEEN).size() == 1);
 }
 
 BOOST_AUTO_TEST_CASE(protection) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
     shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
-    auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
+    auto ks = dynamic_cast<domains::KriegspielState *>(s.get());
     ks->clearBoard();
     ks->setPlayerOnMove(chess::BLACK);
 
@@ -535,9 +549,9 @@ BOOST_AUTO_TEST_CASE(protection) {
 
 
     vector<PlayerAction> v;
-    for(shared_ptr<Action> a: ks->getAvailableActionsFor(1)) {
+    for (shared_ptr<Action> a: ks->getAvailableActionsFor(1)) {
         string check = a->toString();
-        if(a->toString() == "qd8") {
+        if (a->toString() == "qd8") {
             v.emplace_back(make_pair(0, a));
             v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
@@ -545,12 +559,12 @@ BOOST_AUTO_TEST_CASE(protection) {
     }
 
     Outcome newState = ks->performActions(v)[0].first;
-    auto newBoard = dynamic_cast<domains::KriegspielState*>(newState.state_.get());
+    auto newBoard = dynamic_cast<domains::KriegspielState *>(newState.state_.get());
 
     v.clear();
-    for(shared_ptr<Action> a: newBoard->getAvailableActionsFor(0)) {
+    for (shared_ptr<Action> a: newBoard->getAvailableActionsFor(0)) {
         string check = a->toString();
-        if(a->toString() == "Kd8") {
+        if (a->toString() == "Kd8") {
             v.emplace_back(make_pair(0, a));
             v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
@@ -558,133 +572,135 @@ BOOST_AUTO_TEST_CASE(protection) {
     }
     newState = newBoard->performActions(v)[0].first;
 
-    BOOST_CHECK(newState.privateObservations_[0]->getId() == v[0].second.get()->getId() && newState.privateObservations_[1]->getId() == NO_OBSERVATION);
+    BOOST_CHECK(newState.privateObservations_[0]->getId() == v[0].second.get()->getId()
+                    && newState.privateObservations_[1]->getId() == NO_OBSERVATION);
 }
 
 BOOST_AUTO_TEST_CASE(randomPin) {
-        domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
-        shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
-        auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
-        ks->clearBoard();
-        ks->setPlayerOnMove(BLACK);
+    domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
+    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
+    auto ks = dynamic_cast<domains::KriegspielState *>(s.get());
+    ks->clearBoard();
+    ks->setPlayerOnMove(BLACK);
 
-        vector<shared_ptr<AbstractPiece>> pieceV;
+    vector<shared_ptr<AbstractPiece>> pieceV;
 
-        pieceV.emplace_back(make_shared<King>(KING, 0, Square(6, 4), ks));
-        pieceV.emplace_back(make_shared<King>(KING, 1, Square(3, 3), ks));
+    pieceV.emplace_back(make_shared<King>(KING, 0, Square(6, 4), ks));
+    pieceV.emplace_back(make_shared<King>(KING, 1, Square(3, 3), ks));
 
-        pieceV.emplace_back(make_shared<Queen>(QUEEN, 0, Square(5, 4), ks));
-        pieceV.emplace_back(make_shared<Knight>(KNIGHT, 1, Square(3, 6), ks));
-        pieceV.emplace_back(make_shared<Rook>(ROOK, 1, Square(3, 4), ks));
-        pieceV.emplace_back(make_shared<Pawn>(PAWN, 1, Square(1, 5), ks, 1));
-        pieceV.emplace_back(make_shared<Pawn>(PAWN, 1, Square(1, 3), ks, 3));
-        pieceV.emplace_back(make_shared<Pawn>(PAWN, 0, Square(1, 2), ks, 5));
-        pieceV.emplace_back(make_shared<Pawn>(PAWN, 1, Square(2, 2), ks, 7));
-        pieceV.emplace_back(make_shared<Pawn>(PAWN, 0, Square(6, 5), ks, 9));
-        pieceV.emplace_back(make_shared<Pawn>(PAWN, 0, Square(8, 5), ks, 11));
+    pieceV.emplace_back(make_shared<Queen>(QUEEN, 0, Square(5, 4), ks));
+    pieceV.emplace_back(make_shared<Knight>(KNIGHT, 1, Square(3, 6), ks));
+    pieceV.emplace_back(make_shared<Rook>(ROOK, 1, Square(3, 4), ks));
+    pieceV.emplace_back(make_shared<Pawn>(PAWN, 1, Square(1, 5), ks, 1));
+    pieceV.emplace_back(make_shared<Pawn>(PAWN, 1, Square(1, 3), ks, 3));
+    pieceV.emplace_back(make_shared<Pawn>(PAWN, 0, Square(1, 2), ks, 5));
+    pieceV.emplace_back(make_shared<Pawn>(PAWN, 1, Square(2, 2), ks, 7));
+    pieceV.emplace_back(make_shared<Pawn>(PAWN, 0, Square(6, 5), ks, 9));
+    pieceV.emplace_back(make_shared<Pawn>(PAWN, 0, Square(8, 5), ks, 11));
 
-        for(const shared_ptr<AbstractPiece> &p : pieceV) {
-            ks->insertPiece(p);
+    for (const shared_ptr<AbstractPiece> &p : pieceV) {
+        ks->insertPiece(p);
+    }
+    ks->updateAllPieces();
+
+
+    vector<PlayerAction> v;
+    for (shared_ptr<Action> a: ks->getAvailableActionsFor(1)) {
+        string check = a->toString();
+        if (a->toString() == "pa4") {
+            v.emplace_back(make_pair(0, a));
+            v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
+            break;
         }
-        ks->updateAllPieces();
+    }
 
+    Outcome newState = ks->performActions(v)[0].first;
+    auto newBoard = dynamic_cast<domains::KriegspielState *>(newState.state_.get());
 
-        vector<PlayerAction> v;
-        for(shared_ptr<Action> a: ks->getAvailableActionsFor(1)) {
-            string check = a->toString();
-            if(a->toString() == "pa4") {
-                v.emplace_back(make_pair(0, a));
-                v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
-                break;
-            }
+    v.clear();
+    for (shared_ptr<Action> a: newBoard->getAvailableActionsFor(0)) {
+        string check = a->toString();
+        if (a->toString() == "Qc6") {
+            v.emplace_back(make_pair(0, a));
+            v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
+            break;
         }
+    }
 
-        Outcome newState = ks->performActions(v)[0].first;
-        auto newBoard = dynamic_cast<domains::KriegspielState*>(newState.state_.get());
+    Outcome lastState = newBoard->performActions(v)[0].first;
 
-        v.clear();
-        for(shared_ptr<Action> a: newBoard->getAvailableActionsFor(0)) {
-            string check = a->toString();
-            if(a->toString() == "Qc6") {
-                v.emplace_back(make_pair(0, a));
-                v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
-                break;
-            }
-        }
-
-        Outcome lastState = newBoard->performActions(v)[0].first;
-
-        BOOST_CHECK(lastState.privateObservations_[0]->getId() == v[0].second.get()->getId() && lastState.privateObservations_[1]->getId() == NO_OBSERVATION);
+    BOOST_CHECK(lastState.privateObservations_[0]->getId() == v[0].second.get()->getId()
+                    && lastState.privateObservations_[1]->getId() == NO_OBSERVATION);
 }
 
 BOOST_AUTO_TEST_CASE(randomGameOver) {
-        domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
-        shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
-        auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
-        ks->clearBoard();
-        ks->setPlayerOnMove(BLACK);
+    domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
+    shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
+    auto ks = dynamic_cast<domains::KriegspielState *>(s.get());
+    ks->clearBoard();
+    ks->setPlayerOnMove(BLACK);
 
-        vector<shared_ptr<AbstractPiece>> pieceV;
+    vector<shared_ptr<AbstractPiece>> pieceV;
 
-        pieceV.emplace_back(make_shared<King>(KING, 0, Square(3, 1), ks));
-        pieceV.emplace_back(make_shared<King>(KING, 1, Square(6, 1), ks));
+    pieceV.emplace_back(make_shared<King>(KING, 0, Square(3, 1), ks));
+    pieceV.emplace_back(make_shared<King>(KING, 1, Square(6, 1), ks));
 
-        pieceV.emplace_back(make_shared<Queen>(QUEEN, 1, Square(8, 2), ks));
-        pieceV.emplace_back(make_shared<Bishop>(BISHOP, 0, Square(4, 4), ks));
-        pieceV.emplace_back(make_shared<Bishop>(BISHOP, 1, Square(1, 6), ks));
-        pieceV.emplace_back(make_shared<Pawn>(PAWN, 1, Square(2, 3), ks, 1));
-        pieceV.emplace_back(make_shared<Pawn>(PAWN, 1, Square(6, 6), ks, 3));
-        pieceV.emplace_back(make_shared<Pawn>(PAWN, 0, Square(6, 5), ks, 5));
+    pieceV.emplace_back(make_shared<Queen>(QUEEN, 1, Square(8, 2), ks));
+    pieceV.emplace_back(make_shared<Bishop>(BISHOP, 0, Square(4, 4), ks));
+    pieceV.emplace_back(make_shared<Bishop>(BISHOP, 1, Square(1, 6), ks));
+    pieceV.emplace_back(make_shared<Pawn>(PAWN, 1, Square(2, 3), ks, 1));
+    pieceV.emplace_back(make_shared<Pawn>(PAWN, 1, Square(6, 6), ks, 3));
+    pieceV.emplace_back(make_shared<Pawn>(PAWN, 0, Square(6, 5), ks, 5));
 
-        for(const shared_ptr<AbstractPiece> &p : pieceV) {
-            ks->insertPiece(p);
+    for (const shared_ptr<AbstractPiece> &p : pieceV) {
+        ks->insertPiece(p);
+    }
+    ks->updateAllPieces();
+
+
+    vector<PlayerAction> v;
+    for (shared_ptr<Action> a: ks->getAvailableActionsFor(1)) {
+        string check = a->toString();
+        if (a->toString() == "qc2") {
+            v.emplace_back(make_pair(0, a));
+            v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
+            break;
         }
-        ks->updateAllPieces();
+    }
 
+    Outcome newState = ks->performActions(v)[0].first;
 
-        vector<PlayerAction> v;
-        for(shared_ptr<Action> a: ks->getAvailableActionsFor(1)) {
-            string check = a->toString();
-            if(a->toString() == "qc2") {
-                v.emplace_back(make_pair(0, a));
-                v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
-                break;
-            }
-        }
-
-        Outcome newState = ks->performActions(v)[0].first;
-
-        BOOST_CHECK(newState.rewards_[0] == 0 && newState.rewards_[1] == 1);
+    BOOST_CHECK(newState.rewards_[0] == 0 && newState.rewards_[1] == 1);
 }
 
 BOOST_AUTO_TEST_CASE(piercingProtection) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
     shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
-    auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
+    auto ks = dynamic_cast<domains::KriegspielState *>(s.get());
     ks->clearBoard();
     ks->setPlayerOnMove(1);
 
     vector<shared_ptr<AbstractPiece>> pieceV;
 
-    pieceV.emplace_back(make_shared<King>(KING, 0, Square(8,8), ks));
+    pieceV.emplace_back(make_shared<King>(KING, 0, Square(8, 8), ks));
     pieceV.emplace_back(make_shared<King>(KING, 1, Square(5, 8), ks));
 
     pieceV.emplace_back(make_shared<Rook>(ROOK, 1, Square(6, 6), ks));
     pieceV.emplace_back(make_shared<Pawn>(PAWN, 0, Square(8, 7), ks, 1));
     pieceV.emplace_back(make_shared<Pawn>(PAWN, 1, Square(4, 4), ks, 3));
 
-    for(shared_ptr<AbstractPiece> p : pieceV) {
+    for (shared_ptr<AbstractPiece> p : pieceV) {
         ks->insertPiece(p);
     }
     //move the king to the same square so game doesnt check for castles
-    ks[0].getPiecesOfColorAndKind(1, KING)[0]->move(Square(5,8));
+    ks[0].getPiecesOfColorAndKind(1, KING)[0]->move(Square(5, 8));
     ks->updateAllPieces();
 
 
     vector<PlayerAction> v;
-    for(shared_ptr<Action> a: ks->getAvailableActionsFor(1)) {
+    for (shared_ptr<Action> a: ks->getAvailableActionsFor(1)) {
         string check = a->toString();
-        if(a->toString() == "kf8") {
+        if (a->toString() == "kf8") {
             v.emplace_back(make_pair(0, a));
             v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
@@ -699,12 +715,12 @@ BOOST_AUTO_TEST_CASE(piercingProtection) {
 BOOST_AUTO_TEST_CASE(gameOverTest) {
     domains::KriegspielDomain d(4, 4, BOARD::MINIMAL3x3);
     shared_ptr<State> s = d.getRootStatesDistribution()[0].first.state_;
-    auto ks = dynamic_cast<domains::KriegspielState*>(s.get());
+    auto ks = dynamic_cast<domains::KriegspielState *>(s.get());
 
     vector<PlayerAction> v;
-    for(shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
+    for (shared_ptr<Action> a: ks->getAvailableActionsFor(0)) {
         string check = a->toString();
-        if(a->toString() == "Kb1") {
+        if (a->toString() == "Kb1") {
             v.emplace_back(make_pair(0, a));
             v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
@@ -712,12 +728,12 @@ BOOST_AUTO_TEST_CASE(gameOverTest) {
     }
 
     Outcome newState = ks->performActions(v)[0].first;
-    auto newBoard = dynamic_cast<domains::KriegspielState*>(newState.state_.get());
+    auto newBoard = dynamic_cast<domains::KriegspielState *>(newState.state_.get());
 
     v.clear();
-    for(shared_ptr<Action> a: newBoard->getAvailableActionsFor(1)) {
+    for (shared_ptr<Action> a: newBoard->getAvailableActionsFor(1)) {
         string check = a->toString();
-        if(a->toString() == "kb3") {
+        if (a->toString() == "kb3") {
             v.emplace_back(make_pair(0, a));
             v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
@@ -725,12 +741,12 @@ BOOST_AUTO_TEST_CASE(gameOverTest) {
     }
 
     Outcome lastState = newBoard->performActions(v)[0].first;
-    auto lastBoard = dynamic_cast<domains::KriegspielState*>(lastState.state_.get());
+    auto lastBoard = dynamic_cast<domains::KriegspielState *>(lastState.state_.get());
 
     v.clear();
-    for(shared_ptr<Action> a: lastBoard->getAvailableActionsFor(0)) {
+    for (shared_ptr<Action> a: lastBoard->getAvailableActionsFor(0)) {
         string check = a->toString();
-        if(a->toString() == "Rd3") {
+        if (a->toString() == "Rd3") {
             v.emplace_back(make_pair(0, a));
             v.emplace_back(make_pair(1, make_shared<Action>(NO_ACTION)));
             break;
@@ -744,3 +760,5 @@ BOOST_AUTO_TEST_CASE(gameOverTest) {
 
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
+
+}
