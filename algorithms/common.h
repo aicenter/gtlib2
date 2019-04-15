@@ -33,6 +33,10 @@ namespace GTLib2::algorithms {
 
 EFGNodesDistribution createRootEFGNodes(const OutcomeDistribution &probDist);
 
+inline EFGNodesDistribution createRootEFGNodes(const Domain &domain) {
+    return createRootEFGNodes(domain.getRootStatesDistribution());
+}
+
 BehavioralStrategy mixedToBehavioralStrategy(const Domain &domain,
                                              const vector<BehavioralStrategy> &pureStrats,
                                              const ProbDistribution &distribution,

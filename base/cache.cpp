@@ -27,14 +27,6 @@
 
 namespace GTLib2 {
 
-EFGCache::EFGCache(const GTLib2::EFGNodesDistribution &rootNodesDist) {
-    rootNodes_ = rootNodesDist;
-}
-
-EFGCache::EFGCache(const OutcomeDistribution &rootProbDist)
-    : EFGCache(algorithms::createRootEFGNodes(rootProbDist)) {
-}
-
 bool EFGCache::hasChildren(const shared_ptr<EFGNode> &node) const {
     auto it = nodesChildren_.find(node);
     if (it == nodesChildren_.end()) return false;
@@ -67,12 +59,8 @@ EFGActionNodesDistribution &EFGCache::getCachedNode(const shared_ptr<EFGNode> &n
     // for a node gotten outside from cache?
     if (maybeNode == nodesChildren_.end()) {
 
-        // rootNodes cannot be initialized in constructor,
-        // because createNode is a virtual function that can be overriden in child classes
-        // https://www.artima.com/cppsource/nevercall.html
-
-        for (auto &rootNode : rootNodes_) {
-            if (rootNode.first == node) {
+        for (auto &rootNode : getRootNodes()) {
+            if (*rootNode.first == *node) {
                 createNode(rootNode.first);
                 // createNode must append to nodesChildren
                 return nodesChildren_[node];
@@ -159,7 +147,7 @@ void EFGCache::buildForest(int maxDepth) {
 }
 
 void EFGCache::buildForest() {
-    buildForest(INT_MAX);
+    buildForest(domain_.getMaxDepth());
     builtForest_ = true;
 }
 

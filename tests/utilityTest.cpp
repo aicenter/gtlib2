@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE(computeUtilityFullDepthCard4) {
     auto player = Player(1);
     auto opponent = Player(0);
 
-    InfosetCache cache(domain.getRootStatesDistribution());
+    InfosetCache cache(domain);
     StrategyProfile profile = getUniformStrategy(cache);
 
     auto lowestCardAction = make_shared<GoofSpielAction>(0, 1);

@@ -64,10 +64,8 @@ struct CFRSettings {
 class CFRData: public InfosetCache {
 
  public:
-    inline explicit CFRData(const OutcomeDistribution &rootProbDist, CFRUpdating updatingPolicy) :
-        InfosetCache(rootProbDist), updatingPolicy_(updatingPolicy) {}
-    inline explicit CFRData(const EFGNodesDistribution &rootNodes, CFRUpdating updatingPolicy) :
-        InfosetCache(rootNodes), updatingPolicy_(updatingPolicy) {}
+    inline explicit CFRData(const Domain &domain, CFRUpdating updatingPolicy) :
+        InfosetCache(domain), updatingPolicy_(updatingPolicy) {}
 
     struct InfosetData {
         vector<double> regrets;

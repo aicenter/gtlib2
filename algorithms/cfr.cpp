@@ -37,7 +37,7 @@ namespace GTLib2::algorithms {
 
 CFRAlgorithm::CFRAlgorithm(const Domain &domain, Player playingPlayer, CFRSettings settings) :
     GamePlayingAlgorithm(domain, playingPlayer),
-    cache_(CFRData(domain_.getRootStatesDistribution(), settings.cfrUpdating)),
+    cache_(CFRData(domain_, settings.cfrUpdating)),
     settings_(settings) {}
 
 bool CFRAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {

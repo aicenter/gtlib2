@@ -25,6 +25,9 @@
 
 #include "base/base.h"
 #include "base/efg.h"
+#include "algorithms/common.h"
+
+using GTLib2::algorithms::createRootEFGNodes;
 
 namespace GTLib2 {
 
@@ -54,8 +57,7 @@ class EFGCache {
     unordered_map<shared_ptr<EFGNode>, EFGActionNodesDistribution> nodesChildren_;
 
  public:
-    explicit EFGCache(const OutcomeDistribution &rootProbDist);
-    explicit EFGCache(const EFGNodesDistribution &rootNodes);
+    inline explicit EFGCache(const Domain &domain) : domain_(domain) {}
 
     /**
      * Check if cache contains all the children for given node (after following any action).
@@ -86,7 +88,13 @@ class EFGCache {
      */
     const EFGActionNodesDistribution &getChildrenFor(const shared_ptr<EFGNode> &node);
 
-    inline const EFGNodesDistribution &getRootNodes() const {
+    inline const EFGNodesDistribution &getRootNodes() {
+        // rootNodes cannot be initialized in constructor,
+        // because createNode is a virtual function that can be overriden in child classes
+        // https://www.artima.com/cppsource/nevercall.html
+        if(rootNodes_.empty()) {
+            rootNodes_ = createRootEFGNodes(domain_);
+        }
         return rootNodes_;
     }
 
@@ -120,6 +128,7 @@ class EFGCache {
  protected:
     virtual void createNode(const shared_ptr<EFGNode> &node);
     EFGActionNodesDistribution &getCachedNode(const shared_ptr<EFGNode> &shared_ptr);
+    const Domain &domain_;
 
  private:
     bool builtForest_ = false;
@@ -139,9 +148,7 @@ class InfosetCache: public EFGCache {
     unordered_map<shared_ptr<AOH>, vector<shared_ptr<EFGNode>>> infoset2nodes_;
 
  public:
-    inline explicit InfosetCache(const OutcomeDistribution &rootProbDist)
-        : EFGCache(rootProbDist) {}
-    inline explicit InfosetCache(const EFGNodesDistribution &rootNodes) : EFGCache(rootNodes) {}
+    inline explicit InfosetCache(const Domain &domain) : EFGCache(domain) {}
 
     inline bool hasInfoset(const shared_ptr<AOH> &augInfoset) {
         return infoset2nodes_.find(augInfoset) != infoset2nodes_.end();

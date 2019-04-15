@@ -27,6 +27,7 @@
 
 #include <boost/test/unit_test.hpp>
 #include <domains/matching_pennies.h>
+#include <algorithms/common.h>
 #include "domains/goofSpiel.h"
 #include "domains/genericPoker.h"
 #include "domains/oshiZumo.h"
@@ -37,6 +38,7 @@ namespace GTLib2::domains {
 using algorithms::treeWalkEFG;
 using GoofSpielVariant::IncompleteObservations;
 using GoofSpielVariant::CompleteObservations;
+using algorithms::createRootEFGNodes;
 
 bool isDomainZeroSum(const Domain &domain) {
     int num_violations = 0;
@@ -50,7 +52,7 @@ bool isDomainZeroSum(const Domain &domain) {
 
 bool isEFGNodeAndStateConsistent(const Domain &domain) {
     int num_violations = 0;
-    EFGCache cache(domain.getRootStatesDistribution());
+    EFGCache cache(domain);
     cache.buildForest(domain.getMaxDepth());
     auto nodes = cache.getNodes();
     for (const auto &n1: nodes) {
@@ -94,6 +96,10 @@ bool isDomainMaxDepthCorrect(const Domain &domain) {
 
     treeWalkEFG(domain, countViolations, domain.getMaxDepth());
     return maxDepth == domain.getMaxDepth();
+}
+
+bool doesCreateRootNodes(const Domain &domain) {
+    return !createRootEFGNodes(domain).empty();
 }
 
 BOOST_AUTO_TEST_SUITE(DomainsTests)
@@ -167,6 +173,12 @@ BOOST_AUTO_TEST_CASE(maxDepth) {
     for (auto domain : testDomains) {
         cout << "checking " << domain->getInfo() << "\n";
         BOOST_CHECK(isDomainMaxDepthCorrect(*domain));
+    }
+}
+
+BOOST_AUTO_TEST_CASE(createsRootNodes) {
+    for (auto domain : testDomains) {
+        BOOST_CHECK(doesCreateRootNodes(*domain));
     }
 }
 

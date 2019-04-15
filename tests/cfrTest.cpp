@@ -250,7 +250,7 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomainFixStrategy) {
 
 BOOST_AUTO_TEST_CASE(CalcUtilities) {
     MatchingPenniesDomain domain;
-    CFRData data(domain.getRootStatesDistribution(), InfosetsUpdating);
+    CFRData data(domain, InfosetsUpdating);
     data.buildForest();
 
     auto rootNode = data.getRootNodes()[0].first;

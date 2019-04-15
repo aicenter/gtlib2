@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(CacheHit) {
     MatchingPenniesDomain mp;
     auto rootNodes = createRootEFGNodes(
         mp.getRootStatesDistribution());
-    InfosetCache cache(rootNodes);
+    InfosetCache cache(mp);
 
     auto rootNode = rootNodes[0].first;
     auto actions = rootNode->availableActions();
@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE(CacheHit) {
 BOOST_AUTO_TEST_CASE(BuildCacheMaxDepth) {
     MatchingPenniesDomain mp;
     auto rootNodes = createRootEFGNodes(mp.getRootStatesDistribution());
-    InfosetCache cache(rootNodes);
+    InfosetCache cache(mp);
 
     auto rootNode = rootNodes[0].first;
     auto actions = rootNode->availableActions();
@@ -105,7 +105,7 @@ BOOST_AUTO_TEST_CASE(BuildCacheMaxDepth) {
 BOOST_AUTO_TEST_CASE(BuildCacheLimitedDepth) {
     MatchingPenniesDomain mp;
     auto rootNodes = createRootEFGNodes(mp.getRootStatesDistribution());
-    InfosetCache cache(rootNodes);
+    InfosetCache cache(mp);
 
     auto rootNode = rootNodes[0].first;
     auto actions = rootNode->availableActions();

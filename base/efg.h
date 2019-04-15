@@ -243,6 +243,7 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
 };
 };  // namespace GTLib2
 
+
 using GTLib2::EFGNode;
 
 namespace std { // NOLINT(cert-dcl58-cpp)

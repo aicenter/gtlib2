@@ -81,7 +81,7 @@ BOOST_AUTO_TEST_CASE(bestResponseFullDepthCard4) {
     auto player = Player(1);
     auto opponent = Player(0);
 
-    InfosetCache cache(domain.getRootStatesDistribution());
+    InfosetCache cache(domain);
     StrategyProfile profile = getUniformStrategy(cache);
 
     auto lowestCardAction = make_shared<GoofSpielAction>(0, 1);
@@ -115,7 +115,7 @@ BOOST_AUTO_TEST_CASE(bestResponseDepth2Card4) {
     auto player = Player(1);
     auto opponent = Player(0);
 
-    InfosetCache cache(domain.getRootStatesDistribution());
+    InfosetCache cache(domain);
     StrategyProfile profile = getUniformStrategy(cache);
 
     auto lowestCardAction = make_shared<GoofSpielAction>(0, 1);
@@ -143,7 +143,7 @@ BOOST_AUTO_TEST_CASE(bestResponseDepth1Card13) {
     auto player = Player(1);
     auto opponent = Player(0);
 
-    InfosetCache cache(domain.getRootStatesDistribution());
+    InfosetCache cache(domain);
     StrategyProfile profile = getUniformStrategy(cache, 1);
 
     auto lowestCardAction = make_shared<GoofSpielAction>(0, 1);

@@ -50,7 +50,6 @@ using std::make_shared;
 using std::make_unique;
 using std::move;
 using std::pair;
-using std::reference_wrapper;
 using std::shared_ptr;
 using std::string;
 using std::to_string ;
@@ -61,6 +60,7 @@ using std::vector;
 using std::tuple;
 using std::max;
 using std::min;
+using std::reference_wrapper;
 
 // Maximum number of players we consider at any game
 #define GAME_MAX_PLAYERS 2

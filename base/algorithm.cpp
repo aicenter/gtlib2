@@ -54,7 +54,7 @@ bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
 
 FixedActionPlayer::FixedActionPlayer(const Domain &domain, Player playingPlayer, int actionIdx)
     : GamePlayingAlgorithm(domain, playingPlayer),
-      cache_(InfosetCache(domain_.getRootStatesDistribution())),
+      cache_(InfosetCache(domain_)),
       actionIdx_(actionIdx) {}
 
 bool FixedActionPlayer::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
