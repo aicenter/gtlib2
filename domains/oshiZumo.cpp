@@ -62,6 +62,7 @@ OshiZumoDomain::OshiZumoDomain(int startingCoins, int startingLoc, int minBid, b
     assert(startingLoc >= 0);
     assert(minBid >= 0);
 
+    maxUtility_ = startingCoins == 1 ? 0.0 : 1.0;
     auto rootState = make_shared<OshiZumoState>(this, startingLoc, startingCoins);
     vector<shared_ptr<Observation>> observations{make_shared<OshiZumoObservation>(NO_OBSERVATION),
                                                  make_shared<OshiZumoObservation>(NO_OBSERVATION)};

@@ -95,10 +95,14 @@ GoofSpielDomain::GoofSpielDomain(GoofSpielSettings settings) :
     variant_(settings.variant),
     natureCards_(settings.getNatureCards()) {
 
-    if (binaryTerminalRewards_) {
+    assert(numberOfCards_ >= 1);
+
+    if(numberOfCards_ == 1) maxUtility_ = 0.;
+    else if (binaryTerminalRewards_) {
         maxUtility_ = 1.0;
     } else {
-        maxUtility_ = 0.0;
+        // can't win the smallest card or will even lose to smallest card of value 1
+        maxUtility_ = fixChanceCards_ ? -2.0 : -1.0;
         for (auto natureCard: natureCards_) maxUtility_ += natureCard;
     }
 
@@ -166,9 +170,16 @@ void GoofSpielDomain::initRandomCards(const vector<int> &natureCards) {
 }
 
 string GoofSpielDomain::getInfo() const {
-    string type = (variant_ ? "IIGoofspiel" : "Goofspiel");
-    return type + " with " + std::to_string(numberOfCards_) + " cards and "
-        + (fixChanceCards_ ? "fixed nature deck" : "random nature cards");
+    std::stringstream ss;
+    ss << (variant_ ? "IIGoofspiel" : "Goofspiel");
+    ss << " with " + std::to_string(numberOfCards_) + " cards and ";
+    if(fixChanceCards_) {
+        ss << "fixed nature deck " << natureCards_;
+    } else {
+        ss << "random nature cards";
+    }
+    if(binaryTerminalRewards_) ss << " and binary terminal rewards";
+    return ss.str();
 }
 
 vector<Player> GoofSpielDomain::getPlayers() const {

@@ -386,11 +386,11 @@ class Domain {
         return maxDepth_;
     }
 
-    inline int getMaxUtility() const {
+    inline double getMaxUtility() const {
         return maxUtility_;
     }
 
-    inline int getMinUtility() const {
+    inline double getMinUtility() const {
         return -maxUtility_;
     }
 
@@ -403,7 +403,7 @@ class Domain {
     OutcomeDistribution rootStatesDistribution_;
     unsigned int maxDepth_;
     unsigned int numberOfPlayers_;
-    int maxUtility_;
+    double maxUtility_;
 };
 }  // namespace GTLib2
 

@@ -134,7 +134,8 @@ SimultaneousMatchingPenniesDomain mp2;
 Domain *testDomains[] = { // NOLINT(cert-err58-cpp)
     &gs1, &gs2, &gs3, &gs1_fix, &gs2_fix, &gs3_fix,
     &iigs1, &iigs2, &iigs3, &iigs1_fix, &iigs2_fix, &iigs3_fix,
-    &gp1, &gp2,
+    // todo: maxUtility and maxDepth do not work for poker!
+    // &gp1, &gp2,
     &oz1, &oz2, &oz3, &oz4, &oz5,
     &mp1, &mp2,
 };
