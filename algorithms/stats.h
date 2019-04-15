@@ -45,16 +45,16 @@ struct DomainStatistics {
 
     friend std::ostream &
     operator<<(std::ostream &ss, DomainStatistics const &stats) {
-        ss << std::endl;
-        ss << "States:              \t" << stats.num_states << std::endl;
-        ss << "Histories:           \t" << stats.num_histories << std::endl;
-        ss << "Terminals:           \t" << stats.num_terminals << std::endl;
-        ss << "EFG nodes:           \t" << stats.num_nodes << std::endl;
-        ss << "Infosets:            \t" << stats.num_infosets << std::endl;
-        ss << "Sequences:           \t" << stats.num_sequences << std::endl;
-        ss << "Depth of game state: \t" << stats.max_StateDepth << std::endl;
-        ss << "Depth of EFG:        \t" << stats.max_EFGDepth << std::endl;
-        ss << std::endl;
+        ss << endl;
+        ss << "States:              \t" << stats.num_states << endl;
+        ss << "Histories:           \t" << stats.num_histories << endl;
+        ss << "Terminals:           \t" << stats.num_terminals << endl;
+        ss << "EFG nodes:           \t" << stats.num_nodes << endl;
+        ss << "Infosets:            \t" << stats.num_infosets << endl;
+        ss << "Sequences:           \t" << stats.num_sequences << endl;
+        ss << "Depth of game state: \t" << stats.max_StateDepth << endl;
+        ss << "Depth of EFG:        \t" << stats.max_EFGDepth << endl;
+        ss << endl;
 
         return ss;
     }
@@ -100,7 +100,7 @@ void printDomainStatistics(const Domain &domain, std::ostream &ostr);
  * Print basic statistics about supplied domain
  */
 inline void printDomainStatistics(const Domain &domain) {
-    printDomainStatistics(domain, std::cout);
+    printDomainStatistics(domain, cout);
 }
 
 }  // namespace GTLib2

@@ -23,10 +23,10 @@
 #ifndef DOMAINS_GENERICPOKER_H_
 #define DOMAINS_GENERICPOKER_H_
 
+#include "base/base.h"
 #include <utility>
 #include <string>
 #include <vector>
-#include "base/base.h"
 
 
 namespace GTLib2::domains {

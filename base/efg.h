@@ -25,6 +25,9 @@
 #ifndef BASE_EFG_H_
 #define BASE_EFG_H_
 
+#include "base/base.h"
+#include "base/hashing.h"
+
 #include <experimental/optional>
 #include <unordered_map>
 #include <unordered_set>
@@ -33,8 +36,6 @@
 #include <string>
 #include <functional>
 
-#include "base/base.h"
-#include "base/hashing.h"
 
 
 namespace GTLib2 {
@@ -215,7 +216,7 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
 
     bool operator==(const EFGNode &rhs) const;
 
-    inline const std::vector<uint32_t>& getDescriptor() const {
+    inline const vector<uint32_t>& getDescriptor() const {
         return descriptor_;
     }
 
@@ -238,7 +239,7 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
     int depth_;
 
     mutable HashType hashNode_ = 0;
-    mutable std::vector<uint32_t> descriptor_;
+    mutable vector<uint32_t> descriptor_;
 };
 };  // namespace GTLib2
 

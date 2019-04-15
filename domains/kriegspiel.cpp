@@ -21,6 +21,7 @@
 
 
 #include "kriegspiel.h"
+#include "base/base.h"
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
@@ -34,7 +35,7 @@ int queenKingMoves[8][2] = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}, {-1, 1}, {-1, -1},
 int knightMoves[8][2] = {{1, 2}, {-1, 2}, {-1, -2}, {1, -2}, {2, 1}, {-2, 1}, {-2, -1}, {2, -1}};
 
 const string coordToString(const Square c) {
-    return coords[c.x - 1] + std::to_string(c.y);
+    return coords[c.x - 1] + to_string (c.y);
 }
 
 const Square stringToCoord(string s) {
@@ -871,7 +872,7 @@ vector<shared_ptr<Action>> KriegspielState::getAvailableActionsFor(Player player
         auto moves = p->getAllMoves();
         for (Square move: *moves) {
             auto ksa = make_shared<KriegspielAction>(
-                count, std::pair<shared_ptr<AbstractPiece>, Square>(p, move),
+                count, pair<shared_ptr<AbstractPiece>, Square>(p, move),
                 p->getPosition());
             if (std::find(attemptedMoveHistory->begin(), attemptedMoveHistory->end(), ksa)
                 == attemptedMoveHistory->end()) {
@@ -1314,8 +1315,8 @@ vector<Square> KriegspielState::getSquaresBetween(AbstractPiece *p1, AbstractPie
             string s2 = "Position 2: " + to_string(p2->getPosition().x) + ", "
                 + to_string(p2->getPosition().y) + "\r\n"
                                                    "Figure 2: " + p2->toString() + "\r\n";
-            std::cout << s1;
-            std::cout << s2;
+            cout << s1;
+            cout << s2;
             throw std::invalid_argument("wrong figures");
         }
         squares.push_back(newPos);

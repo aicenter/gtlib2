@@ -158,7 +158,7 @@ shared_ptr<AOH> EFGNode::getAOHAugInfSet(Player player) const {
 vector<ActionObservation> EFGNode::getAOH(Player player) const {
     if (!parent_) {
         return vector<ActionObservation>{
-            std::make_pair(NO_ACTION, privateObservations_[player]->getId())};
+            make_pair(NO_ACTION, privateObservations_[player]->getId())};
     }
     auto aoh = parent_->getAOH(player);
     if (parent_->depth_ != depth_) {

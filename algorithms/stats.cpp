@@ -48,9 +48,9 @@ void calculateDomainStatistics(const Domain &domain, DomainStatistics *stats) {
             stats->num_states++;
         }
 
-        stats->max_EFGDepth = std::max(
+        stats->max_EFGDepth = max(
             stats->max_EFGDepth, node->getDistanceFromRoot());
-        stats->max_StateDepth = std::max(
+        stats->max_StateDepth = max(
             stats->max_StateDepth, node->getDepth());
 
         for (auto &player : domain.getPlayers()) {

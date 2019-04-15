@@ -25,10 +25,10 @@
 #ifndef DOMAINS_PHANTOMTTT_H_
 #define DOMAINS_PHANTOMTTT_H_
 
+#include "base/base.h"
 #include <utility>
 #include <vector>
 #include <string>
-#include "base/base.h"
 
 namespace GTLib2::domains {
 const std::array<string, 9> moved_ = {"top left", "top", "top right",

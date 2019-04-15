@@ -258,7 +258,7 @@ boardInfo FenBoardFactory::create(string s, GTLib2::domains::KriegspielState *b)
                 if (piece->getKind() == ROOK) {
                     rooks.emplace_back(piece);
                 }
-                binfo.pieces->push_back(std::move(piece));
+                binfo.pieces->push_back(move(piece));
             } else {
                 x += c - 48;
             }

@@ -39,8 +39,8 @@ bool OshiZumoAction::operator==(const Action &that) const {
             && this->id_ == otherAction->id_);
 }
 string OshiZumoAction::toString() const {
-    return  "id: " + std::to_string(id_) +
-            "bid: " + std::to_string(bid_);
+    return  "id: " + to_string (id_) +
+            "bid: " + to_string (bid_);
 }
 
 size_t OshiZumoAction::getHash() const {
@@ -74,10 +74,10 @@ OshiZumoDomain::OshiZumoDomain(int startingCoins, int startingLoc, int minBid, b
 
 string OshiZumoDomain::getInfo() const {
     return "Oshi Zumo"
-           "\nStarting coins_: " + std::to_string(startingCoins_) +
-           "\nStartingLocation: " + std::to_string(startingLocation_) +
-           "\nMinimum bid: " + std::to_string(minBid_) +
-           "\nMax depth: " + std::to_string(maxDepth_) + '\n';
+           "\nStarting coins_: " + to_string (startingCoins_) +
+           "\nStartingLocation: " + to_string (startingLocation_) +
+           "\nMinimum bid: " + to_string (minBid_) +
+           "\nMax depth: " + to_string (maxDepth_) + '\n';
 }
 
 

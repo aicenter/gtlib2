@@ -23,7 +23,6 @@
 #ifndef ALGORITHMS_BESTRESPONSE_H_
 #define ALGORITHMS_BESTRESPONSE_H_
 
-#include <utility>
 #include "base/base.h"
 
 

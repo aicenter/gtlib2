@@ -53,7 +53,7 @@ using std::pair;
 using std::reference_wrapper;
 using std::shared_ptr;
 using std::string;
-using std::to_string;
+using std::to_string ;
 using std::unique_ptr;
 using std::unordered_map;
 using std::unordered_set;
@@ -593,7 +593,7 @@ template<
     typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type
 >
 std::ostream &
-operator<<(std::ostream &ss, std::vector<T> arr) {
+operator<<(std::ostream &ss, vector<T> arr) {
     ss << "[";
     for (int i = 0; i < arr.size(); ++i) {
         if(i == 0) ss << arr[i];

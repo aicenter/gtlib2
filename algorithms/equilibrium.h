@@ -23,12 +23,12 @@
 #ifndef ALGORITHMS_EQUILIBRIUM_H_
 #define ALGORITHMS_EQUILIBRIUM_H_
 
-#include <tuple>
 #include "base/base.h"
+#include <tuple>
 
 namespace GTLib2::algorithms {
 
-std::tuple<double, BehavioralStrategy> findEquilibriumTwoPlayersZeroSum(const Domain &domain);
+tuple<double, BehavioralStrategy> findEquilibriumTwoPlayersZeroSum(const Domain &domain);
 
 }  // namespace GTLib2
 

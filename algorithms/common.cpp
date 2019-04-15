@@ -84,7 +84,7 @@ EFGNodesDistribution getAllNodesInTheInformationSetWithNatureProbability(
     auto aoh = infSet->getAOHistory();
     Player player = infSet->getPlayer();
 
-    std::function<void(shared_ptr<EFGNode>, int, int)> traverse =
+    function<void(shared_ptr<EFGNode>, int, int)> traverse =
         [&nodes, &aoh, &player, &traverse, &infSet](shared_ptr<EFGNode> node,
                                                     int actionIndex, int observationIdToCheck) {
             if (node->getNumberOfRemainingPlayers() == 1 && node->noActionPerformedInThisRound()) {

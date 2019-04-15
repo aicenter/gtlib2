@@ -19,6 +19,7 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "base/base.h"
 #include "export.h"
 
 #include <iomanip>
@@ -27,7 +28,6 @@
 #include <string>
 #include <algorithms/common.h>
 
-#include "base/base.h"
 #include "base/efg.h"
 #include "base/hashing.h"
 #include "algorithms/tree.h"
@@ -110,16 +110,16 @@ inline string getColor(Player player) {
 
 void exportGraphViz(const Domain &domain, std::ostream &fs) {
     // Print header
-    fs << "digraph {" << std::endl;
-    fs << "\trankdir=LR" << std::endl;
-    fs << "\tgraph [fontname=courier]" << std::endl;
+    fs << "digraph {" << endl;
+    fs << "\trankdir=LR" << endl;
+    fs << "\tgraph [fontname=courier]" << endl;
     fs << "\tnode  ["
           "fontname=courier, "
           "shape=box, "
           "style=\"filled\", "
           "fillcolor=white]"
-       << std::endl;
-    fs << "\tedge  [fontname=courier]" << std::endl;
+       << endl;
+    fs << "\tedge  [fontname=courier]" << endl;
 
 // todo:
 //    label = "The foo, the bar and the baz";
@@ -161,7 +161,7 @@ void exportGraphViz(const Domain &domain, std::ostream &fs) {
 void exportGraphViz(const Domain &domain, const string &fileToSave) {
     ofstream fs(fileToSave);
     if (!fs.is_open()) {
-        std::cerr << "Could not open " << fileToSave << " for writing.";
+        cerr << "Could not open " << fileToSave << " for writing.";
         return;
     }
     exportGraphViz(domain, fs);
@@ -194,7 +194,7 @@ void exportGambit(const Domain &domain, std::ostream &fs) {
         auto infoset = node->getAOHInfSet();
         int isId;
         if(infoset2id.find(infoset) == infoset2id.end()) {
-            infoset2id.emplace(std::make_pair(infoset, ++infosetIdx));
+            infoset2id.emplace(make_pair(infoset, ++infosetIdx));
             isId = infosetIdx;
         } else {
             isId = infoset2id.find(infoset)->second;
@@ -248,7 +248,7 @@ void exportGambit(const Domain &domain, std::ostream &fs) {
 void exportGambit(const Domain &domain, const string &fileToSave) {
     ofstream fs(fileToSave);
     if (!fs.is_open()) {
-        std::cerr << "Could not open " << fileToSave << " for writing.";
+        cerr << "Could not open " << fileToSave << " for writing.";
         return;
     }
     exportGambit(domain, fs);

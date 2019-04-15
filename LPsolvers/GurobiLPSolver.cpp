@@ -47,7 +47,7 @@ double GurobiLPSolver::SolveGame() {
 
   if (optimstatus != GRB_OPTIMAL && optimstatus != GRB_SUBOPTIMAL &&
       optimstatus != GRB_USER_OBJ_LIMIT) {
-    std::cout << "Failed to optimize LP\n";
+    cout << "Failed to optimize LP\n";
     throw(-1);
   }
   return model_.get(GRB_DoubleAttr_ObjVal);

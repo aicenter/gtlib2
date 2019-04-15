@@ -25,6 +25,7 @@
 #ifndef ALGORITHMS_NORMALFORMLP_H_
 #define ALGORITHMS_NORMALFORMLP_H_
 
+#include "base/base.h"
 #include <cassert>
 #include <iostream>
 #include <vector>

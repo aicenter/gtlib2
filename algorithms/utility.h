@@ -25,10 +25,10 @@
 #ifndef ALGORITHMS_UTILITY_H_
 #define ALGORITHMS_UTILITY_H_
 
+#include "base/base.h"
 #include <tuple>
 #include <utility>
 #include <vector>
-#include "base/base.h"
 
 namespace GTLib2::algorithms {
 pair<double, double> computeUtilityTwoPlayersGame(const Domain &domain,

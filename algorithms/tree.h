@@ -29,7 +29,7 @@
 
 namespace GTLib2::algorithms {
 
-typedef std::function<void(shared_ptr<EFGNode>)> EFGNodeCallback;
+typedef function<void(shared_ptr<EFGNode>)> EFGNodeCallback;
 
 /**
  * Call supplied function at each EFGNode of the EFG tree, including leaves.

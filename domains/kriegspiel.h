@@ -369,7 +369,7 @@ class KriegspielState: public State {
     /**
      * @param Domain the Kriegspiel domain
      * @param int legalMaxDepth, the depth of game only when counting legal half-moves
-     * @param std::string the string from which the board is constructed in FEN notation
+     * @param stringthe string from which the board is constructed in FEN notation
      */
     KriegspielState(Domain *domain, int, string);
 

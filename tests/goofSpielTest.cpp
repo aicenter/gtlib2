@@ -19,7 +19,7 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include <unordered_set>
 
 #include "algorithms/bestResponse.h"

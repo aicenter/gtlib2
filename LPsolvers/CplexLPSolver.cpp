@@ -39,7 +39,7 @@ void CplexLPSolver::CleanModel() {
 
 double CplexLPSolver::SolveGame() {
     if (!cplex_.solve()) {
-        env_->error() << "Failed to optimize LP" << std::endl;
+        env_->error() << "Failed to optimize LP" << endl;
         throw (-1);
     }
     return cplex_.getObjValue();

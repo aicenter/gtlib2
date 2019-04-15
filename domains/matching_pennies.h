@@ -25,10 +25,10 @@
 #ifndef DOMAINS_MATCHING_PENNIES_H_
 #define DOMAINS_MATCHING_PENNIES_H_
 
+#include "base/base.h"
 #include <utility>
 #include <vector>
 #include <string>
-#include "base/base.h"
 
 namespace GTLib2::domains {
 class MatchingPenniesDomain : public Domain {

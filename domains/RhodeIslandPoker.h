@@ -23,10 +23,10 @@
 #ifndef DOMAINS_RHODEISLANDPOKER_H_
 #define DOMAINS_RHODEISLANDPOKER_H_
 
+#include "base/base.h"
 #include <utility>
 #include <string>
 #include <vector>
-#include "base/base.h"
 #include "domains/genericPoker.h"
 
 

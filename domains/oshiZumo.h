@@ -24,8 +24,8 @@
 #ifndef GTLIB2_OSHIZUMO_H
 #define GTLIB2_OSHIZUMO_H
 
-#include <ostream>
 #include "base/base.h"
+#include <ostream>
 
 /**
  * Oshi Zumo domain implementation. For game rules go to: http://mlanctot.info/files/papers/aij-2psimmove.pdf, p.43

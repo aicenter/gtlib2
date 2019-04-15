@@ -260,7 +260,7 @@ int SimultaneousMatchingPenniesState::getNumberOfPlayers() const {
 }
 
 string SimultaneousMatchingPenniesState::toString() const {
-  std::string desc = "Player 1: ";
+  string desc = "Player 1: ";
   desc += player1_ == Nothing ? "Nothing" : player1_ == Heads ? "Heads" : "Tails";
   desc += " Player 2: ";
   desc += player2_ == Nothing ? "Nothing" : player2_ == Heads ? "Heads" : "Tails";

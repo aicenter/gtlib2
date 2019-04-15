@@ -25,8 +25,8 @@
 #ifndef GTLIB2_CHESSBOARDS_H
 #define GTLIB2_CHESSBOARDS_H
 
+#include "base/base.h"
 #include "kriegspiel.h"
-#include "../base/base.h"
 
 namespace GTLib2::domains {
 class KriegspielState;

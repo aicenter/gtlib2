@@ -204,7 +204,7 @@ PursuitState::performActions(const vector<PlayerAction> &actions2) const {
       id += (k >> m & 1) * maximum;
       ob.push_back((k >> m & 1));
 //      ob.push_back(1);
-      observations[m] = std::make_shared<PursuitObservation>(id, ob);
+      observations[m] = make_shared<PursuitObservation>(id, ob);
       ob.clear();
     }
     DebugString(for (unsigned int j = 0; j < size; ++j) {
@@ -318,7 +318,7 @@ MMPursuitState::performActions(const vector<PlayerAction> &actions2) const {
     ob.reserve(size + 1);
     for (int m = 0, pom = 0; m < size; ++m, ++pom) {  // making observations
       if (actions[m]->getId() == NO_ACTION && currentNOM_ > 1) {
-        observations[m] = std::make_shared<Observation>(NO_OBSERVATION);
+        observations[m] = make_shared<Observation>(NO_OBSERVATION);
         --pom;
         continue;
       }
@@ -350,7 +350,7 @@ MMPursuitState::performActions(const vector<PlayerAction> &actions2) const {
         id += index * pow(id2, p);  // counting observation id
       }
       ob.push_back(1);
-      observations[m] = std::make_shared<PursuitObservation>(id, ob);
+      observations[m] = make_shared<PursuitObservation>(id, ob);
       ob.clear();
     }
     DebugString(for (int j = 0; j < size; ++j) {
@@ -469,7 +469,7 @@ ObsPursuitState::performActions(const vector<PlayerAction> &actions2) const {
       }
       ob.push_back({((k >> m) & 1), -1});
       id += ((k >> m) & 1) * ob.size();
-      observations[m] = std::make_shared<PursuitObservationLoc>(id, ob);
+      observations[m] = make_shared<PursuitObservationLoc>(id, ob);
       ob.clear();
     }
     DebugString(for (int j = 0; j < size; ++j) {

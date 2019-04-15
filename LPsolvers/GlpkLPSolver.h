@@ -119,8 +119,8 @@ inline double solveLP(const unsigned int rows,
             glp_error("Failed to optimize LP");
             throw (-1);
         }
-        std::cout << "Solution status = " << glp_get_status(lp) << "\n";
-        std::cout << "Solution value = " << glp_get_obj_val(lp) << "\n";
+        cout << "Solution status = " << glp_get_status(lp) << "\n";
+        cout << "Solution value = " << glp_get_obj_val(lp) << "\n";
 
         for (int i = 0; i < cols; ++i) {
             solution[i] = glp_get_col_prim(lp, i + 2);
@@ -128,7 +128,7 @@ inline double solveLP(const unsigned int rows,
         glp_write_lp(lp, nullptr, "e.lp");
         return glp_get_obj_val(lp);
     } catch (glp_errfunc &e) {
-        std::cerr << "GLPK exception caught: " << e << "\n";
+        cerr << "GLPK exception caught: " << e << "\n";
         return NAN;
     }
 }

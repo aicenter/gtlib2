@@ -20,7 +20,6 @@
 */
 
 
-#include "base/base.h"
 #include <limits>
 #include <algorithm>
 #include "algorithms/bestResponse.h"
@@ -38,7 +37,7 @@ pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStr
     unordered_map<shared_ptr<InformationSet>, EFGNodesDistribution> nodesInSameInfSet;
     int nodes = 0;
 
-    std::function<pair<BehavioralStrategy, double>(shared_ptr<EFGNode>, int, double)> bestResp =
+    function<pair<BehavioralStrategy, double>(shared_ptr<EFGNode>, int, double)> bestResp =
         [&player, &opponent, &domain, &nodes, &bestResp, &nodesInSameInfSet, &opoStrat, &cache]
             (shared_ptr<EFGNode> node, int depth, double prob) {
 
@@ -94,7 +93,7 @@ pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStr
                         actionExpectedValue += val;
 
                         if (siblingsVal.find(sibling) != siblingsVal.end()) {
-                            cout << "error" << std::endl;
+                            cout << "error" << endl;
                         }
                         siblingsVal[sibling] = val;
                     }
@@ -168,7 +167,7 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(const BehavioralStrategy
     unordered_map<shared_ptr<EFGNode>, pair<BehavioralStrategy, double>> cache;
     unordered_map<shared_ptr<InformationSet>, EFGNodesDistribution> nodesInInfSet;
     int nodes = 0;
-    std::function<pair<BehavioralStrategy, double>(shared_ptr<EFGNode>, int, double, double)>
+    function<pair<BehavioralStrategy, double>(shared_ptr<EFGNode>, int, double, double)>
         bestResp =
         [&player, &opponent, &domain, &bestResp, &nodesInInfSet, &nodes, &opoStrat, &cache]
             (shared_ptr<EFGNode> node, int depth, double prob, double lowerBound) {
@@ -217,7 +216,7 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(const BehavioralStrategy
                     for (const auto &siblingNatureProb : allNodesInTheSameInfSet) {
                         double natureProb = siblingNatureProb.second;
                         const auto &sibling = siblingNatureProb.first;
-                        if (std::max(lowerBound, bestActionExpectedVal) > remainingNodesProb *
+                        if (max(lowerBound, bestActionExpectedVal) > remainingNodesProb *
                             domain.getMaxUtility() + actionExpectedValue) {  // TODO: not prunning
                             siblingsVal[sibling] = 0;
                             break;
@@ -243,7 +242,7 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(const BehavioralStrategy
                         actionExpectedValue += val;
 
                         if (siblingsVal.find(sibling) != siblingsVal.end()) {
-                            cout << "error" << std::endl;
+                            cout << "error" << endl;
                         }
                         siblingsVal[sibling] = val;
                     }

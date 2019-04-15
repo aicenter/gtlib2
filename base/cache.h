@@ -23,6 +23,7 @@
 #ifndef GTLIB2_CACHE_H
 #define GTLIB2_CACHE_H
 
+#include "base/base.h"
 #include "base/efg.h"
 
 namespace GTLib2 {

@@ -79,7 +79,7 @@ bool areAvailableActionsSorted(const Domain &domain) {
 bool isDomainMaxUtilityCorrect(const Domain &domain) {
     double maxLeafUtility = 0;
     auto countViolations = [&maxLeafUtility](shared_ptr<EFGNode> node) {
-        maxLeafUtility = std::max({node->rewards_[0], node->rewards_[1], maxLeafUtility});
+        maxLeafUtility = max({node->rewards_[0], node->rewards_[1], maxLeafUtility});
     };
 
     treeWalkEFG(domain, countViolations, domain.getMaxDepth());
@@ -89,7 +89,7 @@ bool isDomainMaxUtilityCorrect(const Domain &domain) {
 bool isDomainMaxDepthCorrect(const Domain &domain) {
     int maxDepth = 0;
     auto countViolations = [&maxDepth](shared_ptr<EFGNode> node) {
-        maxDepth = std::max(node->getDepth(), maxDepth);
+        maxDepth = max(node->getDepth(), maxDepth);
     };
 
     treeWalkEFG(domain, countViolations, domain.getMaxDepth());
@@ -137,35 +137,35 @@ Domain *testDomains[] = { // NOLINT(cert-err58-cpp)
 
 BOOST_AUTO_TEST_CASE(zeroSumGame) {
     for (auto domain : testDomains) {
-        std::cout << "checking " << domain->getInfo() << "\n";
+        cout << "checking " << domain->getInfo() << "\n";
         BOOST_CHECK(isDomainZeroSum(*domain));
     }
 }
 
 BOOST_AUTO_TEST_CASE(checkEFGNodeStateEqualityConsistency) {
     for (auto domain : testDomains) {
-        std::cout << "checking " << domain->getInfo() << "\n";
+        cout << "checking " << domain->getInfo() << "\n";
         BOOST_CHECK(isEFGNodeAndStateConsistent(*domain));
     }
 }
 
 BOOST_AUTO_TEST_CASE(checkAvailableActionsAreSorted) {
     for (auto domain : testDomains) {
-        std::cout << "checking " << domain->getInfo() << "\n";
+        cout << "checking " << domain->getInfo() << "\n";
         BOOST_CHECK(areAvailableActionsSorted(*domain));
     }
 }
 
 BOOST_AUTO_TEST_CASE(maxUtility) {
     for (auto domain : testDomains) {
-        std::cout << "checking " << domain->getInfo() << "\n";
+        cout << "checking " << domain->getInfo() << "\n";
         BOOST_CHECK(isDomainMaxUtilityCorrect(*domain));
     }
 }
 
 BOOST_AUTO_TEST_CASE(maxDepth) {
     for (auto domain : testDomains) {
-        std::cout << "checking " << domain->getInfo() << "\n";
+        cout << "checking " << domain->getInfo() << "\n";
         BOOST_CHECK(isDomainMaxDepthCorrect(*domain));
     }
 }

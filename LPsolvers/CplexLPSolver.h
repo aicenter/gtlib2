@@ -114,7 +114,7 @@ inline double solveLP(const unsigned int rows, const unsigned int cols,
         }
         return cplex.getObjValue();
     } catch (IloException &e) {
-        std::cerr << "Concert exception caught: " << e << "\n";
+        cerr << "Concert exception caught: " << e << "\n";
         return NAN;
     }
 }

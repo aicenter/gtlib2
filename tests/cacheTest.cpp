@@ -19,7 +19,7 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include "base/efg.h"
 #include "base/cache.h"
 

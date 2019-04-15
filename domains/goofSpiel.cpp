@@ -34,7 +34,7 @@ GoofSpielAction::GoofSpielAction(ActionId id, int card) : Action(id) {
 }
 
 string GoofSpielAction::toString() const {
-    return "Card: " + std::to_string(cardNumber_);
+    return "Card: " + to_string (cardNumber_);
 }
 
 size_t GoofSpielAction::getHash() const {
@@ -172,7 +172,7 @@ void GoofSpielDomain::initRandomCards(const vector<int> &natureCards) {
 string GoofSpielDomain::getInfo() const {
     std::stringstream ss;
     ss << (variant_ ? "IIGoofspiel" : "Goofspiel");
-    ss << " with " + std::to_string(numberOfCards_) + " cards and ";
+    ss << " with " + to_string (numberOfCards_) + " cards and ";
     if(fixChanceCards_) {
         ss << "fixed nature deck " << natureCards_;
     } else {
@@ -191,10 +191,10 @@ GoofSpielState::GoofSpielState(Domain *domain,
                                int natureSelectedCard,
                                vector<double> cumulativeRewards,
                                std::array<vector<int>, 3> playedCards) : State(domain) {
-    playerDecks_ = std::move(playerDecks);
+    playerDecks_ = move(playerDecks);
     natureSelectedCard_ = natureSelectedCard;
-    cumulativeRewards_ = std::move(cumulativeRewards);
-    playedCards_ = std::move(playedCards);
+    cumulativeRewards_ = move(cumulativeRewards);
+    playedCards_ = move(playedCards);
 }
 
 GoofSpielState::GoofSpielState(Domain *domain,
@@ -214,7 +214,7 @@ GoofSpielState::GoofSpielState(Domain *domain,
             natureSelectedCard_ = roundPlayedCards[2];
         }
     }
-    cumulativeRewards_ = std::move(cumulativeRewards);
+    cumulativeRewards_ = move(cumulativeRewards);
 }
 
 unsigned long GoofSpielState::countAvailableActionsFor(Player player) const {

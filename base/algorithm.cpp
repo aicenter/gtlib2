@@ -46,7 +46,7 @@ bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
         auto duration = duration_cast<microseconds>(t2 - t1).count();
         budgetUs -= duration;
     }
-    if (budgetUs < -100) std::cerr << "Budget missed by " << budgetUs << " us\n";
+    if (budgetUs < -100) cerr << "Budget missed by " << budgetUs << " us\n";
 
     return continuePlay;
 }

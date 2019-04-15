@@ -19,7 +19,7 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include "algorithms/cfr.h"
 #include "algorithms/strategy.h"
 #include "domains/matching_pennies.h"

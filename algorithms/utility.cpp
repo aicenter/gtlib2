@@ -35,7 +35,7 @@ pair<double, double> computeUtilityTwoPlayersGame(const Domain &domain,
                                                   const Player player1,
                                                   const Player player2) {
   // Inner function
-  std::function<pair<double, double>(shared_ptr<EFGNode>, double)> calculate =
+  function<pair<double, double>(shared_ptr<EFGNode>, double)> calculate =
       [&player1Strat, &player2Strat, &player1, &player2, &domain, &calculate]
           (shared_ptr<EFGNode> node, double prob) {
         auto findActionProb = [](const shared_ptr<AOH> &infSet,
@@ -88,7 +88,7 @@ unordered_map<shared_ptr<AOH>, vector<shared_ptr<Action>>>
 generateInformationSetsAndAvailableActions(const Domain &domain, const Player player) {
   unordered_map<shared_ptr<AOH>, vector<shared_ptr<Action>>> infSetsAndActions;
 
-  std::function<void(shared_ptr<EFGNode>)> extract =
+  function<void(shared_ptr<EFGNode>)> extract =
       [&infSetsAndActions, &player](shared_ptr<EFGNode> node) {
         if (node->getCurrentPlayer() && *node->getCurrentPlayer() == player) {
           auto infSet = node->getAOHInfSet();
@@ -111,7 +111,7 @@ vector<BehavioralStrategy> generateAllPureStrategies(
   vector<pair<shared_ptr<AOH>, vector<shared_ptr<Action>>>> infSetsAndActionsVector(
       infSetsAndActions.begin(), infSetsAndActions.end());
 
-  std::function<void(BehavioralStrategy, int)> gener =
+  function<void(BehavioralStrategy, int)> gener =
       [&gener, &infSetsAndActionsVector, &allPureStrats](BehavioralStrategy strat,
                                                          int setIndex) {
         if (setIndex >= infSetsAndActionsVector.size()) {

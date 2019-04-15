@@ -25,11 +25,11 @@
 #ifndef DOMAINS_PURSUIT_H_
 #define DOMAINS_PURSUIT_H_
 
+#include "base/base.h"
 #include <utility>
 #include <numeric>
 #include <vector>
 #include <string>
-#include "base/base.h"
 
 namespace GTLib2::domains {
 struct Pos {

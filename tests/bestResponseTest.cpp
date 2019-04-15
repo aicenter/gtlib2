@@ -19,7 +19,7 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include "algorithms/bestResponse.h"
 #include "algorithms/common.h"
 #include "algorithms/equilibrium.h"
