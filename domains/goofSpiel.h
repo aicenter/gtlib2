@@ -53,10 +53,8 @@ class GoofSpielObservation: public Observation {
  public:
     GoofSpielObservation(int initialNumOfCards,
                          const std::array<int, 3> &chosenCards,
-                         const vector<int> &naturePlayedCards,
                          int roundResult);
     const int natureCard_; // the bidding card
-    const vector<int> naturePlayedCards_; // all the cards that nature played so far
     const int player0LastCard_;
     const int player1LastCard_;
     const int roundResult_; // for player 0 -- 0 draw, 1 win, -1 lose

@@ -50,25 +50,18 @@ bool GoofSpielAction::operator==(const Action &that) const {
 
 GoofSpielObservation::GoofSpielObservation(int initialNumOfCards,
                                            const std::array<int, 3> &chosenCards,
-                                           const vector<int> &naturePlayedCards,
                                            int roundResult)
     : Observation(),
       player0LastCard_(chosenCards[0]),
       player1LastCard_(chosenCards[1]),
       natureCard_(chosenCards[2]),
-      naturePlayedCards_(naturePlayedCards),
       roundResult_(roundResult) {
 
     assert(initialNumOfCards < 20);
     int n = initialNumOfCards + 1;
-    ObservationId natureSequence = 1 << natureCard_;
-    for(auto natureCard : naturePlayedCards_) {
-        natureSequence |= 1 << natureCard;
-    }
 
     id_ = (roundResult_ + 1) // round outcome is 0..2, i.e. 2 bits to shift
-        | natureSequence << 2
-        | ((player0LastCard_ * n + player1LastCard_ * n * n) << (2+n));
+        | ((natureCard_ + player0LastCard_ * n + player1LastCard_ * n * n) << 2);
 }
 
 GoofSpielDomain::GoofSpielDomain(int numberOfCards, GoofSpielVariant variant) :
@@ -109,7 +102,7 @@ void GoofSpielDomain::initWithSeed(int seed) {
     auto publicObs = make_shared<GoofSpielObservation>(
         numberOfCards_, std::array<int, 3>{
             NO_CARD_OBSERVATION, NO_CARD_OBSERVATION, natureFirstCard
-        }, vector<int>(natureFirstCard), 0);
+        }, 0);
     auto player0Obs = make_shared<GoofSpielObservation>(*publicObs);
     auto player1Obs = make_shared<GoofSpielObservation>(*publicObs);
 
@@ -139,7 +132,7 @@ void GoofSpielDomain::initWithoutSeed() {
         auto publicObs = make_shared<GoofSpielObservation>(
             numberOfCards_, std::array<int, 3>{
                 NO_CARD_OBSERVATION, NO_CARD_OBSERVATION, natureFirstCard
-            }, vector<int>(natureFirstCard), 0);
+            }, 0);
         auto player0Obs = make_shared<GoofSpielObservation>(*publicObs);
         auto player1Obs = make_shared<GoofSpielObservation>(*publicObs);
 
@@ -234,18 +227,18 @@ GoofSpielState::performActions(const vector<PlayerAction> &actions) const {
             publicObs = make_shared<GoofSpielObservation>(
                 goofdomain->numberOfCards_, std::array<int, 3>{
                     NO_CARD_OBSERVATION, NO_CARD_OBSERVATION, chosenCards[2]
-                }, playedCards_[2], roundOutcome);
+                }, roundOutcome);
             obs0 = make_shared<GoofSpielObservation>(
                 goofdomain->numberOfCards_, std::array<int, 3>{
                     chosenCards[0], NO_CARD_OBSERVATION, chosenCards[2]
-                }, playedCards_[2], roundOutcome);
+                }, roundOutcome);
             obs1 = make_shared<GoofSpielObservation>(
                 goofdomain->numberOfCards_, std::array<int, 3>{
                     NO_CARD_OBSERVATION, chosenCards[1], chosenCards[2]
-                }, playedCards_[2], roundOutcome);
+                }, roundOutcome);
         } else {
             publicObs = make_shared<GoofSpielObservation>(
-                goofdomain->numberOfCards_, chosenCards, playedCards_[2], roundOutcome);
+                goofdomain->numberOfCards_, chosenCards, roundOutcome);
             obs0 = make_shared<GoofSpielObservation>(*publicObs);
             obs1 = make_shared<GoofSpielObservation>(*publicObs);
         }
