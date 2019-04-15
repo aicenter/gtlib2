@@ -53,7 +53,7 @@ void exampleExportDomain() {
     auto gs2 =
         GoofSpielDomain({variant:  CompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}});
     auto gs3 =
-        GoofSpielDomain({variant:  CompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
+        GoofSpielDomain({variant:  CompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}, binaryTerminalRewards: true});
     auto gs3_seed =
         GoofSpielDomain({variant:  CompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
     auto iigs3 =

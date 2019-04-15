@@ -102,7 +102,7 @@ BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
             .num_histories  = {273, 333},
             .num_infosets   = {273, 273},
             .num_sequences  = {334, 334},
-        },  {
+        }, {
             .max_EFGDepth   = 2,
             .max_StateDepth = 1,
             .num_nodes      = 3,
@@ -193,6 +193,40 @@ BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
 
         BOOST_CHECK_EQUAL(actualStat, expectedStat);
     }
+}
+
+BOOST_AUTO_TEST_CASE(checkBinaryUtilities) {
+    auto binary = GoofSpielDomain({
+                                      variant:  CompleteObservations,
+                                      numCards: 3,
+                                      fixChanceCards: false,
+                                      chanceCards: {},
+                                      binaryTerminalRewards: true
+                                  });
+    auto nonBinary = GoofSpielDomain({
+                                         variant:  IncompleteObservations,
+                                         numCards: 3,
+                                         fixChanceCards: false,
+                                         chanceCards: {},
+                                         binaryTerminalRewards: false
+                                     });
+
+    int numViolations;
+    auto binaryChecker = [&numViolations](shared_ptr<EFGNode> node) {
+        if (!node->isTerminal()) return;
+        if (node->rewards_[0] != 1.0
+            && node->rewards_[0] != -1.0
+            && node->rewards_[0] != 0.0)
+            numViolations++;
+    };
+
+    numViolations = 0;
+    treeWalkEFG(binary, binaryChecker);
+    BOOST_CHECK(numViolations == 0);
+
+    numViolations = 0;
+    treeWalkEFG(nonBinary, binaryChecker);
+    BOOST_CHECK(numViolations == 84);
 }
 
 // todo: create an actual domain test!
