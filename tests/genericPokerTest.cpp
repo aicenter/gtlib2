@@ -42,7 +42,7 @@ using domains::GenericPokerAction;
 using algorithms::DomainStatistics;
 using std::unordered_set;
 
-
+BOOST_AUTO_TEST_SUITE(DomainsTests)
 BOOST_AUTO_TEST_SUITE(GenericPoker)
 
 GenericPokerDomain testDomainsPoker[] = { // NOLINT(cert-err58-cpp)
@@ -87,5 +87,6 @@ BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
 //  i.e. given some game position, these are the action available etc.
 //  for inspiration look at kriegspieltest!
 
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 }

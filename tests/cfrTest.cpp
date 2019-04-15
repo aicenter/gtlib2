@@ -42,7 +42,8 @@ using domains::GoofSpielDomain;
 using domains::GoofSpielVariant::IncompleteObservations;
 using domains::GoofSpielVariant::CompleteObservations;
 
-BOOST_AUTO_TEST_SUITE(CFRTest)
+BOOST_AUTO_TEST_SUITE(AlgorithmsTests)
+BOOST_AUTO_TEST_SUITE(CFR)
 
 BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomain) {
     MatchingPenniesDomain domain;
@@ -313,6 +314,7 @@ BOOST_AUTO_TEST_CASE(CheckConvergenceInSmallDomain) {
 }
 
 
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 
 }

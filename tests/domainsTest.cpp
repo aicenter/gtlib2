@@ -101,7 +101,7 @@ bool isDomainMaxDepthCorrect(const Domain &domain) {
     return maxDepth == domain.getMaxDepth();
 }
 
-BOOST_AUTO_TEST_SUITE(DomainTests)
+BOOST_AUTO_TEST_SUITE(DomainsTests)
 
 GoofSpielDomain gs1(1, CompleteObservations);
 GoofSpielDomain gs2(2, CompleteObservations);

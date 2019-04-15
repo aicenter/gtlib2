@@ -52,6 +52,7 @@ using algorithms::getUniformStrategy;
 using algorithms::playOnlyAction;
 using std::unordered_set;
 
+BOOST_AUTO_TEST_SUITE(DomainsTests)
 BOOST_AUTO_TEST_SUITE(GoofSpiel)
 
 GoofSpielDomain testDomainsGoofSpiel[] = { // NOLINT(cert-err58-cpp)
@@ -197,6 +198,7 @@ BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
 //  for inspiration look at kriegspieltest!
 
 
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace GTLib2

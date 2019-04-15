@@ -46,6 +46,7 @@ using algorithms::getUniformStrategy;
 using algorithms::playOnlyAction;
 using std::unordered_set;
 
+BOOST_AUTO_TEST_SUITE(AlgorithmsTests)
 BOOST_AUTO_TEST_SUITE(Utility)
 
 BOOST_AUTO_TEST_CASE(computeUtilityFullDepthCard4) {
@@ -91,6 +92,7 @@ BOOST_AUTO_TEST_CASE(computeUtilityFullDepthCard4) {
     BOOST_CHECK(std::abs(utility.second - 0) <= 0.001);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace GTLib2

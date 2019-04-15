@@ -54,7 +54,8 @@ using algorithms::getUniformStrategy;
 using algorithms::playOnlyAction;
 using std::unordered_set;
 
-BOOST_AUTO_TEST_SUITE(BestResponseTests)
+BOOST_AUTO_TEST_SUITE(AlgorithmsTests)
+BOOST_AUTO_TEST_SUITE(BestResponse)
 
 
 BOOST_AUTO_TEST_CASE(testSmallDomain) {
@@ -164,6 +165,7 @@ BOOST_AUTO_TEST_CASE(bestResponseDepth1Card13) {
     BOOST_CHECK(std::abs(bestResponse.second - 7) <= 0.001);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace GTLib2

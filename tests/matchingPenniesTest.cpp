@@ -44,8 +44,8 @@ using domains::Tails;
 using algorithms::DomainStatistics;
 using algorithms::playOnlyAction;
 
-
-BOOST_AUTO_TEST_SUITE(MatchingPenniesTests)
+BOOST_AUTO_TEST_SUITE(DomainsTests)
+BOOST_AUTO_TEST_SUITE(MatchingPennies)
 
 BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
     DomainStatistics expectedStat = {
@@ -85,6 +85,7 @@ BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizesSimultaneous) {
     BOOST_CHECK_EQUAL(actualStat, expectedStat);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace GTLib2

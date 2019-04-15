@@ -39,6 +39,7 @@ using domains::MatchingPenniesDomain;
 using utils::exportGraphViz;
 using utils::exportGambit;
 
+BOOST_AUTO_TEST_SUITE(UtilsTests);
 BOOST_AUTO_TEST_SUITE(Export);
 
 BOOST_AUTO_TEST_CASE(exportGambitSmallDomain) {
@@ -90,6 +91,7 @@ BOOST_AUTO_TEST_CASE(exportGraphvizSmallDomain) {
 
     BOOST_CHECK(expectedGraphviz == graphviz_os.str());
 }
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 
 }

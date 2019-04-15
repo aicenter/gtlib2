@@ -48,7 +48,8 @@ using algorithms::playOnlyAction;
 
 
 
-BOOST_AUTO_TEST_SUITE(LPTests)
+BOOST_AUTO_TEST_SUITE(AlgorithmsTests)
+BOOST_AUTO_TEST_SUITE(LinearProgramming)
 
 BOOST_AUTO_TEST_CASE(best_response_to_equilibrium) {
     MatchingPenniesDomain d;
@@ -72,6 +73,7 @@ BOOST_AUTO_TEST_CASE(equilibrium_normal_form_lp_test) {
     BOOST_CHECK(headsProb == 0.5 && tailsProb == 0.5);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace GTLib2

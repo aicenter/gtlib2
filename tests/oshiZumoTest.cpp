@@ -38,7 +38,7 @@ using algorithms::DomainStatistics;
 using algorithms::treeWalkEFG;
 
 
-
+BOOST_AUTO_TEST_SUITE(DomainsTests)
 BOOST_AUTO_TEST_SUITE(OshiZumo)
 
 OshiZumoDomain testDomainsOshiZumo[]{ // NOLINT(cert-err58-cpp)
@@ -140,4 +140,5 @@ BOOST_AUTO_TEST_CASE(correctRewardsDistribution){
 }
 
 
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

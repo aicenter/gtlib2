@@ -28,6 +28,7 @@
 using namespace GTLib2;
 using namespace chess;
 
+BOOST_AUTO_TEST_SUITE(DomainsTests)
 BOOST_AUTO_TEST_SUITE(KriegSpiel);
 
 BOOST_AUTO_TEST_CASE(pinning) {
@@ -741,4 +742,5 @@ BOOST_AUTO_TEST_CASE(gameOverTest) {
     BOOST_CHECK(lastsState.rewards_[0] == 1 && lastsState.rewards_[1] == 0);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

@@ -37,6 +37,7 @@ using domains::Heads;
 using domains::Tails;
 using algorithms::createRootEFGNodes;
 
+BOOST_AUTO_TEST_SUITE(BaseTests)
 BOOST_AUTO_TEST_SUITE(CacheTests)
 
 BOOST_AUTO_TEST_CASE(CacheHit) {
@@ -150,6 +151,7 @@ BOOST_AUTO_TEST_CASE(BuildCacheLimitedDepth) {
     BOOST_CHECK(cache.hasChildren(node1));
 }
 
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace GTLib2
