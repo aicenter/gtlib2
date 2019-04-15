@@ -82,7 +82,8 @@ BOOST_AUTO_TEST_CASE(testSmallDomain) {
 }
 
 BOOST_AUTO_TEST_CASE(bestResponseFullDepthCard4) {
-    GoofSpielDomain domain(4);
+    GoofSpielDomain domain
+        ({variant:  CompleteObservations, numCards: 4, fixChanceCards: false, chanceCards: {}});
 
     auto player = Player(1);
     auto opponent = Player(0);
@@ -115,7 +116,8 @@ BOOST_AUTO_TEST_CASE(bestResponseFullDepthCard4) {
 }
 
 BOOST_AUTO_TEST_CASE(bestResponseDepth2Card4) {
-    GoofSpielDomain domain(4);
+    GoofSpielDomain domain
+        ({variant:  CompleteObservations, numCards: 4, fixChanceCards: false, chanceCards: {}});
 
     auto player = Player(1);
     auto opponent = Player(0);
@@ -142,7 +144,8 @@ BOOST_AUTO_TEST_CASE(bestResponseDepth2Card4) {
 }
 
 BOOST_AUTO_TEST_CASE(bestResponseDepth1Card13) {
-    GoofSpielDomain domain(13);
+    GoofSpielDomain domain
+        ({variant:  CompleteObservations, numCards: 13, fixChanceCards: false, chanceCards: {}});
 
     auto player = Player(1);
     auto opponent = Player(0);

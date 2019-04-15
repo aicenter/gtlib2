@@ -73,7 +73,7 @@ bool areAvailableActionsSorted(const Domain &domain) {
     auto countViolations = [&num_violations](shared_ptr<EFGNode> node) {
         auto actions = node->availableActions();
         for (int j = 0; j < actions.size(); ++j) {
-            if(actions[j]->getId() != j) num_violations++;
+            if (actions[j]->getId() != j) num_violations++;
         }
     };
 
@@ -103,38 +103,40 @@ bool isDomainMaxDepthCorrect(const Domain &domain) {
 
 BOOST_AUTO_TEST_SUITE(DomainsTests)
 
-GoofSpielDomain gs1(1, CompleteObservations);
-GoofSpielDomain gs2(2, CompleteObservations);
-GoofSpielDomain gs3(3, CompleteObservations);
-GoofSpielDomain gs4(4, CompleteObservations);
-GoofSpielDomain gs1_seed(1, 0, CompleteObservations);
-GoofSpielDomain gs2_seed(2, 0, CompleteObservations);
-GoofSpielDomain gs3_seed(3, 0, CompleteObservations);
-GoofSpielDomain gs4_seed(4, 0, CompleteObservations);
-GoofSpielDomain iigs1(1, IncompleteObservations);
-GoofSpielDomain iigs2(2, IncompleteObservations);
-GoofSpielDomain iigs3(3, IncompleteObservations);
-GoofSpielDomain iigs4(4, IncompleteObservations);
-GoofSpielDomain iigs1_seed(1, 0, IncompleteObservations);
-GoofSpielDomain iigs2_seed(2, 0, IncompleteObservations);
-GoofSpielDomain iigs3_seed(3, 0, IncompleteObservations);
-GoofSpielDomain iigs4_seed(4, 0, IncompleteObservations);
+
+// @formatter:off
+GoofSpielDomain gs1      ({ variant:  CompleteObservations,   numCards: 1, fixChanceCards: false, chanceCards: {}});
+GoofSpielDomain gs2      ({ variant:  CompleteObservations,   numCards: 2, fixChanceCards: false, chanceCards: {}});
+GoofSpielDomain gs3      ({ variant:  CompleteObservations,   numCards: 3, fixChanceCards: false, chanceCards: {}});
+GoofSpielDomain gs1_fix  ({ variant:  CompleteObservations,   numCards: 1, fixChanceCards: true,  chanceCards: {}});
+GoofSpielDomain gs2_fix  ({ variant:  CompleteObservations,   numCards: 2, fixChanceCards: true,  chanceCards: {}});
+GoofSpielDomain gs3_fix  ({ variant:  CompleteObservations,   numCards: 3, fixChanceCards: true,  chanceCards: {}});
+GoofSpielDomain iigs1    ({ variant:  IncompleteObservations, numCards: 1, fixChanceCards: false, chanceCards: {}});
+GoofSpielDomain iigs2    ({ variant:  IncompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}});
+GoofSpielDomain iigs3    ({ variant:  IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
+GoofSpielDomain iigs1_fix({ variant:  IncompleteObservations, numCards: 1, fixChanceCards: true,  chanceCards: {}});
+GoofSpielDomain iigs2_fix({ variant:  IncompleteObservations, numCards: 2, fixChanceCards: true,  chanceCards: {}});
+GoofSpielDomain iigs3_fix({ variant:  IncompleteObservations, numCards: 3, fixChanceCards: true,  chanceCards: {}});
+// @formatter:on
+
 GenericPokerDomain gp1(2, 2, 2, 2, 2);
 GenericPokerDomain gp2(3, 3, 1, 2, 3);
+
 OshiZumoDomain oz1(3, 3, 1);
 OshiZumoDomain oz2(3, 0, 1);
 OshiZumoDomain oz3(1, 3, 0);
 OshiZumoDomain oz4(3, 3, 1, false);
 OshiZumoDomain oz5(5, 3, 1, false);
+
 MatchingPenniesDomain mp1;
 SimultaneousMatchingPenniesDomain mp2;
 
-Domain* testDomains[] = { // NOLINT(cert-err58-cpp)
-    & gs1, & gs2, & gs3, & gs4, & gs1_seed, & gs2_seed, & gs3_seed, & gs4_seed,
-    & iigs1, & iigs2, & iigs3, & iigs4, & iigs1_seed, & iigs2_seed, & iigs3_seed, & iigs4_seed,
-    & gp1, & gp2,
-    & oz1, & oz2, & oz3, & oz4, & oz5,
-    & mp1, & mp2,
+Domain *testDomains[] = { // NOLINT(cert-err58-cpp)
+    &gs1, &gs2, &gs3, &gs1_fix, &gs2_fix, &gs3_fix,
+    &iigs1, &iigs2, &iigs3, &iigs1_fix, &iigs2_fix, &iigs3_fix,
+    &gp1, &gp2,
+    &oz1, &oz2, &oz3, &oz4, &oz5,
+    &mp1, &mp2,
 };
 
 BOOST_AUTO_TEST_CASE(zeroSumGame) {

@@ -282,7 +282,8 @@ BOOST_AUTO_TEST_CASE(CalcUtilities) {
 
 
 BOOST_AUTO_TEST_CASE(CheckConvergenceInSmallDomain) {
-    GoofSpielDomain domain(3, IncompleteObservations);
+    GoofSpielDomain domain
+        ({variant: IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
     CFRAlgorithm cfr(domain, Player(0), CFRSettings());
     auto &data = cfr.getCache();
 

@@ -21,6 +21,7 @@
 
 
 #include <random>
+#include <algorithm>
 #include "domains/goofSpiel.h"
 
 #pragma clang diagnostic push
@@ -64,29 +65,46 @@ GoofSpielObservation::GoofSpielObservation(int initialNumOfCards,
         | ((natureCard_ + player0LastCard_ * n + player1LastCard_ * n * n) << 2);
 }
 
-GoofSpielDomain::GoofSpielDomain(int numberOfCards, GoofSpielVariant variant) :
-    Domain(numberOfCards, 2), numberOfCards_(numberOfCards), usesSeed_(false),
-    variant_(variant) {
-    initWithoutSeed();
-}
+void GoofSpielSettings::shuffleChanceCards(int seed) {
+    assert(fixChanceCards);
+    if (chanceCards.empty()) {
+        chanceCards = vector<int>(numCards);
+        std::iota(chanceCards.begin(), chanceCards.end(), 1);
+    }
 
-
-GoofSpielDomain::GoofSpielDomain(int numberOfCards, int seed, GoofSpielVariant variant) :
-    Domain(numberOfCards, 2), numberOfCards_(numberOfCards), usesSeed_(true),
-    variant_(variant) {
-    initWithSeed(seed);
-}
-
-void GoofSpielDomain::initWithSeed(int seed) {
-    auto range = vector<int>(numberOfCards_);
-    std::iota(range.begin(), range.end(), 1);
-    maxUtility_ = (numberOfCards_ + 1) * numberOfCards_ / 2;
     std::default_random_engine eng{seed};
     std::mt19937 randEng(eng());
-    std::shuffle(range.begin(), range.end(), randEng);
-    vector<int> deck(range.begin(), range.end());
+    std::shuffle(chanceCards.begin(), chanceCards.end(), randEng);
+}
 
-    std::array<vector<int>, 3> playerDecks = {deck, deck, deck};
+vector<int> GoofSpielSettings::getNatureCards() {
+    if (chanceCards.empty()) {
+        chanceCards = vector<int>(numCards);
+        std::iota(chanceCards.begin(), chanceCards.end(), 1);
+    }
+
+    assert(chanceCards.size() == numCards);
+    return chanceCards;
+}
+
+GoofSpielDomain::GoofSpielDomain(GoofSpielSettings settings) :
+    Domain(settings.numCards, 2),
+    numberOfCards_(settings.numCards),
+    fixChanceCards_(settings.fixChanceCards),
+    binaryTerminalRewards_(settings.binaryTerminalRewards),
+    variant_(settings.variant),
+    natureCards_(settings.getNatureCards()) {
+
+    fixChanceCards_ ? initFixedCards(natureCards_)
+                    : initRandomCards(natureCards_);
+}
+
+
+void GoofSpielDomain::initFixedCards(const vector<int> &natureCards) {
+    auto deck = vector<int>(numberOfCards_);
+    std::iota(deck.begin(), deck.end(), 1);
+
+    std::array<vector<int>, 3> playerDecks = {deck, deck, natureCards};
     int natureFirstCard = playerDecks[2][0];
     playerDecks[2].erase(playerDecks[2].begin());
     vector<double> cumulativeRewards = {0.0, 0.0};
@@ -94,7 +112,6 @@ void GoofSpielDomain::initWithSeed(int seed) {
     playedCards[0] = {};
     playedCards[1] = {};
     playedCards[2] = {natureFirstCard};
-
 
     auto newState = make_shared<GoofSpielState>(this, playerDecks, natureFirstCard,
                                                 cumulativeRewards, playedCards);
@@ -110,16 +127,17 @@ void GoofSpielDomain::initWithSeed(int seed) {
     rootStatesDistribution_.emplace_back(outcome, 1.0);
 }
 
-void GoofSpielDomain::initWithoutSeed() {
-    auto range = vector<int>(numberOfCards_);
-    std::iota(range.begin(), range.end(), 1);
-    vector<int> deck(range.begin(), range.end());
+void GoofSpielDomain::initRandomCards(const vector<int> &natureCards) {
+    auto deck = vector<int>(numberOfCards_);
+    std::iota(deck.begin(), deck.end(), 1);
     maxUtility_ = (numberOfCards_ + 1) * numberOfCards_ / 2;
 
-    for (auto const i : range) {
-        int natureFirstCard = i;
-        std::array<vector<int>, 3> playerDecks = {deck, deck, deck};
-        playerDecks[2].erase(playerDecks[2].begin() + i - 1);
+    for (auto const natureFirstCard : natureCards) {
+        std::array<vector<int>, 3> playerDecks = {deck, deck, natureCards};
+        auto &natureDeck = playerDecks[2];
+        natureDeck.erase(std::remove(natureDeck.begin(), natureDeck.end(), natureFirstCard),
+                         natureDeck.end());
+//        playerDecks[2].erase(playerDecks[2].begin() + i - 1);
         vector<double> cumulativeRewards = {0.0, 0.0};
         std::array<vector<int>, 3> playedCards;
         playedCards[0] = {};
@@ -144,7 +162,7 @@ void GoofSpielDomain::initWithoutSeed() {
 string GoofSpielDomain::getInfo() const {
     string type = (variant_ ? "IIGoofspiel" : "Goofspiel");
     return type + " with " + std::to_string(numberOfCards_) + " cards and "
-        + (usesSeed_ ? "fixed nature deck" : "random nature cards");
+        + (fixChanceCards_ ? "fixed nature deck" : "random nature cards");
 }
 
 vector<Player> GoofSpielDomain::getPlayers() const {
@@ -248,7 +266,7 @@ GoofSpielState::performActions(const vector<PlayerAction> &actions) const {
     };
 
     const auto &natureDeck = playerDecks_[2];
-    if (goofdomain->usesSeed_) {
+    if (goofdomain->fixChanceCards_) {
         auto natureCard = natureDeck.empty() ? NO_NATURE_CARD : natureDeck[0];
         addOutcome({chosenCards[0], chosenCards[1], natureCard}, 1.0);
     } else {

@@ -31,6 +31,7 @@
 namespace GTLib2 {
 
 using domains::GoofSpielDomain;
+using domains::GoofSpielSettings;
 using domains::GoofSpielVariant::IncompleteObservations;
 
 BOOST_AUTO_TEST_SUITE(BaseTests)
@@ -40,7 +41,10 @@ BOOST_AUTO_TEST_CASE(PlayMatchSmallGame) {
     PreparedAlgorithm firstAction = createInitializer<FixedActionPlayer>(0);
     PreparedAlgorithm lastAction = createInitializer<FixedActionPlayer>(-1);
 
-    GoofSpielDomain domain(3, 0, IncompleteObservations);
+    GoofSpielSettings settings
+        ({variant:  IncompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
+    settings.shuffleChanceCards(0);
+    GoofSpielDomain domain(settings);
     vector<double> expectedUtilities = vector<double>{1., -1.};
     vector<double> actualUtilities = playMatch(
         domain, vector<PreparedAlgorithm>{firstAction, lastAction},

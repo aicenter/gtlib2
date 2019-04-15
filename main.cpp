@@ -31,14 +31,16 @@ using std::cout;
 using namespace GTLib2;
 
 using domains::GoofSpielDomain;
-using domains::GoofSpielVariant ;
+using domains::GoofSpielVariant::CompleteObservations;
+using domains::GoofSpielVariant::IncompleteObservations;
 using utils::exportGraphViz;
 using utils::exportGambit;
 
 void exampleBenchmarkCFR() {
     auto start = std::chrono::high_resolution_clock::now();
 
-    domains::GoofSpielDomain domain(5, 0, GoofSpielVariant::IncompleteObservations);
+    domains::GoofSpielDomain domain
+        ({variant:  IncompleteObservations, numCards: 5, fixChanceCards: true, chanceCards: {}});
     algorithms::CFRAlgorithm cfr(domain, Player(0), algorithms::CFRSettings());
     cfr.runIterations(100);
 
@@ -48,11 +50,16 @@ void exampleBenchmarkCFR() {
 }
 
 void exampleExportDomain() {
-    auto gs2 = GoofSpielDomain(2, GoofSpielVariant::CompleteObservations);
-    auto gs3 = GoofSpielDomain(3, GoofSpielVariant::CompleteObservations);
-    auto gs3_seed = GoofSpielDomain(3, 0, GoofSpielVariant::CompleteObservations);
-    auto iigs3 = GoofSpielDomain(3, GoofSpielVariant::IncompleteObservations);
-    auto iigs3_seed = GoofSpielDomain(3, 0, GoofSpielVariant::IncompleteObservations);
+    auto gs2 =
+        GoofSpielDomain({variant:  CompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}});
+    auto gs3 =
+        GoofSpielDomain({variant:  CompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
+    auto gs3_seed =
+        GoofSpielDomain({variant:  CompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
+    auto iigs3 =
+        GoofSpielDomain({variant:  IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
+    auto iigs3_seed =
+        GoofSpielDomain({variant:  IncompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
     exportGambit(gs2, "./gs2.gbt");
     exportGambit(gs3, "./gs3.gbt");
     exportGambit(gs3_seed, "./gs3_seed.gbt");
@@ -65,7 +72,7 @@ void exampleExportDomain() {
 }
 
 int main(int argc, char *argv[]) {
-    exampleBenchmarkCFR();
+//    exampleBenchmarkCFR();
     exampleExportDomain();
     return 0;
 }

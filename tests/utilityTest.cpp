@@ -40,6 +40,7 @@ namespace GTLib2 {
 
 using domains::GoofSpielDomain;
 using domains::GoofSpielAction;
+using domains::GoofSpielVariant::CompleteObservations;
 using algorithms::DomainStatistics;
 using algorithms::treeWalkEFG;
 using algorithms::getUniformStrategy;
@@ -50,7 +51,8 @@ BOOST_AUTO_TEST_SUITE(AlgorithmsTests)
 BOOST_AUTO_TEST_SUITE(Utility)
 
 BOOST_AUTO_TEST_CASE(computeUtilityFullDepthCard4) {
-    GoofSpielDomain domain(4);
+    GoofSpielDomain domain
+        ({variant: CompleteObservations, numCards: 4, fixChanceCards: false, chanceCards: {}});
 
     auto player = Player(1);
     auto opponent = Player(0);

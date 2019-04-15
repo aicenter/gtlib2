@@ -55,20 +55,22 @@ using std::unordered_set;
 BOOST_AUTO_TEST_SUITE(DomainsTests)
 BOOST_AUTO_TEST_SUITE(GoofSpiel)
 
+// @formatter:off
 GoofSpielDomain testDomainsGoofSpiel[] = { // NOLINT(cert-err58-cpp)
-    GoofSpielDomain(1, CompleteObservations),
-    GoofSpielDomain(2, CompleteObservations),
-    GoofSpielDomain(3, CompleteObservations),
-    GoofSpielDomain(1, 0, CompleteObservations),
-    GoofSpielDomain(2, 0, CompleteObservations),
-    GoofSpielDomain(3, 0, CompleteObservations),
-    GoofSpielDomain(1, IncompleteObservations),
-    GoofSpielDomain(2, IncompleteObservations),
-    GoofSpielDomain(3, IncompleteObservations),
-    GoofSpielDomain(1, 0, IncompleteObservations),
-    GoofSpielDomain(2, 0, IncompleteObservations),
-    GoofSpielDomain(3, 0, IncompleteObservations),
+    GoofSpielDomain({ variant:  CompleteObservations,   numCards: 1, fixChanceCards: false, chanceCards: {}}),
+    GoofSpielDomain({ variant:  CompleteObservations,   numCards: 2, fixChanceCards: false, chanceCards: {}}),
+    GoofSpielDomain({ variant:  CompleteObservations,   numCards: 3, fixChanceCards: false, chanceCards: {}}),
+    GoofSpielDomain({ variant:  CompleteObservations,   numCards: 1, fixChanceCards: true,  chanceCards: {}}),
+    GoofSpielDomain({ variant:  CompleteObservations,   numCards: 2, fixChanceCards: true,  chanceCards: {}}),
+    GoofSpielDomain({ variant:  CompleteObservations,   numCards: 3, fixChanceCards: true,  chanceCards: {}}),
+    GoofSpielDomain({ variant:  IncompleteObservations, numCards: 1, fixChanceCards: false, chanceCards: {}}),
+    GoofSpielDomain({ variant:  IncompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}}),
+    GoofSpielDomain({ variant:  IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}}),
+    GoofSpielDomain({ variant:  IncompleteObservations, numCards: 1, fixChanceCards: true,  chanceCards: {}}),
+    GoofSpielDomain({ variant:  IncompleteObservations, numCards: 2, fixChanceCards: true,  chanceCards: {}}),
+    GoofSpielDomain({ variant:  IncompleteObservations, numCards: 3, fixChanceCards: true,  chanceCards: {}}),
 };
+// @formatter:on
 
 
 BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {

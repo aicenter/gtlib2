@@ -37,6 +37,43 @@ using std::experimental::optional;
 
 namespace GTLib2::domains {
 
+/**
+ * IncompleteObservations correspond to "IIGS",
+ * CompleteObservations correspond to "GS".
+ */
+enum GoofSpielVariant { CompleteObservations, IncompleteObservations };
+
+
+struct GoofSpielSettings {
+    GoofSpielVariant variant = CompleteObservations;
+    uint32 numCards = 5;
+
+    bool fixChanceCards = false;
+    vector<int> chanceCards = {}; // used only if fixChanceCards == true
+
+    bool binaryTerminalRewards = false;
+
+    void shuffleChanceCards(int seed);
+    vector<int> getNatureCards();
+};
+
+class GoofSpielDomain: public Domain {
+ public:
+    explicit GoofSpielDomain(GoofSpielSettings settings);
+    string getInfo() const override;
+    vector<Player> getPlayers() const override;
+    const int numberOfCards_;
+    const bool fixChanceCards_;
+    const bool binaryTerminalRewards_;
+    const GoofSpielVariant variant_;
+    const vector<int> natureCards_;
+
+ private:
+    void initRandomCards(const vector<int> &natureCards);
+    void initFixedCards(const vector<int> &natureCards);
+};
+
+
 class GoofSpielAction: public Action {
  public:
     GoofSpielAction(ActionId id, int card);
@@ -60,30 +97,6 @@ class GoofSpielObservation: public Observation {
     const int roundResult_; // for player 0 -- 0 draw, 1 win, -1 lose
 };
 
-/**
- * IncompleteObservations correspond to "IIGS",
- * CompleteObservations correspond to "GS".
- */
-enum GoofSpielVariant { CompleteObservations, IncompleteObservations };
-
-class GoofSpielDomain: public Domain {
- public:
-    explicit GoofSpielDomain(int numberOfCards, GoofSpielVariant variant);
-    explicit GoofSpielDomain(int numberOfCards)
-        : GoofSpielDomain(numberOfCards, CompleteObservations) {};
-    explicit GoofSpielDomain(int numberOfCards, int seed, GoofSpielVariant variant);
-    explicit GoofSpielDomain(int numberOfCards, int seed)
-        : GoofSpielDomain(numberOfCards, seed, CompleteObservations) {};
-    string getInfo() const override;
-    vector<Player> getPlayers() const override;
-    const int numberOfCards_;
-    const bool usesSeed_;
-    const GoofSpielVariant variant_;
-
- private:
-    void initWithoutSeed();
-    void initWithSeed(int seed);
-};
 
 class GoofSpielState: public State {
  public:
