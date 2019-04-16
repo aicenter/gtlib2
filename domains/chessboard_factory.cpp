@@ -19,8 +19,9 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include "chessboard_factory.h"
+
 #include <boost/algorithm/string.hpp>
 
 #pragma clang diagnostic push

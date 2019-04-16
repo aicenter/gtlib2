@@ -19,9 +19,11 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "base/base.h"
+#include "algorithms/common.h"
 
 #include <utility>
-#include "algorithms/common.h"
+
 #include "algorithms/tree.h"
 
 #pragma clang diagnostic push

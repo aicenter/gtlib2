@@ -19,7 +19,7 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include "LPsolvers/CplexLPSolver.h"
 
 namespace GTLib2::algorithms {

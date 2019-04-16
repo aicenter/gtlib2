@@ -25,19 +25,26 @@
 #ifndef BASE_BASE_H_
 #define BASE_BASE_H_
 
+#include <array>
+#include <boost/functional/hash.hpp>
+#include <cassert>
 #include <functional>
-#include <utility>
-#include <vector>
 #include <memory>
 #include <string>
-#include <unordered_set>
 #include <unordered_map>
-#include <boost/functional/hash.hpp>
-#include "utils/utils.h"
+#include <unordered_set>
+#include <utility>
+#include <limits>
+#include <vector>
+#include <iterator>
+#include <random>
+
 #include "base/hashing.h"
+#include "utils/utils.h"
 
 namespace GTLib2 {
 
+using std::array;
 using std::cerr;
 using std::cout;
 using std::dynamic_pointer_cast;

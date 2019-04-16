@@ -20,14 +20,14 @@
 */
 
 #include "base/base.h"
-#include <boost/test/unit_test.hpp>
+#include "algorithms/bestResponse.h"
+#include "algorithms/cfr.h"
 #include "algorithms/stats.h"
 #include "algorithms/tree.h"
 #include "algorithms/utility.h"
-#include "algorithms/bestResponse.h"
-#include "algorithms/cfr.h"
-#include "utils/functools.h"
 #include "domains/oshiZumo.h"
+#include "utils/functools.h"
+#include <boost/test/unit_test.hpp>
 
 namespace GTLib2::domains {
 

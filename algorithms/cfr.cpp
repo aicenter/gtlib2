@@ -19,18 +19,18 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "base/base.h"
+#include "algorithms/cfr.h"
 
 #include <array>
-
-#include "algorithms/cfr.h"
-#include "algorithms/tree.h"
-#include "algorithms/common.h"
-#include "algorithms/utility.h"
-#include "cfr.h"
 #include <algorithm>
 #include <utility>
 #include <functional>
 #include <cstdio>
+
+#include "algorithms/tree.h"
+#include "algorithms/common.h"
+#include "algorithms/utility.h"
 
 
 namespace GTLib2::algorithms {
@@ -158,7 +158,7 @@ double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
     return cfvInfoset;
 }
 
-vector<double> calcRMProbs(const vector<double> & regrets) {
+vector<double> calcRMProbs(const vector<double> &regrets) {
     double posRegretSum = 0.0;
     for (double r : regrets) {
         posRegretSum += max(0.0, r);
@@ -175,7 +175,7 @@ vector<double> calcRMProbs(const vector<double> & regrets) {
     return rmProbs;
 }
 
-vector<double> calcAvgProbs(const vector<double> & acc) {
+vector<double> calcAvgProbs(const vector<double> &acc) {
     double sum = 0.0;
     for (double d : acc) sum += d;
 

@@ -20,25 +20,22 @@
 */
 
 #include "base/base.h"
-#include <unordered_set>
-#include <sstream>
 
-#include "algorithms/bestResponse.h"
+#include "domains/genericPoker.h"
 #include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"
 #include "utils/functools.h"
-#include "utils/export.h"
 
+#include "utils/export.h"
 #include <boost/range/combine.hpp>
 #include <boost/test/unit_test.hpp>
-#include <domains/genericPoker.h>
 
 namespace GTLib2::utils {
 
 using domains::MatchingPenniesDomain;
 
-BOOST_AUTO_TEST_SUITE(UtilsTests);
-BOOST_AUTO_TEST_SUITE(Export);
+BOOST_AUTO_TEST_SUITE(UtilsTests)
+BOOST_AUTO_TEST_SUITE(Export)
 
 BOOST_AUTO_TEST_CASE(exportGambitSmallDomain) {
     auto mp = MatchingPenniesDomain();

@@ -24,9 +24,6 @@
 #define LPSOLVERS_LPSOLVER_H_
 
 #include "base/base.h"
-#include <vector>
-#include <iostream>
-#include <cassert>
 #include <cmath>
 
 namespace GTLib2::algorithms {

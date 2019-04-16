@@ -25,13 +25,13 @@
 #include "algorithms/cfr.h"
 #include "algorithms/common.h"
 #include "algorithms/equilibrium.h"
-#include "algorithms/tree.h"
 #include "algorithms/stats.h"
-#include "algorithms/utility.h"
 #include "algorithms/strategy.h"
+#include "algorithms/tree.h"
+#include "algorithms/utility.h"
 #include "domains/goofSpiel.h"
-#include "utils/functools.h"
 #include "tests/domainsTest.h"
+#include "utils/functools.h"
 
 #include <boost/test/unit_test.hpp>
 

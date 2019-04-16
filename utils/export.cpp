@@ -23,14 +23,11 @@
 #include "export.h"
 
 #include <iomanip>
-#include <iostream>
-#include <memory>
-#include <string>
-#include <algorithms/common.h>
 
 #include "base/efg.h"
 #include "base/hashing.h"
 #include "algorithms/tree.h"
+#include "algorithms/common.h"
 
 namespace GTLib2::utils {
 

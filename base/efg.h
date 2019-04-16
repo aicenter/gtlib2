@@ -28,15 +28,6 @@
 #include "base/base.h"
 #include "base/hashing.h"
 
-#include <experimental/optional>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
-#include <utility>
-#include <string>
-#include <functional>
-
-
 
 namespace GTLib2 {
 
@@ -241,7 +232,7 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
     mutable HashType hashNode_ = 0;
     mutable vector<uint32_t> descriptor_;
 };
-};  // namespace GTLib2
+}  // namespace GTLib2
 
 
 using GTLib2::EFGNode;

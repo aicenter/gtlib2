@@ -19,10 +19,10 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include "cache.h"
+
 #include "algorithms/tree.h"
-#include "algorithms/common.h"
 
 
 namespace GTLib2 {

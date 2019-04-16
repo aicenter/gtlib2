@@ -20,15 +20,15 @@
 */
 
 #include "base/base.h"
+#include "algorithms/bestResponse.h"
 #include "algorithms/cfr.h"
 #include "algorithms/strategy.h"
+#include "algorithms/tree.h"
+#include "algorithms/utility.h"
+#include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"
 #include "tests/domainsTest.h"
 #include <boost/test/unit_test.hpp>
-#include <algorithms/utility.h>
-#include "algorithms/tree.h"
-#include "domains/goofSpiel.h"
-#include "algorithms/bestResponse.h"
 
 
 namespace GTLib2::algorithms {
@@ -57,8 +57,8 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomain) {
     BOOST_CHECK(!childData.fixRMStrategy);
     BOOST_CHECK(!rootData.fixAvgStrategy);
     BOOST_CHECK(!childData.fixAvgStrategy);
-    BOOST_CHECK(rootData.regretUpdates.size() == 0);
-    BOOST_CHECK(childData.regretUpdates.size() == 0);
+    BOOST_CHECK(rootData.regretUpdates.empty());
+    BOOST_CHECK(childData.regretUpdates.empty());
 
     // ------ iteration player 0 ------
     double cfvInfoset = cfr.runIteration(rootNode, std::array<double, 3>{1., 1., 1.}, Player(0));

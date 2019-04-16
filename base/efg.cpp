@@ -20,12 +20,11 @@
 */
 
 
+#include "base/base.h"
 #include "base/efg.h"
+
 #include "algorithms/common.h"
 
-#include <algorithm>
-#include <sstream>
-#include <iterator>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunknown-pragmas"

@@ -23,9 +23,7 @@
 #include "base/efg.h"
 #include "base/cache.h"
 
-#include "algorithms/common.h"
 #include "domains/matching_pennies.h"
-#include "tests/domainsTest.h"
 #include <boost/test/unit_test.hpp>
 
 

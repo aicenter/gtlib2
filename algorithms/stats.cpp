@@ -19,12 +19,8 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include "algorithms/stats.h"
-
-#include <unordered_set>
-#include <unordered_map>
-#include <memory>
 
 #include "tree.h"
 

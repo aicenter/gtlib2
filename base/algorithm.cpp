@@ -19,12 +19,12 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include "algorithm.h"
 
-#include <iostream>
 #include <chrono>
-#include <algorithms/common.h>
+
+#include "algorithms/common.h"
 #include "base/random.h"
 
 namespace GTLib2 {
@@ -120,7 +120,7 @@ vector<double> playMatch(const Domain &domain,
         assert(probs.size() == actions.size());
         double sumProbs = 0.0;
         for (double prob : probs) sumProbs += prob;
-        assert(fabs(1.0-sumProbs) < 1e-9);
+        assert(fabs(1.0 - sumProbs) < 1e-9);
 
         int playerAction = pickRandom(probs, uniformDist, generator);
         nodesDist = node->performAction(actions[playerAction]);

@@ -19,6 +19,7 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "base/base.h"
 #include "domains/oshiZumo.h"
 
 namespace GTLib2::domains {

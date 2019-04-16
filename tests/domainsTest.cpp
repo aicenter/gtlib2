@@ -19,17 +19,16 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include "tests/domainsTest.h"
 
-#include <memory>
 #include "algorithms/tree.h"
 
 #include <boost/test/unit_test.hpp>
-#include <domains/matching_pennies.h>
-#include <algorithms/common.h>
-#include "domains/goofSpiel.h"
+#include "algorithms/common.h"
 #include "domains/genericPoker.h"
+#include "domains/goofSpiel.h"
+#include "domains/matching_pennies.h"
 #include "domains/oshiZumo.h"
 
 

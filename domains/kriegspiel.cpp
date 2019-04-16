@@ -20,8 +20,8 @@
 */
 
 
-#include "kriegspiel.h"
 #include "base/base.h"
+#include "domains/kriegspiel.h"
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"

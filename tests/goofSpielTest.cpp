@@ -20,7 +20,6 @@
 */
 
 #include "base/base.h"
-#include <unordered_set>
 
 #include "algorithms/bestResponse.h"
 #include "algorithms/cfr.h"

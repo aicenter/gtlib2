@@ -21,7 +21,6 @@
 
 
 #include "base/base.h"
-#include <cassert>
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
@@ -111,8 +110,8 @@ bool Outcome::operator==(const Outcome &rhs) const {
 size_t AOH::computeHash() const {
     size_t seed = 0;
     for (auto actionObservation : aoh_) {
-        boost::hash_combine(seed, std::get<0>(actionObservation));
-        boost::hash_combine(seed, std::get<1>(actionObservation));
+        boost::hash_combine(seed, actionObservation.first);
+        boost::hash_combine(seed, actionObservation.second);
     }
     boost::hash_combine(seed, player_);
     return seed;
@@ -149,8 +148,8 @@ string AOH::toString() const {
     string s = "Player: " + to_string(player_) + ",  init observation:" +
         to_string(aoh_.front().second) + ", hash value: " +
         to_string(hashValue_) + "\n";
-    for (const auto &i : aoh_) {
-        s += "Action: " + to_string(std::get<0>(i)) + ", Obs: " + to_string(std::get<1>(i)) + " | ";
+    for (const auto &ao : aoh_) {
+        s += "Action: " + to_string(ao.first) + ", Obs: " + to_string(ao.second) + " | ";
     }
     return s;
 }
@@ -164,16 +163,6 @@ Domain::Domain(unsigned int maxDepth, unsigned int numberOfPlayers) :
 const OutcomeDistribution &Domain::getRootStatesDistribution() const {
     return rootStatesDistribution_;
 }
-
-//bool State::operator==(const State &rhs) const {
-//    static_assert(false);
-//    return false;
-//}
-//
-//size_t State::getHash() const {
-//    assert(("getHash is not implemented", false));
-//    return 0;
-//}
 
 int State::getNumberOfPlayers() const {
     return static_cast<int> (getPlayers().size());

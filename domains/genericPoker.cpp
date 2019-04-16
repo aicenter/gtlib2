@@ -19,12 +19,9 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include "domains/genericPoker.h"
-#include "genericPoker.h"
 
-#include <iterator>
-#include <algorithm>
 
 namespace GTLib2::domains {
 GenericPokerAction::GenericPokerAction(ActionId id, int type, int value) :

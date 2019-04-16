@@ -20,8 +20,7 @@
 */
 
 
-#include <random>
-#include <algorithm>
+#include "base/base.h"
 #include "domains/goofSpiel.h"
 
 #pragma clang diagnostic push

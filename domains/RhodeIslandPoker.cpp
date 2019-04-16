@@ -19,14 +19,8 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include "domains/RhodeIslandPoker.h"
-#include "RhodeIslandPoker.h"
-
-#include <random>
-#include <iterator>
-#include <sstream>
-#include <algorithm>
 
 
 namespace GTLib2::domains {
