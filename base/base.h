@@ -346,9 +346,9 @@ class State {
      */
     virtual string toString() const;
 
-    virtual bool operator==(const State &rhs) const;
+    virtual bool operator==(const State &rhs) const = 0;
 
-    virtual size_t getHash() const;
+    virtual size_t getHash() const = 0;
 
     inline Domain *getDomain() const {
         return domain_;

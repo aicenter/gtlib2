@@ -31,93 +31,94 @@
 #include <string>
 
 namespace GTLib2::domains {
-class MatchingPenniesDomain : public Domain {
+class MatchingPenniesDomain: public Domain {
  public:
-  MatchingPenniesDomain();
-  vector<Player> getPlayers() const override;
+    MatchingPenniesDomain();
+    vector<Player> getPlayers() const override;
 
-  string getInfo() const override { return "Matching pennies"; }
+    string getInfo() const override { return "Matching pennies"; }
 };
 
-class SimultaneousMatchingPenniesDomain : public Domain {
+class SimultaneousMatchingPenniesDomain: public Domain {
  public:
-  SimultaneousMatchingPenniesDomain();
-  vector<Player> getPlayers() const override;
+    SimultaneousMatchingPenniesDomain();
+    vector<Player> getPlayers() const override;
 
-  string getInfo() const override { return "Matching pennies"; }
+    string getInfo() const override { return "Matching pennies"; }
 };
 
 enum Move {
-  Heads, Tails, Nothing
+    Heads, Tails, Nothing
 };
 enum OtherMove {
-  OtherHeads, OtherTails, OtherNothing
+    OtherHeads, OtherTails, OtherNothing
 };
 
-class MatchingPenniesAction : public Action {
+class MatchingPenniesAction: public Action {
  public:
-  explicit MatchingPenniesAction(Move moveParm);
+    explicit MatchingPenniesAction(Move moveParm);
 
-  string toString() const override;
-  bool operator==(const Action &that) const override;
-  size_t getHash() const override;
+    string toString() const override;
+    bool operator==(const Action &that) const override;
+    size_t getHash() const override;
 
-  Move move_;
+    Move move_;
 };
 
-class MatchingPenniesObservation : public Observation {
+class MatchingPenniesObservation: public Observation {
  public:
-  explicit MatchingPenniesObservation(OtherMove otherMoveParm);
+    explicit MatchingPenniesObservation(OtherMove otherMoveParm);
 
-  OtherMove otherMove_;
+    OtherMove otherMove_;
 };
 
-class MatchingPenniesState : public State {
+class MatchingPenniesState: public State {
  public:
-  MatchingPenniesState(Domain *domain, Move p1, Move p2);
+    MatchingPenniesState(Domain *domain, Move p1, Move p2);
 
-  unsigned long countAvailableActionsFor(Player player) const override;
-  vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
+    unsigned long countAvailableActionsFor(Player player) const override;
+    vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
 
-  OutcomeDistribution
-  performActions(const vector<PlayerAction> &actions) const override;
+    OutcomeDistribution
+    performActions(const vector<PlayerAction> &actions) const override;
 
-  int getNumberOfPlayers() const override;
-  vector<Player> getPlayers() const override;
-  size_t getHash() const override;
+    int getNumberOfPlayers() const override;
+    vector<Player> getPlayers() const override;
 
-  bool operator==(const State &rhs) const override;
+    bool operator==(const State &rhs) const override;
+    size_t getHash() const override;
 
-  vector<Player> players_;
-  Move player1_;
-  Move player2_;
+    vector<Player> players_;
+    Move player1_;
+    Move player2_;
 
-  // ToString returns state description
-  string toString() const override;
+    // ToString returns state description
+    string toString() const override;
 };
 
-class SimultaneousMatchingPenniesState : public State {
+class SimultaneousMatchingPenniesState: public State {
  public:
-  SimultaneousMatchingPenniesState(Domain *domain, Move p1, Move p2);
+    SimultaneousMatchingPenniesState(Domain *domain, Move p1, Move p2);
 
-  unsigned long countAvailableActionsFor(Player player) const override;
-  vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
+    unsigned long countAvailableActionsFor(Player player) const override;
+    vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
 
-  OutcomeDistribution
-  performActions(const vector<PlayerAction> &actions) const override;
+    OutcomeDistribution
+    performActions(const vector<PlayerAction> &actions) const override;
 
-  int getNumberOfPlayers() const override;
+    int getNumberOfPlayers() const override;
 
-  vector<Player> getPlayers() const override;
+    vector<Player> getPlayers() const override;
 
-  size_t getHash() const override;
+    bool operator==(const State &rhs) const override;
+    size_t getHash() const override;
 
-  vector<Player> players_;
-  Move player1_;
-  Move player2_;
+    vector<Player> players_;
+    Move player1_;
+    Move player2_;
 
-  // ToString returns state description
-  string toString() const override;
+    // ToString returns state description
+    string toString() const override;
 };
 }  // namespace GTLib2
 #endif  // DOMAINS_MATCHING_PENNIES_H_

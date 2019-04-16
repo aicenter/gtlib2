@@ -165,15 +165,15 @@ const OutcomeDistribution &Domain::getRootStatesDistribution() const {
     return rootStatesDistribution_;
 }
 
-bool State::operator==(const State &rhs) const {
-    assert(("operator == is not implemented", false));
-    return false;
-}
-
-size_t State::getHash() const {
-    assert(("getHash is not implemented", false));
-    return 0;
-}
+//bool State::operator==(const State &rhs) const {
+//    static_assert(false);
+//    return false;
+//}
+//
+//size_t State::getHash() const {
+//    assert(("getHash is not implemented", false));
+//    return 0;
+//}
 
 int State::getNumberOfPlayers() const {
     return static_cast<int> (getPlayers().size());
