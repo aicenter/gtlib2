@@ -3,9 +3,15 @@ project(GTLib2)
 
 # Custom user-specified build configuration goes here
 # Default is saved in "example_BuildConfiguration.txt"
-# Before build you can just call
-# $ cp example_BuildConfiguration.txt BuildConfiguration.txt
-include(BuildConfiguration.txt)
+set(BUILD_CONFIG_FILE "${CMAKE_CURRENT_SOURCE_DIR}/BuildConfiguration.txt")
+
+if(NOT EXISTS ${BUILD_CONFIG_FILE})
+    message(FATAL_ERROR "Local build configuration was not found in '${BUILD_CONFIG_FILE}'. Please follow build instructions in README.md")
+else()
+    message("Using configuration ${BUILD_CONFIG_FILE}")
+endif()
+
+include(${BUILD_CONFIG_FILE})
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
@@ -130,6 +136,10 @@ if (USE_GUROBI)
         message(FATAL_ERROR "GUROBI was not found, try editing BuildConfiguration.txt")
     endif ()
 endif ()
+
+if(NOT USE_CPLEX AND NOT USE_GUROBI AND NOT USE_GLPK)
+    message("No LP solver is used")
+endif()
 
 # -------------------- Source files --------------------
 

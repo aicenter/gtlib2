@@ -34,7 +34,9 @@
 
 
 namespace GTLib2::algorithms {
-tuple<double, BehavioralStrategy> findEquilibriumTwoPlayersZeroSum(const GTLib2::Domain &domain) {
+
+
+tuple<double, BehavioralStrategy> findEquilibriumTwoPlayersZeroSum(const Domain &domain) {
   Player player1 = domain.getPlayers()[0];
   Player player2 = domain.getPlayers()[1];
   auto player1InfSetsAndActions = generateInformationSetsAndAvailableActions(domain, player1);

@@ -33,8 +33,6 @@
 #define CPLEX_SOLVER 2
 #define GLPK_SOLVER 3
 
-namespace GTLib2::algorithms {
-
 #if GUROBIFOUND == 1
     #define LP_SOLVER GUROBI_SOLVER
     #include "LPsolvers/GurobiLPSolver.h"
@@ -47,6 +45,7 @@ namespace GTLib2::algorithms {
 #else
     #define LP_SOLVER NO_LP_SOLVER
 
+namespace GTLib2::algorithms {
     inline double solveLP(const unsigned int rows,
                           const unsigned int cols,
                           const vector<double> &utility_matrix,
@@ -54,8 +53,8 @@ namespace GTLib2::algorithms {
         assert(("No LP solver included to project", false));
         return NAN;
     }
-#endif
-
 }  // namespace GTLib2
+
+#endif
 
 #endif //GTLIB2_LPSOLVER_H
