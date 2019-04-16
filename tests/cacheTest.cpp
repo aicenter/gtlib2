@@ -30,6 +30,8 @@
 namespace GTLib2 {
 
 using domains::MatchingPenniesDomain;
+using domains::MatchingPenniesVariant::SimultaneousMoves;
+using domains::MatchingPenniesVariant::AlternatingMoves;
 using domains::MatchingPenniesAction;
 using domains::Heads;
 using domains::Tails;
@@ -39,7 +41,7 @@ BOOST_AUTO_TEST_SUITE(BaseTests)
 BOOST_AUTO_TEST_SUITE(CacheTests)
 
 BOOST_AUTO_TEST_CASE(CacheHit) {
-    MatchingPenniesDomain mp;
+    MatchingPenniesDomain mp(AlternatingMoves);
     auto rootNodes = createRootEFGNodes(
         mp.getRootStatesDistribution());
     InfosetCache cache(mp);
@@ -70,7 +72,7 @@ BOOST_AUTO_TEST_CASE(CacheHit) {
 
 
 BOOST_AUTO_TEST_CASE(BuildCacheMaxDepth) {
-    MatchingPenniesDomain mp;
+    MatchingPenniesDomain mp(AlternatingMoves);
     auto rootNodes = createRootEFGNodes(mp.getRootStatesDistribution());
     InfosetCache cache(mp);
 
@@ -101,7 +103,7 @@ BOOST_AUTO_TEST_CASE(BuildCacheMaxDepth) {
 
 
 BOOST_AUTO_TEST_CASE(BuildCacheLimitedDepth) {
-    MatchingPenniesDomain mp;
+    MatchingPenniesDomain mp(AlternatingMoves);
     auto rootNodes = createRootEFGNodes(mp.getRootStatesDistribution());
     InfosetCache cache(mp);
 

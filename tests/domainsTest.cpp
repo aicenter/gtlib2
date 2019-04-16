@@ -128,8 +128,8 @@ OshiZumoDomain oz3(1, 3, 0);
 OshiZumoDomain oz4(3, 3, 1, false);
 OshiZumoDomain oz5(5, 3, 1, false);
 
-MatchingPenniesDomain mp1;
-SimultaneousMatchingPenniesDomain mp2;
+MatchingPenniesDomain mp1(AlternatingMoves);
+MatchingPenniesDomain mp2(SimultaneousMoves);
 
 Domain *testDomains[] = { // NOLINT(cert-err58-cpp)
     &gs1, &gs2, &gs3, &gs1_fix, &gs2_fix, &gs3_fix,

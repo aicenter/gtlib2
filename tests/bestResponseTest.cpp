@@ -38,8 +38,9 @@
 namespace GTLib2::algorithms {
 
 using domains::MatchingPenniesDomain;
+using domains::MatchingPenniesVariant::SimultaneousMoves;
+using domains::MatchingPenniesVariant::AlternatingMoves;
 using domains::MatchingPenniesAction;
-using domains::SimultaneousMatchingPenniesDomain;
 using domains::Heads;
 using domains::Tails;
 using domains::GoofSpielDomain;
@@ -52,7 +53,7 @@ BOOST_AUTO_TEST_SUITE(BestResponse)
 
 
 BOOST_AUTO_TEST_CASE(testSmallDomain) {
-    MatchingPenniesDomain domain;
+    MatchingPenniesDomain domain(AlternatingMoves);
 
     auto initNodes = algorithms::createRootEFGNodes(domain.getRootStatesDistribution());
     auto tailAction = make_shared<MatchingPenniesAction>(Tails);

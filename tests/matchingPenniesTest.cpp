@@ -44,7 +44,7 @@ using algorithms::playOnlyAction;
 BOOST_AUTO_TEST_SUITE(DomainsTests)
 BOOST_AUTO_TEST_SUITE(MatchingPennies)
 
-BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
+BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizesAlternating) {
     DomainStatistics expectedStat = {
         .max_EFGDepth   = 2,
         .max_StateDepth = 2,
@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
         .num_sequences  = {3, 3},
     };
 
-    MatchingPenniesDomain testDomain;
+    MatchingPenniesDomain testDomain(AlternatingMoves);
     DomainStatistics actualStat;
     calculateDomainStatistics(testDomain, &actualStat);
 
@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizesSimultaneous) {
         .num_sequences  = {3, 3},
     };
 
-    SimultaneousMatchingPenniesDomain testDomain;
+    MatchingPenniesDomain testDomain(SimultaneousMoves);
     DomainStatistics actualStat;
     calculateDomainStatistics(testDomain, &actualStat);
 

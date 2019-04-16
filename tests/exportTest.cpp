@@ -33,12 +33,13 @@
 namespace GTLib2::utils {
 
 using domains::MatchingPenniesDomain;
+using domains::MatchingPenniesVariant::AlternatingMoves;
 
 BOOST_AUTO_TEST_SUITE(UtilsTests)
 BOOST_AUTO_TEST_SUITE(Export)
 
 BOOST_AUTO_TEST_CASE(exportGambitSmallDomain) {
-    auto mp = MatchingPenniesDomain();
+    auto mp = MatchingPenniesDomain(AlternatingMoves);
     std::ostringstream gambit_os;
     exportGambit(mp, gambit_os);
 
@@ -56,7 +57,7 @@ BOOST_AUTO_TEST_CASE(exportGambitSmallDomain) {
 }
 
 BOOST_AUTO_TEST_CASE(exportGraphvizSmallDomain) {
-    auto mp = MatchingPenniesDomain();
+    auto mp = MatchingPenniesDomain(AlternatingMoves);
     std::ostringstream graphviz_os;
     exportGraphViz(mp, graphviz_os);
 
@@ -66,23 +67,25 @@ BOOST_AUTO_TEST_CASE(exportGraphvizSmallDomain) {
         R"(	graph [fontname=courier])" "\n"
         R"(	node  [fontname=courier, shape=box, style="filled", fillcolor=white])" "\n"
         R"(	edge  [fontname=courier])" "\n"
-        R"(	"[2, 2, 0]" -> "[2, 2, 0, 0, 2, 2, 1]" [label="Heads, p=1"])" "\n"
-        R"(	"[2, 2, 0]" [fillcolor="#FF0000", label="", shape=triangle])" "\n"
-        R"(	"[2, 2, 0]" -> "[2, 2, 0, 1, 2, 2, 1]" [label="Tails, p=1"])" "\n"
-        R"(	"[2, 2, 0]" [fillcolor="#FF0000", label="", shape=triangle])" "\n"
-        R"(	"[2, 2, 0, 0, 2, 2, 1]" -> "[2, 2, 0, 0, 2, 2, 1, 0, 0, 0]" [label="Heads, p=1"])" "\n"
-        R"(	"[2, 2, 0, 0, 2, 2, 1]" [fillcolor="#00FF00", label="", shape=invtriangle])" "\n"
-        R"(	"[2, 2, 0, 0, 2, 2, 1]" -> "[2, 2, 0, 0, 2, 2, 1, 1, 1, 0]" [label="Tails, p=1"])" "\n"
-        R"(	"[2, 2, 0, 0, 2, 2, 1]" [fillcolor="#00FF00", label="", shape=invtriangle])" "\n"
-        R"(	"[2, 2, 0, 0, 2, 2, 1, 0, 0, 0]" [fillcolor="#FFFFFF", label="[1, -1]"])" "\n"
-        R"(	"[2, 2, 0, 0, 2, 2, 1, 1, 1, 0]" [fillcolor="#FFFFFF", label="[-1, 1]"])" "\n"
-        R"(	"[2, 2, 0, 1, 2, 2, 1]" -> "[2, 2, 0, 1, 2, 2, 1, 0, 0, 1]" [label="Heads, p=1"])" "\n"
-        R"(	"[2, 2, 0, 1, 2, 2, 1]" [fillcolor="#00FF00", label="", shape=invtriangle])" "\n"
-        R"(	"[2, 2, 0, 1, 2, 2, 1]" -> "[2, 2, 0, 1, 2, 2, 1, 1, 1, 1]" [label="Tails, p=1"])" "\n"
-        R"(	"[2, 2, 0, 1, 2, 2, 1]" [fillcolor="#00FF00", label="", shape=invtriangle])" "\n"
-        R"(	"[2, 2, 0, 1, 2, 2, 1, 0, 0, 1]" [fillcolor="#FFFFFF", label="[-1, 1]"])" "\n"
-        R"(	"[2, 2, 0, 1, 2, 2, 1, 1, 1, 1]" [fillcolor="#FFFFFF", label="[1, -1]"])" "\n"
+        R"(	"[4294967295, 4294967295, 0]" -> "[4294967295, 4294967295, 0, 0, 4294967295, 4294967295, 1]" [label="Heads, p=1"])" "\n"
+        R"(	"[4294967295, 4294967295, 0]" [fillcolor="#FF0000", label="", shape=triangle])" "\n"
+        R"(	"[4294967295, 4294967295, 0]" -> "[4294967295, 4294967295, 0, 1, 4294967295, 4294967295, 1]" [label="Tails, p=1"])" "\n"
+        R"(	"[4294967295, 4294967295, 0]" [fillcolor="#FF0000", label="", shape=triangle])" "\n"
+        R"(	"[4294967295, 4294967295, 0, 0, 4294967295, 4294967295, 1]" -> "[4294967295, 4294967295, 0, 0, 4294967295, 4294967295, 1, 0, 0, 0]" [label="Heads, p=1"])" "\n"
+        R"(	"[4294967295, 4294967295, 0, 0, 4294967295, 4294967295, 1]" [fillcolor="#00FF00", label="", shape=invtriangle])" "\n"
+        R"(	"[4294967295, 4294967295, 0, 0, 4294967295, 4294967295, 1]" -> "[4294967295, 4294967295, 0, 0, 4294967295, 4294967295, 1, 1, 1, 0]" [label="Tails, p=1"])" "\n"
+        R"(	"[4294967295, 4294967295, 0, 0, 4294967295, 4294967295, 1]" [fillcolor="#00FF00", label="", shape=invtriangle])" "\n"
+        R"(	"[4294967295, 4294967295, 0, 0, 4294967295, 4294967295, 1, 0, 0, 0]" [fillcolor="#FFFFFF", label="[1, -1]"])" "\n"
+        R"(	"[4294967295, 4294967295, 0, 0, 4294967295, 4294967295, 1, 1, 1, 0]" [fillcolor="#FFFFFF", label="[-1, 1]"])" "\n"
+        R"(	"[4294967295, 4294967295, 0, 1, 4294967295, 4294967295, 1]" -> "[4294967295, 4294967295, 0, 1, 4294967295, 4294967295, 1, 0, 0, 1]" [label="Heads, p=1"])" "\n"
+        R"(	"[4294967295, 4294967295, 0, 1, 4294967295, 4294967295, 1]" [fillcolor="#00FF00", label="", shape=invtriangle])" "\n"
+        R"(	"[4294967295, 4294967295, 0, 1, 4294967295, 4294967295, 1]" -> "[4294967295, 4294967295, 0, 1, 4294967295, 4294967295, 1, 1, 1, 1]" [label="Tails, p=1"])" "\n"
+        R"(	"[4294967295, 4294967295, 0, 1, 4294967295, 4294967295, 1]" [fillcolor="#00FF00", label="", shape=invtriangle])" "\n"
+        R"(	"[4294967295, 4294967295, 0, 1, 4294967295, 4294967295, 1, 0, 0, 1]" [fillcolor="#FFFFFF", label="[-1, 1]"])" "\n"
+        R"(	"[4294967295, 4294967295, 0, 1, 4294967295, 4294967295, 1, 1, 1, 1]" [fillcolor="#FFFFFF", label="[1, -1]"])" "\n"
         R"(})" "\n";
+
+    cout << graphviz_os.str();
 
     BOOST_CHECK(expectedGraphviz == graphviz_os.str());
 }
