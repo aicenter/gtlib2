@@ -4,3 +4,36 @@ option(USE_GLPK   "Use GLPK LP solver if found on system"   OFF)
 
 set(default_build_type "Release") # one of "Debug" "Release"
 set(CMAKE_VERBOSE_MAKEFILE OFF)
+
+
+# ===== Path to CPLEX
+#
+# CPLEX Studio 12.4 can be installed in the following default locations:
+#   /opt/ibm/ILOG/CPLEX_Studio<edition>124 - Linux
+#   /opt/IBM/ILOG/CPLEX_Studio<edition>124 - UNIX
+#   ~/Applications/IBM/ILOG/CPLEX_Studio<edition>124 - Mac OS X
+#   C:\Program Files\IBM\ILOG\CPLEX_Studio<edition>124 - Windows
+#
+set(CPLEX_APPLE_DIR $ENV{HOME}/Applications/IBM/ILOG)
+set(CPLEX_LINUX_DIR /opt/ibm/ILOG)
+set(CPLEX_UNIX_DIR /opt/IBM/ILOG)
+set(CPLEX_WIN64_DIR "C:/Program Files/IBM/ILOG")
+set(CPLEX_WIN86_DIR "C:/Program Files (x86)/IBM/ILOG")
+
+# ===== Path to GLPK
+#
+# There is not default location so it is necessary to set your library location.
+#
+# If you installed manually, it should place it's files in
+# /usr/local/include/glpk.h
+# /usr/local/lib/libglpk.a
+#
+# If GLPK was added as a Linux package, then the "/local" part is omitted from the paths indicated.
+#set(GLPK_DIR /usr)
+set(GLPK_DIR /usr/local)
+
+# ===== Path to GUROBI
+#
+# There is not default location  (but /opt is recommended)
+# so it is necessary to set your library location
+set(GUROBI_DIR /opt/gurobi811/linux64)

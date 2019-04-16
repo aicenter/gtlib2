@@ -8,25 +8,16 @@
 #  cplex-cp - the CP Optimizer library
 
 include(FindPackageHandleStandardArgs)
-include(directories)
-# Find the path to CPLEX Studio.
-# CPLEX Studio 12.4 can be installed in the following default locations:
-#   /opt/ibm/ILOG/CPLEX_Studio<edition>124 - Linux
-#   /opt/IBM/ILOG/CPLEX_Studio<edition>124 - UNIX
-#   ~/Applications/IBM/ILOG/CPLEX_Studio<edition>124 - Mac OS X
-#   C:\Program Files\IBM\ILOG\CPLEX_Studio<edition>124 - Windows
-
-# directories can be edited in directories.cmake file.
 
 if (UNIX)
-  set(CPLEX_ILOG_DIRS ${LINUX_DIR} ${UNIX_DIR})
+  set(CPLEX_ILOG_DIRS ${CPLEX_LINUX_DIR} ${CPLEX_UNIX_DIR})
   if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(CPLEX_ARCH x86-64)
   else ()
     set(CPLEX_ARCH x86)
   endif ()
   if (APPLE)
-    set(CPLEX_ILOG_DIRS ${APPLE_DIR} ${CPLEX_ILOG_DIRS})
+    set(CPLEX_ILOG_DIRS ${CPLEX_APPLE_DIR} ${CPLEX_ILOG_DIRS})
 
     foreach (suffix "osx" "darwin9_gcc4.0")
       set(CPLEX_LIB_PATH_SUFFIXES
@@ -37,12 +28,12 @@ if (UNIX)
             lib/${CPLEX_ARCH}_sles10_4.1/static_pic lib/${CPLEX_ARCH}_linux/static_pic)
   endif ()
 else ()
-  set(CPLEX_ILOG_DIRS ${WIN64_DIR})
+  set(CPLEX_ILOG_DIRS ${CPLEX_WIN64_DIR})
   if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(CPLEX_ARCH x64)
   else ()
     set(CPLEX_ARCH x86)
-    set(CPLEX_ILOG_DIRS ${WIN86_DIR} ${CPLEX_ILOG_DIRS})
+    set(CPLEX_ILOG_DIRS ${CPLEX_WIN86_DIR} ${CPLEX_ILOG_DIRS})
   endif ()
   if (MSVC10)
     set(CPLEX_LIB_PATH_SUFFIXES
