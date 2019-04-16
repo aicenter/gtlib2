@@ -93,9 +93,7 @@ class CFRData: public InfosetCache {
     unordered_map<shared_ptr<AOH>, InfosetData> infosetData;
 
  protected:
-    void createNode(const shared_ptr<EFGNode> &node) override {
-        InfosetCache::createNode(node);
-
+    void createCFRInfosetData(const shared_ptr<EFGNode> &node) {
         if (node->isTerminal()) return;
 
         auto infoSet = node->getAOHInfSet();
@@ -103,7 +101,12 @@ class CFRData: public InfosetCache {
             infosetData.emplace(make_pair(
                 infoSet, CFRData::InfosetData(node->countAvailableActions(), updatingPolicy_)));
         }
+    }
 
+    void processNode(const shared_ptr<EFGNode> &node) override {
+        EFGCache::createNode(node);
+        InfosetCache::createAugInfosets(node);
+        createCFRInfosetData(node);
     }
 
     CFRUpdating updatingPolicy_ = HistoriesUpdating;

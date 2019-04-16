@@ -32,6 +32,7 @@
 namespace GTLib2 {
 
 class EFGNode;
+class EFGPublicState;
 
 /**
  * The chance probability of an EFGNode after performing some action,
@@ -127,6 +128,12 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
      * when the requested player is acting in this node.
      */
     shared_ptr<AOH> getAOHAugInfSet(Player player) const;
+
+
+    /**
+     * Gets the public state of the node based on public observation history.
+     */
+    shared_ptr<EFGPublicState> getPublicState() const;
 
     /**
      * Check if the node is in the given information set.
@@ -232,25 +239,53 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
     mutable HashType hashNode_ = 0;
     mutable vector<uint32_t> descriptor_;
 };
-}  // namespace GTLib2
+
+class EFGPublicState {
+ public:
+    EFGPublicState(const shared_ptr<Observation> &publicObservation);
+    EFGPublicState(const shared_ptr<EFGPublicState>& parent, const shared_ptr<Observation> &publicObservation);
+
+    inline const vector<shared_ptr<Observation>>& getPublicHistory() const {
+        return publicObsHistory_;
+    }
+    inline HashType getHash() const {
+        return hashNode_;
+    };
+    bool operator==(const EFGPublicState &rhs) const;
+
+    inline const vector<uint32_t>& getDescriptor() const {
+        return descriptor_;
+    }
+
+ private:
+    vector<shared_ptr<Observation>> publicObsHistory_;
+    mutable HashType hashNode_ = 0;
+    mutable vector<uint32_t> descriptor_;
+
+    void generateDescriptor() const;
+    void generateHash() const;
+
+};
+
+};  // namespace GTLib2
 
 
 using GTLib2::EFGNode;
+using GTLib2::EFGPublicState;
 
 namespace std { // NOLINT(cert-dcl58-cpp)
 template<>
-struct hash<shared_ptr<EFGNode>> {
-    size_t operator()(const shared_ptr<EFGNode> &p) const {
-        return p->getHash();
-    }
+struct hash<shared_ptr < EFGNode>> {
+size_t operator()(const shared_ptr <EFGNode> &p) const {
+    return p->getHash();
+}
 };
 
 template<>
-struct equal_to<shared_ptr<EFGNode>> {
-    bool operator()(const shared_ptr<EFGNode> &a,
-                    const shared_ptr<EFGNode> &b) const {
-        return *a == *b;
-    }
+struct equal_to<shared_ptr < EFGNode>> {
+bool operator()(const shared_ptr <EFGNode> &a, const shared_ptr <EFGNode> &b) const {
+    return *a == *b;
+}
 };
 
 template<>
@@ -262,8 +297,35 @@ struct hash<EFGNode *> {
 
 template<>
 struct equal_to<EFGNode *> {
-    bool operator()(const EFGNode *a,
-                    const EFGNode *b) const {
+    bool operator()(const EFGNode *a, const EFGNode *b) const {
+        return *a == *b;
+    }
+};
+
+template<>
+struct hash<shared_ptr<EFGPublicState>> {
+size_t operator()(const shared_ptr <EFGPublicState> &p) const {
+    return p->getHash();
+}
+};
+
+template<>
+struct equal_to<shared_ptr < EFGPublicState>> {
+bool operator()(const shared_ptr <EFGPublicState> &a, const shared_ptr <EFGPublicState> &b) const {
+    return *a == *b;
+}
+};
+
+template<>
+struct hash<EFGPublicState *> {
+    size_t operator()(const EFGPublicState *p) const {
+        return p->getHash();
+    }
+};
+
+template<>
+struct equal_to<EFGPublicState *> {
+    bool operator()(const EFGPublicState *a, const EFGPublicState *b) const {
         return *a == *b;
     }
 };

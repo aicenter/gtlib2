@@ -154,6 +154,14 @@ shared_ptr<AOH> EFGNode::getAOHAugInfSet(Player player) const {
     return make_shared<AOH>(player, aoh);
 }
 
+shared_ptr<EFGPublicState> EFGNode::getPublicState() const {
+    if(parent_) {
+        return make_shared<EFGPublicState>(parent_->getPublicState(), publicObservation_);
+    } else {
+        return make_shared<EFGPublicState>(publicObservation_);
+    }
+}
+
 vector<ActionObservation> EFGNode::getAOH(Player player) const {
     if (!parent_) {
         return vector<ActionObservation>{
@@ -238,7 +246,7 @@ void EFGNode::generateDescriptor() const {
             descriptor_.push_back(observation->getId());
         }
     }
-    if(!isTerminal()) {
+    if (!isTerminal()) {
         descriptor_.push_back(*currentPlayer_);
     }
 }
@@ -321,6 +329,36 @@ bool EFGNode::noActionPerformedInThisRound() const {
 }
 bool EFGNode::isTerminal() const {
     return currentPlayer_ == nullopt;
+}
+
+EFGPublicState::EFGPublicState(const shared_ptr<Observation> &publicObservation) {
+    publicObsHistory_.push_back(publicObservation);
+    generateDescriptor();
+    generateHash();
+}
+
+EFGPublicState::EFGPublicState(const shared_ptr<EFGPublicState>& parent,
+                               const shared_ptr<Observation> &publicObservation) {
+    publicObsHistory_ = parent->publicObsHistory_;
+    if(publicObservation) publicObsHistory_.push_back(publicObservation);
+    generateDescriptor();
+    generateHash();
+}
+
+void EFGPublicState::generateHash() const {
+    hashNode_ = hashWithSeed(descriptor_.data(), descriptor_.size() * sizeof(uint32_t), 242037120);
+}
+
+void EFGPublicState::generateDescriptor() const {
+    for (const auto &observation : publicObsHistory_) {
+        descriptor_.push_back(observation->getId());
+    }
+}
+
+bool EFGPublicState::operator==(const EFGPublicState &rhs) const {
+    if (hashNode_ != rhs.hashNode_) return false;
+    if (descriptor_.size() != rhs.descriptor_.size()) return false;
+    return !memcmp(descriptor_.data(), rhs.descriptor_.data(), descriptor_.size());
 }
 
 }  // namespace GTLib2
