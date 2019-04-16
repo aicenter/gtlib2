@@ -61,7 +61,7 @@ EFGActionNodesDistribution &EFGCache::getCachedNode(const shared_ptr<EFGNode> &n
 
         for (auto &rootNode : getRootNodes()) {
             if (*rootNode.first == *node) {
-                createNode(rootNode.first);
+                processNode(rootNode.first);
                 // createNode must append to nodesChildren
                 return nodesChildren_[node];
             }
@@ -91,7 +91,7 @@ EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Actio
     cachedNodeDist[actionId] = make_shared<EFGNodesDistribution>(newDist);
 
     for (auto &[childNode, _]: newDist) {
-        this->createNode(childNode);
+        this->processNode(childNode);
     }
 
     // retrieve from map directly to return a reference,
@@ -123,7 +123,7 @@ const EFGActionNodesDistribution &EFGCache::getChildrenFor(const shared_ptr<EFGN
         cachedNodeDist[i] = make_shared<EFGNodesDistribution>(newDist);
 
         for (auto &[childNode, _]: newDist) {
-            this->createNode(childNode);
+            this->processNode(childNode);
         }
     }
 
@@ -135,6 +135,10 @@ vector<shared_ptr<EFGNode>> EFGCache::getNodes() const {
     transform(nodesChildren_.begin(), nodesChildren_.end(),
               keys.begin(), [](auto pair) { return pair.first; });
     return keys;
+}
+
+void EFGCache::processNode(const shared_ptr<EFGNode> &node) {
+    createNode(node);
 }
 
 void EFGCache::createNode(const shared_ptr<EFGNode> &node) {
@@ -151,12 +155,12 @@ void EFGCache::buildForest() {
     builtForest_ = true;
 }
 
-void InfosetCache::createNode(const shared_ptr<GTLib2::EFGNode> &node) {
+void InfosetCache::processNode(const shared_ptr<GTLib2::EFGNode> &node) {
     EFGCache::createNode(node);
-    updateAugInfosets(node);
+    createAugInfosets(node);
 }
 
-void InfosetCache::updateAugInfosets(const shared_ptr<EFGNode> &node) {
+void InfosetCache::createAugInfosets(const shared_ptr<EFGNode> &node) {
     vector<shared_ptr<AOH>> infosets;
 
     for (Player pl = 0; pl < GAME_MAX_PLAYERS; pl++) {
@@ -176,6 +180,36 @@ void InfosetCache::updateAugInfosets(const shared_ptr<EFGNode> &node) {
     }
     assert (infosets.size() == GAME_MAX_PLAYERS);
     node2infosets_.emplace(node, infosets);
+}
+
+void PublicStateCache::processNode(const shared_ptr<GTLib2::EFGNode> &node) {
+    EFGCache::createNode(node);
+    createPublicState(node);
+}
+
+void PublicStateCache::createPublicState(const shared_ptr<EFGNode> &node) {
+    auto pubState = node->getPublicState();
+    auto infoset0 = node->getAOHAugInfSet(Player(0));
+    auto infoset1 = node->getAOHAugInfSet(Player(1));
+
+    node2publicState_.emplace(node, pubState);
+    infoset2publicState_.emplace(infoset0, pubState);
+    infoset2publicState_.emplace(infoset1, pubState);
+
+    auto maybePubStateNode = publicState2nodes_.find(pubState);
+    if (maybePubStateNode == publicState2nodes_.end()) {
+        publicState2nodes_.emplace(pubState, vector<shared_ptr<EFGNode>>{node});
+    } else {
+        maybePubStateNode->second.push_back(node);
+    }
+
+    auto maybePubStateInfo = publicState2infosets_.find(pubState);
+    if (maybePubStateInfo == publicState2infosets_.end()) {
+        publicState2infosets_.emplace(pubState, unordered_set<shared_ptr<AOH>>{infoset0, infoset1});
+    } else {
+        maybePubStateInfo->second.emplace(infoset0);
+        maybePubStateInfo->second.emplace(infoset1);
+    }
 }
 
 } // namespace GTLib2

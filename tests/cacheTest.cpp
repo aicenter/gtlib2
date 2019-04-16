@@ -151,6 +151,31 @@ BOOST_AUTO_TEST_CASE(BuildCacheLimitedDepth) {
     BOOST_CHECK(cache.hasChildren(node1));
 }
 
+BOOST_AUTO_TEST_CASE(BuildPublicStateCache) {
+    MatchingPenniesDomain domains[] = {MatchingPenniesDomain(AlternatingMoves),
+                                       MatchingPenniesDomain(SimultaneousMoves)};
+    for(const auto &mp : domains) {
+        auto rootNodes = createRootEFGNodes(mp.getRootStatesDistribution());
+        PublicStateCache cache(mp);
+
+        auto rootNode = rootNodes[0].first;
+        auto actions = rootNode->availableActions();
+        BOOST_CHECK(!cache.hasNode(rootNode));
+        BOOST_CHECK(!cache.hasPublicState(rootNode->getPublicState()));
+
+        rootNode->performAction(actions[0]);
+        rootNode->performAction(actions[1]);
+        BOOST_CHECK(!cache.hasNode(rootNode));
+        BOOST_CHECK(!cache.hasPublicState(rootNode->getPublicState()));
+
+        cache.buildForest();
+        BOOST_CHECK(cache.hasNode(rootNode));
+        BOOST_CHECK(cache.hasPublicState(rootNode->getPublicState()));
+        BOOST_CHECK(cache.countPublicStates() == mp.variant_ == AlternatingMoves ? 4 : 3);
+    }
+}
+
+
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 
