@@ -234,6 +234,15 @@ class PublicStateCache: public EFGCache {
         return publicState2nodes_.find(pubState) != publicState2nodes_.end();
     }
 
+    inline const shared_ptr<EFGPublicState> &getPublicStateFor(const shared_ptr<EFGNode> &node) {
+        return node2publicState_[node];
+    }
+
+    inline const shared_ptr<EFGPublicState> &getPublicStateFor(const shared_ptr<AOH> &infoset) {
+        return infoset2publicState_[infoset];
+    }
+
+
     inline const unordered_set<shared_ptr<EFGNode>> &getNodesFor(const shared_ptr<EFGPublicState> &state) {
         return publicState2nodes_[state];
     }

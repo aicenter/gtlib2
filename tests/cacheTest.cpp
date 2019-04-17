@@ -218,6 +218,36 @@ BOOST_AUTO_TEST_CASE(BuildLargePublicStateCache) {
     }
 }
 
+BOOST_AUTO_TEST_CASE(PublicStateCacheGetInfosets) {
+    GoofSpielDomain domain({
+                               variant:  IncompleteObservations,
+                               numCards: 2,
+                               fixChanceCards: true,
+                               chanceCards: {}
+                           });
+    PublicStateCache cache(domain);
+    cache.buildForest();
+
+    auto rootNode = cache.getRootNodes()[0].first;
+    auto childNodes = cache.getChildrenFor(rootNode);
+    shared_ptr<EFGNode> aNode = (*childNodes[0])[0].first;
+    shared_ptr<EFGNode> bNode = (*childNodes[1])[0].first;
+    auto children = unordered_set<shared_ptr<EFGNode>>{aNode, bNode};
+    auto pubState = cache.getPublicStateFor(aNode);
+    BOOST_CHECK(cache.getNodesFor(pubState).size() == 2);
+    BOOST_CHECK(cache.getNodesFor(pubState) == children);
+
+    shared_ptr<AOH> actualInfoset = aNode->getAOHInfSet();
+    shared_ptr<AOH> expectedInfoset = *cache.getInfosetsFor(pubState, Player(1)).begin();
+    BOOST_CHECK(expectedInfoset != actualInfoset);
+    BOOST_CHECK(*expectedInfoset == *actualInfoset);
+
+    actualInfoset = aNode->getAOHAugInfSet(Player(0));
+    expectedInfoset = *cache.getInfosetsFor(pubState, Player(0)).begin();
+    BOOST_CHECK(expectedInfoset != actualInfoset);
+    BOOST_CHECK(*expectedInfoset == *actualInfoset);
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
