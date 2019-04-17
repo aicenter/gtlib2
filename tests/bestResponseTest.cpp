@@ -92,13 +92,13 @@ BOOST_AUTO_TEST_CASE(bestResponseFullDepthCard4) {
 
     auto setAction = [&](shared_ptr<EFGNode> node) {
         auto infoset = node->getAOHInfSet();
-        if (node->getDistanceFromRoot() == 0) {
+        if (node->getEFGDepth() == 0) {
             playOnlyAction(profile[opponent][infoset], lowestCardAction);
-        } else if (node->getDistanceFromRoot() == 2) {
+        } else if (node->getEFGDepth() == 2) {
             playOnlyAction(profile[opponent][infoset], secondLowestCardAction);
-        } else if (node->getDistanceFromRoot() == 4) {
+        } else if (node->getEFGDepth() == 4) {
             playOnlyAction(profile[opponent][infoset], thirdLowestCardAction);
-        } else if (node->getDistanceFromRoot() == 6) {
+        } else if (node->getEFGDepth() == 6) {
             playOnlyAction(profile[opponent][infoset], fourthLowestCardAction);
         }
     };
@@ -124,9 +124,9 @@ BOOST_AUTO_TEST_CASE(bestResponseDepth2Card4) {
 
     auto setAction = [&](shared_ptr<EFGNode> node) {
         auto infoset = node->getAOHInfSet();
-        if (node->getDistanceFromRoot() == 0) {
+        if (node->getEFGDepth() == 0) {
             playOnlyAction(profile[opponent][infoset], lowestCardAction);
-        } else if (node->getDistanceFromRoot() == 2) {
+        } else if (node->getEFGDepth() == 2) {
             playOnlyAction(profile[opponent][infoset], secondLowestCardAction);
         }
     };
@@ -151,7 +151,7 @@ BOOST_AUTO_TEST_CASE(bestResponseDepth1Card13) {
 
     auto setAction = [&](shared_ptr<EFGNode> node) {
         auto infoset = node->getAOHInfSet();
-        if (node->getDistanceFromRoot() == 0) {
+        if (node->getEFGDepth() == 0) {
             playOnlyAction(profile[opponent][infoset], lowestCardAction);
         }
     };

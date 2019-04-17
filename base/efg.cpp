@@ -66,12 +66,12 @@ EFGNodesDistribution EFGNode::performAction(const shared_ptr<Action> &action) co
                                                 outcome.privateObservations_,
                                                 outcome.publicObservation_,
                                                 outcome.rewards_, prob * natureProbability_,
-                                                action, depth_ + 1);
+                                                action, stateDepth_ + 1);
             newNodes.emplace_back(newNode, prob);
         }
     } else {
         auto newNode = make_shared<EFGNode>(shared_from_this(),
-                                            actionsToBePerformed, action, depth_);
+                                            actionsToBePerformed, action, stateDepth_);
         newNodes.emplace_back(newNode, 1.0);
     }
     return newNodes;
@@ -87,7 +87,7 @@ EFGNode::EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,
     publicObservation_ = publicObservation;
     rewards_ = rewards;
     natureProbability_ = natureProbability;
-    depth_ = depth;
+    stateDepth_ = depth;
     remainingPlayersInTheRound_ = state_->getPlayers();
     std::reverse(remainingPlayersInTheRound_.begin(), remainingPlayersInTheRound_.end());
     if (!remainingPlayersInTheRound_.empty()) {
@@ -111,7 +111,7 @@ EFGNode::EFGNode(shared_ptr<EFGNode const> parent,
     rewards_ = parent->rewards_;
     natureProbability_ = parent->natureProbability_;
     incomingAction_ = move(incomingAction);
-    depth_ = depth;
+    stateDepth_ = depth;
     performedActionsInThisRound_ = performedActions;
     remainingPlayersInTheRound_ = parent->remainingPlayersInTheRound_;
     remainingPlayersInTheRound_.pop_back();
@@ -169,7 +169,7 @@ vector<ActionObservation> EFGNode::getAOH(Player player) const {
             make_pair(NO_ACTION, privateObservations_[player]->getId())};
     }
     auto aoh = parent_->getAOH(player);
-    if (parent_->depth_ != depth_) {
+    if (parent_->stateDepth_ != stateDepth_) {
         auto action = std::find_if(parent_->performedActionsInThisRound_.begin(),
                                    parent_->performedActionsInThisRound_.end(),
                                    [&player](pair<int, shared_ptr<Action>> const &elem) {
@@ -242,7 +242,7 @@ void EFGNode::generateDescriptor() const {
         descriptor_ = parent_->descriptor_;
         descriptor_.push_back(incomingAction_->getId());
     }
-    if (!parent_ || depth_ != parent_->depth_) {
+    if (!parent_ || stateDepth_ != parent_->stateDepth_) {
         for (const auto &observation : privateObservations_) {
             descriptor_.push_back(observation->getId());
         }
@@ -258,7 +258,7 @@ void EFGNode::generateHash() const {
 
 bool EFGNode::compareAOH(const EFGNode &rhs) const {
     if (parent_) {
-        if (depth_ != parent_->depth_) {
+        if (stateDepth_ != parent_->stateDepth_) {
             for (int i = 0; i < privateObservations_.size(); ++i) {
                 if (privateObservations_[i]->getId() != rhs.privateObservations_[i]->getId()) {
                     return false;
@@ -281,9 +281,9 @@ bool EFGNode::operator==(const EFGNode &rhs) const {
     return !memcmp(descriptor_.data(), rhs.descriptor_.data(), descriptor_.size());
 }
 
-int EFGNode::getDistanceFromRoot() const {
+int EFGNode::getEFGDepth() const {
     if (!parent_) return 0;
-    return 1 + parent_->getDistanceFromRoot();
+    return 1 + parent_->getEFGDepth();
 }
 
 ObservationId EFGNode::getLastObservationIdOfCurrentPlayer() const {
@@ -319,8 +319,8 @@ int EFGNode::getNumberOfRemainingPlayers() const {
 ObservationId EFGNode::getLastObservationOfPlayer(Player player) const {
     return privateObservations_[player]->getId();
 }
-int EFGNode::getDepth() const {
-    return depth_;
+int EFGNode::getStateDepth() const {
+    return stateDepth_;
 }
 ActionId EFGNode::getIncomingActionId() const {
     return incomingAction_->getId();

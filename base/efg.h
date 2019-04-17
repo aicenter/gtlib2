@@ -180,12 +180,12 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
     /**
      * Get the depth in the sense of State depth
      */
-    int getDepth() const;
+    int getStateDepth() const;
 
     /**
      * Get the depth in the sense of EFG depth
      */
-    int getDistanceFromRoot() const;
+    int getEFGDepth() const;
 
     ObservationId getLastObservationIdOfCurrentPlayer() const;
 
@@ -234,7 +234,7 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
     shared_ptr<EFGNode const> parent_;
     shared_ptr<Action> incomingAction_;  // Action performed in the parent node.
     optional<Player> currentPlayer_ = nullopt;
-    int depth_;
+    int stateDepth_;
 
     mutable HashType hashNode_ = 0;
     mutable vector<uint32_t> descriptor_;

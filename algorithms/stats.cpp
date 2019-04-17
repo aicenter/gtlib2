@@ -40,14 +40,14 @@ void calculateDomainStatistics(const Domain &domain, DomainStatistics *stats) {
         stats->num_nodes++;
 
         if (!node->getParent()
-            || node->getParent()->getDepth() != node->getDepth()) {
+            || node->getParent()->getStateDepth() != node->getStateDepth()) {
             stats->num_states++;
         }
 
         stats->max_EFGDepth = max(
-            stats->max_EFGDepth, node->getDistanceFromRoot());
+            stats->max_EFGDepth, node->getEFGDepth());
         stats->max_StateDepth = max(
-            stats->max_StateDepth, node->getDepth());
+            stats->max_StateDepth, node->getStateDepth());
 
         for (auto &player : domain.getPlayers()) {
             auto seq = node->getActionsSeqOfPlayer(player);

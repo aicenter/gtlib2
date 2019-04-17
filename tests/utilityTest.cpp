@@ -61,21 +61,21 @@ BOOST_AUTO_TEST_CASE(computeUtilityFullDepthCard4) {
 
     auto setAction = [&](shared_ptr<EFGNode> node) {
         auto infoset = node->getAOHInfSet();
-        if (node->getDistanceFromRoot() == 0) {
+        if (node->getEFGDepth() == 0) {
             playOnlyAction(profile[opponent][infoset], lowestCardAction);
-        } else if (node->getDistanceFromRoot() == 2) {
+        } else if (node->getEFGDepth() == 2) {
             playOnlyAction(profile[opponent][infoset], secondLowestCardAction);
-        } else if (node->getDistanceFromRoot() == 4) {
+        } else if (node->getEFGDepth() == 4) {
             playOnlyAction(profile[opponent][infoset], thirdLowestCardAction);
-        } else if (node->getDistanceFromRoot() == 6) {
+        } else if (node->getEFGDepth() == 6) {
             playOnlyAction(profile[opponent][infoset], fourthLowestCardAction);
-        } else if (node->getDistanceFromRoot() == 1) {
+        } else if (node->getEFGDepth() == 1) {
             playOnlyAction(profile[player][infoset], lowestCardAction);
-        } else if (node->getDistanceFromRoot() == 3) {
+        } else if (node->getEFGDepth() == 3) {
             playOnlyAction(profile[player][infoset], secondLowestCardAction);
-        } else if (node->getDistanceFromRoot() == 5) {
+        } else if (node->getEFGDepth() == 5) {
             playOnlyAction(profile[player][infoset], thirdLowestCardAction);
-        } else if (node->getDistanceFromRoot() == 7) {
+        } else if (node->getEFGDepth() == 7) {
             playOnlyAction(profile[player][infoset], fourthLowestCardAction);
         }
 

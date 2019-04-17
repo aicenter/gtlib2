@@ -86,8 +86,8 @@ pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStr
                         double val = 0;
                         for (auto siblingProb : sibling->performAction(action)) {
                             auto brs_val = bestResp(siblingProb.first,
-                                                    siblingProb.first->getDepth()
-                                                        == sibling->getDepth() ?
+                                                    siblingProb.first->getStateDepth()
+                                                        == sibling->getStateDepth() ?
                                                     depth : depth - 1,
                                                     natureProb * seqProb * siblingProb.second);
                             val += brs_val.second;
@@ -125,7 +125,7 @@ pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStr
                         double actionProb = stratAtTheNode.at(action);
                         for (auto childProb : node->performAction(action)) {
                             auto brs_val = bestResp(childProb.first,
-                                                    childProb.first->getDepth() == node->getDepth()
+                                                    childProb.first->getStateDepth() == node->getStateDepth()
                                                     ?
                                                     depth : depth - 1,
                                                     prob * childProb.second * actionProb);
@@ -234,8 +234,8 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(const BehavioralStrategy
                         double val = 0;
                         for (auto siblingProb : sibling->performAction(action)) {
                             auto brs_val = bestResp(siblingProb.first,
-                                                    siblingProb.first->getDepth() ==
-                                                        sibling->getDepth() ? depth : depth - 1,
+                                                    siblingProb.first->getStateDepth() ==
+                                                        sibling->getStateDepth() ? depth : depth - 1,
                                                     natureProb * seqProb * siblingProb.second,
                                                     newLowerBound);
                             val += brs_val.second;
@@ -275,8 +275,8 @@ pair<BehavioralStrategy, double> bestResponseToPrunning(const BehavioralStrategy
                         double actionProb = stratAtTheNode.at(action);
                         for (auto childProb : node->performAction(action)) {
                             auto brs_val = bestResp(childProb.first,
-                                                    childProb.first->getDepth() ==
-                                                        node->getDepth() ? depth : depth - 1,
+                                                    childProb.first->getStateDepth() ==
+                                                        node->getStateDepth() ? depth : depth - 1,
                                                     prob * childProb.second * actionProb,
                                                     lowerBound);
                             val += brs_val.second;

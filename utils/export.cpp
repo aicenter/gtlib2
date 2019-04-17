@@ -178,7 +178,7 @@ void exportGambit(const Domain &domain, std::ostream &fs) {
 
     auto walkPrint = [&](shared_ptr<EFGNode> node, const auto &walkPrint) {
         auto nodeLabel = ""; //node->toString();
-        for (int j = 0; j < node->getDistanceFromRoot(); ++j) fs << " ";
+        for (int j = 0; j < node->getEFGDepth(); ++j) fs << " ";
 
         if (node->isTerminal()) {
             fs << "t \"" << nodeLabel << "\" " << terminalIdx++ << " \"\" { ";
@@ -212,7 +212,7 @@ void exportGambit(const Domain &domain, std::ostream &fs) {
                 continue;
             }
 
-            for (int j = 0; j < node->getDistanceFromRoot(); ++j) fs << " ";
+            for (int j = 0; j < node->getEFGDepth(); ++j) fs << " ";
             fs << "c \"" << nodeLabel << "\" " << chanceIdx++ << " \"\" { ";
             int i = 0;
             for (const auto &[childNode, chanceProb]: children) {

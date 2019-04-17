@@ -38,7 +38,7 @@ void treeWalkEFG(EFGCache &cache, EFGNodeCallback function, int maxDepth) {
         // Call the provided function on the current node.
         function(node);
 
-        if (node->getDepth() >= maxDepth) return;
+        if (node->getStateDepth() >= maxDepth) return;
 
         for (const auto &action : node->availableActions()) {
             for (auto const &[nextNode, chanceProb] : cache.getChildrenFor(node, action)) {
@@ -59,7 +59,7 @@ void treeWalkEFG(const Domain &domain, EFGNodeCallback function, int maxDepth) {
         // Call the provided function on the current node.
         function(node);
 
-        if (node->getDepth() >= maxDepth) return;
+        if (node->getStateDepth() >= maxDepth) return;
 
         for (const auto &action : node->availableActions()) {
             for (auto const &[nextNode, chanceProb] : node->performAction(action)) {

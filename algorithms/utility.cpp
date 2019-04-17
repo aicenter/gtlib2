@@ -47,7 +47,7 @@ pair<double, double> computeUtilityTwoPlayersGame(const Domain &domain,
                  strat.at(infSet).at(action) : 0.0;
         };
 
-        if (node->getDepth() == domain.getMaxDepth() || !node->getCurrentPlayer()) {
+        if (node->getStateDepth() == domain.getMaxDepth() || !node->getCurrentPlayer()) {
           return pair<double, double>(node->rewards_[player1] * prob,
                                       node->rewards_[player2] * prob);
         }

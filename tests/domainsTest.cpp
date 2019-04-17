@@ -90,7 +90,7 @@ bool isDomainMaxUtilityCorrect(const Domain &domain) {
 bool isDomainMaxDepthCorrect(const Domain &domain) {
     int maxDepth = 0;
     auto countViolations = [&maxDepth](shared_ptr<EFGNode> node) {
-        maxDepth = max(node->getDepth(), maxDepth);
+        maxDepth = max(node->getStateDepth(), maxDepth);
     };
 
     treeWalkEFG(domain, countViolations, domain.getMaxDepth());
