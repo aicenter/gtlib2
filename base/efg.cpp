@@ -107,6 +107,7 @@ EFGNode::EFGNode(shared_ptr<EFGNode const> parent,
                  shared_ptr<Action> incomingAction, int depth) {
     state_ = parent->state_;
     privateObservations_ = parent->privateObservations_;
+    publicObservation_ = parent->publicObservation_;
     rewards_ = parent->rewards_;
     natureProbability_ = parent->natureProbability_;
     incomingAction_ = move(incomingAction);

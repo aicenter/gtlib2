@@ -198,9 +198,9 @@ void PublicStateCache::createPublicState(const shared_ptr<EFGNode> &node) {
 
     auto maybePubStateNode = publicState2nodes_.find(pubState);
     if (maybePubStateNode == publicState2nodes_.end()) {
-        publicState2nodes_.emplace(pubState, vector<shared_ptr<EFGNode>>{node});
+        publicState2nodes_.emplace(pubState, unordered_set<shared_ptr<EFGNode>>{node});
     } else {
-        maybePubStateNode->second.push_back(node);
+        maybePubStateNode->second.emplace(node);
     }
 
     auto maybePubStateInfo = publicState2infosets_.find(pubState);

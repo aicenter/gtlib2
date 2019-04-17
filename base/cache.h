@@ -223,7 +223,7 @@ class PublicStateCache: public EFGCache {
       * Many infosets can belong to one public state.
       */
     unordered_map<shared_ptr<EFGNode>, shared_ptr<EFGPublicState>> node2publicState_;
-    unordered_map<shared_ptr<EFGPublicState>, vector<shared_ptr<EFGNode>>> publicState2nodes_;
+    unordered_map<shared_ptr<EFGPublicState>, unordered_set<shared_ptr<EFGNode>>> publicState2nodes_;
     unordered_map<shared_ptr<AOH>, shared_ptr<EFGPublicState>> infoset2publicState_;
     unordered_map<shared_ptr<EFGPublicState>, unordered_set<shared_ptr<AOH>>> publicState2infosets_;
 
@@ -234,7 +234,7 @@ class PublicStateCache: public EFGCache {
         return publicState2nodes_.find(pubState) != publicState2nodes_.end();
     }
 
-    inline const vector<shared_ptr<EFGNode>> &getNodesFor(const shared_ptr<EFGPublicState> &state) {
+    inline const unordered_set<shared_ptr<EFGNode>> &getNodesFor(const shared_ptr<EFGPublicState> &state) {
         return publicState2nodes_[state];
     }
 

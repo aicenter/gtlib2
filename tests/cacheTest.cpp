@@ -24,12 +24,16 @@
 #include "base/cache.h"
 
 #include "domains/matching_pennies.h"
+#include "domains/goofSpiel.h"
 #include <boost/test/unit_test.hpp>
 
 
 namespace GTLib2 {
 
 using domains::MatchingPenniesDomain;
+using domains::GoofSpielDomain;
+using domains::GoofSpielVariant::IncompleteObservations;
+using domains::GoofSpielObservation;
 using domains::MatchingPenniesVariant::SimultaneousMoves;
 using domains::MatchingPenniesVariant::AlternatingMoves;
 using domains::MatchingPenniesAction;
@@ -154,7 +158,7 @@ BOOST_AUTO_TEST_CASE(BuildCacheLimitedDepth) {
 BOOST_AUTO_TEST_CASE(BuildPublicStateCache) {
     MatchingPenniesDomain domains[] = {MatchingPenniesDomain(AlternatingMoves),
                                        MatchingPenniesDomain(SimultaneousMoves)};
-    for(const auto &mp : domains) {
+    for (const auto &mp : domains) {
         auto rootNodes = createRootEFGNodes(mp.getRootStatesDistribution());
         PublicStateCache cache(mp);
 
@@ -171,7 +175,46 @@ BOOST_AUTO_TEST_CASE(BuildPublicStateCache) {
         cache.buildForest();
         BOOST_CHECK(cache.hasNode(rootNode));
         BOOST_CHECK(cache.hasPublicState(rootNode->getPublicState()));
-        BOOST_CHECK(cache.countPublicStates() == mp.variant_ == AlternatingMoves ? 4 : 3);
+        BOOST_CHECK(cache.countPublicStates() == 4);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(BuildLargePublicStateCache) {
+    GoofSpielDomain domains[] = {
+        GoofSpielDomain({
+                            variant:  IncompleteObservations,
+                            numCards: 2,
+                            fixChanceCards: true,
+                            chanceCards: {}
+                        }),
+        GoofSpielDomain({
+                            variant:  IncompleteObservations,
+                            numCards: 3,
+                            fixChanceCards: true,
+                            chanceCards: {}
+                        }),
+        GoofSpielDomain({
+                            variant:  IncompleteObservations,
+                            numCards: 4,
+                            fixChanceCards: true,
+                            chanceCards: {}
+                        }),
+    };
+
+    for (const auto &domain : domains) {
+        PublicStateCache cache(domain);
+        cache.buildForest();
+        switch (domain.numberOfCards_) {
+            case 2:
+                BOOST_CHECK(cache.countPublicStates() == 11);
+                break;
+            case 3:
+                BOOST_CHECK(cache.countPublicStates() == 39);
+                break;
+            case 4:
+                BOOST_CHECK(cache.countPublicStates() == 131);
+                break;
+        }
     }
 }
 
