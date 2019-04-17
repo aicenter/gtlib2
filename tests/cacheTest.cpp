@@ -248,6 +248,38 @@ BOOST_AUTO_TEST_CASE(PublicStateCacheGetInfosets) {
     BOOST_CHECK(*expectedInfoset == *actualInfoset);
 }
 
+BOOST_AUTO_TEST_CASE(PublicStateCacheGetInfosetsLarge) {
+    GoofSpielDomain domain({
+                               variant:  IncompleteObservations,
+                               numCards: 4,
+                               fixChanceCards: true,
+                               chanceCards: {}
+                           });
+    PublicStateCache cache(domain);
+    cache.buildForest();
+
+    auto rootNode = cache.getRootNodes()[0].first;
+    auto aNode = (*cache.getChildrenFor(rootNode)[0])[0].first;
+    auto bNode = (*cache.getChildrenFor(aNode)[0])[0].first;
+    auto cNode = (*cache.getChildrenFor(bNode)[0])[0].first;
+    auto dNode = (*cache.getChildrenFor(cNode)[0])[0].first;
+    auto eNode = (*cache.getChildrenFor(dNode)[0])[0].first;
+    // eNode == draw outcome 3 times in a row
+
+    auto pubState = cache.getPublicStateFor(eNode);
+    cout << cache.getNodesFor(pubState).size() << " ";
+    BOOST_CHECK(cache.getNodesFor(pubState).size() == 24); // 3! * 4
+
+    auto expectedInfosets = cache.getInfosetsFor(pubState, Player(0));
+    cout << expectedInfosets.size() << " ";
+    BOOST_CHECK(expectedInfosets.size() == 12);
+
+    expectedInfosets = cache.getInfosetsFor(pubState, Player(1));
+    cout << expectedInfosets.size() << " ";
+    BOOST_CHECK(expectedInfosets.size() == 12);
+
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
