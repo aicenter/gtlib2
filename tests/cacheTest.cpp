@@ -34,6 +34,7 @@ using domains::MatchingPenniesDomain;
 using domains::GoofSpielDomain;
 using domains::GoofSpielVariant::IncompleteObservations;
 using domains::GoofSpielObservation;
+using domains::GoofspielRoundOutcome;
 using domains::MatchingPenniesVariant::SimultaneousMoves;
 using domains::MatchingPenniesVariant::AlternatingMoves;
 using domains::MatchingPenniesAction;
@@ -278,6 +279,11 @@ BOOST_AUTO_TEST_CASE(PublicStateCacheGetInfosetsLarge) {
     cout << expectedInfosets.size() << " ";
     BOOST_CHECK(expectedInfosets.size() == 12);
 
+    const vector<shared_ptr<Observation>> obsHistory = pubState->getPublicHistory();
+    const vector<shared_ptr<GoofSpielObservation>> goofObsHistory = Cast<Observation, GoofSpielObservation>(obsHistory);
+    for(const auto& obs : goofObsHistory) {
+        BOOST_CHECK(obs->roundResult_ == GoofspielRoundOutcome::PL0_DRAW);
+    }
 }
 
 

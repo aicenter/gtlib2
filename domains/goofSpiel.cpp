@@ -33,7 +33,7 @@ GoofSpielAction::GoofSpielAction(ActionId id, int card) : Action(id) {
 }
 
 string GoofSpielAction::toString() const {
-    return "Card: " + to_string (cardNumber_);
+    return "Card: " + to_string(cardNumber_);
 }
 
 size_t GoofSpielAction::getHash() const {
@@ -50,7 +50,7 @@ bool GoofSpielAction::operator==(const Action &that) const {
 
 GoofSpielObservation::GoofSpielObservation(int initialNumOfCards,
                                            const std::array<int, 3> &chosenCards,
-                                           int roundResult)
+                                           GoofspielRoundOutcome roundResult)
     : Observation(),
       player0LastCard_(chosenCards[0]),
       player1LastCard_(chosenCards[1]),
@@ -60,7 +60,7 @@ GoofSpielObservation::GoofSpielObservation(int initialNumOfCards,
     assert(initialNumOfCards < 20);
     int n = initialNumOfCards + 1;
 
-    id_ = (roundResult_ + 1) // round outcome is 0..2, i.e. 2 bits to shift
+    id_ = (roundResult_+1) // round outcome is 0..2, i.e. 2 bits to shift
         | ((natureCard_ + player0LastCard_ * n + player1LastCard_ * n * n) << 2);
 }
 
@@ -96,7 +96,7 @@ GoofSpielDomain::GoofSpielDomain(GoofSpielSettings settings) :
 
     assert(numberOfCards_ >= 1);
 
-    if(numberOfCards_ == 1) maxUtility_ = 0.;
+    if (numberOfCards_ == 1) maxUtility_ = 0.;
     else if (binaryTerminalRewards_) {
         maxUtility_ = 1.0;
     } else {
@@ -129,7 +129,7 @@ void GoofSpielDomain::initFixedCards(const vector<int> &natureCards) {
     auto publicObs = make_shared<GoofSpielObservation>(
         numberOfCards_, std::array<int, 3>{
             NO_CARD_OBSERVATION, NO_CARD_OBSERVATION, natureFirstCard
-        }, 0);
+        }, PL0_DRAW);
     auto player0Obs = make_shared<GoofSpielObservation>(*publicObs);
     auto player1Obs = make_shared<GoofSpielObservation>(*publicObs);
 
@@ -159,7 +159,7 @@ void GoofSpielDomain::initRandomCards(const vector<int> &natureCards) {
         auto publicObs = make_shared<GoofSpielObservation>(
             numberOfCards_, std::array<int, 3>{
                 NO_CARD_OBSERVATION, NO_CARD_OBSERVATION, natureFirstCard
-            }, 0);
+            }, PL0_DRAW);
         auto player0Obs = make_shared<GoofSpielObservation>(*publicObs);
         auto player1Obs = make_shared<GoofSpielObservation>(*publicObs);
 
@@ -171,13 +171,13 @@ void GoofSpielDomain::initRandomCards(const vector<int> &natureCards) {
 string GoofSpielDomain::getInfo() const {
     std::stringstream ss;
     ss << (variant_ ? "IIGoofspiel" : "Goofspiel");
-    ss << " with " + to_string (numberOfCards_) + " cards and ";
-    if(fixChanceCards_) {
+    ss << " with " + to_string(numberOfCards_) + " cards and ";
+    if (fixChanceCards_) {
         ss << "fixed nature deck " << natureCards_;
     } else {
         ss << "random nature cards";
     }
-    if(binaryTerminalRewards_) ss << " and binary terminal rewards";
+    if (binaryTerminalRewards_) ss << " and binary terminal rewards";
     return ss.str();
 }
 
@@ -239,9 +239,10 @@ GoofSpielState::performActions(const vector<PlayerAction> &actions) const {
     };
     const auto &natureDeck = playerDecks_[2];
 
-    int roundResult = chosenCards[0] == chosenCards[1]
-                      ? 0 : chosenCards[0] > chosenCards[1] ? 1 : -1;
-    double roundReward = roundResult * natureSelectedCard_;
+    GoofspielRoundOutcome roundResult = chosenCards[0] == chosenCards[1]
+                                        ? PL0_DRAW : chosenCards[0] > chosenCards[1] ? PL0_WIN
+                                                                                     : PL0_LOSE;
+    double roundReward = int(roundResult) * natureSelectedCard_;
 
     vector<double> newRewards = {
         cumulativeRewards_[0] + roundReward,

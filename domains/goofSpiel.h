@@ -82,15 +82,21 @@ class GoofSpielAction: public Action {
 constexpr int NO_NATURE_CARD = 0;
 constexpr int NO_CARD_OBSERVATION = 0;
 
+enum GoofspielRoundOutcome {
+    PL0_DRAW = 0,
+    PL0_WIN = 1,
+    PL0_LOSE = -1
+};
+
 class GoofSpielObservation: public Observation {
  public:
     GoofSpielObservation(int initialNumOfCards,
                          const std::array<int, 3> &chosenCards,
-                         int roundResult);
+                         GoofspielRoundOutcome roundResult);
     const int natureCard_; // the bidding card
     const int player0LastCard_;
     const int player1LastCard_;
-    const int roundResult_; // for player 0 -- 0 draw, 1 win, -1 lose
+    const GoofspielRoundOutcome roundResult_;
 };
 
 
