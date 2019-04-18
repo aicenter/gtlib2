@@ -24,7 +24,6 @@
 #ifndef GTLIB2_OSHIZUMO_H
 #define GTLIB2_OSHIZUMO_H
 
-#include <ostream>
 #include "base/base.h"
 
 /*
@@ -88,6 +87,47 @@ private:
     const bool optimalEndGame_;
 };
 
+class IIOshiZumoDomain : public Domain {
+public:
+    /*
+     * @param startingCoins number of coins each player has at beginning of a game
+     * @param startingLoc starting position of wrestler, if startingLoc = 3, then there is (2*3 + 1) = 7 locations, wrestler is in the middle
+     * @param minBid minimum allowed bid by player per round
+     */
+    IIOshiZumoDomain(int startingCoins, int startingLoc, int minBid);
+    /*
+     * @param startingCoins number of coins each player has at beginning of a game
+     * @param startingLoc starting position of wrestler, if startingLoc = 3, then there is (2*3 + 1) = 7 locations, wrestler is in the middle
+     * @param minBid minimum allowed bid by player per round
+     * @param optimalEndGame allow to simulate end optimal game, if one of the players can only bid 0
+     */
+    IIOshiZumoDomain(int startingCoins, int startingLoc, int minBod, bool optimalEndGame);
+    string getInfo() const override;
+    inline vector<Player> getPlayers() const final{
+        return {0, 1};
+    }
+
+    inline const int getStartingLocation() const {
+        return startingLocation_;
+    }
+
+    inline const int getMinBid() const {
+        return minBid_;
+    }
+
+    inline const bool isOptimalEndGame() const {
+        return optimalEndGame_;
+    }
+
+
+private:
+    const int startingCoins_;
+    const int startingLocation_;
+    const int minBid_;
+    const bool optimalEndGame_;
+};
+
+
 class OshiZumoState : public State {
 public:
     OshiZumoState(Domain *domain, int wrestlerPosition, int startingCoins);
@@ -110,10 +150,17 @@ public:
         return coins_;
     }
 
-private:
+protected:
     int wrestlerLocation_;
     vector<int> coins_;
 
+};
+
+class IIOshiZumoState : public OshiZumoState{
+public:
+    IIOshiZumoState(Domain *domain, int wrestlerPosition, int startingCoins);
+    IIOshiZumoState(Domain *domain, int wrestlerPosition, vector<int> coinsPerPlayer);
+    OutcomeDistribution performActions(const vector<PlayerAction> &actions) const final;
 };
 
 class OshiZumoObservation : public Observation {
@@ -126,6 +173,19 @@ public:
 
 private:
     int opponentBid_;
+
+};
+
+class IIOshiZumoObservation : public Observation {
+public:
+    explicit IIOshiZumoObservation(int roundResult);
+
+    inline int getActionResult() const {
+        return roundResult_;
+    }
+
+private:
+    int roundResult_;
 
 };
 } // namespace domains
