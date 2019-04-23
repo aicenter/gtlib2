@@ -61,11 +61,15 @@ struct CFRSettings {
 /**
  * Container for regrets and average strategy accumulators
  */
-class CFRData: public InfosetCache {
+class CFRData: public virtual InfosetCache {
 
  public:
     inline explicit CFRData(const Domain &domain, CFRUpdating updatingPolicy) :
-        InfosetCache(domain), updatingPolicy_(updatingPolicy) {}
+        EFGCache(domain),
+        InfosetCache(domain),
+        updatingPolicy_(updatingPolicy) {
+        addCallback([&](const shared_ptr<EFGNode> &n) {this->createCFRInfosetData(n);});
+    }
 
     struct InfosetData {
         vector<double> regrets;
@@ -93,6 +97,8 @@ class CFRData: public InfosetCache {
     unordered_map<shared_ptr<AOH>, InfosetData> infosetData;
 
  protected:
+    CFRUpdating updatingPolicy_ = HistoriesUpdating;
+ private:
     void createCFRInfosetData(const shared_ptr<EFGNode> &node) {
         if (node->isTerminal()) return;
 
@@ -102,14 +108,6 @@ class CFRData: public InfosetCache {
                 infoSet, CFRData::InfosetData(node->countAvailableActions(), updatingPolicy_)));
         }
     }
-
-    void processNode(const shared_ptr<EFGNode> &node) override {
-        EFGCache::createNode(node);
-        InfosetCache::createAugInfosets(node);
-        createCFRInfosetData(node);
-    }
-
-    CFRUpdating updatingPolicy_ = HistoriesUpdating;
 };
 
 
