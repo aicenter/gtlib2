@@ -34,6 +34,16 @@ int pickRandom(const ProbDistribution &probs,
     return i;
 }
 
+int pickRandom(const Distribution &probs, double probSum,
+               std::uniform_real_distribution<double> &uniformDist,
+               std::mt19937 &generator) {
+    double p = uniformDist(generator)*probSum;
+    int i = -1;
+    while (p > 0) p -= probs[++i];
+    assert(i < probs.size());
+    return i;
+}
+
 int pickRandom(const EFGNodesDistribution &probs,
                std::uniform_real_distribution<double> &uniformDist,
                std::mt19937 &generator) {

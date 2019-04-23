@@ -37,6 +37,11 @@ int pickRandom(const ProbDistribution &probs,
                std::mt19937 &generator);
 
 
+int pickRandom(const Distribution &probs, double probSum,
+               std::uniform_real_distribution<double> &uniformDist,
+               std::mt19937 &generator);
+
+
 int pickRandom(const EFGNodesDistribution &probs,
                std::uniform_real_distribution<double> &uniformDist,
                std::mt19937 &generator);

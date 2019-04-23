@@ -74,6 +74,12 @@ typedef pair<Outcome, double> distributionEntry;
 typedef vector<distributionEntry> OutcomeDistribution;
 
 /**
+ * Specify weight d[i] for each event i in vector, such that p[i] := d[i] / sum_j d[j]
+ * I.e. it is "probability" distribution that does not sum up to 1.
+ */
+typedef vector<double> Distribution;
+
+/**
  * Specify probability for each event in vector.
  * This must sum up to 1.
  */
