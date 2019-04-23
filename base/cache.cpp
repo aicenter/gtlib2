@@ -27,7 +27,7 @@
 
 namespace GTLib2 {
 
-bool EFGCache::hasChildren(const shared_ptr<EFGNode> &node) const {
+bool EFGCache::hasAllChildren(const shared_ptr<EFGNode> &node) const {
     auto it = nodesChildren_.find(node);
     if (it == nodesChildren_.end()) return false;
 
@@ -41,6 +41,18 @@ bool EFGCache::hasChildren(const shared_ptr<EFGNode> &node) const {
     }
 
     return !hasMissing;
+}
+
+bool EFGCache::hasAnyChildren(const shared_ptr<EFGNode> &node) const {
+    auto it = nodesChildren_.find(node);
+    if (it == nodesChildren_.end()) return false;
+
+    auto &nodeDist = it->second;
+    for (auto &ptr : nodeDist) {
+        if (ptr != nullptr) return true;
+    }
+
+    return false;
 }
 
 bool EFGCache::hasChildren(const shared_ptr<EFGNode> &node,

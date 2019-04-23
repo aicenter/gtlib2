@@ -64,7 +64,12 @@ class EFGCache {
     /**
      * Check if cache contains all the children for given node (after following any action).
      */
-    bool hasChildren(const shared_ptr<EFGNode> &node) const;
+    bool hasAllChildren(const shared_ptr<EFGNode> &node) const;
+
+    /**
+     * Check if cache contains at least one child for given node (after following any action).
+     */
+    bool hasAnyChildren(const shared_ptr<EFGNode> &node) const;
 
     /**
      * Check if cache contains children of for a given (node, action)
@@ -250,6 +255,12 @@ class PublicStateCache: public virtual EFGCache {
 
     inline bool hasPublicState(const shared_ptr<EFGPublicState> &pubState) {
         return publicState2nodes_.find(pubState) != publicState2nodes_.end();
+    }
+    inline bool hasPublicState(const shared_ptr<EFGNode> &node) {
+        return node2publicState_.find(node) != node2publicState_.end();
+    }
+    inline bool hasPublicState(const shared_ptr<AOH> &infoset) {
+        return infoset2publicState_.find(infoset) != infoset2publicState_.end();
     }
 
     inline const shared_ptr<EFGPublicState> &getPublicStateFor(const shared_ptr<EFGNode> &node) {
