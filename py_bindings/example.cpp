@@ -26,9 +26,9 @@
 
 
 using std::string;
-using std::cout;
-using std::vector;
-using std::move;
+using cout;
+using vector;
+using move;
 
 vector<int> parents = vector<int>();  // temporary for python graphs
 vector<string> graph = vector<string>();  // temporary for python graphs
@@ -62,7 +62,7 @@ void EFGTreewalkG(const unique_ptr<Domain>& domain, EFGNode *node,
     }
   }
   if (arrIS.empty() || l == arrIS.size()) {
-    arrIS.push_back(std::make_shared<AOH>(node->GetPlayer(),
+    arrIS.push_back(make_shared<AOH>(node->GetPlayer(),
                                           node->GetState()->GetAOH()[node->GetPlayer()]));
     node->IS = arrIS.size() - 1;
   }
@@ -79,11 +79,11 @@ void EFGTreewalkG(const unique_ptr<Domain>& domain, EFGNode *node,
     int actionssize = locallist.size();
     if (players == node->GetState()->GetNumPlayers()) {
       while (node->GetPlayer() >= actionssize) {
-        locallist.insert(locallist.begin(), std::make_shared<Action>(NoA));
+        locallist.insert(locallist.begin(), make_shared<Action>(NoA));
         ++actionssize;
       }
       while (domain->GetMaxPlayers() > locallist.size()) {
-        locallist.push_back(std::make_shared<Action>(NoA));
+        locallist.push_back(make_shared<Action>(NoA));
       }
       // if all players play in this turn, returns a ProbDistribution
       ProbDistribution prob = n->GetState()->PerformAction(locallist);
@@ -126,11 +126,11 @@ void EFGTreewalkGStart(const unique_ptr<Domain>& domain, int depth = 0) {
   }
 }
 
-std::vector<int> initialization() {
+vector<int> initialization() {
   srand(static_cast<unsigned int>(time(nullptr)));
-  graph = std::vector<string>();
-  pole = std::vector<int>();
-  arrid = std::vector<int>();
+  graph = vector<string>();
+  pole = vector<int>();
+  arrid = vector<int>();
   PursuitDomain::width_ = 3;
   count = 0;
   PursuitDomain::height_ = 3;
@@ -139,7 +139,7 @@ std::vector<int> initialization() {
   reward = vector<double>(loc.size());
   arrIS = vector<shared_ptr<InfSet>>();
   unique_ptr<Domain> d = MakeUnique<PursuitDomain>(2, loc.size(), loc);
-  auto node = MakeUnique<EFGNode>(0, std::make_shared<MMPursuitState>(loc, vector<bool>({true, false}), 1),
+  auto node = MakeUnique<EFGNode>(0, make_shared<MMPursuitState>(loc, vector<bool>({true, false}), 1),
                                   vector<double>(loc.size()));
   unique_ptr<Domain> d2 = MakeUnique<PursuitDomainChance>(1);
 //  EFGTreewalkGStart(d2);
@@ -154,15 +154,15 @@ std::vector<int> initialization() {
   return pole;
 }
 
-std::vector<string> graph2() {
+vector<string> graph2() {
     return graph;
 }
 
-std::vector<int> array2() {
+vector<int> array2() {
   return arrid;
 }
 
-std::vector<int> par2() {
+vector<int> par2() {
   return parents;
 }
 

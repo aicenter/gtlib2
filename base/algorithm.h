@@ -1,5 +1,3 @@
-#include <utility>
-
 /*
     Copyright 2019 Faculty of Electrical Engineering at CTU in Prague
 
@@ -29,6 +27,7 @@
 #include "base/efg.h"
 #include "base/cache.h"
 #include <random>
+#include <utility>
 
 namespace GTLib2 {
 
@@ -98,13 +97,13 @@ class FixedActionPlayer: public GamePlayingAlgorithm {
     const int actionIdx_;
 };
 
-typedef std::function<std::unique_ptr<GamePlayingAlgorithm>(const Domain &, Player)>
+typedef function<unique_ptr<GamePlayingAlgorithm>(const Domain &, Player)>
     PreparedAlgorithm;
 
 template<typename T, typename... Args>
 PreparedAlgorithm createInitializer(Args... args) {
-    return [=](const Domain &domain, Player pl) -> std::unique_ptr<GamePlayingAlgorithm> {
-        return std::make_unique<T>(domain, pl, args ...);
+    return [=](const Domain &domain, Player pl) -> unique_ptr<GamePlayingAlgorithm> {
+        return make_unique<T>(domain, pl, args ...);
     };
 }
 

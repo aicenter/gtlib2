@@ -19,28 +19,25 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include "tests/domainsTest.h"
 
-#include <memory>
 #include "algorithms/tree.h"
 
 #include <boost/test/unit_test.hpp>
-#include <domains/matching_pennies.h>
-#include "domains/goofSpiel.h"
+#include "algorithms/common.h"
 #include "domains/genericPoker.h"
+#include "domains/goofSpiel.h"
+#include "domains/matching_pennies.h"
 #include "domains/oshiZumo.h"
 
 
-namespace GTLib2 {
+namespace GTLib2::domains {
 
-using domains::GoofSpielDomain;
-using domains::IIGoofSpielDomain;
-using domains::GenericPokerDomain;
-using domains::MatchingPenniesDomain;
-using domains::SimultaneousMatchingPenniesDomain;
-using domains::OshiZumoDomain;
 using algorithms::treeWalkEFG;
+using GoofSpielVariant::IncompleteObservations;
+using GoofSpielVariant::CompleteObservations;
+using algorithms::createRootEFGNodes;
 
 bool isDomainZeroSum(const Domain &domain) {
     int num_violations = 0;
@@ -54,8 +51,8 @@ bool isDomainZeroSum(const Domain &domain) {
 
 bool isEFGNodeAndStateConsistent(const Domain &domain) {
     int num_violations = 0;
-    EFGCache cache(domain.getRootStatesDistribution());
-    cache.buildForest();
+    EFGCache cache(domain);
+    cache.buildForest(domain.getMaxDepth());
     auto nodes = cache.getNodes();
     for (const auto &n1: nodes) {
         for (const auto &n2: nodes) {
@@ -67,40 +64,120 @@ bool isEFGNodeAndStateConsistent(const Domain &domain) {
     return num_violations == 0;
 }
 
-BOOST_AUTO_TEST_SUITE(DomainTests)
+bool areAvailableActionsSorted(const Domain &domain) {
+    int num_violations = 0;
+    auto countViolations = [&num_violations](shared_ptr<EFGNode> node) {
+        auto actions = node->availableActions();
+        for (int j = 0; j < actions.size(); ++j) {
+            if (actions[j]->getId() != j) num_violations++;
+        }
+    };
 
-GoofSpielDomain gs1(3, 1, nullopt);
-GoofSpielDomain gs2(3, 2, nullopt);
-GoofSpielDomain gs3(3, 3, nullopt);
-GoofSpielDomain gs4(3, 4, nullopt);
-GoofSpielDomain gs5(4, 4, nullopt);
+    treeWalkEFG(domain, countViolations, domain.getMaxDepth());
+    return num_violations == 0;
+}
+
+bool isDomainMaxUtilityCorrect(const Domain &domain) {
+    double maxLeafUtility = 0;
+    auto countViolations = [&maxLeafUtility](shared_ptr<EFGNode> node) {
+        maxLeafUtility = max({node->rewards_[0], node->rewards_[1], maxLeafUtility});
+    };
+
+    treeWalkEFG(domain, countViolations, domain.getMaxDepth());
+    return maxLeafUtility == domain.getMaxUtility();
+}
+
+bool isDomainMaxDepthCorrect(const Domain &domain) {
+    int maxDepth = 0;
+    auto countViolations = [&maxDepth](shared_ptr<EFGNode> node) {
+        maxDepth = max(node->getStateDepth(), maxDepth);
+    };
+
+    treeWalkEFG(domain, countViolations, domain.getMaxDepth());
+    return maxDepth == domain.getMaxDepth();
+}
+
+bool doesCreateRootNodes(const Domain &domain) {
+    return !createRootEFGNodes(domain).empty();
+}
+
+BOOST_AUTO_TEST_SUITE(DomainsTests)
+
+
+// @formatter:off
+GoofSpielDomain gs1      ({ variant:  CompleteObservations,   numCards: 1, fixChanceCards: false, chanceCards: {}});
+GoofSpielDomain gs2      ({ variant:  CompleteObservations,   numCards: 2, fixChanceCards: false, chanceCards: {}});
+GoofSpielDomain gs3      ({ variant:  CompleteObservations,   numCards: 3, fixChanceCards: false, chanceCards: {}});
+GoofSpielDomain gs1_fix  ({ variant:  CompleteObservations,   numCards: 1, fixChanceCards: true,  chanceCards: {}});
+GoofSpielDomain gs2_fix  ({ variant:  CompleteObservations,   numCards: 2, fixChanceCards: true,  chanceCards: {}});
+GoofSpielDomain gs3_fix  ({ variant:  CompleteObservations,   numCards: 3, fixChanceCards: true,  chanceCards: {}});
+GoofSpielDomain iigs1    ({ variant:  IncompleteObservations, numCards: 1, fixChanceCards: false, chanceCards: {}});
+GoofSpielDomain iigs2    ({ variant:  IncompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}});
+GoofSpielDomain iigs3    ({ variant:  IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
+GoofSpielDomain iigs1_fix({ variant:  IncompleteObservations, numCards: 1, fixChanceCards: true,  chanceCards: {}});
+GoofSpielDomain iigs2_fix({ variant:  IncompleteObservations, numCards: 2, fixChanceCards: true,  chanceCards: {}});
+GoofSpielDomain iigs3_fix({ variant:  IncompleteObservations, numCards: 3, fixChanceCards: true,  chanceCards: {}});
+// @formatter:on
+
 GenericPokerDomain gp1(2, 2, 2, 2, 2);
 GenericPokerDomain gp2(3, 3, 1, 2, 3);
+
 OshiZumoDomain oz1(3, 3, 1);
 OshiZumoDomain oz2(3, 0, 1);
 OshiZumoDomain oz3(1, 3, 0);
 OshiZumoDomain oz4(3, 3, 1, false);
 OshiZumoDomain oz5(5, 3, 1, false);
-MatchingPenniesDomain mp1;
-SimultaneousMatchingPenniesDomain mp2;
 
-Domain* testDomains[] = { // NOLINT(cert-err58-cpp)
-    & gs1, & gs2, & gs3, & gs4, & gs5,
-    & gp1, & gp2,
-    & oz1, & oz2, /* & oz3, -- failing test case */ & oz4, & oz5,
-    & mp1, & mp2,
+MatchingPenniesDomain mp1(AlternatingMoves);
+MatchingPenniesDomain mp2(SimultaneousMoves);
+
+Domain *testDomains[] = { // NOLINT(cert-err58-cpp)
+    &gs1, &gs2, &gs3, &gs1_fix, &gs2_fix, &gs3_fix,
+    &iigs1, &iigs2, &iigs3, &iigs1_fix, &iigs2_fix, &iigs3_fix,
+    // todo: maxUtility and maxDepth do not work for poker!
+    // &gp1, &gp2,
+    &oz1, &oz2, &oz3, &oz4, &oz5,
+    &mp1, &mp2,
 };
 
 BOOST_AUTO_TEST_CASE(zeroSumGame) {
     for (auto domain : testDomains) {
+        cout << "checking " << domain->getInfo() << "\n";
         BOOST_CHECK(isDomainZeroSum(*domain));
     }
 }
 
 BOOST_AUTO_TEST_CASE(checkEFGNodeStateEqualityConsistency) {
     for (auto domain : testDomains) {
-        std::cout << "checking " << domain->getInfo() << "\n";
+        cout << "checking " << domain->getInfo() << "\n";
         BOOST_CHECK(isEFGNodeAndStateConsistent(*domain));
+    }
+}
+
+BOOST_AUTO_TEST_CASE(checkAvailableActionsAreSorted) {
+    for (auto domain : testDomains) {
+        cout << "checking " << domain->getInfo() << "\n";
+        BOOST_CHECK(areAvailableActionsSorted(*domain));
+    }
+}
+
+BOOST_AUTO_TEST_CASE(maxUtility) {
+    for (auto domain : testDomains) {
+        cout << "checking " << domain->getInfo() << "\n";
+        BOOST_CHECK(isDomainMaxUtilityCorrect(*domain));
+    }
+}
+
+BOOST_AUTO_TEST_CASE(maxDepth) {
+    for (auto domain : testDomains) {
+        cout << "checking " << domain->getInfo() << "\n";
+        BOOST_CHECK(isDomainMaxDepthCorrect(*domain));
+    }
+}
+
+BOOST_AUTO_TEST_CASE(createsRootNodes) {
+    for (auto domain : testDomains) {
+        BOOST_CHECK(doesCreateRootNodes(*domain));
     }
 }
 

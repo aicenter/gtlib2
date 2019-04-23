@@ -19,29 +19,25 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "base/base.h"
+#include "algorithms/cfr.h"
 
 #include <array>
-
-#include "algorithms/cfr.h"
-#include "algorithms/tree.h"
-#include "algorithms/common.h"
-#include "algorithms/utility.h"
-#include "cfr.h"
 #include <algorithm>
 #include <utility>
 #include <functional>
 #include <cstdio>
 
+#include "algorithms/tree.h"
+#include "algorithms/common.h"
+#include "algorithms/utility.h"
 
-using std::make_pair;
-using std::max;
 
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 
 CFRAlgorithm::CFRAlgorithm(const Domain &domain, Player playingPlayer, CFRSettings settings) :
     GamePlayingAlgorithm(domain, playingPlayer),
-    cache_(CFRData(domain_.getRootStatesDistribution(), settings.cfrUpdating)),
+    cache_(CFRData(domain_, settings.cfrUpdating)),
     settings_(settings) {}
 
 bool CFRAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
@@ -162,7 +158,7 @@ double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
     return cfvInfoset;
 }
 
-vector<double> calcRMProbs(const vector<double> & regrets) {
+vector<double> calcRMProbs(const vector<double> &regrets) {
     double posRegretSum = 0.0;
     for (double r : regrets) {
         posRegretSum += max(0.0, r);
@@ -179,7 +175,7 @@ vector<double> calcRMProbs(const vector<double> & regrets) {
     return rmProbs;
 }
 
-vector<double> calcAvgProbs(const vector<double> & acc) {
+vector<double> calcAvgProbs(const vector<double> &acc) {
     double sum = 0.0;
     for (double d : acc) sum += d;
 
@@ -218,5 +214,4 @@ ExpectedUtility calcExpectedUtility(CFRData &cache,
     return ExpectedUtility(rmUtility, avgUtility);
 }
 
-}  // namespace algorithms
 }  // namespace GTLib2

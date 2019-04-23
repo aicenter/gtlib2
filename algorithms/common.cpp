@@ -19,17 +19,18 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "base/base.h"
+#include "algorithms/common.h"
 
 #include <utility>
-#include "algorithms/common.h"
+
 #include "algorithms/tree.h"
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
 
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 
 EFGNodesDistribution createRootEFGNodes(const OutcomeDistribution &probDist) {
     EFGNodesDistribution nodes;
@@ -37,7 +38,8 @@ EFGNodesDistribution createRootEFGNodes(const OutcomeDistribution &probDist) {
     for (auto &outcomeProb : probDist) {
         auto &outcome = outcomeProb.first;
         auto prob = outcomeProb.second;
-        auto node = make_shared<EFGNode>(outcome.state_, nullptr, outcome.observations_,
+        auto node = make_shared<EFGNode>(outcome.state_, nullptr,
+                                         outcome.privateObservations_, outcome.publicObservation_,
                                          outcome.rewards_, prob, nullptr, 0);
         nodes.emplace_back(move(node), prob);
     }
@@ -84,7 +86,7 @@ EFGNodesDistribution getAllNodesInTheInformationSetWithNatureProbability(
     auto aoh = infSet->getAOHistory();
     Player player = infSet->getPlayer();
 
-    std::function<void(shared_ptr<EFGNode>, int, int)> traverse =
+    function<void(shared_ptr<EFGNode>, int, int)> traverse =
         [&nodes, &aoh, &player, &traverse, &infSet](shared_ptr<EFGNode> node,
                                                     int actionIndex, int observationIdToCheck) {
             if (node->getNumberOfRemainingPlayers() == 1 && node->noActionPerformedInThisRound()) {
@@ -158,7 +160,6 @@ EFGNodesDistribution getAllNodesInTheInformationSetWithNatureProbability(
 
     return nodes;
 }
-}  // namespace algorithms
 }  // namespace GTLib2
 
 #pragma clang diagnostic pop

@@ -20,12 +20,11 @@
 */
 
 
+#include "base/base.h"
 #include "base/efg.h"
+
 #include "algorithms/common.h"
 
-#include <algorithm>
-#include <sstream>
-#include <iterator>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunknown-pragmas"
@@ -64,27 +63,31 @@ EFGNodesDistribution EFGNode::performAction(const shared_ptr<Action> &action) co
         for (auto const&[outcome, prob] : probDist) {
 
             auto newNode = make_shared<EFGNode>(outcome.state_, shared_from_this(),
-                                                outcome.observations_, outcome.rewards_,
-                                                prob * natureProbability_, action, depth_ + 1);
+                                                outcome.privateObservations_,
+                                                outcome.publicObservation_,
+                                                outcome.rewards_, prob * natureProbability_,
+                                                action, stateDepth_ + 1);
             newNodes.emplace_back(newNode, prob);
         }
     } else {
         auto newNode = make_shared<EFGNode>(shared_from_this(),
-                                            actionsToBePerformed, action, depth_);
+                                            actionsToBePerformed, action, stateDepth_);
         newNodes.emplace_back(newNode, 1.0);
     }
     return newNodes;
 }
 
 EFGNode::EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,
-                 const vector<shared_ptr<Observation>> &observations,
+                 const vector<shared_ptr<Observation>> &privateObservations,
+                 const shared_ptr<Observation> &publicObservation,
                  const vector<double> &rewards,
                  double natureProbability, shared_ptr<Action> incomingAction, int depth) {
     state_ = move(newState);
-    observations_ = observations;
+    privateObservations_ = privateObservations;
+    publicObservation_ = publicObservation;
     rewards_ = rewards;
     natureProbability_ = natureProbability;
-    depth_ = depth;
+    stateDepth_ = depth;
     remainingPlayersInTheRound_ = state_->getPlayers();
     std::reverse(remainingPlayersInTheRound_.begin(), remainingPlayersInTheRound_.end());
     if (!remainingPlayersInTheRound_.empty()) {
@@ -103,11 +106,12 @@ EFGNode::EFGNode(shared_ptr<EFGNode const> parent,
                  const vector<PlayerAction> &performedActions,
                  shared_ptr<Action> incomingAction, int depth) {
     state_ = parent->state_;
-    observations_ = parent->observations_;
+    privateObservations_ = parent->privateObservations_;
+    publicObservation_ = parent->publicObservation_;
     rewards_ = parent->rewards_;
     natureProbability_ = parent->natureProbability_;
     incomingAction_ = move(incomingAction);
-    depth_ = depth;
+    stateDepth_ = depth;
     performedActionsInThisRound_ = performedActions;
     remainingPlayersInTheRound_ = parent->remainingPlayersInTheRound_;
     remainingPlayersInTheRound_.pop_back();
@@ -151,24 +155,32 @@ shared_ptr<AOH> EFGNode::getAOHAugInfSet(Player player) const {
     return make_shared<AOH>(player, aoh);
 }
 
+shared_ptr<EFGPublicState> EFGNode::getPublicState() const {
+    if(parent_) {
+        return make_shared<EFGPublicState>(parent_->getPublicState(), publicObservation_);
+    } else {
+        return make_shared<EFGPublicState>(publicObservation_);
+    }
+}
+
 vector<ActionObservation> EFGNode::getAOH(Player player) const {
     if (!parent_) {
         return vector<ActionObservation>{
-            std::make_pair(NO_ACTION, observations_[player]->getId())};
+            make_pair(NO_ACTION, privateObservations_[player]->getId())};
     }
     auto aoh = parent_->getAOH(player);
-    if (parent_->depth_ != depth_) {
+    if (parent_->stateDepth_ != stateDepth_) {
         auto action = std::find_if(parent_->performedActionsInThisRound_.begin(),
                                    parent_->performedActionsInThisRound_.end(),
                                    [&player](pair<int, shared_ptr<Action>> const &elem) {
                                        return elem.first == player;
                                    });
         if (action != parent_->performedActionsInThisRound_.end()) {
-            aoh.emplace_back(action->second->getId(), observations_[player]->getId());
+            aoh.emplace_back(action->second->getId(), privateObservations_[player]->getId());
         } else if (*parent_->currentPlayer_ == player) {
-            aoh.emplace_back(incomingAction_->getId(), observations_[player]->getId());
+            aoh.emplace_back(incomingAction_->getId(), privateObservations_[player]->getId());
         } else {
-            aoh.emplace_back(NO_ACTION, observations_[player]->getId());
+            aoh.emplace_back(NO_ACTION, privateObservations_[player]->getId());
         }
     }
     return aoh;
@@ -230,10 +242,13 @@ void EFGNode::generateDescriptor() const {
         descriptor_ = parent_->descriptor_;
         descriptor_.push_back(incomingAction_->getId());
     }
-    if (!parent_ || depth_ != parent_->depth_) {
-        for (const auto &observation : observations_) {
+    if (!parent_ || stateDepth_ != parent_->stateDepth_) {
+        for (const auto &observation : privateObservations_) {
             descriptor_.push_back(observation->getId());
         }
+    }
+    if (!isTerminal()) {
+        descriptor_.push_back(*currentPlayer_);
     }
 }
 
@@ -243,17 +258,17 @@ void EFGNode::generateHash() const {
 
 bool EFGNode::compareAOH(const EFGNode &rhs) const {
     if (parent_) {
-        if (depth_ != parent_->depth_) {
-            for (int i = 0; i < observations_.size(); ++i) {
-                if (observations_[i]->getId() != rhs.observations_[i]->getId()) {
+        if (stateDepth_ != parent_->stateDepth_) {
+            for (int i = 0; i < privateObservations_.size(); ++i) {
+                if (privateObservations_[i]->getId() != rhs.privateObservations_[i]->getId()) {
                     return false;
                 }
             }
         }
         return *incomingAction_ == *rhs.incomingAction_ && parent_->compareAOH(*rhs.parent_);
     }
-    for (int i = 0; i < observations_.size(); ++i) {
-        if (observations_[i]->getId() != rhs.observations_[i]->getId()) {
+    for (int i = 0; i < privateObservations_.size(); ++i) {
+        if (privateObservations_[i]->getId() != rhs.privateObservations_[i]->getId()) {
             return false;
         }
     }
@@ -266,13 +281,13 @@ bool EFGNode::operator==(const EFGNode &rhs) const {
     return !memcmp(descriptor_.data(), rhs.descriptor_.data(), descriptor_.size());
 }
 
-int EFGNode::getDistanceFromRoot() const {
+int EFGNode::getEFGDepth() const {
     if (!parent_) return 0;
-    return 1 + parent_->getDistanceFromRoot();
+    return 1 + parent_->getEFGDepth();
 }
 
 ObservationId EFGNode::getLastObservationIdOfCurrentPlayer() const {
-    return observations_[*currentPlayer_]->getId();
+    return privateObservations_[*currentPlayer_]->getId();
 }
 
 string EFGNode::toString() const {
@@ -286,7 +301,7 @@ string EFGNode::toString() const {
     std::copy(remainingPlayersInTheRound_.begin(), remainingPlayersInTheRound_.end(),
               std::ostream_iterator<int>(rem, ", "));
     s += rews.str().substr(0, rews.str().length() - 2) + "]\nObs: [";
-    for (auto &i : observations_) {
+    for (auto &i : privateObservations_) {
         s += i->toString() + " ";
     }
     s += "]\nRemaining players: [" + rem.str().substr(0, rem.str().length() - 2)
@@ -302,10 +317,10 @@ int EFGNode::getNumberOfRemainingPlayers() const {
 }
 
 ObservationId EFGNode::getLastObservationOfPlayer(Player player) const {
-    return observations_[player]->getId();
+    return privateObservations_[player]->getId();
 }
-int EFGNode::getDepth() const {
-    return depth_;
+int EFGNode::getStateDepth() const {
+    return stateDepth_;
 }
 ActionId EFGNode::getIncomingActionId() const {
     return incomingAction_->getId();
@@ -315,6 +330,36 @@ bool EFGNode::noActionPerformedInThisRound() const {
 }
 bool EFGNode::isTerminal() const {
     return currentPlayer_ == nullopt;
+}
+
+EFGPublicState::EFGPublicState(const shared_ptr<Observation> &publicObservation) {
+    publicObsHistory_.push_back(publicObservation);
+    generateDescriptor();
+    generateHash();
+}
+
+EFGPublicState::EFGPublicState(const shared_ptr<EFGPublicState>& parent,
+                               const shared_ptr<Observation> &publicObservation) {
+    publicObsHistory_ = parent->publicObsHistory_;
+    if(publicObservation) publicObsHistory_.push_back(publicObservation);
+    generateDescriptor();
+    generateHash();
+}
+
+void EFGPublicState::generateHash() const {
+    hashNode_ = hashWithSeed(descriptor_.data(), descriptor_.size() * sizeof(uint32_t), 242037120);
+}
+
+void EFGPublicState::generateDescriptor() const {
+    for (const auto &observation : publicObsHistory_) {
+        descriptor_.push_back(observation->getId());
+    }
+}
+
+bool EFGPublicState::operator==(const EFGPublicState &rhs) const {
+    if (hashNode_ != rhs.hashNode_) return false;
+    if (descriptor_.size() != rhs.descriptor_.size()) return false;
+    return !memcmp(descriptor_.data(), rhs.descriptor_.data(), descriptor_.size());
 }
 
 }  // namespace GTLib2

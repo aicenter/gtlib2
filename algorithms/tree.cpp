@@ -19,7 +19,7 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include "algorithms/tree.h"
 
 #include "base/efg.h"
@@ -29,8 +29,7 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 
 void treeWalkEFG(EFGCache &cache, EFGNodeCallback function, int maxDepth) {
     auto traverse = [&function, &cache, maxDepth]
@@ -39,17 +38,17 @@ void treeWalkEFG(EFGCache &cache, EFGNodeCallback function, int maxDepth) {
         // Call the provided function on the current node.
         function(node);
 
-        if (node->getDepth() >= maxDepth) return;
+        if (node->getStateDepth() >= maxDepth) return;
 
         for (const auto &action : node->availableActions()) {
-            for (auto const &nodeDist : cache.getChildrenFor(node, action)) {
-                traverse(nodeDist.first, traverse);
+            for (auto const &[nextNode, chanceProb] : cache.getChildrenFor(node, action)) {
+                traverse(nextNode, traverse);
             }
         }
     };
 
-    for (const auto &nodeDist : cache.getRootNodes()) {
-        traverse(nodeDist.first, traverse);
+    for (const auto &[rootNode, chanceProb] : cache.getRootNodes()) {
+        traverse(rootNode, traverse);
     }
 }
 
@@ -60,21 +59,20 @@ void treeWalkEFG(const Domain &domain, EFGNodeCallback function, int maxDepth) {
         // Call the provided function on the current node.
         function(node);
 
-        if (node->getDepth() >= maxDepth) return;
+        if (node->getStateDepth() >= maxDepth) return;
 
         for (const auto &action : node->availableActions()) {
-            for (auto const &nodeDist : node->performAction(action)) {
-                traverse(nodeDist.first, traverse);
+            for (auto const &[nextNode, chanceProb] : node->performAction(action)) {
+                traverse(nextNode, traverse);
             }
         }
     };
 
-    for (const auto &nodeDist : createRootEFGNodes(domain.getRootStatesDistribution())) {
-        traverse(nodeDist.first, traverse);
+    for (const auto &[rootNode, chanceProb] : createRootEFGNodes(domain.getRootStatesDistribution())) {
+        traverse(rootNode, traverse);
     }
 }
 
-}  // namespace algorithms
 }  // namespace GTLib2
 
 #pragma clang diagnostic pop

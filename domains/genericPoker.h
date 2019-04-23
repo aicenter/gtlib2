@@ -23,17 +23,13 @@
 #ifndef DOMAINS_GENERICPOKER_H_
 #define DOMAINS_GENERICPOKER_H_
 
-#include <experimental/optional>
+#include "base/base.h"
 #include <utility>
 #include <string>
 #include <vector>
-#include "base/base.h"
 
-using std::experimental::nullopt;
-using std::experimental::optional;
 
-namespace GTLib2 {
-namespace domains {
+namespace GTLib2::domains {
 enum MOVES {
   Check, Call, Fold, Bet, Raise, PlayCard
 };
@@ -218,7 +214,6 @@ class GenericPokerDomain : public Domain {
   const unsigned int ante_;
   const int TERMINAL_ROUND = 4;
 };
-}  // namespace domains
 }  // namespace GTLib2
 
 #endif  // DOMAINS_GENERICPOKER_H_

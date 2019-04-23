@@ -23,12 +23,13 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
+#include "base/base.h"
 #include "algorithms/utility.h"
+
 #include "algorithms/common.h"
 #include "algorithms/tree.h"
 
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 
 pair<double, double> computeUtilityTwoPlayersGame(const Domain &domain,
                                                   const BehavioralStrategy &player1Strat,
@@ -36,7 +37,7 @@ pair<double, double> computeUtilityTwoPlayersGame(const Domain &domain,
                                                   const Player player1,
                                                   const Player player2) {
   // Inner function
-  std::function<pair<double, double>(shared_ptr<EFGNode>, double)> calculate =
+  function<pair<double, double>(shared_ptr<EFGNode>, double)> calculate =
       [&player1Strat, &player2Strat, &player1, &player2, &domain, &calculate]
           (shared_ptr<EFGNode> node, double prob) {
         auto findActionProb = [](const shared_ptr<AOH> &infSet,
@@ -46,7 +47,7 @@ pair<double, double> computeUtilityTwoPlayersGame(const Domain &domain,
                  strat.at(infSet).at(action) : 0.0;
         };
 
-        if (node->getDepth() == domain.getMaxDepth() || !node->getCurrentPlayer()) {
+        if (node->getStateDepth() == domain.getMaxDepth() || !node->getCurrentPlayer()) {
           return pair<double, double>(node->rewards_[player1] * prob,
                                       node->rewards_[player2] * prob);
         }
@@ -89,7 +90,7 @@ unordered_map<shared_ptr<AOH>, vector<shared_ptr<Action>>>
 generateInformationSetsAndAvailableActions(const Domain &domain, const Player player) {
   unordered_map<shared_ptr<AOH>, vector<shared_ptr<Action>>> infSetsAndActions;
 
-  std::function<void(shared_ptr<EFGNode>)> extract =
+  function<void(shared_ptr<EFGNode>)> extract =
       [&infSetsAndActions, &player](shared_ptr<EFGNode> node) {
         if (node->getCurrentPlayer() && *node->getCurrentPlayer() == player) {
           auto infSet = node->getAOHInfSet();
@@ -112,7 +113,7 @@ vector<BehavioralStrategy> generateAllPureStrategies(
   vector<pair<shared_ptr<AOH>, vector<shared_ptr<Action>>>> infSetsAndActionsVector(
       infSetsAndActions.begin(), infSetsAndActions.end());
 
-  std::function<void(BehavioralStrategy, int)> gener =
+  function<void(BehavioralStrategy, int)> gener =
       [&gener, &infSetsAndActionsVector, &allPureStrats](BehavioralStrategy strat,
                                                          int setIndex) {
         if (setIndex >= infSetsAndActionsVector.size()) {
@@ -159,6 +160,5 @@ tuple<vector<double>, unsigned int, unsigned int> constructUtilityMatrixFor(
   return tuple<vector<double>, unsigned int, unsigned int>(matrix, numberOfRows, numberOfColls);
 }
 
-}  // namespace algorithms
 }  // namespace GTLib2
 #pragma clang diagnostic pop

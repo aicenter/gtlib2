@@ -24,11 +24,13 @@
 #define LPSOLVERS_GUROBILPSOLVER_H_
 
 
-
-#include <gurobi_c++.h>
-#include <vector>
-#include <cmath>
+#include "base/base.h"
 #include "LPsolvers/AbstractLPSolver.h"
+#include <gurobi_c++.h>
+#include <cmath>
+
+namespace GTLib2::algorithms {
+
 
 class GurobiLPSolver : public AbstractLPSolver {
  public:
@@ -91,7 +93,7 @@ inline double solveLP(const unsigned int rows, const unsigned int cols,
       }
       model.addConstr(sum - V, GRB_GREATER_EQUAL, 0);
     }
-    std::cout << model.get(GRB_IntAttr_NumConstrs) << " " << model.get(GRB_IntAttr_NumVars) <<"\n";
+    cout << model.get(GRB_IntAttr_NumConstrs) << " " << model.get(GRB_IntAttr_NumVars) <<"\n";
 
     model.optimize();
     int optimstatus = model.get(GRB_IntAttr_Status);
@@ -103,11 +105,11 @@ inline double solveLP(const unsigned int rows, const unsigned int cols,
 
     if (optimstatus != GRB_OPTIMAL && optimstatus != GRB_SUBOPTIMAL &&
     optimstatus != GRB_USER_OBJ_LIMIT) {
-      std::cout << "Failed to optimize LP\n";
+      cout << "Failed to optimize LP\n";
       throw(-1);
     }
-    std::cout << "Solution status = " << model.get(GRB_IntAttr_Status) << "\n";
-    std::cout << "Solution value = " << model.get(GRB_DoubleAttr_ObjVal) << "\n";
+    cout << "Solution status = " << model.get(GRB_IntAttr_Status) << "\n";
+    cout << "Solution value = " << model.get(GRB_DoubleAttr_ObjVal) << "\n";
 
     for (int i = 0; i < cols; ++i) {
       solution[i] = x_[i].get(GRB_DoubleAttr_X);
@@ -116,13 +118,14 @@ inline double solveLP(const unsigned int rows, const unsigned int cols,
     delete[] x_;
     return value;
   } catch(GRBException &e) {
-    std::cout << "Error code = " << e.getErrorCode() << std::endl;
-    std::cout << e.getMessage() << std::endl;
+    cout << "Error code = " << e.getErrorCode() << endl;
+    cout << e.getMessage() << endl;
     return NAN;
   } catch (...) {
-    std::cout << "Error during optimization" << std::endl;
+    cout << "Error during optimization" << endl;
     throw(-1);
   }
 }
 
+}
 #endif  // LPSOLVERS_GUROBILPSOLVER_H_

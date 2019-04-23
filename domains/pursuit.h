@@ -25,14 +25,13 @@
 #ifndef DOMAINS_PURSUIT_H_
 #define DOMAINS_PURSUIT_H_
 
+#include "base/base.h"
 #include <utility>
 #include <numeric>
 #include <vector>
 #include <string>
-#include "base/base.h"
 
-namespace GTLib2 {
-namespace domains {
+namespace GTLib2::domains {
 struct Pos {
   int y;
   int x;
@@ -305,7 +304,6 @@ class PursuitDomainChance : public PursuitDomain {
                       const shared_ptr<MMPursuitState> &state,
                       int height, int width, vector<double> probability);
 };
-}  // namespace domains
 }  // namespace GTLib2
 
 #endif  // DOMAINS_PURSUIT_H_

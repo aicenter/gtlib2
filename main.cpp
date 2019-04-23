@@ -21,24 +21,56 @@
 
 
 #include <chrono>
-#include <algorithms/cfr.h>
+#include "algorithms/cfr.h"
 #include "domains/goofSpiel.h"
+#include "utils/export.h"
 
 
-using std::endl;
-using std::cout;
 using namespace GTLib2;
 
+using domains::GoofSpielDomain;
+using domains::GoofSpielVariant::CompleteObservations;
+using domains::GoofSpielVariant::IncompleteObservations;
+using utils::exportGraphViz;
+using utils::exportGambit;
 
-int main(int argc, char *argv[]) {
+void exampleBenchmarkCFR() {
     auto start = std::chrono::high_resolution_clock::now();
 
-    domains::IIGoofSpielDomain domain(5, 5, 0);
+    domains::GoofSpielDomain domain
+        ({variant:  IncompleteObservations, numCards: 5, fixChanceCards: true, chanceCards: {}});
     algorithms::CFRAlgorithm cfr(domain, Player(0), algorithms::CFRSettings());
     cfr.runIterations(100);
 
     auto end = std::chrono::high_resolution_clock::now();
     using ms = std::chrono::duration<int, std::milli>;
     cout << "Time " << std::chrono::duration_cast<ms>(end - start).count() << " ms" << '\n';
+}
+
+void exampleExportDomain() {
+    auto gs2 =
+        GoofSpielDomain({variant:  CompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}});
+    auto gs3 =
+        GoofSpielDomain({variant:  CompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}, binaryTerminalRewards: true});
+    auto gs3_seed =
+        GoofSpielDomain({variant:  CompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
+    auto iigs3 =
+        GoofSpielDomain({variant:  IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
+    auto iigs3_seed =
+        GoofSpielDomain({variant:  IncompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
+    exportGambit(gs2, "./gs2.gbt");
+    exportGambit(gs3, "./gs3.gbt");
+    exportGambit(gs3_seed, "./gs3_seed.gbt");
+    exportGambit(iigs3, "./iigs3.gbt");
+    exportGambit(iigs3_seed, "./iigs3_seed.gbt");
+
+    // you can run this for visualization
+    // $ dot -Tsvg iigs3_seed.dot -o iigs3_seed.svg
+    exportGraphViz(iigs3_seed, "./iigs3_seed.dot");
+}
+
+int main(int argc, char *argv[]) {
+//    exampleBenchmarkCFR();
+    exampleExportDomain();
     return 0;
 }

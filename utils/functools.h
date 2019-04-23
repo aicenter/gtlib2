@@ -37,7 +37,7 @@
  *
  * Example:
  * @code
- * std::vector <int> xs   = { 2, 3, 5, 7, 11, 13 };
+ * vector <int> xs   = { 2, 3, 5, 7, 11, 13 };
  * int               ys[] = { 0, 1, 2, 3,  4,  5 };
  * std::set    <int> zs     { 1, 4, 6, 7,  8,  9 };
  * for (auto tuple : zip( xs, ys, zs ))

@@ -25,15 +25,12 @@
 #ifndef ALGORITHMS_UTILITY_H_
 #define ALGORITHMS_UTILITY_H_
 
+#include "base/base.h"
 #include <tuple>
 #include <utility>
 #include <vector>
-#include "base/base.h"
 
-using std::tuple;
-
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 pair<double, double> computeUtilityTwoPlayersGame(const Domain &domain,
                                                   const BehavioralStrategy &player1Strat,
                                                   const BehavioralStrategy &player2Strat,
@@ -54,7 +51,6 @@ vector<BehavioralStrategy>
 generateAllPureStrategies(const unordered_map<shared_ptr<AOH>,
                                               vector<shared_ptr<Action>>> &infSetsAndActions);
 
-}  // namespace algorithms
 }  // namespace GTLib2
 
 #endif  // ALGORITHMS_UTILITY_H_

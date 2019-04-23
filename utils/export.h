@@ -13,26 +13,27 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with Game Theoretic Library.
+    You should have received a copy of the GNU Lesser General Public 
+    License along with Game Theoretic Library.
 
     If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef TESTS_TESTUTILS_H_
-#define TESTS_TESTUTILS_H_
+#ifndef GTLIB2_EXPORT_H
+#define GTLIB2_EXPORT_H
 
 #include "base/base.h"
+#include <iostream>
+#include <fstream>
 
+namespace GTLib2::utils {
 
-using GTLib2::Domain;
+void exportGraphViz(const Domain &domain, const string &fileToSave);
+void exportGraphViz(const Domain &domain, std::ostream &fs);
+void exportGambit(const Domain &domain, const string &fileToSave);
+void exportGambit(const Domain &domain, std::ostream &fs);
 
-bool isDomainZeroSum(const Domain &domain);
-bool isEFGNodeAndStateConsistent(const Domain &domain);
-bool areAvailableActionsSorted(const Domain &domain);
-bool isDomainMaxUtilityCorrect(const Domain &domain);
-bool isDomainMaxDepthCorrect(const Domain &domain);
-bool doesCreateRootNodes(const Domain &domain);
+}
 
-#endif  // TESTS_TESTUTILS_H_
+#endif //GTLIB2_EXPORT_H

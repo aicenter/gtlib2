@@ -19,11 +19,10 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include "strategy.h"
 
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 
 
 StrategyProfile getAverageStrategy(CFRData &data, int maxDepth) {
@@ -91,5 +90,4 @@ ActionProbDistribution mapDistribution(const ProbDistribution &dist,
     return actionDist;
 }
 
-}  // namespace algorithms
 }  // namespace GTLib2

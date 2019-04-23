@@ -23,11 +23,13 @@
 #include "LPsolvers/LPSolver.h"
 #if LP_SOLVER != NO_LP_SOLVER
 
+#include "base/base.h"
 #include "algorithms/bestResponse.h"
 #include "algorithms/common.h"
 #include "algorithms/equilibrium.h"
 #include "algorithms/tree.h"
 #include "algorithms/utility.h"
+#include "algorithms/stats.h"
 #include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"
 
@@ -36,22 +38,21 @@
 #include <algorithms/strategy.h>
 
 
-namespace GTLib2 {
+namespace GTLib2::algorithms {
 
 using domains::MatchingPenniesDomain;
 using domains::MatchingPenniesAction;
-using domains::SimultaneousMatchingPenniesDomain;
+using domains::MatchingPenniesVariant::SimultaneousMoves;
+using domains::MatchingPenniesVariant::AlternatingMoves;
 using domains::Heads;
 using domains::Tails;
-using algorithms::DomainStatistics;
-using algorithms::playOnlyAction;
 
 
-
-BOOST_AUTO_TEST_SUITE(LPTests)
+BOOST_AUTO_TEST_SUITE(AlgorithmsTests)
+BOOST_AUTO_TEST_SUITE(LinearProgramming)
 
 BOOST_AUTO_TEST_CASE(best_response_to_equilibrium) {
-    MatchingPenniesDomain d;
+    MatchingPenniesDomain d(AlternatingMoves);
     auto v = algorithms::findEquilibriumTwoPlayersZeroSum(d);
     auto strat = std::get<1>(v);
     auto brsVal = algorithms::bestResponseTo(strat, 0, 1, d, 5);
@@ -60,7 +61,7 @@ BOOST_AUTO_TEST_CASE(best_response_to_equilibrium) {
 }
 
 BOOST_AUTO_TEST_CASE(equilibrium_normal_form_lp_test) {
-    MatchingPenniesDomain d;
+    MatchingPenniesDomain d(AlternatingMoves);
     auto v = algorithms::findEquilibriumTwoPlayersZeroSum(d);
     auto strat = std::get<1>(v);
     auto actionHeads = make_shared<MatchingPenniesAction>(Heads);
@@ -72,6 +73,7 @@ BOOST_AUTO_TEST_CASE(equilibrium_normal_form_lp_test) {
     BOOST_CHECK(headsProb == 0.5 && tailsProb == 0.5);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace GTLib2

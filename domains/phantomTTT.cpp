@@ -19,9 +19,8 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include "domains/phantomTTT.h"
-#include <cassert>
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
@@ -31,8 +30,7 @@
 #  define DebugString(x) x
 #endif  // MyDEBUG
 
-namespace GTLib2 {
-namespace domains {
+namespace GTLib2::domains {
 
 PhantomTTTAction::PhantomTTTAction(ActionId id, int move) : Action(id), move_(move) {}
 
@@ -178,7 +176,7 @@ OutcomeDistribution PhantomTTTState::performActions
                 s->strings_[1].append(strings_[1] + "  ||  ACTION: " +
                 (a2 ? a2->toString() : "NoA") + "  | OBS: " + observations[1]->toString());)
   }
-  Outcome o(move(s), observations, rewards);
+  Outcome o(move(s), observations, shared_ptr<Observation>(), rewards);
   OutcomeDistribution prob;
   prob.push_back(pair<Outcome, double>(move(o), 1.0));
   return prob;
@@ -209,7 +207,10 @@ PhantomTTTDomain::PhantomTTTDomain(unsigned int max) :
   auto players = vector<Player>({0});
   vector<double> rewards(2);
   vector<shared_ptr<Observation>> Obs{make_shared<Observation>(NO_OBSERVATION), make_shared<Observation>(NO_OBSERVATION)};
-  Outcome o(make_shared<PhantomTTTState>(this, vec, players), Obs, rewards);
+  Outcome o(make_shared<PhantomTTTState>(this, vec, players),
+            Obs,
+            shared_ptr<Observation>(),
+            rewards);
   rootStatesDistribution_.push_back(pair<Outcome, double>(move(o), 1.0));
 }
 
@@ -217,6 +218,5 @@ string PhantomTTTDomain::getInfo() const {
   return "************ Phantom Tic Tac Toe *************\n" +
       rootStatesDistribution_[0].first.state_->toString() + "\n";
 }
-}  // namespace domains
 }  // namespace GTLib2
 #pragma clang diagnostic pop

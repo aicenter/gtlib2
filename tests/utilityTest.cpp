@@ -20,41 +20,38 @@
 */
 
 
-#include <unordered_set>
-
+#include "base/base.h"
 #include "algorithms/bestResponse.h"
 #include "algorithms/cfr.h"
 #include "algorithms/common.h"
 #include "algorithms/equilibrium.h"
-#include "algorithms/tree.h"
 #include "algorithms/stats.h"
-#include "algorithms/utility.h"
 #include "algorithms/strategy.h"
+#include "algorithms/tree.h"
+#include "algorithms/utility.h"
 #include "domains/goofSpiel.h"
-#include "utils/functools.h"
 #include "tests/domainsTest.h"
+#include "utils/functools.h"
 
 #include <boost/test/unit_test.hpp>
 
-namespace GTLib2 {
+namespace GTLib2::algorithms {
 
 using domains::GoofSpielDomain;
 using domains::GoofSpielAction;
-using algorithms::DomainStatistics;
-using algorithms::treeWalkEFG;
-using algorithms::getUniformStrategy;
-using algorithms::playOnlyAction;
-using std::unordered_set;
+using domains::GoofSpielVariant::CompleteObservations;
 
+BOOST_AUTO_TEST_SUITE(AlgorithmsTests)
 BOOST_AUTO_TEST_SUITE(Utility)
 
 BOOST_AUTO_TEST_CASE(computeUtilityFullDepthCard4) {
-    GoofSpielDomain domain(4, 4, nullopt);
+    GoofSpielDomain domain
+        ({variant: CompleteObservations, numCards: 4, fixChanceCards: false, chanceCards: {}});
 
     auto player = Player(1);
     auto opponent = Player(0);
 
-    InfosetCache cache(domain.getRootStatesDistribution());
+    InfosetCache cache(domain);
     StrategyProfile profile = getUniformStrategy(cache);
 
     auto lowestCardAction = make_shared<GoofSpielAction>(0, 1);
@@ -64,21 +61,21 @@ BOOST_AUTO_TEST_CASE(computeUtilityFullDepthCard4) {
 
     auto setAction = [&](shared_ptr<EFGNode> node) {
         auto infoset = node->getAOHInfSet();
-        if (node->getDistanceFromRoot() == 0) {
+        if (node->getEFGDepth() == 0) {
             playOnlyAction(profile[opponent][infoset], lowestCardAction);
-        } else if (node->getDistanceFromRoot() == 2) {
+        } else if (node->getEFGDepth() == 2) {
             playOnlyAction(profile[opponent][infoset], secondLowestCardAction);
-        } else if (node->getDistanceFromRoot() == 4) {
+        } else if (node->getEFGDepth() == 4) {
             playOnlyAction(profile[opponent][infoset], thirdLowestCardAction);
-        } else if (node->getDistanceFromRoot() == 6) {
+        } else if (node->getEFGDepth() == 6) {
             playOnlyAction(profile[opponent][infoset], fourthLowestCardAction);
-        } else if (node->getDistanceFromRoot() == 1) {
+        } else if (node->getEFGDepth() == 1) {
             playOnlyAction(profile[player][infoset], lowestCardAction);
-        } else if (node->getDistanceFromRoot() == 3) {
+        } else if (node->getEFGDepth() == 3) {
             playOnlyAction(profile[player][infoset], secondLowestCardAction);
-        } else if (node->getDistanceFromRoot() == 5) {
+        } else if (node->getEFGDepth() == 5) {
             playOnlyAction(profile[player][infoset], thirdLowestCardAction);
-        } else if (node->getDistanceFromRoot() == 7) {
+        } else if (node->getEFGDepth() == 7) {
             playOnlyAction(profile[player][infoset], fourthLowestCardAction);
         }
 
@@ -91,6 +88,7 @@ BOOST_AUTO_TEST_CASE(computeUtilityFullDepthCard4) {
     BOOST_CHECK(std::abs(utility.second - 0) <= 0.001);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace GTLib2

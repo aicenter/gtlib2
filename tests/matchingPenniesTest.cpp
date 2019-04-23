@@ -20,10 +20,12 @@
 */
 
 
+#include "base/base.h"
 #include "algorithms/bestResponse.h"
 #include "algorithms/common.h"
 #include "algorithms/equilibrium.h"
 #include "algorithms/tree.h"
+#include "algorithms/stats.h"
 #include "algorithms/utility.h"
 #include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"
@@ -34,20 +36,15 @@
 #include <algorithms/strategy.h>
 
 
-namespace GTLib2 {
+namespace GTLib2::domains {
 
-using domains::MatchingPenniesDomain;
-using domains::MatchingPenniesAction;
-using domains::SimultaneousMatchingPenniesDomain;
-using domains::Heads;
-using domains::Tails;
 using algorithms::DomainStatistics;
 using algorithms::playOnlyAction;
 
+BOOST_AUTO_TEST_SUITE(DomainsTests)
+BOOST_AUTO_TEST_SUITE(MatchingPennies)
 
-BOOST_AUTO_TEST_SUITE(MatchingPenniesTests)
-
-BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
+BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizesAlternating) {
     DomainStatistics expectedStat = {
         .max_EFGDepth   = 2,
         .max_StateDepth = 2,
@@ -59,7 +56,7 @@ BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
         .num_sequences  = {3, 3},
     };
 
-    MatchingPenniesDomain testDomain;
+    MatchingPenniesDomain testDomain(AlternatingMoves);
     DomainStatistics actualStat;
     calculateDomainStatistics(testDomain, &actualStat);
 
@@ -78,13 +75,14 @@ BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizesSimultaneous) {
         .num_sequences  = {3, 3},
     };
 
-    SimultaneousMatchingPenniesDomain testDomain;
+    MatchingPenniesDomain testDomain(SimultaneousMoves);
     DomainStatistics actualStat;
     calculateDomainStatistics(testDomain, &actualStat);
 
     BOOST_CHECK_EQUAL(actualStat, expectedStat);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace GTLib2

@@ -23,39 +23,42 @@
 #ifndef LPSOLVERS_LPSOLVER_H_
 #define LPSOLVERS_LPSOLVER_H_
 
-#include <vector>
-#include <iostream>
-#include <cassert>
+#include "base/base.h"
 #include <cmath>
 
-using std::vector;
+namespace GTLib2::algorithms {
 
 class AbstractLPSolver {
  public:
-  // constructor
-  AbstractLPSolver() = default;
+    // constructor
+    AbstractLPSolver() = default;
 
-  // destructor
-  virtual ~AbstractLPSolver() = default;
+    // destructor
+    virtual ~AbstractLPSolver() = default;
 
-  virtual void CleanModel() = 0;
+    virtual void CleanModel() = 0;
 
-  virtual double SolveGame() = 0;
+    virtual double SolveGame() = 0;
 
-  virtual void BuildModel(unsigned int rows, unsigned int cols,
-                          const vector<double> *utility_matrix,
-                          bool OUTPUT) = 0;
+    virtual void BuildModel(unsigned int rows, unsigned int cols,
+                            const vector<double> *utility_matrix,
+                            bool OUTPUT) = 0;
 
-  virtual double const GetValue(int index) const = 0;
+    virtual double const GetValue(int index) const = 0;
 
-  virtual double const GetDual(int index) const = 0;
+    virtual double const GetDual(int index) const = 0;
 
-  virtual void SaveLP(const char *file) = 0;
+    virtual void SaveLP(const char *file) = 0;
 
-  virtual void SetConstraintCoefForVariable(int constraint, int variable, double new_utility) = 0;
+    virtual void SetConstraintCoefForVariable(int constraint, int variable, double new_utility) = 0;
 
-  virtual void AddRows(int cols, const vector<vector<double>> &utility_for_cols) = 0;
+    virtual void AddRows(int cols, const vector<vector<double>> &utility_for_cols) = 0;
 
-  virtual void AddCols(int rows, const vector<vector<double>> &utility_for_rows) = 0;
+    virtual void AddCols(int rows, const vector<vector<double>> &utility_for_rows) = 0;
 };
+
+}  // namespace GTLib2
+
+
 #endif  // LPSOLVERS_LPSOLVER_H_
+
