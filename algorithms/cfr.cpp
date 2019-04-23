@@ -40,11 +40,11 @@ CFRAlgorithm::CFRAlgorithm(const Domain &domain, Player playingPlayer, CFRSettin
     cache_(CFRData(domain_, settings.cfrUpdating)),
     settings_(settings) {}
 
-bool CFRAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
+PlayControl CFRAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
     if (currentInfoset == nullopt) {
-        if (cache_.isCompletelyBuilt()) return true;
+        if (cache_.isCompletelyBuilt()) return StopImproving;
         cache_.buildForest();
-        return true;
+        return StopImproving;
     }
 
     // the tree has been built before, we must have this infoset in memory
@@ -57,9 +57,12 @@ bool CFRAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfo
         runIteration(node, std::array<double, 3>{1., 1., chanceProb}, Player(1));
         delayedApplyRegretUpdates();
     }
+
+    return ContinueImproving;
 }
 
-vector<double> CFRAlgorithm::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
+optional<ProbDistribution>
+CFRAlgorithm::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
     const auto &data = cache_.infosetData.at(currentInfoset);
     const auto &acc = data.avgStratAccumulator;
     return calcAvgProbs(acc);
