@@ -38,7 +38,7 @@ namespace GTLib2::algorithms {
 StrategyProfile getAverageStrategy(CFRData &data, int maxDepth);
 
 inline StrategyProfile getAverageStrategy(CFRData &data) {
-    return getAverageStrategy(data, INT_MAX);
+    return getAverageStrategy(data, data.getDomainMaxStateDepth());
 }
 
 /**
@@ -47,7 +47,7 @@ inline StrategyProfile getAverageStrategy(CFRData &data) {
 StrategyProfile getUniformStrategy(InfosetCache &data, int maxDepth);
 
 inline StrategyProfile getUniformStrategy(InfosetCache &data) {
-    return getUniformStrategy(data, INT_MAX);
+    return getUniformStrategy(data, data.getDomainMaxStateDepth());
 }
 
 /**

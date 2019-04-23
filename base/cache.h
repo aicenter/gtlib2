@@ -134,6 +134,10 @@ class EFGCache {
         return builtForest_;
     }
 
+    inline unsigned int getDomainMaxStateDepth() const {
+        return domain_.getMaxDepth();
+    }
+
  protected:
 
     /**
