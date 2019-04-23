@@ -171,8 +171,22 @@ struct ExpectedUtility {
     }
 };
 
-ProbDistribution calcRMProbs(const vector<double> & regrets);
-ProbDistribution calcAvgProbs(const vector<double> & acc);
+void calcRMProbs(const vector<double> &regrets, ProbDistribution *pProbs, double epsilonUniform);
+void calcAvgProbs(const vector<double> & acc, ProbDistribution* pProbs);
+
+inline void calcRMProbs(const vector<double> & regrets, ProbDistribution* pProbs) {
+    calcRMProbs(regrets, pProbs, 0);
+}
+inline ProbDistribution calcRMProbs(const vector<double> & regrets) {
+    auto rmProbs = vector<double>(regrets.size());
+    calcRMProbs(regrets, &rmProbs);
+    return rmProbs;
+}
+inline ProbDistribution calcAvgProbs(const vector<double> & acc) {
+    auto avgProbs = vector<double>(acc.size());
+    calcAvgProbs(acc, &avgProbs);
+    return avgProbs;
+}
 
 /**
  * Calculate expected utilities under RM / avg strategy for specified node

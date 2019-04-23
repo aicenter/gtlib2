@@ -161,34 +161,34 @@ double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
     return cfvInfoset;
 }
 
-vector<double> calcRMProbs(const vector<double> &regrets) {
+void calcRMProbs(const vector<double> &regrets, ProbDistribution *pProbs, double epsilonUniform) {
+    assert(regrets.size() <= pProbs->size());
     double posRegretSum = 0.0;
     for (double r : regrets) {
         posRegretSum += max(0.0, r);
     }
 
-    auto rmProbs = vector<double>(regrets.size());
     if (posRegretSum > 0) {
         for (int i = 0; i < regrets.size(); i++) {
-            rmProbs[i] = max(0.0, regrets[i] / posRegretSum);
+            (*pProbs)[i] = (1 - epsilonUniform) * max(0.0, regrets[i] / posRegretSum)
+                + epsilonUniform / regrets.size();
         }
     } else {
-        std::fill(rmProbs.begin(), rmProbs.end(), 1.0 / regrets.size());
+        // todo: check
+        std::fill(pProbs->begin(), pProbs->begin() + regrets.size(), 1.0 / regrets.size());
     }
-    return rmProbs;
 }
 
-vector<double> calcAvgProbs(const vector<double> &acc) {
+void calcAvgProbs(const vector<double> &acc, ProbDistribution *pProbs) {
+    assert(acc.size() <= pProbs->size());
     double sum = 0.0;
     for (double d : acc) sum += d;
 
-    vector<double> probs = vector<double>(acc.size());
     for (int i = 0; i < acc.size(); ++i) {
-        probs[i] = sum == 0.0
-                   ? 1.0 / acc.size()
-                   : acc[i] / sum;
+        (*pProbs)[i] = sum == 0.0
+                       ? 1.0 / acc.size()
+                       : acc[i] / sum;
     }
-    return probs;
 }
 
 ExpectedUtility calcExpectedUtility(CFRData &cache,
