@@ -55,7 +55,7 @@ OshiZumoDomain::OshiZumoDomain(OshiZumoSettings settings) :
     optimalEndGame_(settings.optimalEndGame),
     variant_(settings.variant) {
     assert(settings.startingCoins >= 1);
-    assert(settings.startingLoc >= 0);
+    assert(settings.startingLocation >= 0);
     assert(settings.minBid >= 0);
 
     maxUtility_ = startingCoins_ == 1 ? 0.0 : 1.0;
