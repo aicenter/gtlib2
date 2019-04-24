@@ -64,7 +64,9 @@ class OshiZumoDomain : public Domain {
  public:
   explicit OshiZumoDomain(OshiZumoSettings settings);
   string getInfo() const override;
-  vector<Player> getPlayers() const final;
+  inline vector<Player> getPlayers() const final{
+    return {0, 1};
+  }
   const int getStartingLocation() const;
   const int getMinBid() const;
   const bool isOptimalEndGame() const;
@@ -110,7 +112,9 @@ enum OshiZumoRoundOutcome {
 
 class OshiZumoObservation : public Observation {
  public:
-  explicit OshiZumoObservation(int startingCoins, int player0Bid, int player1Bid, OshiZumoRoundOutcome roundResult);
+  explicit OshiZumoObservation(int player0Bid,
+                               int player1Bid,
+                               OshiZumoRoundOutcome roundResult);
 
  private:
   const int player0Bid_;

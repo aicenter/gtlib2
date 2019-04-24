@@ -43,8 +43,7 @@ string OshiZumoAction::toString() const {
 }
 
 size_t OshiZumoAction::getHash() const {
-  std::hash<size_t> h;
-  return h(bid_);
+  return bid_;
 }
 
 OshiZumoDomain::OshiZumoDomain(OshiZumoSettings settings) :
@@ -61,7 +60,7 @@ OshiZumoDomain::OshiZumoDomain(OshiZumoSettings settings) :
   maxUtility_ = startingCoins_ == 1 ? 0.0 : 1.0;
 
   auto rootState = make_shared<OshiZumoState>(this, startingLocation_, startingCoins_);
-  auto publicObs = make_shared<OshiZumoObservation>(startingCoins_, NO_BID_OBSERVATION, NO_BID_OBSERVATION, DRAW);
+  auto publicObs = make_shared<OshiZumoObservation>(NO_BID_OBSERVATION, NO_BID_OBSERVATION, DRAW);
   auto player0Obs = make_shared<OshiZumoObservation>(*publicObs);
   auto player1Obs = make_shared<OshiZumoObservation>(*publicObs);
   vector<double> rewards{0.0, 0.0};
@@ -80,9 +79,6 @@ string OshiZumoDomain::getInfo() const {
       "\nMax depth: " + to_string(maxDepth_) + '\n';
 }
 
-vector<Player> OshiZumoDomain::getPlayers() const {
-  return {0, 1};
-}
 
 const int OshiZumoDomain::getStartingLocation() const {
   return startingLocation_;
@@ -156,18 +152,19 @@ OutcomeDistribution OshiZumoState::performActions(const vector<PlayerAction> &ac
   newCoins[1] -= player1Action->getBid();
 
   //if optimalEndGame is allowed, check if wrestler is on board
+  // if any player cannot make any legal bid from now on, simulate rest of the game,
+  // as opponent plays optimal
   if (OZdomain->isOptimalEndGame()
       && newWrestlerLocation >= 0
-      && newWrestlerLocation <= (2 * OZdomain->getStartingLocation())) {
-    // if any player cannot make any legal bid from now on, simulate rest of the game,
-    // as opponent plays optimal
-    if (newCoins[0] == 0 || newCoins[1] == 0 ||
-        newCoins[0] < OZdomain->getMinBid() || newCoins[1] < OZdomain->getMinBid()) {
+      && newWrestlerLocation <= (2 * OZdomain->getStartingLocation())
+      && (newCoins[0] == 0 || newCoins[1] == 0 ||
+          newCoins[0] < OZdomain->getMinBid() ||
+          newCoins[1] < OZdomain->getMinBid())) {
+
       int minBid = OZdomain->getMinBid() == 0 ? 1 : OZdomain->getMinBid();
       newWrestlerLocation += newCoins[0] / minBid;
       newWrestlerLocation -= newCoins[1] / minBid;
       newCoins[0] = newCoins[1] = 0;
-    }
   }
 
   auto newState = make_shared<OshiZumoState>(domain_, newWrestlerLocation, newCoins);
@@ -177,11 +174,11 @@ OutcomeDistribution OshiZumoState::performActions(const vector<PlayerAction> &ac
   shared_ptr<OshiZumoObservation> player1Obs;
 
   if (OZdomain->getVariant() == IncompleteObservation) {
-    publicObs = make_shared<OshiZumoObservation>(OZdomain->getStartingCoins(), NO_BID_OBSERVATION, NO_BID_OBSERVATION, roundResult);
-    player0Obs = make_shared<OshiZumoObservation>(OZdomain->getStartingCoins(), player0Action->getBid(), NO_BID_OBSERVATION, roundResult);
-    player1Obs = make_shared<OshiZumoObservation>(OZdomain->getStartingCoins(), NO_BID_OBSERVATION, player1Action->getBid(), roundResult);
+    publicObs = make_shared<OshiZumoObservation>(NO_BID_OBSERVATION, NO_BID_OBSERVATION, roundResult);
+    player0Obs = make_shared<OshiZumoObservation>(player0Action->getBid(), NO_BID_OBSERVATION, roundResult);
+    player1Obs = make_shared<OshiZumoObservation>(NO_BID_OBSERVATION, player1Action->getBid(), roundResult);
   } else {
-    publicObs = make_shared<OshiZumoObservation>(OZdomain->getStartingCoins(), player0Action->getBid(), player1Action->getBid(), roundResult);
+    publicObs = make_shared<OshiZumoObservation>(player0Action->getBid(), player1Action->getBid(), roundResult);
     player0Obs = make_shared<OshiZumoObservation>(*publicObs);
     player1Obs = make_shared<OshiZumoObservation>(*publicObs);
   }
@@ -251,12 +248,19 @@ const vector<int> &OshiZumoState::getCoins() const {
   return coins_;
 }
 
-OshiZumoObservation::OshiZumoObservation(int startingCoins, int player0Bid, int player1Bid, OshiZumoRoundOutcome roundResult) :
+OshiZumoObservation::OshiZumoObservation(int player0Bid,
+                                         int player1Bid,
+                                         OshiZumoRoundOutcome roundResult) :
     Observation(),
     player0Bid_(player0Bid),
     player1Bid_(player1Bid),
     roundResult_(roundResult) {
-  id_ = (roundResult_ + 1) | ((player0Bid_ * player0Bid_ * startingCoins + player1Bid_ * player1Bid_ * startingCoins * startingCoins) << 2);
+  //playerBid + 1 -> 0, 1, 2,...
+  //using Szudzik pairing function to get unique IDs for different observations
+  int a = player0Bid_ + 1;
+  int b = player1Bid_ + 1;
+  int mapping = a >= b ? a * a + a + b : a + b * b;
+  id_ = (roundResult_ + 1) | (mapping << 2);
 }
 
 } // namespace GTLib2
