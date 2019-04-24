@@ -53,7 +53,7 @@ class OshiZumoAction : public Action {
   size_t getHash() const override;
   string toString() const override;
   inline int getBid() const {
-    return bid_;
+      return bid_;
   }
 
  private:
@@ -64,8 +64,8 @@ class OshiZumoDomain : public Domain {
  public:
   explicit OshiZumoDomain(OshiZumoSettings settings);
   string getInfo() const override;
-  inline vector<Player> getPlayers() const final{
-    return {0, 1};
+  inline vector<Player> getPlayers() const final {
+      return {0, 1};
   }
   const int getStartingLocation() const;
   const int getMinBid() const;
