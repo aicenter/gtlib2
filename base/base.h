@@ -25,27 +25,9 @@
 #ifndef BASE_BASE_H_
 #define BASE_BASE_H_
 
-#include <functional>
-#include <utility>
-#include <vector>
-#include <memory>
-#include <string>
-#include <unordered_map>
-#include <boost/functional/hash.hpp>
-#include "utils/utils.h"
+#include "base/includes.h"
 #include "base/hashing.h"
-
-using std::string;
-using std::vector;
-using std::move;
-using std::unique_ptr;
-using std::shared_ptr;
-using std::to_string;
-using std::unordered_map;
-using std::make_shared;
-using std::make_unique;
-using std::pair;
-using std::dynamic_pointer_cast;
+#include "utils/utils.h"
 
 namespace GTLib2 {
 
@@ -61,22 +43,15 @@ class InformationSet;
 class AOH;
 class Domain;
 
-/**
-* Support up to 256 players
-*/
 typedef uint8_t Player;
 
 /**
- * Support ids up to size of the address space (64bit)
- *
  * For a given State/EFGNode/InformationSet, IDs should be indexed
  * from 0 to N-1, where N is the number of available actions.
  */
 typedef uint32_t ActionId;
 
 /**
- * Support ids up to size of the address space (64bit)
- *
  * Unlike ActionId, the values of ObservationId *do not* need to be indexed from 0 to N-1.
  */
 typedef uint32_t ObservationId;
@@ -141,6 +116,15 @@ typedef unordered_map<shared_ptr<ActionSequence>, double> RealizationPlan;
 typedef pair<ActionId, ObservationId> ActionObservation;
 
 
+
+/**
+ * Special value of action id, indicating no action has been taken.
+ *
+ * It is useful for example in phantom games.
+ */
+constexpr ActionId NO_ACTION = 0xFFFFFFFF;
+
+
 /**
  * Action is an abstract class that represents actions, which are identified by their id.
  *
@@ -151,6 +135,7 @@ typedef pair<ActionId, ObservationId> ActionObservation;
 class Action {
  public:
     explicit Action(ActionId id);
+    explicit Action() : Action(NO_ACTION) {};
 
     virtual ~Action() = default;
 
@@ -166,12 +151,11 @@ class Action {
     ActionId id_;
 };
 
+
 /**
- * Special value of action id, indicating no action has been taken.
- *
- * It is useful for example in phantom games.
+ * Special value of observation id, indicating no observation has been made.
  */
-constexpr ActionId NO_ACTION = 0xFFFFFFFF;
+constexpr ObservationId NO_OBSERVATION = 0xFFFFFFFF;
 
 /**
  * Observation is an abstract class that represents observations, which are identified by their id.
@@ -183,6 +167,7 @@ constexpr ActionId NO_ACTION = 0xFFFFFFFF;
 class Observation {
  public:
     explicit Observation(ObservationId id);
+    explicit Observation() : Observation(NO_OBSERVATION) {};
 
     virtual ~Observation() = default;
 
@@ -198,27 +183,26 @@ class Observation {
     ObservationId id_;
 };
 
-/**
- * Special value of observation id, indicating no observation has been made.
- */
-constexpr ObservationId NO_OBSERVATION = 0xFFFFFFFF;
 
 /**
  * Outcome is a class that represents outcomes, or edges of the domain graph.
  *
  * They contain:
- * - rewards for each player,
- * - observations for each player and
- * - a new state.
+ * - a new state,
+ * - observations for each player,
+ * - public observation for all players,
+ * - rewards for each player.
 */
 class Outcome {
  public:
     Outcome(shared_ptr<State> s,
             vector<shared_ptr<Observation>> observations,
+            shared_ptr<Observation> publicObservation,
             vector<double> rewards);
 
     shared_ptr<State> state_;
-    vector<shared_ptr<Observation>> observations_;
+    vector<shared_ptr<Observation>> privateObservations_;
+    shared_ptr<Observation> publicObservation_;
     vector<double> rewards_;
 
     size_t getHash() const;
@@ -331,9 +315,9 @@ class State {
      */
     virtual string toString() const;
 
-    virtual bool operator==(const State &rhs) const;
+    virtual bool operator==(const State &rhs) const = 0;
 
-    virtual size_t getHash() const;
+    virtual size_t getHash() const = 0;
 
     inline Domain *getDomain() const {
         return domain_;
@@ -384,11 +368,11 @@ class Domain {
         return maxDepth_;
     }
 
-    inline int getMaxUtility() const {
+    inline double getMaxUtility() const {
         return maxUtility_;
     }
 
-    inline int getMinUtility() const {
+    inline double getMinUtility() const {
         return -maxUtility_;
     }
 
@@ -401,7 +385,7 @@ class Domain {
     OutcomeDistribution rootStatesDistribution_;
     unsigned int maxDepth_;
     unsigned int numberOfPlayers_;
-    int maxUtility_;
+    double maxUtility_;
 };
 }  // namespace GTLib2
 
@@ -578,10 +562,11 @@ template<
     typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type
 >
 std::ostream &
-operator<<(std::ostream &ss, std::vector<T> arr) {
+operator<<(std::ostream &ss, vector<T> arr) {
     ss << "[";
-    for (auto x : arr) {
-        ss << x << ", ";
+    for (int i = 0; i < arr.size(); ++i) {
+        if(i == 0) ss << arr[i];
+        else ss << ", " << arr[i];
     }
     ss << "]";
     return ss;

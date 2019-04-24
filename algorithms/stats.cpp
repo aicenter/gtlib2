@@ -19,20 +19,13 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include "algorithms/stats.h"
-
-#include <unordered_set>
-#include <unordered_map>
-#include <memory>
 
 #include "tree.h"
 
-using std::unordered_set;
-using std::cout;
 
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 
 void calculateDomainStatistics(const Domain &domain, DomainStatistics *stats) {
     auto collectIS = unordered_map<int, unordered_set<shared_ptr<AOH>>>();
@@ -47,14 +40,14 @@ void calculateDomainStatistics(const Domain &domain, DomainStatistics *stats) {
         stats->num_nodes++;
 
         if (!node->getParent()
-            || node->getParent()->getDepth() != node->getDepth()) {
+            || node->getParent()->getStateDepth() != node->getStateDepth()) {
             stats->num_states++;
         }
 
-        stats->max_EFGDepth = std::max(
-            stats->max_EFGDepth, node->getDistanceFromRoot());
-        stats->max_StateDepth = std::max(
-            stats->max_StateDepth, node->getDepth());
+        stats->max_EFGDepth = max(
+            stats->max_EFGDepth, node->getEFGDepth());
+        stats->max_StateDepth = max(
+            stats->max_StateDepth, node->getStateDepth());
 
         for (auto &player : domain.getPlayers()) {
             auto seq = node->getActionsSeqOfPlayer(player);
@@ -92,6 +85,5 @@ void printDomainStatistics(const Domain &domain, std::ostream &ostr) {
     ostr << stats;
 }
 
-}  // namespace algorithms
 }  // namespace GTLib2
 

@@ -19,7 +19,7 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include "base/efg.h"
 #include "base/cache.h"
 #include "base/algorithm.h"
@@ -27,25 +27,31 @@
 #include <boost/test/unit_test.hpp>
 #include <domains/goofSpiel.h>
 
-
 namespace GTLib2 {
 
-using domains::IIGoofSpielDomain;
+using domains::GoofSpielDomain;
+using domains::GoofSpielSettings;
+using domains::GoofSpielVariant::IncompleteObservations;
 
-BOOST_AUTO_TEST_SUITE(AlgorithmTest)
+BOOST_AUTO_TEST_SUITE(BaseTests)
+BOOST_AUTO_TEST_SUITE(Algorithm)
 
 BOOST_AUTO_TEST_CASE(PlayMatchSmallGame) {
     PreparedAlgorithm firstAction = createInitializer<FixedActionPlayer>(0);
     PreparedAlgorithm lastAction = createInitializer<FixedActionPlayer>(-1);
 
-    domains::IIGoofSpielDomain domain(3, 3, 0);
+    GoofSpielSettings settings
+        ({variant:  IncompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
+    settings.shuffleChanceCards(0);
+    GoofSpielDomain domain(settings);
     vector<double> expectedUtilities = vector<double>{1., -1.};
     vector<double> actualUtilities = playMatch(
         domain, vector<PreparedAlgorithm>{firstAction, lastAction},
-        vector<int>{10000, 10000}, vector<int>{10, 10}, 0);
+        vector<int>{1000, 1000}, vector<int>{10, 10}, 0);
     BOOST_CHECK_EQUAL(actualUtilities, expectedUtilities);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace GTLib2

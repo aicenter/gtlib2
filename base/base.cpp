@@ -21,7 +21,6 @@
 
 
 #include "base/base.h"
-#include <cassert>
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
@@ -70,15 +69,19 @@ size_t Observation::getHash() const {
     return h(id_);
 }
 
-Outcome::Outcome(shared_ptr<State> s, vector<shared_ptr<Observation>> observations,
+Outcome::Outcome(shared_ptr<State> s,
+                 vector<shared_ptr<Observation>> observations,
+                 shared_ptr<Observation> publicObservation,
                  vector<double> rewards)
-    : state_(move(s)), rewards_(move(rewards)), observations_(move(observations)) {}
+    : state_(move(s)), rewards_(move(rewards)),
+      privateObservations_(move(observations)), publicObservation_(move(publicObservation)) {}
 
 size_t Outcome::getHash() const {
     size_t seed = state_->getHash();
-    for (const auto &playerObservation : observations_) {
+    for (const auto &playerObservation : privateObservations_) {
         boost::hash_combine(seed, playerObservation);
     }
+    boost::hash_combine(seed, publicObservation_);
     for (const auto &playerReward : rewards_) {
         boost::hash_combine(seed, playerReward);
     }
@@ -86,7 +89,7 @@ size_t Outcome::getHash() const {
 }
 
 bool Outcome::operator==(const Outcome &rhs) const {
-    if (observations_.size() != rhs.observations_.size()) {
+    if (privateObservations_.size() != rhs.privateObservations_.size()) {
         return false;
     }
     if (rewards_.size() != rhs.rewards_.size()) {
@@ -98,15 +101,19 @@ bool Outcome::operator==(const Outcome &rhs) const {
     if (rewards_ != rhs.rewards_) {
         return false;
     }
-    return observations_ == rhs.observations_;
+    if (publicObservation_ != rhs.publicObservation_) {
+        return false;
+    }
+    return privateObservations_ == rhs.privateObservations_;
 }
 
 size_t AOH::computeHash() const {
     size_t seed = 0;
     for (auto actionObservation : aoh_) {
-        boost::hash_combine(seed, std::get<0>(actionObservation));
-        boost::hash_combine(seed, std::get<1>(actionObservation));
+        boost::hash_combine(seed, actionObservation.first);
+        boost::hash_combine(seed, actionObservation.second);
     }
+    boost::hash_combine(seed, player_);
     return seed;
 }
 
@@ -141,29 +148,20 @@ string AOH::toString() const {
     string s = "Player: " + to_string(player_) + ",  init observation:" +
         to_string(aoh_.front().second) + ", hash value: " +
         to_string(hashValue_) + "\n";
-    for (const auto &i : aoh_) {
-        s += "Action: " + to_string(std::get<0>(i)) + ", Obs: " + to_string(std::get<1>(i)) + " | ";
+    for (const auto &ao : aoh_) {
+        s += "Action: " + to_string(ao.first) + ", Obs: " + to_string(ao.second) + " | ";
     }
     return s;
 }
 
 State::State(Domain *domain) : domain_(domain) {}
 
+// todo: explicit max utility!!!!
 Domain::Domain(unsigned int maxDepth, unsigned int numberOfPlayers) :
     maxDepth_(maxDepth), numberOfPlayers_(numberOfPlayers), maxUtility_(0) {}
 
 const OutcomeDistribution &Domain::getRootStatesDistribution() const {
     return rootStatesDistribution_;
-}
-
-bool State::operator==(const State &rhs) const {
-    assert(("operator == is not implemented", false));
-    return false;
-}
-
-size_t State::getHash() const {
-    assert(("getHash is not implemented", false));
-    return 0;
 }
 
 int State::getNumberOfPlayers() const {

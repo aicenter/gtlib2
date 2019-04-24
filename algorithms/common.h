@@ -25,14 +25,17 @@
 #ifndef ALGORITHMS_COMMON_H_
 #define ALGORITHMS_COMMON_H_
 
-#include <vector>
 #include "base/base.h"
+#include <vector>
 #include "base/efg.h"
 
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 
 EFGNodesDistribution createRootEFGNodes(const OutcomeDistribution &probDist);
+
+inline EFGNodesDistribution createRootEFGNodes(const Domain &domain) {
+    return createRootEFGNodes(domain.getRootStatesDistribution());
+}
 
 BehavioralStrategy mixedToBehavioralStrategy(const Domain &domain,
                                              const vector<BehavioralStrategy> &pureStrats,
@@ -42,7 +45,6 @@ BehavioralStrategy mixedToBehavioralStrategy(const Domain &domain,
 EFGNodesDistribution getAllNodesInTheInformationSetWithNatureProbability(
     const shared_ptr<AOH> &infSet, const Domain &domain);
 
-}  // namespace algorithms
 }  // namespace GTLib2
 
 #endif  // ALGORITHMS_COMMON_H_

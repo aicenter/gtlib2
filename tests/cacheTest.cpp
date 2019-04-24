@@ -19,31 +19,37 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include "base/efg.h"
 #include "base/cache.h"
 
-#include "algorithms/common.h"
 #include "domains/matching_pennies.h"
-#include "tests/domainsTest.h"
+#include "domains/goofSpiel.h"
 #include <boost/test/unit_test.hpp>
 
 
 namespace GTLib2 {
 
 using domains::MatchingPenniesDomain;
+using domains::GoofSpielDomain;
+using domains::GoofSpielVariant::IncompleteObservations;
+using domains::GoofSpielObservation;
+using domains::GoofspielRoundOutcome;
+using domains::MatchingPenniesVariant::SimultaneousMoves;
+using domains::MatchingPenniesVariant::AlternatingMoves;
 using domains::MatchingPenniesAction;
 using domains::Heads;
 using domains::Tails;
 using algorithms::createRootEFGNodes;
 
+BOOST_AUTO_TEST_SUITE(BaseTests)
 BOOST_AUTO_TEST_SUITE(CacheTests)
 
 BOOST_AUTO_TEST_CASE(CacheHit) {
-    MatchingPenniesDomain mp;
+    MatchingPenniesDomain mp(AlternatingMoves);
     auto rootNodes = createRootEFGNodes(
         mp.getRootStatesDistribution());
-    InfosetCache cache(rootNodes);
+    InfosetCache cache(mp);
 
     auto rootNode = rootNodes[0].first;
     auto actions = rootNode->availableActions();
@@ -71,9 +77,9 @@ BOOST_AUTO_TEST_CASE(CacheHit) {
 
 
 BOOST_AUTO_TEST_CASE(BuildCacheMaxDepth) {
-    MatchingPenniesDomain mp;
+    MatchingPenniesDomain mp(AlternatingMoves);
     auto rootNodes = createRootEFGNodes(mp.getRootStatesDistribution());
-    InfosetCache cache(rootNodes);
+    InfosetCache cache(mp);
 
     auto rootNode = rootNodes[0].first;
     auto actions = rootNode->availableActions();
@@ -102,9 +108,9 @@ BOOST_AUTO_TEST_CASE(BuildCacheMaxDepth) {
 
 
 BOOST_AUTO_TEST_CASE(BuildCacheLimitedDepth) {
-    MatchingPenniesDomain mp;
+    MatchingPenniesDomain mp(AlternatingMoves);
     auto rootNodes = createRootEFGNodes(mp.getRootStatesDistribution());
-    InfosetCache cache(rootNodes);
+    InfosetCache cache(mp);
 
     auto rootNode = rootNodes[0].first;
     auto actions = rootNode->availableActions();
@@ -150,6 +156,138 @@ BOOST_AUTO_TEST_CASE(BuildCacheLimitedDepth) {
     BOOST_CHECK(cache.hasChildren(node1));
 }
 
+BOOST_AUTO_TEST_CASE(BuildPublicStateCache) {
+    MatchingPenniesDomain domains[] = {MatchingPenniesDomain(AlternatingMoves),
+                                       MatchingPenniesDomain(SimultaneousMoves)};
+    for (const auto &mp : domains) {
+        auto rootNodes = createRootEFGNodes(mp.getRootStatesDistribution());
+        PublicStateCache cache(mp);
+
+        auto rootNode = rootNodes[0].first;
+        auto actions = rootNode->availableActions();
+        BOOST_CHECK(!cache.hasNode(rootNode));
+        BOOST_CHECK(!cache.hasPublicState(rootNode->getPublicState()));
+
+        rootNode->performAction(actions[0]);
+        rootNode->performAction(actions[1]);
+        BOOST_CHECK(!cache.hasNode(rootNode));
+        BOOST_CHECK(!cache.hasPublicState(rootNode->getPublicState()));
+
+        cache.buildForest();
+        BOOST_CHECK(cache.hasNode(rootNode));
+        BOOST_CHECK(cache.hasPublicState(rootNode->getPublicState()));
+        BOOST_CHECK(cache.countPublicStates() == 4);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(BuildLargePublicStateCache) {
+    GoofSpielDomain domains[] = {
+        GoofSpielDomain({
+                            variant:  IncompleteObservations,
+                            numCards: 2,
+                            fixChanceCards: true,
+                            chanceCards: {}
+                        }),
+        GoofSpielDomain({
+                            variant:  IncompleteObservations,
+                            numCards: 3,
+                            fixChanceCards: true,
+                            chanceCards: {}
+                        }),
+        GoofSpielDomain({
+                            variant:  IncompleteObservations,
+                            numCards: 4,
+                            fixChanceCards: true,
+                            chanceCards: {}
+                        }),
+    };
+
+    for (const auto &domain : domains) {
+        PublicStateCache cache(domain);
+        cache.buildForest();
+        switch (domain.numberOfCards_) {
+            case 2:
+                BOOST_CHECK(cache.countPublicStates() == 11);
+                break;
+            case 3:
+                BOOST_CHECK(cache.countPublicStates() == 39);
+                break;
+            case 4:
+                BOOST_CHECK(cache.countPublicStates() == 131);
+                break;
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(PublicStateCacheGetInfosets) {
+    GoofSpielDomain domain({
+                               variant:  IncompleteObservations,
+                               numCards: 2,
+                               fixChanceCards: true,
+                               chanceCards: {}
+                           });
+    PublicStateCache cache(domain);
+    cache.buildForest();
+
+    auto rootNode = cache.getRootNodes()[0].first;
+    auto childNodes = cache.getChildrenFor(rootNode);
+    shared_ptr<EFGNode> aNode = (*childNodes[0])[0].first;
+    shared_ptr<EFGNode> bNode = (*childNodes[1])[0].first;
+    auto children = unordered_set<shared_ptr<EFGNode>>{aNode, bNode};
+    auto pubState = cache.getPublicStateFor(aNode);
+    BOOST_CHECK(cache.getNodesFor(pubState).size() == 2);
+    BOOST_CHECK(cache.getNodesFor(pubState) == children);
+
+    shared_ptr<AOH> actualInfoset = aNode->getAOHInfSet();
+    shared_ptr<AOH> expectedInfoset = *cache.getInfosetsFor(pubState, Player(1)).begin();
+    BOOST_CHECK(expectedInfoset != actualInfoset);
+    BOOST_CHECK(*expectedInfoset == *actualInfoset);
+
+    actualInfoset = aNode->getAOHAugInfSet(Player(0));
+    expectedInfoset = *cache.getInfosetsFor(pubState, Player(0)).begin();
+    BOOST_CHECK(expectedInfoset != actualInfoset);
+    BOOST_CHECK(*expectedInfoset == *actualInfoset);
+}
+
+BOOST_AUTO_TEST_CASE(PublicStateCacheGetInfosetsLarge) {
+    GoofSpielDomain domain({
+                               variant:  IncompleteObservations,
+                               numCards: 4,
+                               fixChanceCards: true,
+                               chanceCards: {}
+                           });
+    PublicStateCache cache(domain);
+    cache.buildForest();
+
+    auto rootNode = cache.getRootNodes()[0].first;
+    auto aNode = (*cache.getChildrenFor(rootNode)[0])[0].first;
+    auto bNode = (*cache.getChildrenFor(aNode)[0])[0].first;
+    auto cNode = (*cache.getChildrenFor(bNode)[0])[0].first;
+    auto dNode = (*cache.getChildrenFor(cNode)[0])[0].first;
+    auto eNode = (*cache.getChildrenFor(dNode)[0])[0].first;
+    // eNode == draw outcome 3 times in a row
+
+    auto pubState = cache.getPublicStateFor(eNode);
+    cout << cache.getNodesFor(pubState).size() << " ";
+    BOOST_CHECK(cache.getNodesFor(pubState).size() == 24); // 3! * 4
+
+    auto expectedInfosets = cache.getInfosetsFor(pubState, Player(0));
+    cout << expectedInfosets.size() << " ";
+    BOOST_CHECK(expectedInfosets.size() == 12);
+
+    expectedInfosets = cache.getInfosetsFor(pubState, Player(1));
+    cout << expectedInfosets.size() << " ";
+    BOOST_CHECK(expectedInfosets.size() == 12);
+
+    const vector<shared_ptr<Observation>> obsHistory = pubState->getPublicHistory();
+    const vector<shared_ptr<GoofSpielObservation>> goofObsHistory = Cast<Observation, GoofSpielObservation>(obsHistory);
+    for(const auto& obs : goofObsHistory) {
+        BOOST_CHECK(obs->roundResult_ == GoofspielRoundOutcome::PL0_DRAW);
+    }
+}
+
+
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace GTLib2

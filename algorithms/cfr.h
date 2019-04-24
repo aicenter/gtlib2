@@ -23,17 +23,17 @@
 #ifndef ALGORITHMS_CFR_H_
 #define ALGORITHMS_CFR_H_
 
+#include "base/base.h"
+
 #include <vector>
 #include <array>
 #include <utility>
 
 #include "base/algorithm.h"
 #include "base/efg.h"
-#include "base/base.h"
 #include "base/cache.h"
 
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 
 enum AccumulatorWeighting { UniformAccWeighting, LinearAccWeighting };
 
@@ -64,10 +64,8 @@ struct CFRSettings {
 class CFRData: public InfosetCache {
 
  public:
-    inline explicit CFRData(const OutcomeDistribution &rootProbDist, CFRUpdating updatingPolicy) :
-        InfosetCache(rootProbDist), updatingPolicy_(updatingPolicy) {}
-    inline explicit CFRData(const EFGNodesDistribution &rootNodes, CFRUpdating updatingPolicy) :
-        InfosetCache(rootNodes), updatingPolicy_(updatingPolicy) {}
+    inline explicit CFRData(const Domain &domain, CFRUpdating updatingPolicy) :
+        InfosetCache(domain), updatingPolicy_(updatingPolicy) {}
 
     struct InfosetData {
         vector<double> regrets;
@@ -95,9 +93,7 @@ class CFRData: public InfosetCache {
     unordered_map<shared_ptr<AOH>, InfosetData> infosetData;
 
  protected:
-    void createNode(const shared_ptr<EFGNode> &node) override {
-        InfosetCache::createNode(node);
-
+    void createCFRInfosetData(const shared_ptr<EFGNode> &node) {
         if (node->isTerminal()) return;
 
         auto infoSet = node->getAOHInfSet();
@@ -105,7 +101,12 @@ class CFRData: public InfosetCache {
             infosetData.emplace(make_pair(
                 infoSet, CFRData::InfosetData(node->countAvailableActions(), updatingPolicy_)));
         }
+    }
 
+    void processNode(const shared_ptr<EFGNode> &node) override {
+        EFGCache::createNode(node);
+        InfosetCache::createAugInfosets(node);
+        createCFRInfosetData(node);
     }
 
     CFRUpdating updatingPolicy_ = HistoriesUpdating;
@@ -182,7 +183,6 @@ ExpectedUtility calcExpectedUtility(CFRData &cache,
                                     const shared_ptr<EFGNode> &node,
                                     Player pl);
 
-}  // namespace algorithms
 }  // namespace GTLib2
 
 #endif  // ALGORITHMS_CFR_H_

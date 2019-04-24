@@ -19,10 +19,10 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "base/base.h"
 #include "domains/oshiZumo.h"
 
-namespace GTLib2 {
-namespace domains {
+namespace GTLib2::domains {
 
 
 OshiZumoAction::OshiZumoAction(ActionId id, int bid) : Action(id) {
@@ -40,8 +40,8 @@ bool OshiZumoAction::operator==(const Action &that) const {
             && this->id_ == otherAction->id_);
 }
 string OshiZumoAction::toString() const {
-    return  "id: " + std::to_string(id_) +
-            "bid: " + std::to_string(bid_);
+    return  "id: " + to_string (id_) +
+            "bid: " + to_string (bid_);
 }
 
 size_t OshiZumoAction::getHash() const {
@@ -62,11 +62,12 @@ OshiZumoDomain::OshiZumoDomain(int startingCoins, int startingLoc, int minBid, b
     assert(startingLoc >= 0);
     assert(minBid >= 0);
 
+    maxUtility_ = startingCoins == 1 ? 0.0 : 1.0;
     auto rootState = make_shared<OshiZumoState>(this, startingLoc, startingCoins);
     vector<shared_ptr<Observation>> observations{make_shared<OshiZumoObservation>(NO_OBSERVATION),
                                                  make_shared<OshiZumoObservation>(NO_OBSERVATION)};
     vector<double> rewards{0.0, 0.0};
-    Outcome outcome(rootState, observations, rewards);
+    Outcome outcome(rootState, observations, shared_ptr<Observation>(), rewards);
 
     rootStatesDistribution_.emplace_back(outcome, 1.0);
 }
@@ -74,10 +75,10 @@ OshiZumoDomain::OshiZumoDomain(int startingCoins, int startingLoc, int minBid, b
 
 string OshiZumoDomain::getInfo() const {
     return "Oshi Zumo"
-           "\nStarting coins_: " + std::to_string(startingCoins_) +
-           "\nStartingLocation: " + std::to_string(startingLocation_) +
-           "\nMinimum bid: " + std::to_string(minBid_) +
-           "\nMax depth: " + std::to_string(maxDepth_) + '\n';
+           "\nStarting coins_: " + to_string (startingCoins_) +
+           "\nStartingLocation: " + to_string (startingLocation_) +
+           "\nMinimum bid: " + to_string (minBid_) +
+           "\nMax depth: " + to_string (maxDepth_) + '\n';
 }
 
 
@@ -163,7 +164,7 @@ OutcomeDistribution OshiZumoState::performActions(const vector<PlayerAction> &ac
             rewards[1] = -1;
         }
     }
-    Outcome outcome(newState, observations, rewards);
+    Outcome outcome(newState, observations, shared_ptr<Observation>(), rewards);
     OutcomeDistribution distribution;
     distribution.emplace_back(outcome, 1.0);
 
@@ -217,7 +218,6 @@ size_t OshiZumoState::getHash() const {
 OshiZumoObservation::OshiZumoObservation(int opponentBid) :
         Observation(opponentBid), opponentBid_(opponentBid) {}
 
-} // namespace domains
 } // namespace GTLib2
 
 

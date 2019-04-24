@@ -19,8 +19,10 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include "LPsolvers/GurobiLPSolver.h"
+namespace GTLib2::algorithms {
+
 
 GurobiLPSolver::GurobiLPSolver(): env_(GRBEnv()), model_(GRBModel(env_)) {}
 
@@ -45,7 +47,7 @@ double GurobiLPSolver::SolveGame() {
 
   if (optimstatus != GRB_OPTIMAL && optimstatus != GRB_SUBOPTIMAL &&
       optimstatus != GRB_USER_OBJ_LIMIT) {
-    std::cout << "Failed to optimize LP\n";
+    cout << "Failed to optimize LP\n";
     throw(-1);
   }
   return model_.get(GRB_DoubleAttr_ObjVal);
@@ -122,4 +124,6 @@ void GurobiLPSolver::AddCols(int rows, const vector<vector<double>> &utility_for
     }
   }
   delete[](new_x);
+}
+
 }

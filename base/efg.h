@@ -25,26 +25,14 @@
 #ifndef BASE_EFG_H_
 #define BASE_EFG_H_
 
-#include <experimental/optional>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
-#include <utility>
-#include <string>
-#include <functional>
-
 #include "base/base.h"
 #include "base/hashing.h"
-
-using std::unordered_map;
-using std::unordered_set;
-using std::experimental::nullopt;
-using std::experimental::optional;
 
 
 namespace GTLib2 {
 
 class EFGNode;
+class EFGPublicState;
 
 /**
  * The chance probability of an EFGNode after performing some action,
@@ -98,7 +86,8 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
      * Constructor for the new round node
      */
     EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,
-            const vector<shared_ptr<Observation>> &observations,
+            const vector<shared_ptr<Observation>> &privateObservations,
+            const shared_ptr<Observation> &publicObservation,
             const vector<double> &rewards,
             double natureProbability, shared_ptr<Action> incomingAction, int depth);
 
@@ -139,6 +128,12 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
      * when the requested player is acting in this node.
      */
     shared_ptr<AOH> getAOHAugInfSet(Player player) const;
+
+
+    /**
+     * Gets the public state of the node based on public observation history.
+     */
+    shared_ptr<EFGPublicState> getPublicState() const;
 
     /**
      * Check if the node is in the given information set.
@@ -185,12 +180,12 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
     /**
      * Get the depth in the sense of State depth
      */
-    int getDepth() const;
+    int getStateDepth() const;
 
     /**
      * Get the depth in the sense of EFG depth
      */
-    int getDistanceFromRoot() const;
+    int getEFGDepth() const;
 
     ObservationId getLastObservationIdOfCurrentPlayer() const;
 
@@ -219,6 +214,10 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
 
     bool operator==(const EFGNode &rhs) const;
 
+    inline const vector<uint32_t>& getDescriptor() const {
+        return descriptor_;
+    }
+
  private:
     vector<ActionObservation> getAOH(Player player) const;
     bool compareAOH(const EFGNode &rhs) const;
@@ -226,7 +225,8 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
     void generateDescriptor() const;
     void generateHash() const;
 
-    vector<shared_ptr<Observation>> observations_;
+    vector<shared_ptr<Observation>> privateObservations_;
+    shared_ptr<Observation> publicObservation_;
     vector<PlayerAction> performedActionsInThisRound_;
     vector<Player> remainingPlayersInTheRound_;
     // todo: const for member variables and constructors?
@@ -234,30 +234,58 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
     shared_ptr<EFGNode const> parent_;
     shared_ptr<Action> incomingAction_;  // Action performed in the parent node.
     optional<Player> currentPlayer_ = nullopt;
-    int depth_;
+    int stateDepth_;
 
     mutable HashType hashNode_ = 0;
-    mutable std::vector<uint32_t> descriptor_;
+    mutable vector<uint32_t> descriptor_;
 };
+
+class EFGPublicState {
+ public:
+    EFGPublicState(const shared_ptr<Observation> &publicObservation);
+    EFGPublicState(const shared_ptr<EFGPublicState>& parent, const shared_ptr<Observation> &publicObservation);
+
+    inline const vector<shared_ptr<Observation>>& getPublicHistory() const {
+        return publicObsHistory_;
+    }
+    inline HashType getHash() const {
+        return hashNode_;
+    };
+    bool operator==(const EFGPublicState &rhs) const;
+
+    inline const vector<uint32_t>& getDescriptor() const {
+        return descriptor_;
+    }
+
+ private:
+    vector<shared_ptr<Observation>> publicObsHistory_;
+    mutable HashType hashNode_ = 0;
+    mutable vector<uint32_t> descriptor_;
+
+    void generateDescriptor() const;
+    void generateHash() const;
+
+};
+
 };  // namespace GTLib2
 
-namespace std { // NOLINT(cert-dcl58-cpp)
 
 using GTLib2::EFGNode;
+using GTLib2::EFGPublicState;
 
+namespace std { // NOLINT(cert-dcl58-cpp)
 template<>
-struct hash<shared_ptr<EFGNode>> {
-    size_t operator()(const shared_ptr<EFGNode> &p) const {
-        return p->getHash();
-    }
+struct hash<shared_ptr < EFGNode>> {
+size_t operator()(const shared_ptr <EFGNode> &p) const {
+    return p->getHash();
+}
 };
 
 template<>
-struct equal_to<shared_ptr<EFGNode>> {
-    bool operator()(const shared_ptr<EFGNode> &a,
-                    const shared_ptr<EFGNode> &b) const {
-        return *a == *b;
-    }
+struct equal_to<shared_ptr < EFGNode>> {
+bool operator()(const shared_ptr <EFGNode> &a, const shared_ptr <EFGNode> &b) const {
+    return *a == *b;
+}
 };
 
 template<>
@@ -269,8 +297,35 @@ struct hash<EFGNode *> {
 
 template<>
 struct equal_to<EFGNode *> {
-    bool operator()(const EFGNode *a,
-                    const EFGNode *b) const {
+    bool operator()(const EFGNode *a, const EFGNode *b) const {
+        return *a == *b;
+    }
+};
+
+template<>
+struct hash<shared_ptr<EFGPublicState>> {
+size_t operator()(const shared_ptr <EFGPublicState> &p) const {
+    return p->getHash();
+}
+};
+
+template<>
+struct equal_to<shared_ptr < EFGPublicState>> {
+bool operator()(const shared_ptr <EFGPublicState> &a, const shared_ptr <EFGPublicState> &b) const {
+    return *a == *b;
+}
+};
+
+template<>
+struct hash<EFGPublicState *> {
+    size_t operator()(const EFGPublicState *p) const {
+        return p->getHash();
+    }
+};
+
+template<>
+struct equal_to<EFGPublicState *> {
+    bool operator()(const EFGPublicState *a, const EFGPublicState *b) const {
         return *a == *b;
     }
 };

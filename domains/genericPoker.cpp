@@ -19,15 +19,11 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include "domains/genericPoker.h"
-#include "genericPoker.h"
 
-#include <iterator>
-#include <algorithm>
 
-namespace GTLib2 {
-namespace domains {
+namespace GTLib2::domains {
 GenericPokerAction::GenericPokerAction(ActionId id, int type, int value) :
     Action(id), type_(type), value_(value) {}
 
@@ -97,7 +93,8 @@ GenericPokerDomain::GenericPokerDomain(unsigned int maxCardTypes, unsigned int m
           make_shared<GenericPokerObservation>(3 + p1card, PlayCard, p1card),
           make_shared<GenericPokerObservation>(3 + p2card, PlayCard, p2card)
       };
-      Outcome outcome(newState, newObservations, rewards);
+      shared_ptr<Observation> publicObservation = make_shared<GenericPokerObservation>(3 + p1card, PlayCard, p1card);
+      Outcome outcome(newState, newObservations, publicObservation, rewards);
 
       rootStatesDistribution_.emplace_back(move(outcome), prob);
     }
@@ -184,8 +181,7 @@ vector<shared_ptr<Action>> GenericPokerState::getAvailableActionsFor(Player play
   return list;
 }
 
-OutcomeDistribution
-GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
+OutcomeDistribution GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
   const auto pokerDomain = static_cast<GenericPokerDomain *>(domain_);
   const auto a1 = dynamic_pointer_cast<GenericPokerAction>(actions[0].second);
   const auto a2 = dynamic_pointer_cast<GenericPokerAction>(actions[1].second);
@@ -284,9 +280,12 @@ GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
                                                   new_round + 1,
                                                   newLastAction,
                                                   0);
-        Outcome outcome(newState, vector<shared_ptr<Observation>>
-            {make_shared<GenericPokerObservation>(3 + i, PlayCard, i),
-             make_shared<GenericPokerObservation>(3 + i, PlayCard, i)}, vector<double>(2));
+        Outcome outcome(newState,
+                        vector<shared_ptr<Observation>>
+                            {make_shared<GenericPokerObservation>(3 + i, PlayCard, i),
+                             make_shared<GenericPokerObservation>(3 + i, PlayCard, i)},
+                        shared_ptr<Observation>(),
+                        vector<double>(2));
         newOutcomes.emplace_back(move(outcome), prob);
       }
       return newOutcomes;
@@ -399,9 +398,12 @@ GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
                                                   new_round + 1,
                                                   newLastAction,
                                                   0);
-        Outcome outcome(newState, vector<shared_ptr<Observation>>
-            {make_shared<GenericPokerObservation>(3 + i, PlayCard, i),
-             make_shared<GenericPokerObservation>(3 + i, PlayCard, i)}, vector<double>(2));
+        Outcome outcome(newState,
+                        vector<shared_ptr<Observation>>
+                            {make_shared<GenericPokerObservation>(3 + i, PlayCard, i),
+                             make_shared<GenericPokerObservation>(3 + i, PlayCard, i)},
+                        shared_ptr<Observation>(),
+                        vector<double>(2));
         newOutcomes.emplace_back(move(outcome), prob);
       }
       return newOutcomes;
@@ -429,7 +431,7 @@ GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
     int result = hasPlayerOneWon(newLastAction, a1 ? -1 : 1);
     rewards = vector<double>{result*newFirstPlayerReward, -result*newFirstPlayerReward};
   }
-  Outcome outcome(newState, move(observations), rewards);
+  Outcome outcome(newState, move(observations), shared_ptr<Observation>(), rewards);
   newOutcomes.emplace_back(move(outcome), 1.0);
 
   return newOutcomes;
@@ -511,5 +513,4 @@ int GenericPokerState::hasPlayerOneWon(
     return -1;
   }
 }
-}  // namespace domains
 }  // namespace GTLib2

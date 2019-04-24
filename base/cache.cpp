@@ -19,21 +19,13 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include "cache.h"
+
 #include "algorithms/tree.h"
-#include "algorithms/common.h"
 
 
 namespace GTLib2 {
-
-EFGCache::EFGCache(const GTLib2::EFGNodesDistribution &rootNodesDist) {
-    rootNodes_ = rootNodesDist;
-}
-
-EFGCache::EFGCache(const OutcomeDistribution &rootProbDist)
-    : EFGCache(algorithms::createRootEFGNodes(rootProbDist)) {
-}
 
 bool EFGCache::hasChildren(const shared_ptr<EFGNode> &node) const {
     auto it = nodesChildren_.find(node);
@@ -67,13 +59,9 @@ EFGActionNodesDistribution &EFGCache::getCachedNode(const shared_ptr<EFGNode> &n
     // for a node gotten outside from cache?
     if (maybeNode == nodesChildren_.end()) {
 
-        // rootNodes cannot be initialized in constructor,
-        // because createNode is a virtual function that can be overriden in child classes
-        // https://www.artima.com/cppsource/nevercall.html
-
-        for (auto &rootNode : rootNodes_) {
-            if (rootNode.first == node) {
-                createNode(rootNode.first);
+        for (auto &rootNode : getRootNodes()) {
+            if (*rootNode.first == *node) {
+                processNode(rootNode.first);
                 // createNode must append to nodesChildren
                 return nodesChildren_[node];
             }
@@ -103,7 +91,7 @@ EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Actio
     cachedNodeDist[actionId] = make_shared<EFGNodesDistribution>(newDist);
 
     for (auto &[childNode, _]: newDist) {
-        this->createNode(childNode);
+        this->processNode(childNode);
     }
 
     // retrieve from map directly to return a reference,
@@ -135,7 +123,7 @@ const EFGActionNodesDistribution &EFGCache::getChildrenFor(const shared_ptr<EFGN
         cachedNodeDist[i] = make_shared<EFGNodesDistribution>(newDist);
 
         for (auto &[childNode, _]: newDist) {
-            this->createNode(childNode);
+            this->processNode(childNode);
         }
     }
 
@@ -149,6 +137,10 @@ vector<shared_ptr<EFGNode>> EFGCache::getNodes() const {
     return keys;
 }
 
+void EFGCache::processNode(const shared_ptr<EFGNode> &node) {
+    createNode(node);
+}
+
 void EFGCache::createNode(const shared_ptr<EFGNode> &node) {
     nodesChildren_.emplace(
         node, EFGActionNodesDistribution(node->countAvailableActions(), nullptr));
@@ -159,16 +151,16 @@ void EFGCache::buildForest(int maxDepth) {
 }
 
 void EFGCache::buildForest() {
-    buildForest(INT_MAX);
+    buildForest(domain_.getMaxDepth());
     builtForest_ = true;
 }
 
-void InfosetCache::createNode(const shared_ptr<GTLib2::EFGNode> &node) {
+void InfosetCache::processNode(const shared_ptr<GTLib2::EFGNode> &node) {
     EFGCache::createNode(node);
-    updateAugInfosets(node);
+    createAugInfosets(node);
 }
 
-void InfosetCache::updateAugInfosets(const shared_ptr<EFGNode> &node) {
+void InfosetCache::createAugInfosets(const shared_ptr<EFGNode> &node) {
     vector<shared_ptr<AOH>> infosets;
 
     for (Player pl = 0; pl < GAME_MAX_PLAYERS; pl++) {
@@ -188,6 +180,36 @@ void InfosetCache::updateAugInfosets(const shared_ptr<EFGNode> &node) {
     }
     assert (infosets.size() == GAME_MAX_PLAYERS);
     node2infosets_.emplace(node, infosets);
+}
+
+void PublicStateCache::processNode(const shared_ptr<GTLib2::EFGNode> &node) {
+    EFGCache::createNode(node);
+    createPublicState(node);
+}
+
+void PublicStateCache::createPublicState(const shared_ptr<EFGNode> &node) {
+    auto pubState = node->getPublicState();
+    auto infoset0 = node->getAOHAugInfSet(Player(0));
+    auto infoset1 = node->getAOHAugInfSet(Player(1));
+
+    node2publicState_.emplace(node, pubState);
+    infoset2publicState_.emplace(infoset0, pubState);
+    infoset2publicState_.emplace(infoset1, pubState);
+
+    auto maybePubStateNode = publicState2nodes_.find(pubState);
+    if (maybePubStateNode == publicState2nodes_.end()) {
+        publicState2nodes_.emplace(pubState, unordered_set<shared_ptr<EFGNode>>{node});
+    } else {
+        maybePubStateNode->second.emplace(node);
+    }
+
+    auto maybePubStateInfo = publicState2infosets_.find(pubState);
+    if (maybePubStateInfo == publicState2infosets_.end()) {
+        publicState2infosets_.emplace(pubState, unordered_set<shared_ptr<AOH>>{infoset0, infoset1});
+    } else {
+        maybePubStateInfo->second.emplace(infoset0);
+        maybePubStateInfo->second.emplace(infoset1);
+    }
 }
 
 } // namespace GTLib2

@@ -19,7 +19,7 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include "algorithms/bestResponse.h"
 #include "algorithms/common.h"
 #include "algorithms/equilibrium.h"
@@ -35,28 +35,25 @@
 #include <algorithms/strategy.h>
 
 
-namespace GTLib2 {
+namespace GTLib2::algorithms {
 
 using domains::MatchingPenniesDomain;
+using domains::MatchingPenniesVariant::SimultaneousMoves;
+using domains::MatchingPenniesVariant::AlternatingMoves;
 using domains::MatchingPenniesAction;
-using domains::SimultaneousMatchingPenniesDomain;
 using domains::Heads;
 using domains::Tails;
-using algorithms::DomainStatistics;
-using algorithms::playOnlyAction;
 using domains::GoofSpielDomain;
+using domains::GoofSpielVariant::IncompleteObservations;
+using domains::GoofSpielVariant::CompleteObservations;
 using domains::GoofSpielAction;
-using algorithms::DomainStatistics;
-using algorithms::treeWalkEFG;
-using algorithms::getUniformStrategy;
-using algorithms::playOnlyAction;
-using std::unordered_set;
 
-BOOST_AUTO_TEST_SUITE(BestResponseTests)
+BOOST_AUTO_TEST_SUITE(AlgorithmsTests)
+BOOST_AUTO_TEST_SUITE(BestResponse)
 
 
 BOOST_AUTO_TEST_CASE(testSmallDomain) {
-    MatchingPenniesDomain domain;
+    MatchingPenniesDomain domain(AlternatingMoves);
 
     auto initNodes = algorithms::createRootEFGNodes(domain.getRootStatesDistribution());
     auto tailAction = make_shared<MatchingPenniesAction>(Tails);
@@ -79,12 +76,13 @@ BOOST_AUTO_TEST_CASE(testSmallDomain) {
 }
 
 BOOST_AUTO_TEST_CASE(bestResponseFullDepthCard4) {
-    GoofSpielDomain domain(4, 4, nullopt);
+    GoofSpielDomain domain
+        ({variant:  CompleteObservations, numCards: 4, fixChanceCards: false, chanceCards: {}});
 
     auto player = Player(1);
     auto opponent = Player(0);
 
-    InfosetCache cache(domain.getRootStatesDistribution());
+    InfosetCache cache(domain);
     StrategyProfile profile = getUniformStrategy(cache);
 
     auto lowestCardAction = make_shared<GoofSpielAction>(0, 1);
@@ -94,13 +92,13 @@ BOOST_AUTO_TEST_CASE(bestResponseFullDepthCard4) {
 
     auto setAction = [&](shared_ptr<EFGNode> node) {
         auto infoset = node->getAOHInfSet();
-        if (node->getDistanceFromRoot() == 0) {
+        if (node->getEFGDepth() == 0) {
             playOnlyAction(profile[opponent][infoset], lowestCardAction);
-        } else if (node->getDistanceFromRoot() == 2) {
+        } else if (node->getEFGDepth() == 2) {
             playOnlyAction(profile[opponent][infoset], secondLowestCardAction);
-        } else if (node->getDistanceFromRoot() == 4) {
+        } else if (node->getEFGDepth() == 4) {
             playOnlyAction(profile[opponent][infoset], thirdLowestCardAction);
-        } else if (node->getDistanceFromRoot() == 6) {
+        } else if (node->getEFGDepth() == 6) {
             playOnlyAction(profile[opponent][infoset], fourthLowestCardAction);
         }
     };
@@ -112,12 +110,13 @@ BOOST_AUTO_TEST_CASE(bestResponseFullDepthCard4) {
 }
 
 BOOST_AUTO_TEST_CASE(bestResponseDepth2Card4) {
-    GoofSpielDomain domain(4, 2, nullopt);
+    GoofSpielDomain domain
+        ({variant:  CompleteObservations, numCards: 4, fixChanceCards: false, chanceCards: {}});
 
     auto player = Player(1);
     auto opponent = Player(0);
 
-    InfosetCache cache(domain.getRootStatesDistribution());
+    InfosetCache cache(domain);
     StrategyProfile profile = getUniformStrategy(cache);
 
     auto lowestCardAction = make_shared<GoofSpielAction>(0, 1);
@@ -125,9 +124,9 @@ BOOST_AUTO_TEST_CASE(bestResponseDepth2Card4) {
 
     auto setAction = [&](shared_ptr<EFGNode> node) {
         auto infoset = node->getAOHInfSet();
-        if (node->getDistanceFromRoot() == 0) {
+        if (node->getEFGDepth() == 0) {
             playOnlyAction(profile[opponent][infoset], lowestCardAction);
-        } else if (node->getDistanceFromRoot() == 2) {
+        } else if (node->getEFGDepth() == 2) {
             playOnlyAction(profile[opponent][infoset], secondLowestCardAction);
         }
     };
@@ -139,29 +138,31 @@ BOOST_AUTO_TEST_CASE(bestResponseDepth2Card4) {
 }
 
 BOOST_AUTO_TEST_CASE(bestResponseDepth1Card13) {
-    GoofSpielDomain domain(1, nullopt);
+    GoofSpielDomain domain
+        ({variant:  CompleteObservations, numCards: 13, fixChanceCards: false, chanceCards: {}});
 
     auto player = Player(1);
     auto opponent = Player(0);
 
-    InfosetCache cache(domain.getRootStatesDistribution());
+    InfosetCache cache(domain);
     StrategyProfile profile = getUniformStrategy(cache, 1);
 
     auto lowestCardAction = make_shared<GoofSpielAction>(0, 1);
 
     auto setAction = [&](shared_ptr<EFGNode> node) {
         auto infoset = node->getAOHInfSet();
-        if (node->getDistanceFromRoot() == 0) {
+        if (node->getEFGDepth() == 0) {
             playOnlyAction(profile[opponent][infoset], lowestCardAction);
         }
     };
-    algorithms::treeWalkEFG(domain, setAction);
+    algorithms::treeWalkEFG(domain, setAction, 1);
 
-    auto bestResponse = algorithms::bestResponseTo(profile[opponent], opponent, player, domain);
+    auto bestResponse = algorithms::bestResponseTo(profile[opponent], opponent, player, domain, 1);
 
     BOOST_CHECK(std::abs(bestResponse.second - 7) <= 0.001);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace GTLib2

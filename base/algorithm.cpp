@@ -19,18 +19,21 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
 #include "algorithm.h"
 
-#include <iostream>
 #include <chrono>
-#include <algorithms/common.h>
+
+#include "algorithms/common.h"
 #include "base/random.h"
 
-using namespace std::chrono;
-using GTLib2::algorithms::createRootEFGNodes;
-
 namespace GTLib2 {
+
+using algorithms::createRootEFGNodes;
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::microseconds;
+
 
 bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
                          const optional<shared_ptr<AOH>> &currentInfoset,
@@ -43,7 +46,7 @@ bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
         auto duration = duration_cast<microseconds>(t2 - t1).count();
         budgetUs -= duration;
     }
-    if (budgetUs < -100) std::cerr << "Budget missed by " << budgetUs << " us\n";
+    if (budgetUs < -100) cerr << "Budget missed by " << budgetUs << " us\n";
 
     return continuePlay;
 }
@@ -51,7 +54,7 @@ bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
 
 FixedActionPlayer::FixedActionPlayer(const Domain &domain, Player playingPlayer, int actionIdx)
     : GamePlayingAlgorithm(domain, playingPlayer),
-      cache_(InfosetCache(domain_.getRootStatesDistribution())),
+      cache_(InfosetCache(domain_)),
       actionIdx_(actionIdx) {}
 
 bool FixedActionPlayer::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
@@ -117,7 +120,7 @@ vector<double> playMatch(const Domain &domain,
         assert(probs.size() == actions.size());
         double sumProbs = 0.0;
         for (double prob : probs) sumProbs += prob;
-        assert(fabs(1.0-sumProbs) < 1e-9);
+        assert(fabs(1.0 - sumProbs) < 1e-9);
 
         int playerAction = pickRandom(probs, uniformDist, generator);
         nodesDist = node->performAction(actions[playerAction]);

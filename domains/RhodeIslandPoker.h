@@ -23,21 +23,17 @@
 #ifndef DOMAINS_RHODEISLANDPOKER_H_
 #define DOMAINS_RHODEISLANDPOKER_H_
 
-#include <experimental/optional>
+#include "base/base.h"
 #include <utility>
 #include <string>
 #include <vector>
-#include "base/base.h"
 #include "domains/genericPoker.h"
 
-using std::experimental::nullopt;
-using std::experimental::optional;
 
 
 // TODO: first version -> needs a check
 
-namespace GTLib2 {
-namespace domains {
+namespace GTLib2::domains {
 /**
  * RhodeIslandAction is a class that represents Rhode Island Poker actions,
  * which are identified by their id and contain card number or move.
@@ -242,7 +238,6 @@ class RhodeIslandPokerDomain : public Domain {
   const unsigned int ante_;
   const int TERMINAL_ROUND = 6;
 };
-}  // namespace domains
 }  // namespace GTLib2
 
 #endif  // DOMAINS_RHODEISLANDPOKER_H_

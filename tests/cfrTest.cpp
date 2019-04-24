@@ -19,31 +19,33 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "base/base.h"
+#include "algorithms/bestResponse.h"
 #include "algorithms/cfr.h"
 #include "algorithms/strategy.h"
+#include "algorithms/tree.h"
+#include "algorithms/utility.h"
+#include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"
 #include "tests/domainsTest.h"
 #include <boost/test/unit_test.hpp>
-#include <algorithms/utility.h>
-#include "algorithms/tree.h"
-#include "domains/goofSpiel.h"
-#include "algorithms/bestResponse.h"
 
 
-namespace GTLib2 {
-namespace algorithms {
+namespace GTLib2::algorithms {
 
 using domains::MatchingPenniesDomain;
 using domains::MatchingPenniesAction;
-using algorithms::CFRData;
-using algorithms::bestResponseTo;
+using domains::MatchingPenniesVariant::SimultaneousMoves;
+using domains::MatchingPenniesVariant::AlternatingMoves;
+using domains::GoofSpielDomain;
+using domains::GoofSpielVariant::IncompleteObservations;
+using domains::GoofSpielVariant::CompleteObservations;
 
-
-BOOST_AUTO_TEST_SUITE(CFRTest)
+BOOST_AUTO_TEST_SUITE(AlgorithmsTests)
+BOOST_AUTO_TEST_SUITE(CFR)
 
 BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomain) {
-    MatchingPenniesDomain domain;
+    MatchingPenniesDomain domain(AlternatingMoves);
     CFRAlgorithm cfr(domain, Player(0), CFRSettings());
     auto &data = cfr.getCache();
     data.buildForest();
@@ -57,8 +59,8 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomain) {
     BOOST_CHECK(!childData.fixRMStrategy);
     BOOST_CHECK(!rootData.fixAvgStrategy);
     BOOST_CHECK(!childData.fixAvgStrategy);
-    BOOST_CHECK(rootData.regretUpdates.size() == 0);
-    BOOST_CHECK(childData.regretUpdates.size() == 0);
+    BOOST_CHECK(rootData.regretUpdates.empty());
+    BOOST_CHECK(childData.regretUpdates.empty());
 
     // ------ iteration player 0 ------
     double cfvInfoset = cfr.runIteration(rootNode, std::array<double, 3>{1., 1., 1.}, Player(0));
@@ -92,7 +94,7 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomain) {
 
 
 BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomainForInfosetUpdatingCFR) {
-    MatchingPenniesDomain domain;
+    MatchingPenniesDomain domain(AlternatingMoves);
     auto settings = CFRSettings();
     settings.cfrUpdating = InfosetsUpdating;
     CFRAlgorithm cfr(domain, Player(0), settings);
@@ -172,7 +174,7 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomainForInfosetUpdatingCFR) {
 
 
 BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomainFixStrategy) {
-    MatchingPenniesDomain domain;
+    MatchingPenniesDomain domain(AlternatingMoves);
     auto settings = CFRSettings();
     settings.cfrUpdating = InfosetsUpdating;
     CFRAlgorithm cfr(domain, Player(0), settings);
@@ -249,8 +251,8 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomainFixStrategy) {
 
 
 BOOST_AUTO_TEST_CASE(CalcUtilities) {
-    MatchingPenniesDomain domain;
-    CFRData data(domain.getRootStatesDistribution(), InfosetsUpdating);
+    MatchingPenniesDomain domain(AlternatingMoves);
+    CFRData data(domain, InfosetsUpdating);
     data.buildForest();
 
     auto rootNode = data.getRootNodes()[0].first;
@@ -279,7 +281,8 @@ BOOST_AUTO_TEST_CASE(CalcUtilities) {
 
 
 BOOST_AUTO_TEST_CASE(CheckConvergenceInSmallDomain) {
-    domains::IIGoofSpielDomain domain(3, 3, nullopt);
+    GoofSpielDomain domain
+        ({variant: IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
     CFRAlgorithm cfr(domain, Player(0), CFRSettings());
     auto &data = cfr.getCache();
 
@@ -312,6 +315,6 @@ BOOST_AUTO_TEST_CASE(CheckConvergenceInSmallDomain) {
 
 
 BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
 
-}
 }  // namespace GTLib2

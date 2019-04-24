@@ -3,9 +3,15 @@ project(GTLib2)
 
 # Custom user-specified build configuration goes here
 # Default is saved in "example_BuildConfiguration.txt"
-# Before build you can just call
-# $ cp example_BuildConfiguration.txt BuildConfiguration.txt
-include(BuildConfiguration.txt)
+set(BUILD_CONFIG_FILE "${CMAKE_CURRENT_SOURCE_DIR}/BuildConfiguration.txt")
+
+if(NOT EXISTS ${BUILD_CONFIG_FILE})
+    message(FATAL_ERROR "Local build configuration was not found in '${BUILD_CONFIG_FILE}'. Please follow build instructions in README.md")
+else()
+    message("Using configuration ${BUILD_CONFIG_FILE}")
+endif()
+
+include(${BUILD_CONFIG_FILE})
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
@@ -15,7 +21,7 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif ()
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS_RELEASE "-m64 -msse2 -O3 -ffast-math")
+set(CMAKE_CXX_FLAGS_RELEASE "-m64 -msse2 -O3 -ffast-math -DNDEBUG")
 
 # link pthread library
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
@@ -43,8 +49,13 @@ if (USE_CPLEX)
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/modules")
     find_package(CPLEX)
 
+    if (NOT CPLEX_FOUND)
+        message(FATAL_ERROR "CPLEX was not found, try editing BuildConfiguration.txt")
+    endif()
+
     # if found link libraries and add all .h and .cpp files
     if (CPLEX_FOUND)
+        message("CPLEX was found ${CPLEX_INCLUDE_DIR} and ${CPLEX_LIBRARY}")
         add_definitions(-DCPLEXFOUND=1)
         include_directories(${CPLEX_INCLUDE_DIR})
         link_libraries(${CPLEX_LIBRARY})
@@ -64,14 +75,21 @@ if (USE_GLPK)
             ${GLPK_DIR}/include
             NO_DEFAULT_PATH
             )
+    if (NOT GLPK_INCLUDE_DIR)
+        message(WARNING "GLPK_INCLUDE_DIR was not found, looking in '${GLPK_DIR}'")
+    endif()
 
     find_path(GLPK_LIBRARY NAMES libglpk.a PATHS
             ${GLPK_DIR}/basics/glpk/lib
             ${GLPK_DIR}/lib
             NO_DEFAULT_PATH
             )
+    if (NOT GLPK_LIBRARY)
+        message(WARNING "GLPK_LIBRARY was not found, looking in '${GLPK_DIR}'")
+    endif()
 
     if (GLPK_INCLUDE_DIR AND GLPK_LIBRARY)
+        message("GLPK was found ${GLPK_INCLUDE_DIR} and ${GLPK_LIBRARY}")
         add_definitions(-DGLPKFOUND=1)
         include_directories(${GLPK_INCLUDE_DIR})
         link_libraries(${GLPK_LIBRARY})
@@ -80,6 +98,8 @@ if (USE_GLPK)
                 "LPsolvers/GlpkLPSolver.cpp"
                 )
         set(GLPKLIB glpk)
+    else()
+        message(FATAL_ERROR "GLPK was not found, try editing BuildConfiguration.txt")
     endif ()
 endif ()
 
@@ -89,22 +109,37 @@ if (USE_GUROBI)
             ${GUROBI_DIR}/include
             NO_DEFAULT_PATH
             )
+    if (NOT GUROBI_INCLUDE_DIR)
+        message(WARNING "GUROBI_INCLUDE_DIR was not found, looking in '${GUROBI_DIR}'")
+    endif()
 
-    find_PATH(GUROBI_LIBRARY NAMES gurobi80 PATHS
+    find_path(GUROBI_LIBRARY NAMES libgurobi_c++.a PATHS
             ${GUROBI_DIR}/lib
             NO_DEFAULT_PATH
             )
+    if (NOT GUROBI_LIBRARY)
+        message(WARNING "GUROBI_LIBRARY was not found, looking in '${GUROBI_DIR}'")
+    endif()
+
 
     if (GUROBI_INCLUDE_DIR AND GUROBI_LIBRARY)
+        message("GUROBI was found ${GUROBI_INCLUDE_DIR} and ${GUROBI_LIBRARY}")
         add_definitions(-DGUROBIFOUND=1)
         include_directories(${GUROBI_INCLUDE_DIR})
+        link_libraries(${GUROBI_LIBRARY})
         file(GLOB GUROBI_FILES
                 "LPsolvers/GurobiLPSolver.h"
                 "LPsolvers/GurobiLPSolver.cpp"
                 )
-        set(GUROBILIB "-L${GUROBI_LIBRARY} -lgurobi_c++ -lgurobi80")
+        set(GUROBILIB "-L${GUROBI_LIBRARY} -lgurobi_c++ -lgurobi81")
+    else()
+        message(FATAL_ERROR "GUROBI was not found, try editing BuildConfiguration.txt")
     endif ()
 endif ()
+
+if(NOT USE_CPLEX AND NOT USE_GUROBI AND NOT USE_GLPK)
+    message("No LP solver is used")
+endif()
 
 # -------------------- Source files --------------------
 
@@ -137,6 +172,7 @@ set(SOURCE_FILES
         base/cache.cpp base/cache.h
         base/efg.h base/efg.cpp
         base/hashing.h base/hashing.cpp
+        base/includes.h
         base/random.h base/random.cpp
         # domains
         domains/chessboard_factory.h domains/chessboard_factory.cpp
@@ -154,6 +190,7 @@ set(SOURCE_FILES
         # utils
         utils/utils.h
         utils/functools.h
+        utils/export.cpp utils/export.h
         )
 
 set(TEST_FILES
@@ -170,6 +207,7 @@ set(TEST_FILES
         tests/bestResponseTest.cpp
         tests/utilityTest.cpp
         tests/LPTest.cpp
+        tests/exportTest.cpp
         )
 
 # -------------------- Executables, linking --------------------
