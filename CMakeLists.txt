@@ -180,6 +180,7 @@ set(SOURCE_FILES
         domains/goofSpiel.h domains/goofSpiel.cpp
         domains/kriegspiel.h domains/kriegspiel.cpp
         domains/matching_pennies.h domains/matching_pennies.cpp
+        domains/liarsDice.h domains/liarsDice.cpp
         domains/phantomTTT.h domains/phantomTTT.cpp
         domains/pursuit.h domains/pursuit.cpp
         domains/RhodeIslandPoker.h domains/RhodeIslandPoker.cpp

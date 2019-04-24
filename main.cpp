@@ -40,7 +40,7 @@ void exampleBenchmarkCFR() {
     domains::GoofSpielDomain domain
         ({variant:  IncompleteObservations, numCards: 5, fixChanceCards: true, chanceCards: {}});
     algorithms::CFRAlgorithm cfr(domain, Player(0), algorithms::CFRSettings());
-    cfr.runIterations(100);
+    cfr.runIterations(1);
 
     auto end = std::chrono::high_resolution_clock::now();
     using ms = std::chrono::duration<int, std::milli>;
@@ -70,7 +70,7 @@ void exampleExportDomain() {
 }
 
 int main(int argc, char *argv[]) {
-//    exampleBenchmarkCFR();
-    exampleExportDomain();
+    exampleBenchmarkCFR();
+    //exampleExportDomain();
     return 0;
 }
