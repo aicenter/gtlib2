@@ -296,7 +296,8 @@ class State {
     virtual vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const = 0;
 
     /**
-     * Performs actions given by player->action map
+     * Performs actions given by vector of  <player, action> and return
+     * new outcome distribution.
      */
     virtual OutcomeDistribution performActions(const vector<PlayerAction> &actions) const = 0;
 

@@ -64,11 +64,12 @@ If you want to change your configuration later, you will have to reset CMake cac
 
 Take a look at `base/` folder, which contains a number of abstract classes which are well documented. 
 
-Game is modeled as a (possibly cyclic) graph whose nodes represent state of the game. The edges or transitions from state to state happen only when the actual game state has changed -- players might play actions, which do not change the state! Additionally, chance is encoded by *stochastic* transitions, i.e. the outcome of player's actions (in general) is not deterministic. 
+Game is modeled as a (possibly cyclic) graph whose nodes represent true state of the game. The edges or transitions from state to state happen only when the actual game state has changed -- players might play actions, which do not change the state! Additionally, chance is encoded by *stochastic* transitions, i.e. the outcome of player's actions (in general) is not deterministic. 
 
 Each edge has an outcome assigned to it: 
 - the new state,
-- vector of observations, and
+- vector of private observations,
+- public observation and
 - rewards for each player.
 
 Extensive form game is built on top of this graph. There are some major differences to classical EFG definition in literature:
