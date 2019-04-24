@@ -28,173 +28,95 @@
 /*
  * Oshi Zumo domain implementation. For game rules go to: http://mlanctot.info/files/papers/aij-2psimmove.pdf, p.43
  */
-namespace GTLib2 {
-    namespace domains {
+namespace GTLib2::domains {
+
+enum OshiZumoVariant { CompleteObservation, IncompleteObservation };
+
+/**
+ * @param startingCoins number of coins each player has at beginning of a game
+ * @param startingLocation starting position of wrestler, if startingLoc = 3, then there is (2*3 + 1) = 7 locations, wrestler is in the middle
+ * @param minBid minimum allowed bid by player per round
+ * @param optimalEndGame allow to simulate end optimal game, if one of the players can only bid 0
+ */
+struct OshiZumoSettings {
+  OshiZumoVariant variant = CompleteObservation;
+  int startingCoins = 3;
+  int startingLocation = 3;
+  int minBid = 1;
+  bool optimalEndGame = true;
+};
 
 class OshiZumoAction : public Action {
-public:
-    explicit OshiZumoAction(ActionId id, int bid);
-    bool operator==(const Action &that) const override;
-    size_t getHash() const override;
+ public:
+  explicit OshiZumoAction(ActionId id, int bid);
+  bool operator==(const Action &that) const override;
+  size_t getHash() const override;
+  string toString() const override;
+  inline int getBid() const {
+    return bid_;
+  }
 
-    string toString() const override;
-
-    inline int getBid() const {
-        return bid_;
-    }
-
-private:
-    int bid_;
+ private:
+  int bid_;
 };
 
 class OshiZumoDomain : public Domain {
-public:
-    /*
-     * @param startingCoins number of coins each player has at beginning of a game
-     * @param startingLoc starting position of wrestler, if startingLoc = 3, then there is (2*3 + 1) = 7 locations, wrestler is in the middle
-     * @param minBid minimum allowed bid by player per round
-     */
-    OshiZumoDomain(int startingCoins, int startingLoc, int minBid);
-    /*
-     * @param startingCoins number of coins each player has at beginning of a game
-     * @param startingLoc starting position of wrestler, if startingLoc = 3, then there is (2*3 + 1) = 7 locations, wrestler is in the middle
-     * @param minBid minimum allowed bid by player per round
-     * @param optimalEndGame allow to simulate end optimal game, if one of the players can only bid 0
-     */
-    OshiZumoDomain(int startingCoins, int startingLoc, int minBod, bool optimalEndGame);
-    string getInfo() const override;
-    inline vector<Player> getPlayers() const final{
-        return {0, 1};
-    }
+ public:
+  explicit OshiZumoDomain(OshiZumoSettings settings);
+  string getInfo() const override;
+  vector<Player> getPlayers() const final;
+  const int getStartingLocation() const;
+  const int getMinBid() const;
+  const bool isOptimalEndGame() const;
+  const OshiZumoVariant getVariant() const;
+  const int getStartingCoins() const;
 
-    inline const int getStartingLocation() const {
-        return startingLocation_;
-    }
-
-    inline const int getMinBid() const {
-        return minBid_;
-    }
-
-    inline const bool isOptimalEndGame() const {
-        return optimalEndGame_;
-    }
-
-
-private:
-    const int startingCoins_;
-    const int startingLocation_;
-    const int minBid_;
-    const bool optimalEndGame_;
+ private:
+  const int startingCoins_;
+  const int startingLocation_;
+  const int minBid_;
+  const bool optimalEndGame_;
+  const OshiZumoVariant variant_;
 };
-
-        class IIOshiZumoDomain : public Domain {
-        public:
-            /*
-             * @param startingCoins number of coins each player has at beginning of a game
-             * @param startingLoc starting position of wrestler, if startingLoc = 3, then there is (2*3 + 1) = 7 locations, wrestler is in the middle
-             * @param minBid minimum allowed bid by player per round
-             */
-            IIOshiZumoDomain(int startingCoins, int startingLoc, int minBid);
-
-            /*
-             * @param startingCoins number of coins each player has at beginning of a game
-             * @param startingLoc starting position of wrestler, if startingLoc = 3, then there is (2*3 + 1) = 7 locations, wrestler is in the middle
-             * @param minBid minimum allowed bid by player per round
-             * @param optimalEndGame allow to simulate end optimal game, if one of the players can only bid 0
-             */
-            IIOshiZumoDomain(int startingCoins, int startingLoc, int minBod, bool optimalEndGame);
-
-            string getInfo() const override;
-
-            inline vector <Player> getPlayers() const final {
-                return {0, 1};
-            }
-
-            inline const int getStartingLocation() const {
-                return startingLocation_;
-            }
-
-            inline const int getMinBid() const {
-                return minBid_;
-            }
-
-            inline const bool isOptimalEndGame() const {
-                return optimalEndGame_;
-            }
-
-
-        private:
-            const int startingCoins_;
-            const int startingLocation_;
-            const int minBid_;
-            const bool optimalEndGame_;
-        };
-
 
 class OshiZumoState : public State {
-public:
-    OshiZumoState(Domain *domain, int wrestlerPosition, int startingCoins);
-    OshiZumoState(Domain *domain, int wrestlerPosition, vector<int> coinsPerPlayer);
-    vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
-    unsigned long countAvailableActionsFor(Player player) const override;
-    OutcomeDistribution
-    performActions(const vector<PlayerAction> &actions) const override;
-    vector<Player> getPlayers() const override;
-    bool isGameEnd() const;
-    string toString() const override;
-    bool operator==(const State &rhs) const override;
-    size_t getHash() const override;
+ public:
+  OshiZumoState(Domain *domain, int wrestlerPosition, int startingCoins);
+  OshiZumoState(Domain *domain, int wrestlerPosition, vector<int> coinsPerPlayer);
 
-    inline int getWrestlerLocation() const {
-        return wrestlerLocation_;
-    }
+  vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
+  unsigned long countAvailableActionsFor(Player player) const override;
+  OutcomeDistribution performActions(const vector<PlayerAction> &actions) const override;
+  vector<Player> getPlayers() const override;
+  bool isGameEnd() const;
+  string toString() const override;
+  bool operator==(const State &rhs) const override;
+  size_t getHash() const override;
+  int getWrestlerLocation() const;
+  const vector<int> &getCoins() const;
 
-    inline const vector<int> &getCoins() const {
-        return coins_;
-    }
-
-protected:
-    int wrestlerLocation_;
-    vector<int> coins_;
+ protected:
+  int wrestlerLocation_;
+  vector<int> coins_;
 
 };
 
-        class IIOshiZumoState : public OshiZumoState {
-        public:
-            IIOshiZumoState(Domain *domain, int wrestlerPosition, int startingCoins);
-
-            IIOshiZumoState(Domain *domain, int wrestlerPosition, vector<int> coinsPerPlayer);
-
-            OutcomeDistribution performActions(const vector <PlayerAction> &actions) const final;
-        };
+constexpr int NO_BID_OBSERVATION = -1;
+enum OshiZumoRoundOutcome {
+  DRAW = 0,
+  PLAYER0_WIN = 1,
+  PLAYER0_LOSE = -1,
+};
 
 class OshiZumoObservation : public Observation {
-public:
-    explicit OshiZumoObservation(int opponentBid);
+ public:
+  explicit OshiZumoObservation(int startingCoins, int player0Bid, int player1Bid, OshiZumoRoundOutcome roundResult);
 
-    inline int getOpponentBid() const {
-        return opponentBid_;
-    }
-
-private:
-    int opponentBid_;
+ private:
+  const int player0Bid_;
+  const int player1Bid_;
+  const OshiZumoRoundOutcome roundResult_;
 
 };
-
-        class IIOshiZumoObservation : public Observation {
-        public:
-            explicit IIOshiZumoObservation(int roundResult);
-
-            inline int getActionResult() const {
-                return roundResult_;
-            }
-
-        private:
-            int roundResult_;
-
-        };
-    } // namespace domains
 } // namespace GTLib2
-
-
 #endif //GTLIB2_OSHIZUMO_H
