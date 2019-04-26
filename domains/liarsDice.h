@@ -37,10 +37,6 @@ namespace GTLib2::domains {
         LiarsDiceDomain(int p1Dice, int p2Dice, int faces);
         string getInfo() const override;
 
-        inline vector<Player> getPlayers() const final{
-            return {PLAYER_1, PLAYER_2, NATURE};
-        }
-
         inline const int getP1Dice() const {
             return p1Dice_;
         }
@@ -101,8 +97,6 @@ namespace GTLib2::domains {
         string toString() const override;
         bool operator==(const State &rhs) const override;
         size_t getHash() const override;
-
-        // TODO: inline getters here
 
     private:
         int currentBid_;

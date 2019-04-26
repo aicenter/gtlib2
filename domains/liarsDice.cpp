@@ -60,14 +60,21 @@ namespace GTLib2::domains {
             p1Dice_(p1Dice),
             p2Dice_(p2Dice),
             faces_(faces),
-            maxBid_((p1Dice + p2Dice) * faces + 1),
-             {
+            maxBid_((p1Dice + p2Dice) * faces + 1) {
 
         assert(p1Dice + p2Dice >= 1);
         assert(faces >= 2);
         maxUtility_ = 1.0;
 
-        //TODO : create LD state and LD observations and implement rest of function (rootStatesDistribution_)
+         maxUtility_ = 1.0;
+         auto rootState = make_shared<LiarsDiceState>(this);
+         vector<shared_ptr<Observation>> observations{make_shared<Observation>(),
+                                                      make_shared<Observation>(),
+                                                      make_shared<Observation>()};
+         vector<double> rewards{0.0, 0.0, 0.0};
+         Outcome outcome(rootState, observations, shared_ptr<Observation>(), rewards);
+
+         rootStatesDistribution_.emplace_back(outcome, 1.0);
 
     }
 
@@ -208,9 +215,38 @@ namespace GTLib2::domains {
         return (currentBid_ == LDdomain->getMaxBid());
     }
 
+    string LiarsDiceState::toString() const {
+        string ret;
+        ret.append("Current bid: " + to_string(currentBid_) + "\n");
+        ret.append("Previous bid: " + to_string(previousBid_) + "\n");
+        ret.append("Round: " + to_string(round_) + "\n");
+        ret.append("Current player : " + to_string(currentPlayerIndex_) + "\n");
+        ret.append("Rolls: ");
+        for(int i = 0; i < rolls_.size(); i++){
+            ret.append("roll #" + to_string(i + 1) + " = " + to_string(rolls_[i]) + " ");
+        }
+        ret.append("\n");
+        return  ret;
+    }
 
+    bool LiarsDiceState::operator==(const GTLib2::State &rhs) const {
+        const auto otherState = static_cast<const LiarsDiceState *>(&rhs);
+        return (currentBid_ == otherState->currentBid_
+            & previousBid_ == otherState->previousBid_
+            & round_ == otherState->round_
+            & currentPlayerIndex_ == otherState->currentPlayerIndex_
+            & rolls_ == otherState->rolls_);
+    }
 
-
+    size_t LiarsDiceState::getHash() const {
+        size_t seed = 0;
+        boost::hash_combine(seed, currentBid_);
+        boost::hash_combine(seed, previousBid_);
+        boost::hash_combine(seed, round_);
+        boost::hash_combine(seed, currentPlayerIndex_);
+        boost::hash_combine(seed, rolls_);
+        return seed;
+    }
 
     LiarsDiceObservation::LiarsDiceObservation(bool roll, int value) :
             Observation(),
