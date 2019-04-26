@@ -114,7 +114,7 @@ namespace GTLib2::domains {
 
     class LiarsDiceObservation : public Observation {
     public:
-        explicit LiarsDiceObservation(int id, bool roll, int value);
+        explicit LiarsDiceObservation(bool roll, int value);
 
         inline bool isRoll() const {
             return roll_;
