@@ -36,6 +36,8 @@ namespace GTLib2::domains {
     public:
         LiarsDiceDomain(int p1Dice, int p2Dice, int faces);
         string getInfo() const override;
+        vector<Player> getPlayers() const override;
+
 
         inline const int getP1Dice() const {
             return p1Dice_;
@@ -93,10 +95,11 @@ namespace GTLib2::domains {
         unsigned long countAvailableActionsFor(Player player) const override;
         OutcomeDistribution performActions(const vector<PlayerAction> &actions) const override;
         vector<Player> getPlayers() const override;
-        bool isGameEnd() const;
+        bool isGameOver() const;
         string toString() const override;
         bool operator==(const State &rhs) const override;
         size_t getHash() const override;
+        bool isBluffCallSuccessful() const;
 
     private:
         int currentBid_;

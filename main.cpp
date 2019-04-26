@@ -21,6 +21,7 @@
 
 
 #include <chrono>
+#include <domains/liarsDice.h>
 #include "algorithms/cfr.h"
 #include "domains/goofSpiel.h"
 #include "utils/export.h"
@@ -37,8 +38,8 @@ using utils::exportGambit;
 void exampleBenchmarkCFR() {
     auto start = std::chrono::high_resolution_clock::now();
 
-    domains::GoofSpielDomain domain
-        ({variant:  IncompleteObservations, numCards: 5, fixChanceCards: true, chanceCards: {}});
+    domains::LiarsDiceDomain domain
+        (1,1,2);
     algorithms::CFRAlgorithm cfr(domain, Player(0), algorithms::CFRSettings());
     cfr.runIterations(1);
 

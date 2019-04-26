@@ -86,6 +86,10 @@ namespace GTLib2::domains {
                "\nMax depth: " + std::to_string(maxDepth_) + '\n';
     }
 
+    vector<Player> LiarsDiceDomain::getPlayers() const {
+        return {PLAYER_1, PLAYER_2, NATURE};
+    }
+
 
     LiarsDiceState::LiarsDiceState(Domain *domain) :
             LiarsDiceState(domain, 0, 0, 0, NATURE, {}) {}
@@ -182,7 +186,7 @@ namespace GTLib2::domains {
         }
 
         else {
-            assert(natureAction != nullptr);
+            assert(natureAction == nullptr);
             assert(p1Action == nullptr | p2Action == nullptr);
             assert(p1Action != nullptr | p2Action != nullptr); //exactly one player performs action each move
 
@@ -196,7 +200,31 @@ namespace GTLib2::domains {
 
             publicObs = make_shared<LiarsDiceObservation>(false, newBid);
 
-            const auto outcome = Outcome(newState, {publicObs, publicObs, publicObs} , publicObs, {0.0, 0.0, 0.0});
+            vector<double> rewards;
+
+            if(newState->isGameOver()){
+                if(isBluffCallSuccessful()){
+                    if(currentPlayerIndex_ == PLAYER_1){
+                        rewards = {1.0, -1.0, 0.0};
+                    }
+                    else{
+                        rewards = {-1.0, 1.0, 0.0};
+                    }
+                }
+                else{
+                    if(currentPlayerIndex_ == PLAYER_1){
+                        rewards = {-1.0, 1.0, 0.0};
+                    }
+                    else{
+                        rewards = {1.0, -1.0, 0.0};
+                    }
+                }
+            }
+            else{
+                rewards = {0.0, 0.0, 0.0};
+            }
+
+            const auto outcome = Outcome(newState, {publicObs, publicObs, publicObs} , publicObs, rewards);
             newOutcome.emplace_back(outcome, 1.0);
         }
 
@@ -204,13 +232,33 @@ namespace GTLib2::domains {
 
     }
 
+    bool LiarsDiceState::isBluffCallSuccessful() const {
+        const auto LDdomain = static_cast<LiarsDiceDomain *>(domain_);
+
+        int desiredDiceValue = (previousBid_ - 1) % LDdomain->getFaces();
+        int desiredDiceAmount = 1 + ((previousBid_ - 1) / LDdomain->getFaces());
+
+        int actualDiceAmount = 0;
+
+        for(int value : rolls_){
+            if(value == desiredDiceValue){
+                actualDiceAmount++;
+            }
+        }
+
+        return actualDiceAmount >= desiredDiceAmount;
+    }
+
     vector<Player> LiarsDiceState::getPlayers() const {
+        if(isGameOver()){
+            return {};
+        }
         vector<Player > player;
         player.push_back(currentPlayerIndex_);
         return player;
     }
 
-    bool LiarsDiceState::isGameEnd() const {
+    bool LiarsDiceState::isGameOver() const {
         const auto LDdomain = static_cast<LiarsDiceDomain *>(domain_);
         return (currentBid_ == LDdomain->getMaxBid());
     }
