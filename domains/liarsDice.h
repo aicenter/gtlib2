@@ -29,97 +29,92 @@
 
 constexpr int PLAYER_1 = 0;
 constexpr int PLAYER_2 = 1;
-constexpr int NATURE = 2;
 
 namespace GTLib2::domains {
-    class LiarsDiceDomain : public Domain {
-    public:
-        LiarsDiceDomain(vector<int> playersDice, int faces);
-        string getInfo() const override;
-        vector<Player> getPlayers() const override;
+class LiarsDiceDomain : public Domain {
+ public:
+    LiarsDiceDomain(vector<int> playersDice, int faces);
+    string getInfo() const override;
+    vector<Player> getPlayers() const override;
+    void initRootStates();
+    vector<shared_ptr<Observation>> createInitialObservations(vector<int> rolls) const;
 
+    inline const int getPlayerNDice(int n) const {
+        return playersDice_[n];
+    }
 
-        inline const int getPlayerNDice(int n) const {
-            return playersDice_[n];
-        }
+    inline const int getSumDice() const {
+        return playersDice_[PLAYER_1] + playersDice_[PLAYER_2];
+    }
 
-        inline  const int getSumDice() const {
-            return  playersDice_[PLAYER_1] + playersDice_[PLAYER_2];
-        }
+    inline const int getFaces() const {
+        return faces_;
+    }
 
-        inline const int getFaces() const {
-            return faces_;
-        }
+    inline const int getMaxBid() const {
+        return maxBid_;
+    }
 
-        inline const int getMaxBid() const {
-            return maxBid_;
-        }
+ private:
+    const vector<int> playersDice_;
+    const int faces_;
+    const int maxBid_;
+};
 
-    private:
-        const vector<int> playersDice_;
-        const int faces_;
-        const int maxBid_;
-    };
+class LiarsDiceAction : public Action {
+ public:
+    explicit LiarsDiceAction(ActionId id, bool roll, int value);
+    bool operator==(const Action &that) const override;
+    size_t getHash() const override;
+    string toString() const;
 
-    class LiarsDiceAction : public Action {
-    public:
-        explicit LiarsDiceAction(ActionId id, bool roll, int value);
-        bool operator==(const Action &that) const override;
-        size_t getHash() const override;
-        string toString() const;
+    inline int getValue() const {
+        return value_;
+    }
 
-        inline int getValue() const {
-            return value_;
-        }
+    inline bool isRoll() const {
+        return roll_;
+    }
 
-        inline bool isRoll() const {
-            return roll_;
-        }
+ private:
+    bool roll_;
+    int value_;
+};
 
-    private:
-        bool roll_;
-        int value_;
-    };
+class LiarsDiceState : public State {
+ public:
+    LiarsDiceState(Domain *domain, Player player);
+    LiarsDiceState(Domain *domain, int currentBid, int previousBid, int round,
+                   int currentPlayerIndex, vector<int> rolls);
+    vector<shared_ptr<Action>>
+    getAvailableActionsFor(Player player) const override;
+    unsigned long countAvailableActionsFor(Player player) const override;
+    OutcomeDistribution
+    performActions(const vector<PlayerAction> &actions) const override;
+    vector<Player> getPlayers() const override;
+    bool isGameOver() const;
+    string toString() const override;
+    bool operator==(const State &rhs) const override;
+    size_t getHash() const override;
+    bool isBluffCallSuccessful() const;
 
-    class LiarsDiceState : public State {
-    public:
-        LiarsDiceState(Domain *domain, Player player);
-        LiarsDiceState(Domain *domain, int currentBid, int previousBid, int round,
-                int currentPlayerIndex, vector<int> rolls);
-        vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
-        unsigned long countAvailableActionsFor(Player player) const override;
-        OutcomeDistribution performActions(const vector<PlayerAction> &actions) const override;
-        vector<Player> getPlayers() const override;
-        bool isGameOver() const;
-        string toString() const override;
-        bool operator==(const State &rhs) const override;
-        size_t getHash() const override;
-        bool isBluffCallSuccessful() const;
+ private:
+    int currentBid_;
+    int previousBid_;
+    int round_;
+    int currentPlayerIndex_;
+    vector<int> rolls_;
+};
 
-    private:
-        int currentBid_;
-        int previousBid_;
-        int round_;
-        int currentPlayerIndex_;
-        vector<int> rolls_;
-    };
+class LiarsDiceObservation : public Observation {
+ public:
+    explicit LiarsDiceObservation(bool isRoll, vector<int> rolls, int bid);
 
-    class LiarsDiceObservation : public Observation {
-    public:
-        explicit LiarsDiceObservation(bool roll, int value);
-
-        inline bool isRoll() const {
-            return roll_;
-        }
-
-        inline int getValue() const {
-            return value_;
-        }
-
-    private:
-        bool roll_;
-        int value_;
-    };
+ private:
+    bool isRoll_;
+    vector<int> rolls_;
+    int bid_;
+};
 
 }
 

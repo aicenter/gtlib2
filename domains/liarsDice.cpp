@@ -55,7 +55,7 @@ size_t LiarsDiceAction::getHash() const {
 
 LiarsDiceDomain::LiarsDiceDomain(vector<int> playersDice, int faces) :
     playersDice_(playersDice),
-    Domain(static_cast<unsigned int>(((getSumDice()) * (1 + faces)) + 1), 2),
+    Domain(static_cast<unsigned int>(((getSumDice()) * faces) + 1), 2),
     faces_(faces),
     maxBid_((getSumDice()) * faces + 1) {
 
@@ -65,16 +65,39 @@ LiarsDiceDomain::LiarsDiceDomain(vector<int> playersDice, int faces) :
 
     maxUtility_ = 1.0;
 
-    //TODO : create root states based on dice throws
-    auto rootState = make_shared<LiarsDiceState>(this);
-    vector<shared_ptr<Observation>> observations{make_shared<Observation>(),
-                                                 make_shared<Observation>(),
-                                                 make_shared<Observation>()};
-    vector<double> rewards{0.0, 0.0, 0.0};
-    Outcome outcome(rootState, observations, shared_ptr<Observation>(), rewards);
+    initRootStates();
+}
 
-    rootStatesDistribution_.emplace_back(outcome, 1.0);
+vector<shared_ptr<Observation>> LiarsDiceDomain::createInitialObservations(std::vector<int> rolls) const {
+    vector<vector<int>> playerRolls(2);
 
+    for(int i = 0 ; i < getPlayerNDice(PLAYER_1); i++){
+        playerRolls[PLAYER_1].push_back(rolls[i]);
+    }
+    for(int j = getPlayerNDice(PLAYER_1) ; j < getSumDice(); j++){
+        playerRolls[PLAYER_2].push_back(rolls[j]);
+    }
+    vector<shared_ptr<Observation>> observations{make_shared<LiarsDiceObservation>(true, playerRolls[PLAYER_1], -1),
+                                                 make_shared<LiarsDiceObservation>(true, playerRolls[PLAYER_2], -1)};
+    return observations;
+}
+
+void LiarsDiceDomain::initRootStates() {
+    double probability = 1 / (faces_ ^ getSumDice());
+
+    function<void(int, vector<int>)> backtrack = [&](int depth, vector<int> rolls) -> void {
+        if (depth == 0) {
+            auto newState = make_shared<LiarsDiceState>(this, 0, 0, 0, PLAYER_1, rolls);
+            Outcome outcome(newState, createInitialObservations(rolls), shared_ptr<Observation>(), {0.0, 0.0});
+            rootStatesDistribution_.emplace_back(outcome, probability);
+        } else {
+            for (int i = 0; i < depth; i++) {
+                vector<int> appendedRolls(rolls);
+                appendedRolls.push_back(i);
+                backtrack(depth - 1, appendedRolls);
+            }
+        }
+    };
 }
 
 string LiarsDiceDomain::getInfo() const {
@@ -108,24 +131,17 @@ vector<shared_ptr<Action>> LiarsDiceState::getAvailableActionsFor(Player player)
     unsigned int id = 0;
 
     const auto LDdomain = static_cast<LiarsDiceDomain *>(domain_);
-    if (player == NATURE) { //NATURE
-        if (round_ < LDdomain->getSumDice()) {
-            for (int i = 0; i < LDdomain->getFaces(); i++) { // adds all possible rolls
-                actions.push_back(make_shared<LiarsDiceAction>(id++, true, i));
+
+    if (player == this->currentPlayerIndex_) {
+        if (this->currentBid_ == 0) {
+            // if first move of first turn, don't allow calling bluff
+            for (int i = 1; i <= (LDdomain->getMaxBid() - 1); i++) {
+                actions.push_back(make_shared<LiarsDiceAction>(id++, false, i));
             }
-        }
-    } else if (player == this->currentPlayerIndex_) { // PLAYERS
-        if (round_ >= LDdomain->getSumDice()) {
-            if (this->currentBid_ == 0) {
-                // if first move of first turn, don't allow calling bluff
-                for (int i = 1; i <= (LDdomain->getMaxBid() - 1); i++) {
-                    actions.push_back(make_shared<LiarsDiceAction>(id++, false, i));
-                }
-            } else {
-                // otherwise start at next bid up to calling bluff
-                for (int i = this->currentBid_ + 1; i <= LDdomain->getMaxBid(); i++) {
-                    actions.push_back(make_shared<LiarsDiceAction>(id++, false, i));
-                }
+        } else {
+            // otherwise start at next bid up to calling bluff
+            for (int i = this->currentBid_ + 1; i <= LDdomain->getMaxBid(); i++) {
+                actions.push_back(make_shared<LiarsDiceAction>(id++, false, i));
             }
         }
     }
@@ -138,101 +154,64 @@ unsigned long LiarsDiceState::countAvailableActionsFor(Player player) const {
         return 0;
     }
 
-    if (player == NATURE) {
-        return LDdomain->getFaces();
+    if (currentBid_ == 0) {
+        return LDdomain->getMaxBid() - 1;
     } else {
-        if (currentBid_ == 0) {
-            return LDdomain->getMaxBid() - 1;
-        } else {
-            return LDdomain->getMaxBid() - currentBid_;
-        }
+        return LDdomain->getMaxBid() - currentBid_;
     }
 }
 
 OutcomeDistribution LiarsDiceState::performActions(const std::vector<GTLib2::PlayerAction> &actions) const {
     auto p1Action = dynamic_cast<LiarsDiceAction *>(actions[0].second.get());
     auto p2Action = dynamic_cast<LiarsDiceAction *>(actions[1].second.get());
-    auto natureAction = dynamic_cast<LiarsDiceAction *>(actions[2].second.get());
 
     const auto LDdomain = static_cast<LiarsDiceDomain *>(domain_);
 
     OutcomeDistribution newOutcome;
-    shared_ptr<Observation> noObs = make_shared<Observation>();
-    shared_ptr<LiarsDiceObservation> publicObs;
 
-    if (currentPlayerIndex_ == NATURE) {
-        assert(natureAction != nullptr & p1Action == nullptr & p2Action == nullptr);
+    assert(p1Action == nullptr | p2Action == nullptr);
+    assert(p1Action != nullptr
+               | p2Action != nullptr); //exactly one player performs action each move
 
-        int newPlayer = round_ + 1 < LDdomain->getSumDice() ? NATURE : PLAYER_1;
+    auto currentPlayerAction =
+        dynamic_cast<LiarsDiceAction *>(actions[currentPlayerIndex_].second.get());
 
-        int rollValue = natureAction->getValue();
-        vector<int> newRolls(rolls_);
-        newRolls.push_back(rollValue);
+    int newPlayer = currentPlayerIndex_ == PLAYER_1 ? PLAYER_2 : PLAYER_1;
 
-        const auto
-            newState = make_shared<LiarsDiceState>(LDdomain, 0, 0, round_ + 1, newPlayer, newRolls);
+    int newBid = currentPlayerAction->getValue();
 
-        shared_ptr<LiarsDiceObservation>
-            playerObs = make_shared<LiarsDiceObservation>(true, rollValue);
+    const auto newState = make_shared<LiarsDiceState>(LDdomain,
+                                                      newBid,
+                                                      currentBid_,
+                                                      round_ + 1,
+                                                      newPlayer,
+                                                      rolls_); // TODO: ask if appropriate to pass vector object from other State object
 
-        vector<shared_ptr<Observation>> privateObservations;
+    const auto publicObs = make_shared<LiarsDiceObservation>(false, vector<int>() , newBid);
 
-        if (round_ < LDdomain->getPlayerNDice(PLAYER_1)) {
-            privateObservations =
-                {playerObs, noObs,
-                 noObs}; //TODO: ask if objects are copied or its only object reference in the vector
-        } else {
-            privateObservations = {noObs, playerObs, noObs};
-        }
+    vector<double> rewards;
 
-        const auto outcome = Outcome(newState, privateObservations, noObs, {0.0, 0.0, 0.0});
-        newOutcome.emplace_back(outcome, 1.0);
-    } else {
-        assert(natureAction == nullptr);
-        assert(p1Action == nullptr | p2Action == nullptr);
-        assert(p1Action != nullptr
-                   | p2Action != nullptr); //exactly one player performs action each move
-
-        auto currentPlayerAction =
-            dynamic_cast<LiarsDiceAction *>(actions[currentPlayerIndex_].second.get());
-
-        int newPlayer = currentPlayerIndex_ == PLAYER_1 ? PLAYER_2 : PLAYER_1;
-
-        int newBid = currentPlayerAction->getValue();
-
-        const auto newState = make_shared<LiarsDiceState>(LDdomain,
-                                                          newBid,
-                                                          currentBid_,
-                                                          round_ + 1,
-                                                          newPlayer,
-                                                          rolls_); // TODO: ask if appropriate to pass vector object from other State object
-
-        publicObs = make_shared<LiarsDiceObservation>(false, newBid);
-
-        vector<double> rewards;
-
-        if (newState->isGameOver()) {
-            if (isBluffCallSuccessful()) {
-                if (currentPlayerIndex_ == PLAYER_1) {
-                    rewards = {1.0, -1.0, 0.0};
-                } else {
-                    rewards = {-1.0, 1.0, 0.0};
-                }
+    if (newState->isGameOver()) {
+        if (isBluffCallSuccessful()) {
+            if (currentPlayerIndex_ == PLAYER_1) {
+                rewards = {1.0, -1.0, 0.0};
             } else {
-                if (currentPlayerIndex_ == PLAYER_1) {
-                    rewards = {-1.0, 1.0, 0.0};
-                } else {
-                    rewards = {1.0, -1.0, 0.0};
-                }
+                rewards = {-1.0, 1.0, 0.0};
             }
         } else {
-            rewards = {0.0, 0.0, 0.0};
+            if (currentPlayerIndex_ == PLAYER_1) {
+                rewards = {-1.0, 1.0};
+            } else {
+                rewards = {1.0, -1.0};
+            }
         }
-
-        const auto
-            outcome = Outcome(newState, {publicObs, publicObs, publicObs}, publicObs, rewards);
-        newOutcome.emplace_back(outcome, 1.0);
+    } else {
+        rewards = {0.0, 0.0};
     }
+
+    const auto
+        outcome = Outcome(newState, {publicObs, publicObs}, publicObs, rewards);
+    newOutcome.emplace_back(outcome, 1.0);
 
     return newOutcome;
 
@@ -302,12 +281,22 @@ size_t LiarsDiceState::getHash() const {
     return seed;
 }
 
-LiarsDiceObservation::LiarsDiceObservation(bool roll, int value) :
+LiarsDiceObservation::LiarsDiceObservation(bool isRoll, vector<int> rolls, int bid) :
     Observation(),
-    roll_(roll),
-    value_(value) {
+    isRoll_(isRoll),
+    rolls_(rolls),
+    bid_(bid) {
 
-    id_ = roll_ ? 1 | value << 1 : value << 1;
+    if (isRoll_) {
+        int shift = 1;
+        int idTemp = 1;
+        for (vector<int>::iterator it = rolls_.begin(); it != rolls_.end(); it++) {
+            idTemp += (*it << shift++);
+        }
+        id_ = idTemp;
+    } else {
+        id_ = bid << 1;
+    }
 }
 
 }
