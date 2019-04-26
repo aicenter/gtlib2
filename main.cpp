@@ -41,7 +41,7 @@ void exampleBenchmarkCFR() {
     auto start = std::chrono::high_resolution_clock::now();
 
     domains::LiarsDiceDomain domain
-        ({1, 1}, 2);
+        ({0, 1}, 2);
     algorithms::CFRAlgorithm cfr(domain, Player(0), algorithms::CFRSettings());
     cfr.runIterations(1);
 
@@ -51,29 +51,31 @@ void exampleBenchmarkCFR() {
 }
 
 void exampleExportDomain() {
-    auto gs2 =
+    auto ld2 =
         LiarsDiceDomain({1,1},2);
-    auto gs3 =
-        GoofSpielDomain({variant:  CompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}, binaryTerminalRewards: true});
-    auto gs3_seed =
-        GoofSpielDomain({variant:  CompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
-    auto iigs3 =
-        GoofSpielDomain({variant:  IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
-    auto iigs3_seed =
-        GoofSpielDomain({variant:  IncompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
-    exportGambit(gs2, "./gs2.gbt");
-    exportGambit(gs3, "./gs3.gbt");
-    exportGambit(gs3_seed, "./gs3_seed.gbt");
-    exportGambit(iigs3, "./iigs3.gbt");
-    exportGambit(iigs3_seed, "./iigs3_seed.gbt");
+    auto ld3 =
+        LiarsDiceDomain({1,0},2);
+//    auto gs3 =
+//        GoofSpielDomain({variant:  CompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}, binaryTerminalRewards: true});
+//    auto gs3_seed =
+//        GoofSpielDomain({variant:  CompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
+//    auto iigs3 =
+//        GoofSpielDomain({variant:  IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
+//    auto iigs3_seed =
+//        GoofSpielDomain({variant:  IncompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
+    exportGambit(ld2, "./ld2.gbt");
+    exportGambit(ld3, "./ld3.gbt");
+//    exportGambit(gs3_seed, "./gs3_seed.gbt");
+//    exportGambit(iigs3, "./iigs3.gbt");
+//    exportGambit(iigs3_seed, "./iigs3_seed.gbt");
 
     // you can run this for visualization
     // $ dot -Tsvg iigs3_seed.dot -o iigs3_seed.svg
-    exportGraphViz(iigs3_seed, "./iigs3_seed.dot");
+    //exportGraphViz(gs2, "./iigs3_seed.dot");
 }
 
 int main(int argc, char *argv[]) {
-    exampleBenchmarkCFR();
-    //exampleExportDomain();
+    //exampleBenchmarkCFR();
+    exampleExportDomain();
     return 0;
 }

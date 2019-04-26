@@ -83,7 +83,7 @@ vector<shared_ptr<Observation>> LiarsDiceDomain::createInitialObservations(std::
 }
 
 void LiarsDiceDomain::initRootStates() {
-    double probability = 1.0 / double(faces_ ^ getSumDice());
+    double probability = 1.0 / pow(double(faces_), double(getSumDice()));
 
     function<void(int, vector<int>)> backtrack = [&](int depth, vector<int> rolls) -> void {
         if (depth == 0) {
@@ -91,13 +91,15 @@ void LiarsDiceDomain::initRootStates() {
             Outcome outcome(newState, createInitialObservations(rolls), shared_ptr<Observation>(), {0.0, 0.0});
             rootStatesDistribution_.emplace_back(outcome, probability);
         } else {
-            for (int i = 0; i < depth; i++) {
+            for (int i = 0; i < faces_; i++) {
                 vector<int> appendedRolls(rolls);
                 appendedRolls.push_back(i);
                 backtrack(depth - 1, appendedRolls);
             }
         }
     };
+
+    backtrack(getSumDice(), {});
 }
 
 string LiarsDiceDomain::getInfo() const {
@@ -194,9 +196,9 @@ OutcomeDistribution LiarsDiceState::performActions(const std::vector<GTLib2::Pla
     if (newState->isGameOver()) {
         if (isBluffCallSuccessful()) {
             if (currentPlayerIndex_ == PLAYER_1) {
-                rewards = {1.0, -1.0, 0.0};
+                rewards = {1.0, -1.0};
             } else {
-                rewards = {-1.0, 1.0, 0.0};
+                rewards = {-1.0, 1.0};
             }
         } else {
             if (currentPlayerIndex_ == PLAYER_1) {
@@ -220,8 +222,8 @@ OutcomeDistribution LiarsDiceState::performActions(const std::vector<GTLib2::Pla
 bool LiarsDiceState::isBluffCallSuccessful() const {
     const auto LDdomain = static_cast<LiarsDiceDomain *>(domain_);
 
-    int desiredDiceValue = (previousBid_ - 1) % LDdomain->getFaces();
-    int desiredDiceAmount = 1 + ((previousBid_ - 1) / LDdomain->getFaces());
+    int desiredDiceValue = (currentBid_ - 1) % LDdomain->getFaces();
+    int desiredDiceAmount = 1 + ((currentBid_ - 1) / LDdomain->getFaces());
 
     int actualDiceAmount = 0;
 
@@ -231,7 +233,7 @@ bool LiarsDiceState::isBluffCallSuccessful() const {
         }
     }
 
-    return actualDiceAmount >= desiredDiceAmount;
+    return actualDiceAmount < desiredDiceAmount;
 }
 
 vector<Player> LiarsDiceState::getPlayers() const {
