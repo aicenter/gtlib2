@@ -22,6 +22,7 @@
 
 #include <chrono>
 #include <domains/liarsDice.h>
+#include <domains/matching_pennies.h>
 #include "algorithms/cfr.h"
 #include "domains/goofSpiel.h"
 #include "utils/export.h"
@@ -32,6 +33,7 @@ using namespace GTLib2;
 using domains::GoofSpielDomain;
 using domains::GoofSpielVariant::CompleteObservations;
 using domains::GoofSpielVariant::IncompleteObservations;
+using domains::MatchingPenniesVariant::AlternatingMoves;
 using utils::exportGraphViz;
 using utils::exportGambit;
 

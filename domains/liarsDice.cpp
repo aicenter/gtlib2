@@ -113,13 +113,13 @@ namespace GTLib2::domains {
 
         const auto LDdomain = static_cast<LiarsDiceDomain *>(domain_);
         if (player == NATURE) { //NATURE
-            if (round_ < LDdomain->getP1Dice() + LDdomain->getP2Dice()) {
+            if (round_ < LDdomain->getNDice()) {
                 for (int i = 0; i < LDdomain->getFaces(); i++) { // adds all possible rolls
                     actions.push_back(make_shared<LiarsDiceAction>(id++, true, i));
                 }
             }
         } else if (player == this->currentPlayerIndex_) { // PLAYERS
-            if (round_ >= LDdomain->getP1Dice() + LDdomain->getP2Dice()) {
+            if (round_ >= LDdomain->getNDice()) {
                 if (this->currentBid_ == 0) {
                     // if first move of first turn, don't allow calling bluff
                     for (int i = 1; i <= (LDdomain->getMaxBid() - 1); i++) {
@@ -138,13 +138,18 @@ namespace GTLib2::domains {
 
     unsigned long LiarsDiceState::countAvailableActionsFor(Player player) const {
         const auto LDdomain = static_cast<LiarsDiceDomain *>(domain_);
+        if(!(player == currentPlayerIndex_)){
+            return 0;
+        }
+
         if (player == NATURE) {
             return LDdomain->getFaces();
-        }
-        if (this->currentBid_ == 0) {
-            return LDdomain->getMaxBid() - 1;
         } else {
-            return LDdomain->getMaxBid() - this->currentBid_;
+            if (currentBid_ == 0) {
+                return LDdomain->getMaxBid() - 1;
+            } else {
+                return LDdomain->getMaxBid() - currentBid_;
+            }
         }
     }
 
