@@ -34,21 +34,17 @@ constexpr int NATURE = 2;
 namespace GTLib2::domains {
     class LiarsDiceDomain : public Domain {
     public:
-        LiarsDiceDomain(int p1Dice, int p2Dice, int faces);
+        LiarsDiceDomain(vector<int> playersDice, int faces);
         string getInfo() const override;
         vector<Player> getPlayers() const override;
 
 
-        inline const int getP1Dice() const {
-            return p1Dice_;
+        inline const int getPlayerNDice(int n) const {
+            return playersDice_[n];
         }
 
-        inline const int getP2Dice() const {
-            return p2Dice_;
-        }
-
-        inline  const int getNDice() const {
-            return  p1Dice_ + p2Dice_;
+        inline  const int getSumDice() const {
+            return  playersDice_[PLAYER_1] + playersDice_[PLAYER_2];
         }
 
         inline const int getFaces() const {
@@ -60,8 +56,7 @@ namespace GTLib2::domains {
         }
 
     private:
-        const int p1Dice_;
-        const int p2Dice_;
+        const vector<int> playersDice_;
         const int faces_;
         const int maxBid_;
     };
@@ -88,7 +83,7 @@ namespace GTLib2::domains {
 
     class LiarsDiceState : public State {
     public:
-        LiarsDiceState(Domain *domain);
+        LiarsDiceState(Domain *domain, Player player);
         LiarsDiceState(Domain *domain, int currentBid, int previousBid, int round,
                 int currentPlayerIndex, vector<int> rolls);
         vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;

@@ -27,7 +27,6 @@
 #include "domains/goofSpiel.h"
 #include "utils/export.h"
 
-
 using namespace GTLib2;
 
 using domains::GoofSpielDomain;
@@ -41,7 +40,7 @@ void exampleBenchmarkCFR() {
     auto start = std::chrono::high_resolution_clock::now();
 
     domains::LiarsDiceDomain domain
-        (1,1,2);
+        (1, 1, 2);
     algorithms::CFRAlgorithm cfr(domain, Player(0), algorithms::CFRSettings());
     cfr.runIterations(1);
 
