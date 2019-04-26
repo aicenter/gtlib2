@@ -117,16 +117,22 @@ GoofSpielDomain iigs3    ({ variant:  IncompleteObservations, numCards: 3, fixCh
 GoofSpielDomain iigs1_fix({ variant:  IncompleteObservations, numCards: 1, fixChanceCards: true,  chanceCards: {}});
 GoofSpielDomain iigs2_fix({ variant:  IncompleteObservations, numCards: 2, fixChanceCards: true,  chanceCards: {}});
 GoofSpielDomain iigs3_fix({ variant:  IncompleteObservations, numCards: 3, fixChanceCards: true,  chanceCards: {}});
-// @formatter:on
 
+
+OshiZumoDomain oz1  ({.variant =  CompleteObservation, .startingCoins = 3, .startingLocation = 3,  .minBid = 1, .optimalEndGame = true});
+OshiZumoDomain oz2  ({.variant =  CompleteObservation, .startingCoins = 3, .startingLocation = 0,  .minBid = 1, .optimalEndGame = true});
+OshiZumoDomain oz3  ({.variant =  CompleteObservation, .startingCoins = 1, .startingLocation = 3,  .minBid = 0, .optimalEndGame = true});
+OshiZumoDomain oz4  ({.variant =  CompleteObservation, .startingCoins = 3, .startingLocation = 3,  .minBid = 1, .optimalEndGame = false});
+OshiZumoDomain oz5  ({.variant =  CompleteObservation, .startingCoins = 5, .startingLocation = 3,  .minBid = 1, .optimalEndGame = false});
+OshiZumoDomain iioz1({.variant =  IncompleteObservation, .startingCoins = 3, .startingLocation = 3,  .minBid = 1, .optimalEndGame = true});
+OshiZumoDomain iioz2({.variant =  IncompleteObservation, .startingCoins = 3, .startingLocation = 0,  .minBid = 1, .optimalEndGame = true});
+OshiZumoDomain iioz3({.variant =  IncompleteObservation, .startingCoins = 1, .startingLocation = 3,  .minBid = 0, .optimalEndGame = true});
+OshiZumoDomain iioz4({.variant =  IncompleteObservation, .startingCoins = 3, .startingLocation = 3,  .minBid = 1, .optimalEndGame = false});
+OshiZumoDomain iioz5({.variant =  IncompleteObservation, .startingCoins = 5, .startingLocation = 3,  .minBid = 1, .optimalEndGame = false});
+
+// @formatter:on
 GenericPokerDomain gp1(2, 2, 2, 2, 2);
 GenericPokerDomain gp2(3, 3, 1, 2, 3);
-
-OshiZumoDomain oz1(3, 3, 1);
-OshiZumoDomain oz2(3, 0, 1);
-OshiZumoDomain oz3(1, 3, 0);
-OshiZumoDomain oz4(3, 3, 1, false);
-OshiZumoDomain oz5(5, 3, 1, false);
 
 MatchingPenniesDomain mp1(AlternatingMoves);
 MatchingPenniesDomain mp2(SimultaneousMoves);
@@ -136,7 +142,7 @@ Domain *testDomains[] = { // NOLINT(cert-err58-cpp)
     &iigs1, &iigs2, &iigs3, &iigs1_fix, &iigs2_fix, &iigs3_fix,
     // todo: maxUtility and maxDepth do not work for poker!
     // &gp1, &gp2,
-    &oz1, &oz2, &oz3, &oz4, &oz5,
+    &oz1, &oz2, &oz3, &oz4, &oz5, &iioz1, &iioz2, &iioz3, &iioz4, &iioz5,
     &mp1, &mp2,
 };
 
