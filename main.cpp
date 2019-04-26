@@ -30,6 +30,7 @@
 using namespace GTLib2;
 
 using domains::GoofSpielDomain;
+using domains::LiarsDiceDomain;
 using domains::GoofSpielVariant::CompleteObservations;
 using domains::GoofSpielVariant::IncompleteObservations;
 using domains::MatchingPenniesVariant::AlternatingMoves;
@@ -51,7 +52,7 @@ void exampleBenchmarkCFR() {
 
 void exampleExportDomain() {
     auto gs2 =
-        GoofSpielDomain({variant:  CompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}});
+        LiarsDiceDomain({1,1},2);
     auto gs3 =
         GoofSpielDomain({variant:  CompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}, binaryTerminalRewards: true});
     auto gs3_seed =

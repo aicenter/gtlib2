@@ -83,7 +83,7 @@ vector<shared_ptr<Observation>> LiarsDiceDomain::createInitialObservations(std::
 }
 
 void LiarsDiceDomain::initRootStates() {
-    double probability = 1 / (faces_ ^ getSumDice());
+    double probability = 1.0 / double(faces_ ^ getSumDice());
 
     function<void(int, vector<int>)> backtrack = [&](int depth, vector<int> rolls) -> void {
         if (depth == 0) {
