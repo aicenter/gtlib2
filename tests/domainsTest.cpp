@@ -31,7 +31,6 @@
 #include "domains/matching_pennies.h"
 #include "domains/oshiZumo.h"
 
-
 namespace GTLib2::domains {
 
 using algorithms::treeWalkEFG;
@@ -42,7 +41,7 @@ using algorithms::createRootEFGNodes;
 bool isDomainZeroSum(const Domain &domain) {
     int num_violations = 0;
     auto countViolations = [&num_violations](shared_ptr<EFGNode> node) {
-        if (node->rewards_[0] != -node->rewards_[1]) num_violations++;
+      if (node->rewards_[0] != -node->rewards_[1]) num_violations++;
     };
 
     treeWalkEFG(domain, countViolations, domain.getMaxDepth());
@@ -101,6 +100,44 @@ bool doesCreateRootNodes(const Domain &domain) {
     return !createRootEFGNodes(domain).empty();
 }
 
+bool isActionGenerationAndAOHConsistent(const Domain &domain) {
+    int num_violation = 0;
+    std::vector<std::unordered_map<size_t, std::vector<shared_ptr<Action>>>> maps
+        (domain.getNumberOfPlayers(),
+         std::unordered_map<size_t, std::vector<shared_ptr<Action>>>());
+
+    auto countViolations = [&num_violation, &maps](shared_ptr<EFGNode> node) {
+      auto aoh = node->getAOHInfSet();
+      if (aoh) {
+          size_t hashAOH = aoh->getHash();
+          Player currentPlayer = *node->getCurrentPlayer();
+          auto mappedAOH = maps[currentPlayer].find(hashAOH);
+          auto actionsNode = node->availableActions();
+
+          if (mappedAOH != maps[currentPlayer].end()) {
+              auto actionsMappedAOH = mappedAOH->second;
+
+              if (actionsNode.size() == actionsMappedAOH.size()) {
+                  for (int j = 0; j < actionsNode.size(); ++j) {
+                      Action a1 = *actionsNode[j].get();
+                      Action a2 = *actionsMappedAOH[j].get();
+                      if (!(a1 == a2)) {
+                          num_violation++;
+                      }
+                  }
+              } else {
+                  num_violation++;
+              }
+          } else {
+              maps[currentPlayer].insert({hashAOH, actionsNode});
+          }
+      }
+    };
+    treeWalkEFG(domain, countViolations, domain.getMaxDepth());
+
+    return num_violation == 0;
+}
+
 BOOST_AUTO_TEST_SUITE(DomainsTests)
 
 
@@ -148,45 +185,52 @@ Domain *testDomains[] = { // NOLINT(cert-err58-cpp)
 
 BOOST_AUTO_TEST_CASE(zeroSumGame) {
     for (auto domain : testDomains) {
-        cout << "checking " << domain->getInfo() << "\n";
+        cout << "checking " << domain->getInfo() << endl;
         BOOST_CHECK(isDomainZeroSum(*domain));
     }
 }
 
 BOOST_AUTO_TEST_CASE(checkEFGNodeStateEqualityConsistency) {
     for (auto domain : testDomains) {
-        cout << "checking " << domain->getInfo() << "\n";
+        cout << "checking " << domain->getInfo() << endl;
         BOOST_CHECK(isEFGNodeAndStateConsistent(*domain));
     }
 }
 
 BOOST_AUTO_TEST_CASE(checkAvailableActionsAreSorted) {
     for (auto domain : testDomains) {
-        cout << "checking " << domain->getInfo() << "\n";
+        cout << "checking " << domain->getInfo() << endl;
         BOOST_CHECK(areAvailableActionsSorted(*domain));
     }
 }
 
 BOOST_AUTO_TEST_CASE(maxUtility) {
     for (auto domain : testDomains) {
-        cout << "checking " << domain->getInfo() << "\n";
+        cout << "checking " << domain->getInfo() << endl;
         BOOST_CHECK(isDomainMaxUtilityCorrect(*domain));
     }
 }
 
 BOOST_AUTO_TEST_CASE(maxDepth) {
     for (auto domain : testDomains) {
-        cout << "checking " << domain->getInfo() << "\n";
+        cout << "checking " << domain->getInfo() << endl;
         BOOST_CHECK(isDomainMaxDepthCorrect(*domain));
     }
 }
 
 BOOST_AUTO_TEST_CASE(createsRootNodes) {
     for (auto domain : testDomains) {
+        cout << "checking " << domain->getInfo() << endl;
         BOOST_CHECK(doesCreateRootNodes(*domain));
     }
 }
 
+BOOST_AUTO_TEST_CASE(AOHconsistency) {
+    for (auto &domain : testDomains) {
+        cout << "checking " << domain->getInfo() << endl;
+        BOOST_CHECK(isActionGenerationAndAOHConsistent(*domain));
+    }
+}
 
 BOOST_AUTO_TEST_SUITE_END()
 }

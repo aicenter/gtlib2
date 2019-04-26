@@ -39,7 +39,7 @@ bool OshiZumoAction::operator==(const Action &that) const {
 
 string OshiZumoAction::toString() const {
     return "id: " + to_string(id_) +
-        "bid: " + to_string(bid_);
+        ", bid: " + to_string(bid_);
 }
 
 size_t OshiZumoAction::getHash() const {

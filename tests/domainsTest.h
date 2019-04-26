@@ -34,5 +34,6 @@ bool areAvailableActionsSorted(const Domain &domain);
 bool isDomainMaxUtilityCorrect(const Domain &domain);
 bool isDomainMaxDepthCorrect(const Domain &domain);
 bool doesCreateRootNodes(const Domain &domain);
+bool isActionGenerationAndAOHConsistent(const Domain &domain);
 
 #endif  // TESTS_TESTUTILS_H_
