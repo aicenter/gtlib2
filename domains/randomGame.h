@@ -33,9 +33,9 @@ struct RandomGameSettings {
   uint32_t maximalDepth = 2;
   int maxBranchingFactor = 2;
   int maxDifferentObservations = 2;
-  bool binary_utility = true;
-  bool fixedBranchingFactor = true;
   int maxCenterModification = 2;
+  bool binaryUtility = true;
+  bool fixedBranchingFactor = true;
 };
 
 class RandomGameAction : public Action {
@@ -44,9 +44,6 @@ class RandomGameAction : public Action {
   bool operator==(const Action &other) const override;
   size_t getHash() const override;
   string toString() const override;
-
- private:
-  string value_; //is it important?
 };
 
 class RandomGameDomain : public Domain {
@@ -71,7 +68,7 @@ class RandomGameDomain : public Domain {
   }
 
   bool isBinaryUtility() const {
-      return binary_utility_;
+      return binaryUtility_;
   }
 
   inline bool isFixedBranchingFactor() const {
@@ -85,14 +82,14 @@ class RandomGameDomain : public Domain {
   long seed_;
   int maxBranchingFactor_;
   int maxDifferentObservations_;
-  bool binary_utility_;
+  bool binaryUtility_;
   bool fixedBranchingFactor_;
   int maxCenterModification_;
 };
 
 class RandomGameState : public State {
  public:
-  RandomGameState(Domain *domain, int id, int center, int depth);
+  RandomGameState(Domain *domain, int id, vector<long> histories, int center, int depth);
   unsigned long countAvailableActionsFor(Player player) const override;
   vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
   OutcomeDistribution performActions(const vector<PlayerAction> &actions) const override;
@@ -102,6 +99,7 @@ class RandomGameState : public State {
   size_t getHash() const override;
 
  private:
+  vector<long> playerHistories_;
   int stateId_; //is it important?
   int center_;
   int depth_;
