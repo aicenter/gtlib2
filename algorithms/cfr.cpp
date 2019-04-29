@@ -35,9 +35,12 @@
 
 namespace GTLib2::algorithms {
 
-CFRAlgorithm::CFRAlgorithm(const Domain &domain, Player playingPlayer, CFRSettings settings) :
+CFRAlgorithm::CFRAlgorithm(const Domain &domain,
+                           CFRData &cache,
+                           Player playingPlayer,
+                           CFRSettings settings) :
     GamePlayingAlgorithm(domain, playingPlayer),
-    cache_(CFRData(domain_, settings.cfrUpdating)),
+    cache_(cache),
     settings_(settings) {}
 
 PlayControl CFRAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
@@ -69,15 +72,26 @@ CFRAlgorithm::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
 }
 
 
-void CFRAlgorithm::nodeUpdateRegrets(shared_ptr<EFGNode> node) {
+void CFRAlgorithm::nodeUpdateRegrets(const shared_ptr<EFGNode> &node) {
     if (node->isTerminal()) return;
 
     const auto &infoSet = cache_.getInfosetFor(node);
     auto &infosetData = cache_.infosetData;
     auto &data = infosetData.at(infoSet);
-    for (int i = 0; i < data.regrets.size(); ++i) {
-        data.regrets[i] += data.regretUpdates[i];
-        data.regretUpdates[i] = 0.;
+
+    // Make sure we update everything only once.
+    // After we do the update, we set regretUpdates to NEGATIVE zero
+    // so we can use this for detection of the current state.
+    bool shouldUpdate = !is_negative_zero(data.regretUpdates[0]);
+    if (shouldUpdate) {
+        ++data.numUpdates;
+        for (int i = 0; i < data.regrets.size(); ++i) {
+            if (settings_.accumulatorWeighting == LinearAccWeighting) {
+                data.regretUpdates[i] *= data.numUpdates;
+            }
+            data.regrets[i] += data.regretUpdates[i];
+            data.regretUpdates[i] = -0.0;
+        }
     }
 }
 
@@ -148,10 +162,16 @@ double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
     if (actingPl == updatingPl) {
         for (int i = 0; i < numActions; i++) {
             if (!infosetData.fixRMStrategy) {
-                ((settings_.cfrUpdating == HistoriesUpdating) ? reg[i] : regUpdates[i]) +=
-                    (cfvAction[i] - cfvInfoset)
-                        * reachProbs[oppExploringPl] * reachProbs[CHANCE_PLAYER];
+                double update = (cfvAction[i] - cfvInfoset)
+                    * reachProbs[oppExploringPl] * reachProbs[CHANCE_PLAYER];
+                if (settings_.regretMatching == RegretMatchingPlus) update = max(update, 0.0);
+                if (settings_.accumulatorWeighting == LinearAccWeighting
+                    && settings_.cfrUpdating == HistoriesUpdating)
+                    update *= infosetData.numUpdates++;
+
+                ((settings_.cfrUpdating == HistoriesUpdating) ? reg[i] : regUpdates[i]) += update;
             }
+
             if (!infosetData.fixAvgStrategy) {
                 acc[i] += reachProbs[updatingPl] * rmProbs[i];
             }

@@ -68,13 +68,14 @@ class CFRData: public virtual InfosetCache {
         EFGCache(domain),
         InfosetCache(domain),
         updatingPolicy_(updatingPolicy) {
-        addCallback([&](const shared_ptr<EFGNode> &n) {this->createCFRInfosetData(n);});
+        addCallback([&](const shared_ptr<EFGNode> &n) { this->createCFRInfosetData(n); });
     }
 
     struct InfosetData {
         vector<double> regrets;
         vector<double> avgStratAccumulator;
         vector<double> regretUpdates;
+        unsigned int numUpdates = 0;
 
         /**
          * Disable updating RM strategy in this infoset
@@ -123,7 +124,10 @@ constexpr int CHANCE_PLAYER = 2;
  */
 class CFRAlgorithm: public GamePlayingAlgorithm {
  public:
-    CFRAlgorithm(const Domain &domain, Player playingPlayer, CFRSettings settings);
+    CFRAlgorithm(const Domain &domain,
+                 CFRData &cache,
+                 Player playingPlayer,
+                 CFRSettings settings);
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
     optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override;
 
@@ -143,10 +147,10 @@ class CFRAlgorithm: public GamePlayingAlgorithm {
     void delayedApplyRegretUpdates();
 
  private:
-    CFRData cache_;
+    CFRData &cache_;
     CFRSettings settings_;
 
-    void nodeUpdateRegrets(shared_ptr<EFGNode> node);
+    void nodeUpdateRegrets(const shared_ptr<EFGNode> &node);
 
 };
 
@@ -172,17 +176,17 @@ struct ExpectedUtility {
 };
 
 void calcRMProbs(const vector<double> &regrets, ProbDistribution *pProbs, double epsilonUniform);
-void calcAvgProbs(const vector<double> & acc, ProbDistribution* pProbs);
+void calcAvgProbs(const vector<double> &acc, ProbDistribution *pProbs);
 
-inline void calcRMProbs(const vector<double> & regrets, ProbDistribution* pProbs) {
+inline void calcRMProbs(const vector<double> &regrets, ProbDistribution *pProbs) {
     calcRMProbs(regrets, pProbs, 0);
 }
-inline ProbDistribution calcRMProbs(const vector<double> & regrets) {
+inline ProbDistribution calcRMProbs(const vector<double> &regrets) {
     auto rmProbs = vector<double>(regrets.size());
     calcRMProbs(regrets, &rmProbs);
     return rmProbs;
 }
-inline ProbDistribution calcAvgProbs(const vector<double> & acc) {
+inline ProbDistribution calcAvgProbs(const vector<double> &acc) {
     auto avgProbs = vector<double>(acc.size());
     calcAvgProbs(acc, &avgProbs);
     return avgProbs;

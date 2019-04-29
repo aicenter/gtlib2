@@ -121,4 +121,12 @@ struct hash<std::vector<int>> {
 };
 
 }  // namespace std
+
+namespace GTLib2 {
+inline bool is_negative_zero(float val) { return ((val == 0.0f) && std::signbit(val)); }
+inline bool is_negative_zero(double val) { return ((val == 0.0) && std::signbit(val)); }
+inline bool is_positive_zero(float val) { return ((val == 0.0f) && std::signbit(val)); }
+inline bool is_positive_zero(double val) { return ((val == 0.0) && std::signbit(val)); }
+}
+
 #endif  // UTILS_UTILS_H_
