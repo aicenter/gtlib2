@@ -27,7 +27,7 @@
 
 namespace GTLib2 {
 
-bool EFGCache::hasChildren(const shared_ptr<EFGNode> &node) const {
+bool EFGCache::hasAllChildren(const shared_ptr<EFGNode> &node) const {
     auto it = nodesChildren_.find(node);
     if (it == nodesChildren_.end()) return false;
 
@@ -41,6 +41,18 @@ bool EFGCache::hasChildren(const shared_ptr<EFGNode> &node) const {
     }
 
     return !hasMissing;
+}
+
+bool EFGCache::hasAnyChildren(const shared_ptr<EFGNode> &node) const {
+    auto it = nodesChildren_.find(node);
+    if (it == nodesChildren_.end()) return false;
+
+    auto &nodeDist = it->second;
+    for (auto &ptr : nodeDist) {
+        if (ptr != nullptr) return true;
+    }
+
+    return false;
 }
 
 bool EFGCache::hasChildren(const shared_ptr<EFGNode> &node,
@@ -137,10 +149,6 @@ vector<shared_ptr<EFGNode>> EFGCache::getNodes() const {
     return keys;
 }
 
-void EFGCache::processNode(const shared_ptr<EFGNode> &node) {
-    createNode(node);
-}
-
 void EFGCache::createNode(const shared_ptr<EFGNode> &node) {
     nodesChildren_.emplace(
         node, EFGActionNodesDistribution(node->countAvailableActions(), nullptr));
@@ -155,10 +163,6 @@ void EFGCache::buildForest() {
     builtForest_ = true;
 }
 
-void InfosetCache::processNode(const shared_ptr<GTLib2::EFGNode> &node) {
-    EFGCache::createNode(node);
-    createAugInfosets(node);
-}
 
 void InfosetCache::createAugInfosets(const shared_ptr<EFGNode> &node) {
     vector<shared_ptr<AOH>> infosets;
@@ -182,10 +186,6 @@ void InfosetCache::createAugInfosets(const shared_ptr<EFGNode> &node) {
     node2infosets_.emplace(node, infosets);
 }
 
-void PublicStateCache::processNode(const shared_ptr<GTLib2::EFGNode> &node) {
-    EFGCache::createNode(node);
-    createPublicState(node);
-}
 
 void PublicStateCache::createPublicState(const shared_ptr<EFGNode> &node) {
     auto pubState = node->getPublicState();

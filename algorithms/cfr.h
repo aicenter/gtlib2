@@ -61,16 +61,21 @@ struct CFRSettings {
 /**
  * Container for regrets and average strategy accumulators
  */
-class CFRData: public InfosetCache {
+class CFRData: public virtual InfosetCache {
 
  public:
     inline explicit CFRData(const Domain &domain, CFRUpdating updatingPolicy) :
-        InfosetCache(domain), updatingPolicy_(updatingPolicy) {}
+        EFGCache(domain),
+        InfosetCache(domain),
+        updatingPolicy_(updatingPolicy) {
+        addCallback([&](const shared_ptr<EFGNode> &n) { this->createCFRInfosetData(n); });
+    }
 
     struct InfosetData {
         vector<double> regrets;
         vector<double> avgStratAccumulator;
         vector<double> regretUpdates;
+        unsigned int numUpdates = 0;
 
         /**
          * Disable updating RM strategy in this infoset
@@ -93,6 +98,8 @@ class CFRData: public InfosetCache {
     unordered_map<shared_ptr<AOH>, InfosetData> infosetData;
 
  protected:
+    CFRUpdating updatingPolicy_ = HistoriesUpdating;
+ private:
     void createCFRInfosetData(const shared_ptr<EFGNode> &node) {
         if (node->isTerminal()) return;
 
@@ -102,14 +109,6 @@ class CFRData: public InfosetCache {
                 infoSet, CFRData::InfosetData(node->countAvailableActions(), updatingPolicy_)));
         }
     }
-
-    void processNode(const shared_ptr<EFGNode> &node) override {
-        EFGCache::createNode(node);
-        InfosetCache::createAugInfosets(node);
-        createCFRInfosetData(node);
-    }
-
-    CFRUpdating updatingPolicy_ = HistoriesUpdating;
 };
 
 
@@ -125,9 +124,12 @@ constexpr int CHANCE_PLAYER = 2;
  */
 class CFRAlgorithm: public GamePlayingAlgorithm {
  public:
-    CFRAlgorithm(const Domain &domain, Player playingPlayer, CFRSettings settings);
-    bool runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
-    vector<double> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override;
+    CFRAlgorithm(const Domain &domain,
+                 CFRData &cache,
+                 Player playingPlayer,
+                 CFRSettings settings);
+    PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
+    optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override;
 
     /**
      * Run an updating iteration for specified player starting at some node.
@@ -145,10 +147,10 @@ class CFRAlgorithm: public GamePlayingAlgorithm {
     void delayedApplyRegretUpdates();
 
  private:
-    CFRData cache_;
+    CFRData &cache_;
     CFRSettings settings_;
 
-    void nodeUpdateRegrets(shared_ptr<EFGNode> node);
+    void nodeUpdateRegrets(const shared_ptr<EFGNode> &node);
 
 };
 
@@ -173,8 +175,22 @@ struct ExpectedUtility {
     }
 };
 
-ProbDistribution calcRMProbs(const vector<double> & regrets);
-ProbDistribution calcAvgProbs(const vector<double> & acc);
+void calcRMProbs(const vector<double> &regrets, ProbDistribution *pProbs, double epsilonUniform);
+void calcAvgProbs(const vector<double> &acc, ProbDistribution *pProbs);
+
+inline void calcRMProbs(const vector<double> &regrets, ProbDistribution *pProbs) {
+    calcRMProbs(regrets, pProbs, 0);
+}
+inline ProbDistribution calcRMProbs(const vector<double> &regrets) {
+    auto rmProbs = vector<double>(regrets.size());
+    calcRMProbs(regrets, &rmProbs);
+    return rmProbs;
+}
+inline ProbDistribution calcAvgProbs(const vector<double> &acc) {
+    auto avgProbs = vector<double>(acc.size());
+    calcAvgProbs(acc, &avgProbs);
+    return avgProbs;
+}
 
 /**
  * Calculate expected utilities under RM / avg strategy for specified node

@@ -46,8 +46,9 @@ BOOST_AUTO_TEST_SUITE(CFR)
 
 BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomain) {
     MatchingPenniesDomain domain(AlternatingMoves);
-    CFRAlgorithm cfr(domain, Player(0), CFRSettings());
-    auto &data = cfr.getCache();
+    auto settings = CFRSettings();
+    auto data = CFRData(domain, settings.cfrUpdating);
+    CFRAlgorithm cfr(domain, data, Player(0), settings);
     data.buildForest();
     auto rootNode = data.getRootNodes()[0].first;
     auto rootInfoset = rootNode->getAOHInfSet();
@@ -95,10 +96,12 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomain) {
 
 BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomainForInfosetUpdatingCFR) {
     MatchingPenniesDomain domain(AlternatingMoves);
+
     auto settings = CFRSettings();
     settings.cfrUpdating = InfosetsUpdating;
-    CFRAlgorithm cfr(domain, Player(0), settings);
-    auto &data = cfr.getCache();
+    auto data = CFRData(domain, settings.cfrUpdating);
+    CFRAlgorithm cfr(domain, data, Player(0), settings);
+
     data.buildForest();
     auto rootNode = data.getRootNodes()[0].first;
     auto rootInfoset = rootNode->getAOHInfSet();
@@ -177,8 +180,8 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomainFixStrategy) {
     MatchingPenniesDomain domain(AlternatingMoves);
     auto settings = CFRSettings();
     settings.cfrUpdating = InfosetsUpdating;
-    CFRAlgorithm cfr(domain, Player(0), settings);
-    auto &data = cfr.getCache();
+    auto data = CFRData(domain, settings.cfrUpdating);
+    CFRAlgorithm cfr(domain, data, Player(0), settings);
     data.buildForest();
     auto rootNode = data.getRootNodes()[0].first;
     auto rootInfoset = rootNode->getAOHInfSet();
@@ -280,11 +283,86 @@ BOOST_AUTO_TEST_CASE(CalcUtilities) {
 }
 
 
+BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInGS2) {
+    GoofSpielDomain domain({variant:  IncompleteObservations,
+                               numCards: 2,
+                               fixChanceCards: true,
+                               chanceCards: {2, 1},
+                               binaryTerminalRewards: false});
+    auto settings = CFRSettings();
+    settings.cfrUpdating = InfosetsUpdating;
+    settings.accumulatorWeighting = UniformAccWeighting;
+    settings.regretMatching = RegretMatchingNormal;
+    auto data = CFRData(domain, settings.cfrUpdating);
+    CFRAlgorithm cfr(domain, data, Player(0), settings);
+    cfr.runIterations(1000);
+
+    auto profile = algorithms::getAverageStrategy(cfr.getCache());
+    auto bestResp0 = algorithms::bestResponseTo(profile[0], Player(0), Player(1), domain).second;
+    auto bestResp1 = algorithms::bestResponseTo(profile[1], Player(1), Player(0), domain).second;
+    double utility = algorithms::computeUtilityTwoPlayersGame(
+        domain, profile[0], profile[1], Player(0), Player(1)).first;
+
+    auto rootNode = data.getRootNodes()[0].first;
+    auto rootInfoset = data.getInfosetFor(rootNode);
+    auto stratPlayer = profile[0].at(rootInfoset);
+    auto rootAction = rootNode->availableActions()[0];
+
+    auto childNode = rootNode->performAction(rootNode->availableActions()[0])[0].first;
+    auto childInfoset = data.getInfosetFor(childNode);
+    auto stratOpponent = profile[1].at(childInfoset);
+    auto childAction = childNode->availableActions()[0];
+
+    BOOST_CHECK(std::abs(utility - 0) <= 0.0001);
+    BOOST_CHECK(std::abs(bestResp0 - 0) <= 0.001);
+    BOOST_CHECK(std::abs(bestResp1 - 0) <= 0.001);
+    BOOST_CHECK(stratPlayer.at(rootAction) == stratOpponent.at(childAction));
+}
+
+BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInGS3) {
+    GoofSpielDomain domain({
+                               variant:  IncompleteObservations,
+                               numCards: 3,
+                               fixChanceCards: true,
+                               chanceCards: {3, 2, 1}
+                           });
+    auto settings = CFRSettings();
+    settings.cfrUpdating = InfosetsUpdating;
+    auto data = CFRData(domain, settings.cfrUpdating);
+    CFRAlgorithm cfr(domain, data, Player(0), settings);
+    cfr.runIterations(1000);
+
+    auto profile = algorithms::getAverageStrategy(data);
+    auto bestResp0 = algorithms::bestResponseTo(profile[0], Player(0), Player(1), domain).second;
+    auto bestResp1 = algorithms::bestResponseTo(profile[1], Player(1), Player(0), domain).second;
+    double utility = algorithms::computeUtilityTwoPlayersGame(
+        domain, profile[0], profile[1], Player(0), Player(1)).first;
+
+    auto rootNode = data.getRootNodes()[0].first;
+    auto rootInfoset = data.getInfosetFor(rootNode);
+    auto stratPlayer = profile[0].at(rootInfoset);
+    auto rootAction = rootNode->availableActions()[0];
+
+    auto childNode = rootNode->performAction(rootNode->availableActions()[0])[0].first;
+    auto childInfoset = data.getInfosetFor(childNode);
+    auto stratOpponent = profile[1].at(childInfoset);
+    auto childAction = childNode->availableActions()[0];
+
+    BOOST_CHECK(std::abs(utility - 0) <= 0.0002);
+    BOOST_CHECK(std::abs(bestResp0 - 0) <= 0.0015);
+    BOOST_CHECK(std::abs(bestResp1 - 0) <= 0.0015);
+}
+
 BOOST_AUTO_TEST_CASE(CheckConvergenceInSmallDomain) {
-    GoofSpielDomain domain
-        ({variant: IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
-    CFRAlgorithm cfr(domain, Player(0), CFRSettings());
-    auto &data = cfr.getCache();
+    GoofSpielDomain domain({
+                               variant: IncompleteObservations,
+                               numCards: 3,
+                               fixChanceCards: false,
+                               chanceCards: {}
+                           });
+    auto settings = CFRSettings();
+    auto data = CFRData(domain, settings.cfrUpdating);
+    CFRAlgorithm cfr(domain, data, Player(0), settings);
 
     double expectedUtilities[] =
         {0.00467926, 0.00251501, 0.00171567, 0.00130139, 0.00104813, 0.000877345, 0.000754399,

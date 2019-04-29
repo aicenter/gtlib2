@@ -35,16 +35,19 @@
 
 namespace GTLib2::algorithms {
 
-CFRAlgorithm::CFRAlgorithm(const Domain &domain, Player playingPlayer, CFRSettings settings) :
+CFRAlgorithm::CFRAlgorithm(const Domain &domain,
+                           CFRData &cache,
+                           Player playingPlayer,
+                           CFRSettings settings) :
     GamePlayingAlgorithm(domain, playingPlayer),
-    cache_(CFRData(domain_, settings.cfrUpdating)),
+    cache_(cache),
     settings_(settings) {}
 
-bool CFRAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
+PlayControl CFRAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
     if (currentInfoset == nullopt) {
-        if (cache_.isCompletelyBuilt()) return true;
+        if (cache_.isCompletelyBuilt()) return StopImproving;
         cache_.buildForest();
-        return true;
+        return StopImproving;
     }
 
     // the tree has been built before, we must have this infoset in memory
@@ -57,24 +60,38 @@ bool CFRAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfo
         runIteration(node, std::array<double, 3>{1., 1., chanceProb}, Player(1));
         delayedApplyRegretUpdates();
     }
+
+    return ContinueImproving;
 }
 
-vector<double> CFRAlgorithm::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
+optional<ProbDistribution>
+CFRAlgorithm::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
     const auto &data = cache_.infosetData.at(currentInfoset);
     const auto &acc = data.avgStratAccumulator;
     return calcAvgProbs(acc);
 }
 
 
-void CFRAlgorithm::nodeUpdateRegrets(shared_ptr<EFGNode> node) {
+void CFRAlgorithm::nodeUpdateRegrets(const shared_ptr<EFGNode> &node) {
     if (node->isTerminal()) return;
 
     const auto &infoSet = cache_.getInfosetFor(node);
     auto &infosetData = cache_.infosetData;
     auto &data = infosetData.at(infoSet);
-    for (int i = 0; i < data.regrets.size(); ++i) {
-        data.regrets[i] += data.regretUpdates[i];
-        data.regretUpdates[i] = 0.;
+
+    // Make sure we update everything only once.
+    // After we do the update, we set regretUpdates to NEGATIVE zero
+    // so we can use this for detection of the current state.
+    bool shouldUpdate = !is_negative_zero(data.regretUpdates[0]);
+    if (shouldUpdate) {
+        ++data.numUpdates;
+        for (int i = 0; i < data.regrets.size(); ++i) {
+            if (settings_.accumulatorWeighting == LinearAccWeighting) {
+                data.regretUpdates[i] *= data.numUpdates;
+            }
+            data.regrets[i] += data.regretUpdates[i];
+            data.regretUpdates[i] = -0.0;
+        }
     }
 }
 
@@ -145,10 +162,16 @@ double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
     if (actingPl == updatingPl) {
         for (int i = 0; i < numActions; i++) {
             if (!infosetData.fixRMStrategy) {
-                ((settings_.cfrUpdating == HistoriesUpdating) ? reg[i] : regUpdates[i]) +=
-                    (cfvAction[i] - cfvInfoset)
-                        * reachProbs[oppExploringPl] * reachProbs[CHANCE_PLAYER];
+                double update = (cfvAction[i] - cfvInfoset)
+                    * reachProbs[oppExploringPl] * reachProbs[CHANCE_PLAYER];
+                if (settings_.regretMatching == RegretMatchingPlus) update = max(update, 0.0);
+                if (settings_.accumulatorWeighting == LinearAccWeighting
+                    && settings_.cfrUpdating == HistoriesUpdating)
+                    update *= infosetData.numUpdates++;
+
+                ((settings_.cfrUpdating == HistoriesUpdating) ? reg[i] : regUpdates[i]) += update;
             }
+
             if (!infosetData.fixAvgStrategy) {
                 acc[i] += reachProbs[updatingPl] * rmProbs[i];
             }
@@ -158,34 +181,34 @@ double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
     return cfvInfoset;
 }
 
-vector<double> calcRMProbs(const vector<double> &regrets) {
+void calcRMProbs(const vector<double> &regrets, ProbDistribution *pProbs, double epsilonUniform) {
+    assert(regrets.size() <= pProbs->size());
     double posRegretSum = 0.0;
     for (double r : regrets) {
         posRegretSum += max(0.0, r);
     }
 
-    auto rmProbs = vector<double>(regrets.size());
     if (posRegretSum > 0) {
         for (int i = 0; i < regrets.size(); i++) {
-            rmProbs[i] = max(0.0, regrets[i] / posRegretSum);
+            (*pProbs)[i] = (1 - epsilonUniform) * max(0.0, regrets[i] / posRegretSum)
+                + epsilonUniform / regrets.size();
         }
     } else {
-        std::fill(rmProbs.begin(), rmProbs.end(), 1.0 / regrets.size());
+        // todo: check
+        std::fill(pProbs->begin(), pProbs->begin() + regrets.size(), 1.0 / regrets.size());
     }
-    return rmProbs;
 }
 
-vector<double> calcAvgProbs(const vector<double> &acc) {
+void calcAvgProbs(const vector<double> &acc, ProbDistribution *pProbs) {
+    assert(acc.size() <= pProbs->size());
     double sum = 0.0;
     for (double d : acc) sum += d;
 
-    vector<double> probs = vector<double>(acc.size());
     for (int i = 0; i < acc.size(); ++i) {
-        probs[i] = sum == 0.0
-                   ? 1.0 / acc.size()
-                   : acc[i] / sum;
+        (*pProbs)[i] = sum == 0.0
+                       ? 1.0 / acc.size()
+                       : acc[i] / sum;
     }
-    return probs;
 }
 
 ExpectedUtility calcExpectedUtility(CFRData &cache,

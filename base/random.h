@@ -26,6 +26,10 @@
 
 #include "base/base.h"
 #include "base/efg.h"
+#include "base/cache.h"
+#include "algorithms/cfr.h"
+#include "algorithms/tree.h"
+#include "algorithms/common.h"
 
 namespace GTLib2 {
 
@@ -37,9 +41,18 @@ int pickRandom(const ProbDistribution &probs,
                std::mt19937 &generator);
 
 
+int pickRandom(const Distribution &probs, double probSum,
+               std::uniform_real_distribution<double> &uniformDist,
+               std::mt19937 &generator);
+
+
 int pickRandom(const EFGNodesDistribution &probs,
                std::uniform_real_distribution<double> &uniformDist,
                std::mt19937 &generator);
+
+int pickUniform(unsigned int numOutcomes,
+                std::uniform_real_distribution<double> &uniformDist,
+                std::mt19937 &generator);
 
 inline int pickRandom(const ProbDistribution &probs, std::mt19937 &generator) {
     auto uniformDist = std::uniform_real_distribution<double>(0.0, 1.0);
@@ -50,6 +63,21 @@ inline int pickRandom(const EFGNodesDistribution &probs, std::mt19937 &generator
     auto uniformDist = std::uniform_real_distribution<double>(0.0, 1.0);
     return pickRandom(probs, uniformDist, generator);
 }
+
+struct RandomLeafOutcome {
+    vector<double> utilities; // for player 0
+    vector<double> playerReachProbs;
+    double chanceReachProb;
+};
+
+RandomLeafOutcome pickRandomLeaf(const std::shared_ptr<EFGNode> &start,
+                                 std::uniform_real_distribution<double> &uniformDist,
+                                 std::mt19937 &generator);
+
+RandomLeafOutcome pickRandomLeaf(const std::shared_ptr<EFGNode> &start,
+                                 const std::shared_ptr<GTLib2::Action> &firstAction,
+                                 std::uniform_real_distribution<double> &uniformDist,
+                                 std::mt19937 &generator);
 
 }  // namespace std
 

@@ -48,7 +48,7 @@ void treeWalkEFG(EFGCache &cache, EFGNodeCallback function, int maxDepth);
  * The tree is walked as DFS up to maximum depth as the max of int values.
  */
 inline void treeWalkEFG(EFGCache &cache, EFGNodeCallback function) {
-    treeWalkEFG(cache, move(function), INT_MAX);
+    treeWalkEFG(cache, move(function), cache.getDomainMaxStateDepth());
 }
 
 /**
