@@ -148,6 +148,9 @@ void EFGCache::createNode(const shared_ptr<EFGNode> &node) {
 
 void EFGCache::buildForest(int maxDepth) {
     algorithms::treeWalkEFG(*this, [](shared_ptr<EFGNode> _) {}, maxDepth);
+    if (domain_.getMaxDepth() <= maxDepth) {
+        builtForest_ = true;
+    }
 }
 
 void EFGCache::buildForest() {

@@ -30,6 +30,7 @@
 #include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"
 #include "domains/oshiZumo.h"
+#include "domains/randomGame.h"
 
 namespace GTLib2::domains {
 
@@ -174,13 +175,16 @@ GenericPokerDomain gp2(3, 3, 1, 2, 3);
 MatchingPenniesDomain mp1(AlternatingMoves);
 MatchingPenniesDomain mp2(SimultaneousMoves);
 
+RandomGameDomain rg1({});
+
 Domain *testDomains[] = { // NOLINT(cert-err58-cpp)
-    &gs1, &gs2, &gs3, &gs1_fix, &gs2_fix, &gs3_fix,
-    &iigs1, &iigs2, &iigs3, &iigs1_fix, &iigs2_fix, &iigs3_fix,
-    // todo: maxUtility and maxDepth do not work for poker!
-    // &gp1, &gp2,
-    &oz1, &oz2, &oz3, &oz4, &oz5, &iioz1, &iioz2, &iioz3, &iioz4, &iioz5,
-    &mp1, &mp2,
+//    &gs1, &gs2, &gs3, &gs1_fix, &gs2_fix, &gs3_fix,
+//    &iigs1, &iigs2, &iigs3, &iigs1_fix, &iigs2_fix, &iigs3_fix,
+//    // todo: maxUtility and maxDepth do not work for poker!
+//    // &gp1, &gp2,
+//    &oz1, &oz2, &oz3, &oz4, &oz5, &iioz1, &iioz2, &iioz3, &iioz4, &iioz5,
+//    &mp1, &mp2,
+    &rg1,
 };
 
 BOOST_AUTO_TEST_CASE(zeroSumGame) {
