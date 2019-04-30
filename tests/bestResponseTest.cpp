@@ -25,14 +25,13 @@
 #include "algorithms/equilibrium.h"
 #include "algorithms/tree.h"
 #include "algorithms/utility.h"
+#include "algorithms/strategy.h"
 #include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"
-#include "LPsolvers/LPSolver.h"
-#include "domains/goofSpiel.h"
 
+#include "LPsolvers/LPSolver.h"
 #include "tests/domainsTest.h"
-#include <boost/test/unit_test.hpp>
-#include <algorithms/strategy.h>
+#include "gtest/gtest.h"
 
 
 namespace GTLib2::algorithms {
@@ -48,11 +47,8 @@ using domains::GoofSpielVariant::IncompleteObservations;
 using domains::GoofSpielVariant::CompleteObservations;
 using domains::GoofSpielAction;
 
-BOOST_AUTO_TEST_SUITE(AlgorithmsTests)
-BOOST_AUTO_TEST_SUITE(BestResponse)
 
-
-BOOST_AUTO_TEST_CASE(testSmallDomain) {
+TEST(BestResponse, TestSmallDomain) {
     MatchingPenniesDomain domain(AlternatingMoves);
 
     auto initNodes = algorithms::createRootEFGNodes(domain.getRootStatesDistribution());
@@ -72,10 +68,10 @@ BOOST_AUTO_TEST_CASE(testSmallDomain) {
     auto brsVal = algorithms::bestResponseTo(stratHeads, Player(0), Player(1), domain, 2);
     auto optAction = (*brsVal.first[childInfoset].begin()).first;
 
-    BOOST_CHECK(*optAction == *tailAction);
+    EXPECT_TRUE(*optAction == *tailAction);
 }
 
-BOOST_AUTO_TEST_CASE(bestResponseFullDepthCard4) {
+TEST(BestResponse, GoofspielFullDepthCard4) {
     GoofSpielDomain domain
         ({variant:  CompleteObservations, numCards: 4, fixChanceCards: false, chanceCards: {}});
 
@@ -106,10 +102,10 @@ BOOST_AUTO_TEST_CASE(bestResponseFullDepthCard4) {
 
     auto bestResponse = algorithms::bestResponseTo(profile[opponent], opponent, player, domain);
 
-    BOOST_CHECK(std::abs(bestResponse.second - 5.25) <= 0.001);
+    EXPECT_TRUE(std::abs(bestResponse.second - 5.25) <= 0.001);
 }
 
-BOOST_AUTO_TEST_CASE(bestResponseDepth2Card4) {
+TEST(BestResponse, GoofspielDepth2Card4) {
     GoofSpielDomain domain
         ({variant:  CompleteObservations, numCards: 4, fixChanceCards: false, chanceCards: {}});
 
@@ -134,10 +130,10 @@ BOOST_AUTO_TEST_CASE(bestResponseDepth2Card4) {
 
     auto bestResponse = algorithms::bestResponseTo(profile[opponent], opponent, player, domain);
 
-    BOOST_CHECK(std::abs(bestResponse.second - 5) <= 0.001);
+    EXPECT_TRUE(std::abs(bestResponse.second - 5) <= 0.001);
 }
 
-BOOST_AUTO_TEST_CASE(bestResponseDepth1Card13) {
+TEST(BestResponse, GoofspielDepth1Card13) {
     GoofSpielDomain domain
         ({variant:  CompleteObservations, numCards: 13, fixChanceCards: false, chanceCards: {}});
 
@@ -159,10 +155,7 @@ BOOST_AUTO_TEST_CASE(bestResponseDepth1Card13) {
 
     auto bestResponse = algorithms::bestResponseTo(profile[opponent], opponent, player, domain, 1);
 
-    BOOST_CHECK(std::abs(bestResponse.second - 7) <= 0.001);
+    EXPECT_TRUE(std::abs(bestResponse.second - 7) <= 0.001);
 }
-
-BOOST_AUTO_TEST_SUITE_END()
-BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace GTLib2

@@ -24,21 +24,19 @@
 #include "domains/genericPoker.h"
 #include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"
-#include "utils/functools.h"
 
+#include "utils/functools.h"
 #include "utils/export.h"
-#include <boost/range/combine.hpp>
-#include <boost/test/unit_test.hpp>
+
+#include "gtest/gtest.h"
 
 namespace GTLib2::utils {
 
 using domains::MatchingPenniesDomain;
 using domains::MatchingPenniesVariant::AlternatingMoves;
 
-BOOST_AUTO_TEST_SUITE(UtilsTests)
-BOOST_AUTO_TEST_SUITE(Export)
 
-BOOST_AUTO_TEST_CASE(exportGambitSmallDomain) {
+TEST(Export, GambitSmallDomain) {
     auto mp = MatchingPenniesDomain(AlternatingMoves);
     std::ostringstream gambit_os;
     exportGambit(mp, gambit_os);
@@ -53,10 +51,10 @@ BOOST_AUTO_TEST_CASE(exportGambitSmallDomain) {
         R"( p "" 2 2 "" { "Heads" "Tails" } 0)" "\n"
         R"(  t "" 2 "" { -1, 1})" "\n"
         R"(  t "" 3 "" { 1, -1})" "\n";
-    BOOST_CHECK(expectedGambit == gambit_os.str());
+    EXPECT_TRUE(expectedGambit == gambit_os.str());
 }
 
-BOOST_AUTO_TEST_CASE(exportGraphvizSmallDomain) {
+TEST(Export, GraphvizSmallDomain) {
     auto mp = MatchingPenniesDomain(AlternatingMoves);
     std::ostringstream graphviz_os;
     exportGraphViz(mp, graphviz_os);
@@ -87,9 +85,7 @@ BOOST_AUTO_TEST_CASE(exportGraphvizSmallDomain) {
 
     cout << graphviz_os.str();
 
-    BOOST_CHECK(expectedGraphviz == graphviz_os.str());
+    EXPECT_TRUE(expectedGraphviz == graphviz_os.str());
 }
-BOOST_AUTO_TEST_SUITE_END()
-BOOST_AUTO_TEST_SUITE_END()
 
 }

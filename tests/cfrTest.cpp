@@ -27,8 +27,10 @@
 #include "algorithms/utility.h"
 #include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"
+
 #include "tests/domainsTest.h"
-#include <boost/test/unit_test.hpp>
+
+#include "gtest/gtest.h"
 
 
 namespace GTLib2::algorithms {
@@ -41,10 +43,8 @@ using domains::GoofSpielDomain;
 using domains::GoofSpielVariant::IncompleteObservations;
 using domains::GoofSpielVariant::CompleteObservations;
 
-BOOST_AUTO_TEST_SUITE(AlgorithmsTests)
-BOOST_AUTO_TEST_SUITE(CFR)
 
-BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomain) {
+TEST(CFR, CheckRegretsAndAccInSmallDomain) {
     MatchingPenniesDomain domain(AlternatingMoves);
     auto settings = CFRSettings();
     auto data = CFRData(domain, settings.cfrUpdating);
@@ -56,45 +56,45 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomain) {
     auto childInfoset = childNode->getAOHInfSet();
     auto &rootData = data.infosetData.at(rootInfoset);
     auto &childData = data.infosetData.at(childInfoset);
-    BOOST_CHECK(!rootData.fixRMStrategy);
-    BOOST_CHECK(!childData.fixRMStrategy);
-    BOOST_CHECK(!rootData.fixAvgStrategy);
-    BOOST_CHECK(!childData.fixAvgStrategy);
-    BOOST_CHECK(rootData.regretUpdates.empty());
-    BOOST_CHECK(childData.regretUpdates.empty());
+    EXPECT_TRUE(!rootData.fixRMStrategy);
+    EXPECT_TRUE(!childData.fixRMStrategy);
+    EXPECT_TRUE(!rootData.fixAvgStrategy);
+    EXPECT_TRUE(!childData.fixAvgStrategy);
+    EXPECT_TRUE(rootData.regretUpdates.empty());
+    EXPECT_TRUE(childData.regretUpdates.empty());
 
     // ------ iteration player 0 ------
     double cfvInfoset = cfr.runIteration(rootNode, std::array<double, 3>{1., 1., 1.}, Player(0));
-    BOOST_CHECK(cfvInfoset == 0.0);
-    BOOST_CHECK(rootData.regrets[0] == 0.0);
-    BOOST_CHECK(rootData.regrets[1] == 0.0);
-    BOOST_CHECK(rootData.avgStratAccumulator[0] == 0.5);
-    BOOST_CHECK(rootData.avgStratAccumulator[1] == 0.5);
+    EXPECT_TRUE(cfvInfoset == 0.0);
+    EXPECT_TRUE(rootData.regrets[0] == 0.0);
+    EXPECT_TRUE(rootData.regrets[1] == 0.0);
+    EXPECT_TRUE(rootData.avgStratAccumulator[0] == 0.5);
+    EXPECT_TRUE(rootData.avgStratAccumulator[1] == 0.5);
     // does not change regrets / acc for player 1
-    BOOST_CHECK(childData.regrets[0] == 0.0);
-    BOOST_CHECK(childData.regrets[1] == 0.0);
-    BOOST_CHECK(childData.avgStratAccumulator[0] == 0.0);
-    BOOST_CHECK(childData.avgStratAccumulator[1] == 0.0);
+    EXPECT_TRUE(childData.regrets[0] == 0.0);
+    EXPECT_TRUE(childData.regrets[1] == 0.0);
+    EXPECT_TRUE(childData.avgStratAccumulator[0] == 0.0);
+    EXPECT_TRUE(childData.avgStratAccumulator[1] == 0.0);
 
     // ------ iteration player 1 ------
     cfvInfoset = cfr.runIteration(rootNode, std::array<double, 3>{1., 1., 1.}, Player(1));
     // does not change regrets / acc for player 0 but it does for player 1!!
-    BOOST_CHECK(rootData.regrets[0] == 0.0);
-    BOOST_CHECK(rootData.regrets[1] == 0.0);
-    BOOST_CHECK(rootData.avgStratAccumulator[1] == 0.5);
-    BOOST_CHECK(rootData.avgStratAccumulator[0] == 0.5);
-    BOOST_CHECK(childData.regrets[0] == 0.5);
-    BOOST_CHECK(childData.regrets[1] == 0.5);
+    EXPECT_TRUE(rootData.regrets[0] == 0.0);
+    EXPECT_TRUE(rootData.regrets[1] == 0.0);
+    EXPECT_TRUE(rootData.avgStratAccumulator[1] == 0.5);
+    EXPECT_TRUE(rootData.avgStratAccumulator[0] == 0.5);
+    EXPECT_TRUE(childData.regrets[0] == 0.5);
+    EXPECT_TRUE(childData.regrets[1] == 0.5);
     // acc is not two equal numbers because first
     // the left node is traversed and then the right node of the infoset
-    BOOST_CHECK(childData.avgStratAccumulator[0] == 0.5);
-    BOOST_CHECK(childData.avgStratAccumulator[1] == 1.5);
+    EXPECT_TRUE(childData.avgStratAccumulator[0] == 0.5);
+    EXPECT_TRUE(childData.avgStratAccumulator[1] == 1.5);
     // this is also why cfv is not zero
-    BOOST_CHECK(cfvInfoset == -0.5);
+    EXPECT_TRUE(cfvInfoset == -0.5);
 }
 
 
-BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomainForInfosetUpdatingCFR) {
+TEST(CFR, CheckRegretsAndAccInSmallDomainForInfosetUpdatingCFR) {
     MatchingPenniesDomain domain(AlternatingMoves);
 
     auto settings = CFRSettings();
@@ -109,74 +109,74 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomainForInfosetUpdatingCFR) {
     auto childInfoset = childNode->getAOHInfSet();
     auto &rootData = data.infosetData.at(rootInfoset);
     auto &childData = data.infosetData.at(childInfoset);
-    BOOST_CHECK(!rootData.fixRMStrategy);
-    BOOST_CHECK(!childData.fixRMStrategy);
-    BOOST_CHECK(!rootData.fixAvgStrategy);
-    BOOST_CHECK(!childData.fixAvgStrategy);
-    BOOST_CHECK(rootData.regretUpdates.size() == 2);
-    BOOST_CHECK(childData.regretUpdates.size() == 2);
+    EXPECT_TRUE(!rootData.fixRMStrategy);
+    EXPECT_TRUE(!childData.fixRMStrategy);
+    EXPECT_TRUE(!rootData.fixAvgStrategy);
+    EXPECT_TRUE(!childData.fixAvgStrategy);
+    EXPECT_TRUE(rootData.regretUpdates.size() == 2);
+    EXPECT_TRUE(childData.regretUpdates.size() == 2);
 
     // ------ iteration player 0 ------
     double cfvInfoset = cfr.runIteration(rootNode, std::array<double, 3>{1., 1., 1.}, Player(0));
     cfr.delayedApplyRegretUpdates();
-    BOOST_CHECK(cfvInfoset == 0.0);
-    BOOST_CHECK(rootData.regrets[0] == 0.0);
-    BOOST_CHECK(rootData.regrets[1] == 0.0);
-    BOOST_CHECK(rootData.regretUpdates[0] == 0.0);
-    BOOST_CHECK(rootData.regretUpdates[1] == 0.0);
-    BOOST_CHECK(rootData.avgStratAccumulator[0] == 0.5);
-    BOOST_CHECK(rootData.avgStratAccumulator[1] == 0.5);
+    EXPECT_TRUE(cfvInfoset == 0.0);
+    EXPECT_TRUE(rootData.regrets[0] == 0.0);
+    EXPECT_TRUE(rootData.regrets[1] == 0.0);
+    EXPECT_TRUE(rootData.regretUpdates[0] == 0.0);
+    EXPECT_TRUE(rootData.regretUpdates[1] == 0.0);
+    EXPECT_TRUE(rootData.avgStratAccumulator[0] == 0.5);
+    EXPECT_TRUE(rootData.avgStratAccumulator[1] == 0.5);
     // does not change regrets / acc for player 1
-    BOOST_CHECK(childData.regrets[0] == 0.0);
-    BOOST_CHECK(childData.regrets[1] == 0.0);
-    BOOST_CHECK(childData.regretUpdates[0] == 0.0);
-    BOOST_CHECK(childData.regretUpdates[1] == 0.0);
-    BOOST_CHECK(childData.avgStratAccumulator[0] == 0.0);
-    BOOST_CHECK(childData.avgStratAccumulator[1] == 0.0);
+    EXPECT_TRUE(childData.regrets[0] == 0.0);
+    EXPECT_TRUE(childData.regrets[1] == 0.0);
+    EXPECT_TRUE(childData.regretUpdates[0] == 0.0);
+    EXPECT_TRUE(childData.regretUpdates[1] == 0.0);
+    EXPECT_TRUE(childData.avgStratAccumulator[0] == 0.0);
+    EXPECT_TRUE(childData.avgStratAccumulator[1] == 0.0);
 
     // ------ iteration player 1 ------
     cfvInfoset = cfr.runIteration(rootNode, std::array<double, 3>{1., 1., 1.}, Player(1));
     cfr.delayedApplyRegretUpdates();
     // does not change regrets / acc for player 0
-    BOOST_CHECK(rootData.regrets[0] == 0.0);
-    BOOST_CHECK(rootData.regrets[1] == 0.0);
-    BOOST_CHECK(rootData.regretUpdates[0] == 0.0);
-    BOOST_CHECK(rootData.regretUpdates[1] == 0.0);
-    BOOST_CHECK(rootData.avgStratAccumulator[0] == 0.5);
-    BOOST_CHECK(rootData.avgStratAccumulator[1] == 0.5);
+    EXPECT_TRUE(rootData.regrets[0] == 0.0);
+    EXPECT_TRUE(rootData.regrets[1] == 0.0);
+    EXPECT_TRUE(rootData.regretUpdates[0] == 0.0);
+    EXPECT_TRUE(rootData.regretUpdates[1] == 0.0);
+    EXPECT_TRUE(rootData.avgStratAccumulator[0] == 0.5);
+    EXPECT_TRUE(rootData.avgStratAccumulator[1] == 0.5);
     // for player 1 it does not change regrets but changes acc
-    BOOST_CHECK(childData.regrets[0] == 0.0);
-    BOOST_CHECK(childData.regrets[1] == 0.0);
-    BOOST_CHECK(childData.regretUpdates[0] == 0.0);
-    BOOST_CHECK(childData.regretUpdates[1] == 0.0);
-    BOOST_CHECK(childData.avgStratAccumulator[0] == 1.0);
-    BOOST_CHECK(childData.avgStratAccumulator[1] == 1.0);
-    BOOST_CHECK(cfvInfoset == 0.0);
+    EXPECT_TRUE(childData.regrets[0] == 0.0);
+    EXPECT_TRUE(childData.regrets[1] == 0.0);
+    EXPECT_TRUE(childData.regretUpdates[0] == 0.0);
+    EXPECT_TRUE(childData.regretUpdates[1] == 0.0);
+    EXPECT_TRUE(childData.avgStratAccumulator[0] == 1.0);
+    EXPECT_TRUE(childData.avgStratAccumulator[1] == 1.0);
+    EXPECT_TRUE(cfvInfoset == 0.0);
 
     // ------ many iterations ------
     cfr.runIterations(100);
-    BOOST_CHECK(rootData.regrets[0] == 0.0);
-    BOOST_CHECK(rootData.regrets[1] == 0.0);
-    BOOST_CHECK(rootData.regretUpdates[0] == 0.0);
-    BOOST_CHECK(rootData.regretUpdates[1] == 0.0);
-    BOOST_CHECK(rootData.avgStratAccumulator[0] == 50.5);
-    BOOST_CHECK(rootData.avgStratAccumulator[1] == 50.5);
+    EXPECT_TRUE(rootData.regrets[0] == 0.0);
+    EXPECT_TRUE(rootData.regrets[1] == 0.0);
+    EXPECT_TRUE(rootData.regretUpdates[0] == 0.0);
+    EXPECT_TRUE(rootData.regretUpdates[1] == 0.0);
+    EXPECT_TRUE(rootData.avgStratAccumulator[0] == 50.5);
+    EXPECT_TRUE(rootData.avgStratAccumulator[1] == 50.5);
     // for player 1 it does not change regrets but changes acc
-    BOOST_CHECK(childData.regrets[0] == 0.0);
-    BOOST_CHECK(childData.regrets[1] == 0.0);
-    BOOST_CHECK(childData.regretUpdates[0] == 0.0);
-    BOOST_CHECK(childData.regretUpdates[1] == 0.0);
+    EXPECT_TRUE(childData.regrets[0] == 0.0);
+    EXPECT_TRUE(childData.regrets[1] == 0.0);
+    EXPECT_TRUE(childData.regretUpdates[0] == 0.0);
+    EXPECT_TRUE(childData.regretUpdates[1] == 0.0);
     // Accumulators are not the same in root/child, because player1 histories
     // have been updated more times. This is ok, since we will calculate weighted
     // sum of these to get the average strategy. These increments are always added
     // by a constant number of times more (by each history in infoset) and they
     // will cancel out.
-    BOOST_CHECK(childData.avgStratAccumulator[0] == 101.0);
-    BOOST_CHECK(childData.avgStratAccumulator[1] == 101.0);
+    EXPECT_TRUE(childData.avgStratAccumulator[0] == 101.0);
+    EXPECT_TRUE(childData.avgStratAccumulator[1] == 101.0);
 }
 
 
-BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomainFixStrategy) {
+TEST(CFR, CheckRegretsAndAccInSmallDomainFixStrategy) {
     MatchingPenniesDomain domain(AlternatingMoves);
     auto settings = CFRSettings();
     settings.cfrUpdating = InfosetsUpdating;
@@ -195,65 +195,65 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInSmallDomainFixStrategy) {
     childData.avgStratAccumulator[1] = 0.875;
     rootData.fixRMStrategy = true;
     childData.fixAvgStrategy = true;
-    BOOST_CHECK(rootData.fixRMStrategy);
-    BOOST_CHECK(!childData.fixRMStrategy);
-    BOOST_CHECK(!rootData.fixAvgStrategy);
-    BOOST_CHECK(childData.fixAvgStrategy);
-    BOOST_CHECK(rootData.regretUpdates.size() == 2);
-    BOOST_CHECK(childData.regretUpdates.size() == 2);
+    EXPECT_TRUE(rootData.fixRMStrategy);
+    EXPECT_TRUE(!childData.fixRMStrategy);
+    EXPECT_TRUE(!rootData.fixAvgStrategy);
+    EXPECT_TRUE(childData.fixAvgStrategy);
+    EXPECT_TRUE(rootData.regretUpdates.size() == 2);
+    EXPECT_TRUE(childData.regretUpdates.size() == 2);
 
     // ------ iteration player 0 ------
     double cfvInfoset = cfr.runIteration(rootNode, std::array<double, 3>{1., 1., 1.}, Player(0));
     cfr.delayedApplyRegretUpdates();
-    BOOST_CHECK(cfvInfoset == 0.0);
-    BOOST_CHECK(rootData.regrets[0] == 0.75);
-    BOOST_CHECK(rootData.regrets[1] == 0.25);
-    BOOST_CHECK(rootData.regretUpdates[0] == 0.0);
-    BOOST_CHECK(rootData.regretUpdates[1] == 0.0);
-    BOOST_CHECK(rootData.avgStratAccumulator[0] == 0.75);
-    BOOST_CHECK(rootData.avgStratAccumulator[1] == 0.25);
-    BOOST_CHECK(childData.regrets[0] == 0.0);
-    BOOST_CHECK(childData.regrets[1] == 0.0);
-    BOOST_CHECK(childData.regretUpdates[0] == 0.0);
-    BOOST_CHECK(childData.regretUpdates[1] == 0.0);
-    BOOST_CHECK(childData.avgStratAccumulator[0] == 0.125);
-    BOOST_CHECK(childData.avgStratAccumulator[1] == 0.875);
+    EXPECT_TRUE(cfvInfoset == 0.0);
+    EXPECT_TRUE(rootData.regrets[0] == 0.75);
+    EXPECT_TRUE(rootData.regrets[1] == 0.25);
+    EXPECT_TRUE(rootData.regretUpdates[0] == 0.0);
+    EXPECT_TRUE(rootData.regretUpdates[1] == 0.0);
+    EXPECT_TRUE(rootData.avgStratAccumulator[0] == 0.75);
+    EXPECT_TRUE(rootData.avgStratAccumulator[1] == 0.25);
+    EXPECT_TRUE(childData.regrets[0] == 0.0);
+    EXPECT_TRUE(childData.regrets[1] == 0.0);
+    EXPECT_TRUE(childData.regretUpdates[0] == 0.0);
+    EXPECT_TRUE(childData.regretUpdates[1] == 0.0);
+    EXPECT_TRUE(childData.avgStratAccumulator[0] == 0.125);
+    EXPECT_TRUE(childData.avgStratAccumulator[1] == 0.875);
 
     // ------ iteration player 1 ------
     cfvInfoset = cfr.runIteration(rootNode, std::array<double, 3>{1., 1., 1.}, Player(1));
     cfr.delayedApplyRegretUpdates();
-    BOOST_CHECK(rootData.regrets[0] == 0.75);
-    BOOST_CHECK(rootData.regrets[1] == 0.25);
-    BOOST_CHECK(rootData.regretUpdates[0] == 0.0);
-    BOOST_CHECK(rootData.regretUpdates[1] == 0.0);
-    BOOST_CHECK(rootData.avgStratAccumulator[0] == 0.75);
-    BOOST_CHECK(rootData.avgStratAccumulator[1] == 0.25);
-    BOOST_CHECK(childData.regrets[0] == -0.5);
-    BOOST_CHECK(childData.regrets[1] == 0.5);
-    BOOST_CHECK(childData.regretUpdates[0] == 0.0);
-    BOOST_CHECK(childData.regretUpdates[1] == 0.0);
-    BOOST_CHECK(childData.avgStratAccumulator[0] == 0.125);
-    BOOST_CHECK(childData.avgStratAccumulator[1] == 0.875);
-    BOOST_CHECK(cfvInfoset == 0.0);
+    EXPECT_TRUE(rootData.regrets[0] == 0.75);
+    EXPECT_TRUE(rootData.regrets[1] == 0.25);
+    EXPECT_TRUE(rootData.regretUpdates[0] == 0.0);
+    EXPECT_TRUE(rootData.regretUpdates[1] == 0.0);
+    EXPECT_TRUE(rootData.avgStratAccumulator[0] == 0.75);
+    EXPECT_TRUE(rootData.avgStratAccumulator[1] == 0.25);
+    EXPECT_TRUE(childData.regrets[0] == -0.5);
+    EXPECT_TRUE(childData.regrets[1] == 0.5);
+    EXPECT_TRUE(childData.regretUpdates[0] == 0.0);
+    EXPECT_TRUE(childData.regretUpdates[1] == 0.0);
+    EXPECT_TRUE(childData.avgStratAccumulator[0] == 0.125);
+    EXPECT_TRUE(childData.avgStratAccumulator[1] == 0.875);
+    EXPECT_TRUE(cfvInfoset == 0.0);
 
     // ------ many iterations ------
     cfr.runIterations(100);
-    BOOST_CHECK(rootData.regrets[0] == 0.75);
-    BOOST_CHECK(rootData.regrets[1] == 0.25);
-    BOOST_CHECK(rootData.regretUpdates[0] == 0.0);
-    BOOST_CHECK(rootData.regretUpdates[1] == 0.0);
-    BOOST_CHECK(rootData.avgStratAccumulator[0] == 75.75);
-    BOOST_CHECK(rootData.avgStratAccumulator[1] == 25.25);
-    BOOST_CHECK(childData.regrets[0] == -100.5);
-    BOOST_CHECK(childData.regrets[1] == 0.5);
-    BOOST_CHECK(childData.regretUpdates[0] == 0.0);
-    BOOST_CHECK(childData.regretUpdates[1] == 0.0);
-    BOOST_CHECK(childData.avgStratAccumulator[0] == 0.125);
-    BOOST_CHECK(childData.avgStratAccumulator[1] == 0.875);
+    EXPECT_TRUE(rootData.regrets[0] == 0.75);
+    EXPECT_TRUE(rootData.regrets[1] == 0.25);
+    EXPECT_TRUE(rootData.regretUpdates[0] == 0.0);
+    EXPECT_TRUE(rootData.regretUpdates[1] == 0.0);
+    EXPECT_TRUE(rootData.avgStratAccumulator[0] == 75.75);
+    EXPECT_TRUE(rootData.avgStratAccumulator[1] == 25.25);
+    EXPECT_TRUE(childData.regrets[0] == -100.5);
+    EXPECT_TRUE(childData.regrets[1] == 0.5);
+    EXPECT_TRUE(childData.regretUpdates[0] == 0.0);
+    EXPECT_TRUE(childData.regretUpdates[1] == 0.0);
+    EXPECT_TRUE(childData.avgStratAccumulator[0] == 0.125);
+    EXPECT_TRUE(childData.avgStratAccumulator[1] == 0.875);
 }
 
 
-BOOST_AUTO_TEST_CASE(CalcUtilities) {
+TEST(CFR, CalcUtilities) {
     MatchingPenniesDomain domain(AlternatingMoves);
     CFRData data(domain, InfosetsUpdating);
     data.buildForest();
@@ -276,14 +276,14 @@ BOOST_AUTO_TEST_CASE(CalcUtilities) {
     auto actualRootUtils = calcExpectedUtility(data, rootNode, Player(0));
     auto actualChildUtils = calcExpectedUtility(data, childNode, Player(0));
 
-    BOOST_CHECK(fabs(actualRootUtils.rmUtility - -0.3) < 1e-9);
-    BOOST_CHECK(fabs(actualRootUtils.avgUtility - 0.6) < 1e-9);
-    BOOST_CHECK(fabs(actualChildUtils.rmUtility - -0.6) < 1e-9);
-    BOOST_CHECK(fabs(actualChildUtils.avgUtility - -0.8) < 1e-9);
+    EXPECT_TRUE(fabs(actualRootUtils.rmUtility - -0.3) < 1e-9);
+    EXPECT_TRUE(fabs(actualRootUtils.avgUtility - 0.6) < 1e-9);
+    EXPECT_TRUE(fabs(actualChildUtils.rmUtility - -0.6) < 1e-9);
+    EXPECT_TRUE(fabs(actualChildUtils.avgUtility - -0.8) < 1e-9);
 }
 
 
-BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInGS2) {
+TEST(CFR, CheckRegretsAndAccInGS2) {
     GoofSpielDomain domain({variant:  IncompleteObservations,
                                numCards: 2,
                                fixChanceCards: true,
@@ -313,13 +313,13 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInGS2) {
     auto stratOpponent = profile[1].at(childInfoset);
     auto childAction = childNode->availableActions()[0];
 
-    BOOST_CHECK(std::abs(utility - 0) <= 0.0001);
-    BOOST_CHECK(std::abs(bestResp0 - 0) <= 0.001);
-    BOOST_CHECK(std::abs(bestResp1 - 0) <= 0.001);
-    BOOST_CHECK(stratPlayer.at(rootAction) == stratOpponent.at(childAction));
+    EXPECT_TRUE(std::abs(utility - 0) <= 0.0001);
+    EXPECT_TRUE(std::abs(bestResp0 - 0) <= 0.001);
+    EXPECT_TRUE(std::abs(bestResp1 - 0) <= 0.001);
+    EXPECT_TRUE(stratPlayer.at(rootAction) == stratOpponent.at(childAction));
 }
 
-BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInGS3) {
+TEST(CFR, CheckRegretsAndAccInGS3) {
     GoofSpielDomain domain({
                                variant:  IncompleteObservations,
                                numCards: 3,
@@ -348,12 +348,12 @@ BOOST_AUTO_TEST_CASE(CheckRegretsAndAccInGS3) {
     auto stratOpponent = profile[1].at(childInfoset);
     auto childAction = childNode->availableActions()[0];
 
-    BOOST_CHECK(std::abs(utility - 0) <= 0.0002);
-    BOOST_CHECK(std::abs(bestResp0 - 0) <= 0.0015);
-    BOOST_CHECK(std::abs(bestResp1 - 0) <= 0.0015);
+    EXPECT_TRUE(std::abs(utility - 0) <= 0.0002);
+    EXPECT_TRUE(std::abs(bestResp0 - 0) <= 0.0015);
+    EXPECT_TRUE(std::abs(bestResp1 - 0) <= 0.0015);
 }
 
-BOOST_AUTO_TEST_CASE(CheckConvergenceInSmallDomain) {
+TEST(CFR, CheckConvergenceInSmallDomain) {
     GoofSpielDomain domain({
                                variant: IncompleteObservations,
                                numCards: 3,
@@ -385,14 +385,10 @@ BOOST_AUTO_TEST_CASE(CheckConvergenceInSmallDomain) {
         double utility = algorithms::computeUtilityTwoPlayersGame(
             domain, profile[0], profile[1], Player(0), Player(1)).first;
 
-        BOOST_CHECK(std::abs(utility - expectedUtilities[i]) <= 0.0001);
-        BOOST_CHECK(std::abs(bestResp0 - expectedBestResp0[i]) <= 0.0001);
-        BOOST_CHECK(std::abs(bestResp1 - expectedBestResp1[i]) <= 0.0001);
+        EXPECT_TRUE(std::abs(utility - expectedUtilities[i]) <= 0.0001);
+        EXPECT_TRUE(std::abs(bestResp0 - expectedBestResp0[i]) <= 0.0001);
+        EXPECT_TRUE(std::abs(bestResp1 - expectedBestResp1[i]) <= 0.0001);
     }
 }
-
-
-BOOST_AUTO_TEST_SUITE_END()
-BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace GTLib2

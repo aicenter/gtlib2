@@ -30,6 +30,10 @@ if (CMAKE_USE_PTHREADS_INIT)
     set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-pthread")
 endif ()
 
+# add google test
+add_subdirectory(external/googletest)
+include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+
 # link boost library
 include_directories(${Boost_INCLUDE_DIR})
 # disable auto link
@@ -239,8 +243,8 @@ target_link_libraries(tester
         ${CPLEXLIB}
         ${CMAKE_THREAD_LIBS_INIT}
         ${GLPKLIB}
-        ${Boost_LIBRARIES}
-        ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+        gtest gtest_main
+        )
 
 enable_testing()
 add_test(tester tester)

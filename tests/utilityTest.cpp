@@ -33,7 +33,7 @@
 #include "tests/domainsTest.h"
 #include "utils/functools.h"
 
-#include <boost/test/unit_test.hpp>
+#include "gtest/gtest.h"
 
 namespace GTLib2::algorithms {
 
@@ -41,10 +41,8 @@ using domains::GoofSpielDomain;
 using domains::GoofSpielAction;
 using domains::GoofSpielVariant::CompleteObservations;
 
-BOOST_AUTO_TEST_SUITE(AlgorithmsTests)
-BOOST_AUTO_TEST_SUITE(Utility)
 
-BOOST_AUTO_TEST_CASE(computeUtilityFullDepthCard4) {
+TEST(Utility, ComputeUtilityFullDepthCard4) {
     GoofSpielDomain domain
         ({variant: CompleteObservations, numCards: 4, fixChanceCards: false, chanceCards: {}});
 
@@ -85,10 +83,7 @@ BOOST_AUTO_TEST_CASE(computeUtilityFullDepthCard4) {
     auto utility = algorithms::computeUtilityTwoPlayersGame(domain, profile[0], profile[1],
                                                             Player(0), Player(1));
 
-    BOOST_CHECK(std::abs(utility.second - 0) <= 0.001);
+    EXPECT_TRUE(std::abs(utility.second - 0) <= 0.001);
 }
-
-BOOST_AUTO_TEST_SUITE_END()
-BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace GTLib2

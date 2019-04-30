@@ -30,12 +30,12 @@
 #include "algorithms/tree.h"
 #include "algorithms/utility.h"
 #include "algorithms/stats.h"
+#include "algorithms/strategy.h"
 #include "domains/goofSpiel.h"
-#include "domains/matching_pennies.h"
 
+#include "domains/matching_pennies.h"
 #include "tests/domainsTest.h"
-#include <boost/test/unit_test.hpp>
-#include <algorithms/strategy.h>
+#include "gtest/gtest.h"
 
 
 namespace GTLib2::algorithms {
@@ -48,19 +48,16 @@ using domains::Heads;
 using domains::Tails;
 
 
-BOOST_AUTO_TEST_SUITE(AlgorithmsTests)
-BOOST_AUTO_TEST_SUITE(LinearProgramming)
-
-BOOST_AUTO_TEST_CASE(best_response_to_equilibrium) {
+TEST(LPSolver, BestResponseToEquilibrium) {
     MatchingPenniesDomain d(AlternatingMoves);
     auto v = algorithms::findEquilibriumTwoPlayersZeroSum(d);
     auto strat = std::get<1>(v);
     auto brsVal = algorithms::bestResponseTo(strat, 0, 1, d, 5);
     double val = std::get<1>(brsVal);
-    BOOST_CHECK(val == 0.0);
+    EXPECT_TRUE(val == 0.0);
 }
 
-BOOST_AUTO_TEST_CASE(equilibrium_normal_form_lp_test) {
+TEST(LPSolver, EquilibriumNormalFormLP) {
     MatchingPenniesDomain d(AlternatingMoves);
     auto v = algorithms::findEquilibriumTwoPlayersZeroSum(d);
     auto strat = std::get<1>(v);
@@ -69,12 +66,9 @@ BOOST_AUTO_TEST_CASE(equilibrium_normal_form_lp_test) {
     double headsProb = (*strat.begin()).second[actionHeads];
     double tailsProb = (*strat.begin()).second[actionTails];
 
-    BOOST_CHECK(std::get<0>(v) == 0);
-    BOOST_CHECK(headsProb == 0.5 && tailsProb == 0.5);
+    EXPECT_TRUE(std::get<0>(v) == 0);
+    EXPECT_TRUE(headsProb == 0.5 && tailsProb == 0.5);
 }
-
-BOOST_AUTO_TEST_SUITE_END()
-BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace GTLib2
 

@@ -23,14 +23,14 @@
 #include "tests/domainsTest.h"
 
 #include "algorithms/tree.h"
-
-#include <boost/test/unit_test.hpp>
 #include "algorithms/common.h"
+
 #include "domains/genericPoker.h"
 #include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"
 #include "domains/oshiZumo.h"
 
+#include "gtest/gtest.h"
 
 namespace GTLib2::domains {
 
@@ -101,8 +101,6 @@ bool doesCreateRootNodes(const Domain &domain) {
     return !createRootEFGNodes(domain).empty();
 }
 
-BOOST_AUTO_TEST_SUITE(DomainsTests)
-
 
 // @formatter:off
 GoofSpielDomain gs1      ({ variant:  CompleteObservations,   numCards: 1, fixChanceCards: false, chanceCards: {}});
@@ -146,49 +144,47 @@ Domain *testDomains[] = { // NOLINT(cert-err58-cpp)
     &mp1, &mp2,
 };
 
-BOOST_AUTO_TEST_CASE(zeroSumGame) {
+TEST(Domain, ZeroSumGame) {
     for (auto domain : testDomains) {
         cout << "checking " << domain->getInfo() << "\n";
-        BOOST_CHECK(isDomainZeroSum(*domain));
+        EXPECT_TRUE(isDomainZeroSum(*domain));
     }
 }
 
-BOOST_AUTO_TEST_CASE(checkEFGNodeStateEqualityConsistency) {
+TEST(Domain, CheckEFGNodeStateEqualityConsistency) {
     for (auto domain : testDomains) {
         cout << "checking " << domain->getInfo() << "\n";
-        BOOST_CHECK(isEFGNodeAndStateConsistent(*domain));
+        EXPECT_TRUE(isEFGNodeAndStateConsistent(*domain));
     }
 }
 
-BOOST_AUTO_TEST_CASE(checkAvailableActionsAreSorted) {
+TEST(Domain, CheckAvailableActionsAreSorted) {
     for (auto domain : testDomains) {
         cout << "checking " << domain->getInfo() << "\n";
-        BOOST_CHECK(areAvailableActionsSorted(*domain));
+        EXPECT_TRUE(areAvailableActionsSorted(*domain));
     }
 }
 
-BOOST_AUTO_TEST_CASE(maxUtility) {
+TEST(Domain, MaxUtility) {
     for (auto domain : testDomains) {
         cout << "checking " << domain->getInfo() << "\n";
-        BOOST_CHECK(isDomainMaxUtilityCorrect(*domain));
+        EXPECT_TRUE(isDomainMaxUtilityCorrect(*domain));
     }
 }
 
-BOOST_AUTO_TEST_CASE(maxDepth) {
+TEST(Domain, MaxDepth) {
     for (auto domain : testDomains) {
         cout << "checking " << domain->getInfo() << "\n";
-        BOOST_CHECK(isDomainMaxDepthCorrect(*domain));
+        EXPECT_TRUE(isDomainMaxDepthCorrect(*domain));
     }
 }
 
-BOOST_AUTO_TEST_CASE(createsRootNodes) {
+TEST(Domain, CreatesRootNodes) {
     for (auto domain : testDomains) {
-        BOOST_CHECK(doesCreateRootNodes(*domain));
+        EXPECT_TRUE(doesCreateRootNodes(*domain));
     }
 }
 
-
-BOOST_AUTO_TEST_SUITE_END()
 }
 
 

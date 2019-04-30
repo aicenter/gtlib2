@@ -31,15 +31,13 @@
 #include "utils/functools.h"
 #include "tests/domainsTest.h"
 
-#include <boost/test/unit_test.hpp>
+#include "gtest/gtest.h"
 
 
 namespace GTLib2::domains {
 
 using algorithms::DomainStatistics;
 
-BOOST_AUTO_TEST_SUITE(DomainsTests)
-BOOST_AUTO_TEST_SUITE(GenericPoker)
 
 GenericPokerDomain testDomainsPoker[] = { // NOLINT(cert-err58-cpp)
     GenericPokerDomain(2, 2, 2, 2, 2),
@@ -47,7 +45,7 @@ GenericPokerDomain testDomainsPoker[] = { // NOLINT(cert-err58-cpp)
 };
 
 
-BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
+TEST(Poker, BuildGameTreeAndCheckSizes) {
     DomainStatistics expectedStats[] = {
         {
             .max_EFGDepth   = 10,
@@ -75,7 +73,7 @@ BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
         DomainStatistics actualStat;
         calculateDomainStatistics(testDomain, &actualStat);
 
-        BOOST_CHECK_EQUAL(actualStat, expectedStat);
+        EXPECT_EQ(actualStat, expectedStat);
     }
 }
 
@@ -83,6 +81,6 @@ BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
 //  i.e. given some game position, these are the action available etc.
 //  for inspiration look at kriegspieltest!
 
-BOOST_AUTO_TEST_SUITE_END()
-BOOST_AUTO_TEST_SUITE_END()
+
+
 }

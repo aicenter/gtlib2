@@ -33,11 +33,7 @@
 #include "utils/functools.h"
 #include "tests/domainsTest.h"
 
-// This must be defined in exacly one test file.
-#define BOOST_TEST_MODULE GTLib2 test
-// todo: move this out somehow
-#include <boost/range/combine.hpp>
-#include <boost/test/unit_test.hpp>
+#include "gtest/gtest.h"
 
 namespace GTLib2::domains {
 
@@ -46,8 +42,6 @@ using algorithms::treeWalkEFG;
 using algorithms::getUniformStrategy;
 using algorithms::playOnlyAction;
 
-BOOST_AUTO_TEST_SUITE(DomainsTests)
-BOOST_AUTO_TEST_SUITE(GoofSpiel)
 
 // @formatter:off
 GoofSpielDomain testDomainsGoofSpiel[] = { // NOLINT(cert-err58-cpp)
@@ -67,7 +61,7 @@ GoofSpielDomain testDomainsGoofSpiel[] = { // NOLINT(cert-err58-cpp)
 // @formatter:on
 
 
-BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
+TEST(Goofspiel, BuildGameTreeAndCheckSizes) {
     DomainStatistics expectedStats[] = {
         {
             .max_EFGDepth   = 2,
@@ -185,11 +179,11 @@ BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
         DomainStatistics actualStat;
         calculateDomainStatistics(testDomain, &actualStat);
 
-        BOOST_CHECK_EQUAL(actualStat, expectedStat);
+        EXPECT_EQ(actualStat, expectedStat);
     }
 }
 
-BOOST_AUTO_TEST_CASE(checkBinaryUtilities) {
+TEST(Goofspiel, checkBinaryUtilities) {
     auto binary = GoofSpielDomain({
                                       variant:  CompleteObservations,
                                       numCards: 3,
@@ -216,11 +210,11 @@ BOOST_AUTO_TEST_CASE(checkBinaryUtilities) {
 
     numViolations = 0;
     treeWalkEFG(binary, binaryChecker);
-    BOOST_CHECK(numViolations == 0);
+    EXPECT_TRUE(numViolations == 0);
 
     numViolations = 0;
     treeWalkEFG(nonBinary, binaryChecker);
-    BOOST_CHECK(numViolations == 84);
+    EXPECT_TRUE(numViolations == 84);
 }
 
 // todo: create an actual domain test!
@@ -228,7 +222,7 @@ BOOST_AUTO_TEST_CASE(checkBinaryUtilities) {
 //  for inspiration look at kriegspieltest!
 
 
-BOOST_AUTO_TEST_SUITE_END()
-BOOST_AUTO_TEST_SUITE_END()
+
+
 
 }  // namespace GTLib2
