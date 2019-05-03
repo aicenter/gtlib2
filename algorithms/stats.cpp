@@ -29,11 +29,11 @@ namespace GTLib2::algorithms {
 
 void calculateDomainStatistics(const Domain &domain, DomainStatistics *stats) {
     auto collectIS = unordered_map<int, unordered_set<shared_ptr<AOH>>>();
-    auto collectSequences = unordered_map<int, unordered_set<ActionSequence>>();
+    auto collectSequences = unordered_map<int, unordered_set<shared_ptr<ActionSequence>>>();
 
     for (int i = 0; i < GAME_MAX_PLAYERS; ++i) {
         collectIS[i] = unordered_set<shared_ptr<AOH>>();
-        collectSequences[i] = unordered_set<ActionSequence>();
+        collectSequences[i] = unordered_set<shared_ptr<ActionSequence>>();
     }
     auto countingFn = [&domain, &stats, &collectIS, &collectSequences]
         (shared_ptr<EFGNode> node) {

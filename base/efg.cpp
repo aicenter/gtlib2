@@ -192,7 +192,7 @@ optional<Player> EFGNode::getCurrentPlayer() const {
 
 shared_ptr<ActionSequence> EFGNode::getActionsSeqOfPlayer(Player player) const {
     vector<InfosetAction> actSeq = parent_
-                                   ? parent_->getActionsSeqOfPlayer(player).sequence_
+                                   ? parent_->getActionsSeqOfPlayer(player)->sequence_
                                    : vector<InfosetAction>();
     if (parent_ && parent_->currentPlayer_ && *parent_->currentPlayer_ == player) {
         actSeq.emplace_back(InfosetAction(parent_->getAOHInfSet(), incomingAction_));
