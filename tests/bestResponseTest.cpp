@@ -40,8 +40,8 @@ using domains::MatchingPenniesDomain;
 using domains::MatchingPenniesVariant::SimultaneousMoves;
 using domains::MatchingPenniesVariant::AlternatingMoves;
 using domains::MatchingPenniesAction;
-using domains::Heads;
-using domains::Tails;
+using domains::ActionHeads;
+using domains::ActionTails;
 using domains::GoofSpielDomain;
 using domains::GoofSpielVariant::IncompleteObservations;
 using domains::GoofSpielVariant::CompleteObservations;
@@ -52,8 +52,8 @@ TEST(BestResponse, TestSmallDomain) {
     MatchingPenniesDomain domain(AlternatingMoves);
 
     auto initNodes = algorithms::createRootEFGNodes(domain.getRootStatesDistribution());
-    auto tailAction = make_shared<MatchingPenniesAction>(Tails);
-    auto headAction = make_shared<MatchingPenniesAction>(Heads);
+    auto tailAction = make_shared<MatchingPenniesAction>(ActionTails);
+    auto headAction = make_shared<MatchingPenniesAction>(ActionHeads);
 
     auto rootNode = initNodes[0].first;
     auto rootInfoset = rootNode->getAOHInfSet();
@@ -62,7 +62,7 @@ TEST(BestResponse, TestSmallDomain) {
     auto childInfoset = childNode->getAOHInfSet();
 
     BehavioralStrategy stratHeads;
-    auto action = make_shared<MatchingPenniesAction>(Heads);
+    auto action = make_shared<MatchingPenniesAction>(ActionHeads);
     stratHeads[rootInfoset] = {{action, 1.0}};
 
     auto brsVal = algorithms::bestResponseTo(stratHeads, Player(0), Player(1), domain, 2);

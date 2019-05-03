@@ -653,7 +653,7 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
     return newOutcomes;
 }
 
-RhodeIslandPokerState::RhodeIslandPokerState(Domain *domain,
+RhodeIslandPokerState::RhodeIslandPokerState(const Domain *domain,
                                              pair<int, int> player1Card,
                                              pair<int, int> player2Card,
                                              optional<pair<int, int>> natureCard1,
@@ -678,7 +678,7 @@ RhodeIslandPokerState::RhodeIslandPokerState(Domain *domain,
     continuousRaiseCount_(continuousRaiseCount),
     lastAction_(move(lastAction)) {}
 
-RhodeIslandPokerState::RhodeIslandPokerState(Domain *domain,
+RhodeIslandPokerState::RhodeIslandPokerState(const Domain *domain,
                                              pair<int, int> player1card,
                                              pair<int, int> player2card,
                                              optional<pair<int, int>> natureCard1,

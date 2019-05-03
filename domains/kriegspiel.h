@@ -365,14 +365,14 @@ class KriegspielState: public State {
      * @param int legalMaxDepth, the depth of game only when counting legal half-moves
      * @param chess::BOARD the board type of the game
      */
-    KriegspielState(Domain *domain, int, chess::BOARD);
+    KriegspielState(const Domain *domain, int, chess::BOARD);
 
     /**
      * @param Domain the Kriegspiel domain
      * @param int legalMaxDepth, the depth of game only when counting legal half-moves
      * @param stringthe string from which the board is constructed in FEN notation
      */
-    KriegspielState(Domain *domain, int, string);
+    KriegspielState(const Domain *domain, int, string);
 
     /**
      * @param Domain the Kriegspiel domain
@@ -386,7 +386,7 @@ class KriegspielState: public State {
      * @param bool castle, whether castling is possible on the current board
      * @param shared_ptr<vector<shared_ptr<KriegspielAction>>> attemptedMoves, a history of attempted moves (non-legal moves)
      */
-    KriegspielState(Domain *domain,
+    KriegspielState(const Domain *domain,
                     int,
                     int,
                     int,

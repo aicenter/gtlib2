@@ -767,7 +767,7 @@ KriegspielDomain::KriegspielDomain(unsigned int maxDepth,
     maxUtility_ = 1;
 }
 KriegspielObservation::KriegspielObservation(int id) : Observation(id) {}
-KriegspielState::KriegspielState(Domain *domain, int legalMaxDepth, chess::BOARD b) :
+KriegspielState::KriegspielState(const Domain *domain, int legalMaxDepth, chess::BOARD b) :
     State(domain, hashCombine(56456654521424531, legalMaxDepth, int(b))), enPassantSquare(-1, -1),
     moveHistory(make_shared<vector<shared_ptr<KriegspielAction>>>()),
     attemptedMoveHistory(make_shared<vector<shared_ptr<KriegspielAction>>>()),
@@ -777,7 +777,7 @@ KriegspielState::KriegspielState(Domain *domain, int legalMaxDepth, chess::BOARD
     this->updateState(chess::WHITE);
 }
 
-KriegspielState::KriegspielState(Domain *domain, int legalMaxDepth, string s)
+KriegspielState::KriegspielState(const Domain *domain, int legalMaxDepth, string s)
     : State(domain, hashCombine(6545315341531531, legalMaxDepth, s)), enPassantSquare(-1, -1),
       moveHistory(make_shared<vector<shared_ptr<KriegspielAction>>>()),
       attemptedMoveHistory(make_shared<vector<shared_ptr<KriegspielAction>>>()),
@@ -787,7 +787,7 @@ KriegspielState::KriegspielState(Domain *domain, int legalMaxDepth, string s)
     this->updateAllPieces();
 }
 
-KriegspielState::KriegspielState(Domain *domain, int legalMaxDepth, int x, int y,
+KriegspielState::KriegspielState(const Domain *domain, int legalMaxDepth, int x, int y,
                                  shared_ptr<vector<shared_ptr<chess::AbstractPiece>>> pieces,
                                  Square enPassantSquare,
                                  const shared_ptr<vector<shared_ptr<KriegspielAction>>> &moves,

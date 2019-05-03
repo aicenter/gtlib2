@@ -24,6 +24,7 @@
 #include "base/base.h"
 #include "base/hashing.h"
 #include "gtest/gtest.h"
+#include "domains/pursuit.h"
 
 
 namespace GTLib2 {

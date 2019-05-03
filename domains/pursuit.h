@@ -120,8 +120,8 @@ class PursuitObservationLoc: public Observation {
  */
 class PursuitState: public State {
  public:
-    explicit PursuitState(Domain *domain, const vector <Pos> &place);
-    PursuitState(Domain *domain, const vector <Pos> &place, double prob);
+    explicit PursuitState(const Domain *domain, const vector <Pos> &place);
+    PursuitState(const Domain *domain, const vector <Pos> &place, double prob);
     ~PursuitState() override = default;
 
     unsigned long countAvailableActionsFor(Player player) const override;
@@ -145,16 +145,16 @@ class PursuitState: public State {
  */
 class MMPursuitState: public PursuitState {
  public:
-    MMPursuitState(Domain *domain, const vector <Pos> &p, const vector <Player> &players,
+    MMPursuitState(const Domain *domain, const vector <Pos> &p, const vector <Player> &players,
                    vector<int> numberOfMoves);
 
-    MMPursuitState(Domain *domain, const vector <Pos> &p, const vector <Player> &players,
+    MMPursuitState(const Domain *domain, const vector <Pos> &p, const vector <Player> &players,
                    vector<int> numberOfMoves, int currentNOM, int currentPlayer);
 
-    MMPursuitState(Domain *domain, const vector <Pos> &p, double prob,
+    MMPursuitState(const Domain *domain, const vector <Pos> &p, double prob,
                    const vector <Player> &players, vector<int> numberOfMoves);
 
-    MMPursuitState(Domain *domain, const vector <Pos> &p, double prob,
+    MMPursuitState(const Domain *domain, const vector <Pos> &p, double prob,
                    const vector <Player> &players, vector<int> numberOfMoves,
                    int currentNOM, int currentPlayer);
 
@@ -177,8 +177,8 @@ class MMPursuitState: public PursuitState {
  */
 class ObsPursuitState: public PursuitState {
  public:
-    explicit ObsPursuitState(Domain *domain, const vector <Pos> &p);
-    ObsPursuitState(Domain *domain, const vector <Pos> &p, double prob);
+    explicit ObsPursuitState(const Domain *domain, const vector <Pos> &p);
+    ObsPursuitState(const Domain *domain, const vector <Pos> &p, double prob);
     OutcomeDistribution performActions(const vector <PlayerAction> &actions) const override;
 };
 

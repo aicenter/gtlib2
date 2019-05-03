@@ -39,8 +39,8 @@ using domains::GoofspielRoundOutcome;
 using domains::MatchingPenniesVariant::SimultaneousMoves;
 using domains::MatchingPenniesVariant::AlternatingMoves;
 using domains::MatchingPenniesAction;
-using domains::Heads;
-using domains::Tails;
+using domains::ActionHeads;
+using domains::ActionTails;
 using algorithms::createRootEFGNodes;
 
 

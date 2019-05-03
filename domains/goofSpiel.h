@@ -103,7 +103,7 @@ class GoofSpielObservation: public Observation {
 
 class GoofSpielState: public State {
  public:
-    inline GoofSpielState(Domain *domain, array<vector<int>, 3> playerDecks,
+    inline GoofSpielState(const Domain *domain, array<vector<int>, 3> playerDecks,
                           int natureSelectedCard, vector<double> cumulativeRewards,
                           array<vector<int>, 3> playedCards) :
         State(domain, hashCombine(98612345434231, playerDecks, playedCards, natureSelectedCard)),

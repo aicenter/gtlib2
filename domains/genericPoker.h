@@ -86,7 +86,7 @@ class GenericPokerObservation: public Observation {
  */
 class GenericPokerState: public State {
  public:
-    inline GenericPokerState(Domain *domain, int player1Card, int player2Card,
+    inline GenericPokerState(const Domain *domain, int player1Card, int player2Card,
                              optional<int> natureCard, double firstPlayerReward, double pot,
                              vector <Player> players, int round,
                              shared_ptr <GenericPokerAction> lastAction,
@@ -98,7 +98,7 @@ class GenericPokerState: public State {
         pot_(pot), firstPlayerReward_(firstPlayerReward), players_(move(players)), round_(round),
         continuousRaiseCount_(continuousRaiseCount), lastAction_(move(lastAction)) {}
 
-    inline GenericPokerState(Domain *domain, int p1card, int p2card, optional<int> natureCard,
+    inline GenericPokerState(const Domain *domain, int p1card, int p2card, optional<int> natureCard,
                              unsigned int ante, vector <Player> players)
         : GenericPokerState(domain, p1card, p2card, move(natureCard), ante, 2 * ante,
                             move(players), 1, nullptr, 0) {}

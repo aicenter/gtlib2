@@ -195,7 +195,7 @@ vector<shared_ptr<Action>> GoofSpielState::getAvailableActionsFor(const Player p
 }
 
 OutcomeDistribution GoofSpielState::performActions(const vector<PlayerAction> &actions) const {
-    auto goofdomain = static_cast<GoofSpielDomain *>(domain_);
+    auto goofdomain = static_cast<const GoofSpielDomain *>(domain_);
     const array<int, 3> chosenCards = {
         dynamic_cast<GoofSpielAction *>(actions[0].second.get())->cardNumber_,
         dynamic_cast<GoofSpielAction *>(actions[1].second.get())->cardNumber_,

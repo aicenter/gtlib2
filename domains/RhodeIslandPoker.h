@@ -85,12 +85,12 @@ class RhodeIslandPokerObservation: public Observation {
  */
 class RhodeIslandPokerState: public State {
  public:
-    RhodeIslandPokerState(Domain *domain, pair<int, int> player1Card,
+    RhodeIslandPokerState(const Domain *domain, pair<int, int> player1Card,
                           pair<int, int> player2Card, optional<pair<int, int>> natureCard1,
                           optional<pair<int, int>> natureCard2, double firstPlayerReward,
                           double pot, vector<Player> players, int round,
                           shared_ptr<RhodeIslandPokerAction> lastAction, int continuousRaiseCount);
-    RhodeIslandPokerState(Domain *domain,
+    RhodeIslandPokerState(const Domain *domain,
                           pair<int, int> player1card, pair<int, int> player2card,
                           optional<pair<int, int>> natureCard1,
                           optional<pair<int, int>> natureCard2,

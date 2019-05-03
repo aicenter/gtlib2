@@ -40,7 +40,7 @@ enum MatchingPenniesVariant { SimultaneousMoves, AlternatingMoves };
 
 class MatchingPenniesDomain: public Domain {
  public:
-    MatchingPenniesDomain(MatchingPenniesVariant variant);
+    explicit MatchingPenniesDomain(MatchingPenniesVariant variant);
     vector <Player> getPlayers() const override { return {0, 1}; };
     string getInfo() const override {
         return variant_ == SimultaneousMoves
@@ -51,10 +51,9 @@ class MatchingPenniesDomain: public Domain {
 
 };
 
-typedef ActionId Move;
 // actions
-constexpr Move Heads = 0;
-constexpr Move Tails = 1;
+constexpr ActionId ActionHeads = 0;
+constexpr ActionId ActionTails = 1;
 // priv obs
 constexpr ObservationId OtherHeads = 0;
 constexpr ObservationId OtherTails = 1;
@@ -64,21 +63,18 @@ constexpr ObservationId Pl1Wins = 0;
 
 class MatchingPenniesAction: public Action {
  public:
-    explicit MatchingPenniesAction(Move moveParm);
+    inline MatchingPenniesAction(ActionId move) : Action(move) {}
     string toString() const override;
-    bool operator==(const Action &that) const override;
-    HashType getHash() const override;
-    Move move_;
 };
 
 class MatchingPenniesObservation: public Observation {
  public:
-    explicit MatchingPenniesObservation(ObservationId id);
+    inline MatchingPenniesObservation(ObservationId otherMove) : Observation(otherMove) {}
 };
 
 class MatchingPenniesState: public State {
  public:
-    inline MatchingPenniesState(Domain *domain, array<Move, 2> moves)
+    inline MatchingPenniesState(const Domain *domain, array<ActionId, 2> moves)
         : State(domain, hashCombine(5645642168421, moves)),
           moves_(moves), variant_(static_cast<const MatchingPenniesDomain *>(domain)->variant_),
           players_(makePlayers(moves_, variant_)) {}
@@ -94,11 +90,11 @@ class MatchingPenniesState: public State {
     string toString() const override;
 
  private:
-    const array<Move, 2> moves_;
+    const array<ActionId, 2> moves_;
     const MatchingPenniesVariant variant_;
     const vector <Player> players_;
 
-    const vector <Player> makePlayers(array<Move, 2> moves, MatchingPenniesVariant variant);
+    const vector <Player> makePlayers(array<ActionId, 2> moves, MatchingPenniesVariant variant);
 };
 
 }  // namespace GTLib2

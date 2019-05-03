@@ -82,7 +82,7 @@ class PhantomTTTObservation: public Observation {
  */
 class PhantomTTTState: public State {
  public:
-    inline PhantomTTTState(Domain *domain, vector <vector<int>> board, vector <Player> players)
+    inline PhantomTTTState(const Domain *domain, vector <vector<int>> board, vector <Player> players)
         : State(domain, hashCombine(324816846515, board, players)),
           board_(move(board)),
           players_(move(players)) {}

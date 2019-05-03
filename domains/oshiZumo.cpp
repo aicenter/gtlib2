@@ -99,10 +99,10 @@ const int OshiZumoDomain::getStartingCoins() const {
     return startingCoins_;
 }
 
-OshiZumoState::OshiZumoState(Domain *domain, int wrestlerLocation, int startingCoins) :
+OshiZumoState::OshiZumoState(const Domain *domain, int wrestlerLocation, int startingCoins) :
     OshiZumoState(domain, wrestlerLocation, {startingCoins, startingCoins}) {}
 
-OshiZumoState::OshiZumoState(Domain *domain, int wrestlerLocation, vector<int> coinsPerPlayer) :
+OshiZumoState::OshiZumoState(const Domain *domain, int wrestlerLocation, vector<int> coinsPerPlayer) :
     State(domain, hashCombine(145623198715, coinsPerPlayer, wrestlerLocation)),
     wrestlerLocation_(wrestlerLocation),
     coins_(move(coinsPerPlayer)) {}

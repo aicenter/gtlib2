@@ -83,8 +83,8 @@ class OshiZumoDomain : public Domain {
 
 class OshiZumoState : public State {
  public:
-  OshiZumoState(Domain *domain, int wrestlerLocation, int startingCoins);
-  OshiZumoState(Domain *domain, int wrestlerLocation, vector<int> coinsPerPlayer);
+  OshiZumoState(const Domain *domain, int wrestlerLocation, int startingCoins);
+  OshiZumoState(const Domain *domain, int wrestlerLocation, vector<int> coinsPerPlayer);
 
   vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
   unsigned long countAvailableActionsFor(Player player) const override;

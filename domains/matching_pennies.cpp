@@ -30,7 +30,7 @@ namespace GTLib2::domains {
 MatchingPenniesDomain::MatchingPenniesDomain(MatchingPenniesVariant variant)
     : Domain(variant == AlternatingMoves ? 2 : 1, 2), variant_(variant) {
     maxUtility_ = 1.0;
-    auto rootState = make_shared<MatchingPenniesState>(this, array<Move, 2>{NO_ACTION, NO_ACTION});
+    auto rootState = make_shared<MatchingPenniesState>(this, array<ActionId, 2>{NO_ACTION, NO_ACTION});
 
     auto obs0 = make_shared<MatchingPenniesObservation>(NO_OBSERVATION);
     auto obs1 = make_shared<MatchingPenniesObservation>(NO_OBSERVATION);
@@ -41,9 +41,9 @@ MatchingPenniesDomain::MatchingPenniesDomain(MatchingPenniesVariant variant)
     rootStatesDistribution_.push_back(pair<Outcome, double>(outcome, 1.0));
 }
 
-const vector<Player> MatchingPenniesState::makePlayers(array<Move, 2> moves,
+const vector<Player> MatchingPenniesState::makePlayers(array<ActionId, 2> moves,
                                                        MatchingPenniesVariant variant) {
-    vector <Player> players;
+    vector<Player> players;
     if (variant == SimultaneousMoves) {
         assert((moves[0] != NO_ACTION && moves[1] != NO_ACTION)
                    || (moves[0] == NO_ACTION && moves[1] == NO_ACTION));
@@ -71,8 +71,8 @@ vector<shared_ptr<Action>> MatchingPenniesState::getAvailableActionsFor(Player p
     if ((variant_ == SimultaneousMoves && moves_[0] == NO_ACTION && moves_[1] == NO_ACTION)
      || (variant_ == AlternatingMoves && pl == 0 && moves_[0] == NO_ACTION && moves_[1] == NO_ACTION)
      || (variant_ == AlternatingMoves && pl == 1 && moves_[0] != NO_ACTION && moves_[1] == NO_ACTION)) {
-        actions.push_back(make_shared<MatchingPenniesAction>(Heads));
-        actions.push_back(make_shared<MatchingPenniesAction>(Tails));
+        actions.push_back(make_shared<MatchingPenniesAction>(ActionHeads));
+        actions.push_back(make_shared<MatchingPenniesAction>(ActionTails));
     }
     return actions;
     //@formatter:on
@@ -91,16 +91,16 @@ MatchingPenniesState::performActions(const vector<PlayerAction> &actions) const 
     }
 
     auto newState = make_shared<MatchingPenniesState>(
-        domain_, array<Move, 2>{
-            p0Action == nullptr ? moves_[0] : p0Action->move_,
-            p1Action == nullptr ? NO_ACTION : p1Action->move_
+        domain_, array<ActionId, 2>{
+            p0Action == nullptr ? moves_[0] : p0Action->getId(),
+            p1Action == nullptr ? NO_ACTION : p1Action->getId()
         });
 
     const bool finalState = newState->moves_[0] != NO_ACTION && newState->moves_[1] != NO_ACTION;
     auto obs0 = make_shared<MatchingPenniesObservation>(
-        finalState ? (newState->moves_[1] == Heads ? OtherHeads : OtherTails) : NO_OBSERVATION);
+        finalState ? (newState->moves_[1] == ActionHeads ? OtherHeads : OtherTails) : NO_OBSERVATION);
     auto obs1 = make_shared<MatchingPenniesObservation>(
-        finalState ? (newState->moves_[0] == Heads ? OtherHeads : OtherTails) : NO_OBSERVATION);
+        finalState ? (newState->moves_[0] == ActionHeads ? OtherHeads : OtherTails) : NO_OBSERVATION);
 
     shared_ptr<MatchingPenniesObservation> pubObs;
     vector<double> rewards(2, 0.);
@@ -134,36 +134,15 @@ bool MatchingPenniesState::operator==(const State &rhs) const {
         && players_ == mpState.players_;
 }
 
-MatchingPenniesObservation::MatchingPenniesObservation(ObservationId otherMoveParm) :
-    Observation(otherMoveParm) {}
-
-MatchingPenniesAction::MatchingPenniesAction(Move moveParm) :
-    Action(static_cast<int>(moveParm)) {
-    move_ = moveParm;
-}
-
 string MatchingPenniesAction::toString() const {
-    switch (move_) {
-        case Heads:
+    switch (id_) {
+        case ActionHeads:
             return "Heads";
-        case Tails:
+        case ActionTails:
             return "Tails";
         default:
             return "Nothing";
     }
-}
-
-bool MatchingPenniesAction::operator==(const Action &that) const {
-    if (typeid(*this) == typeid(that)) {
-        const auto rhsAction = static_cast<const MatchingPenniesAction *>(&that);
-        return move_ == rhsAction->move_;
-    }
-    return false;
-}
-
-HashType MatchingPenniesAction::getHash() const {
-    std::hash<int> h;
-    return h(move_);
 }
 
 }  // namespace GTLib2

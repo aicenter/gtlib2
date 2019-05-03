@@ -77,10 +77,10 @@ string PursuitObservationLoc::toString() const {
     return string1;
 }
 
-PursuitState::PursuitState(Domain *domain, const vector<Pos> &place)
+PursuitState::PursuitState(const Domain *domain, const vector<Pos> &place)
     : PursuitState(domain, place, 1) {}
 
-PursuitState::PursuitState(Domain *domain, const vector<Pos> &place, double prob) :
+PursuitState::PursuitState(const Domain *domain, const vector<Pos> &place, double prob) :
     State(domain, hashCombine(3215648641314, place, prob)), place_(place), prob_(prob) {
     players_ = vector<Player>(place.size());
     std::iota(players_.begin(), players_.end(), 0);
@@ -227,11 +227,11 @@ string PursuitState::toString() const {
     return s;
 }
 
-MMPursuitState::MMPursuitState(Domain *domain, const vector<Pos> &p,
+MMPursuitState::MMPursuitState(const Domain *domain, const vector<Pos> &p,
                                const vector<Player> &players, vector<int> numberOfMoves) :
     MMPursuitState(domain, p, players, numberOfMoves, numberOfMoves[0], 0) {}
 
-MMPursuitState::MMPursuitState(Domain *domain,
+MMPursuitState::MMPursuitState(const Domain *domain,
                                const vector<Pos> &p,
                                const vector<Player> &players,
                                vector<int> numberOfMoves,
@@ -240,11 +240,11 @@ MMPursuitState::MMPursuitState(Domain *domain,
     PursuitState(domain, p), players_(players), numberOfMoves_(move(numberOfMoves)),
     currentNOM_(currentNOM), currentPlayer_(currentPlayer) {}
 
-MMPursuitState::MMPursuitState(Domain *domain, const vector<Pos> &p, double prob,
+MMPursuitState::MMPursuitState(const Domain *domain, const vector<Pos> &p, double prob,
                                const vector<Player> &players, vector<int> numberOfMoves) :
     MMPursuitState(domain, p, prob, players, numberOfMoves, numberOfMoves[0], 0) {}
 
-MMPursuitState::MMPursuitState(Domain *domain, const vector<Pos> &p, double prob,
+MMPursuitState::MMPursuitState(const Domain *domain, const vector<Pos> &p, double prob,
                                const vector<Player> &players, vector<int> numberOfMoves,
                                int currentNOM, int currentPlayer) :
     PursuitState(domain, p, prob), players_(players), numberOfMoves_(move(numberOfMoves)),
@@ -359,10 +359,10 @@ bool MMPursuitState::operator==(const State &rhs) const {
         && currentPlayer_ == rhsState.currentPlayer_;
 }
 
-ObsPursuitState::ObsPursuitState(Domain *domain, const vector<Pos> &p) :
+ObsPursuitState::ObsPursuitState(const Domain *domain, const vector<Pos> &p) :
     PursuitState(domain, p) {}
 
-ObsPursuitState::ObsPursuitState(Domain *domain, const vector<Pos> &p,
+ObsPursuitState::ObsPursuitState(const Domain *domain, const vector<Pos> &p,
                                  double prob) : PursuitState(domain, p, prob) {}
 
 OutcomeDistribution ObsPursuitState::performActions(const vector<PlayerAction> &actions) const {

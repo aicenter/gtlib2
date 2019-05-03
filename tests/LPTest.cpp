@@ -44,8 +44,8 @@ using domains::MatchingPenniesDomain;
 using domains::MatchingPenniesAction;
 using domains::MatchingPenniesVariant::SimultaneousMoves;
 using domains::MatchingPenniesVariant::AlternatingMoves;
-using domains::Heads;
-using domains::Tails;
+using domains::ActionHeads;
+using domains::ActionTails;
 
 
 TEST(LPSolver, BestResponseToEquilibrium) {
@@ -61,8 +61,8 @@ TEST(LPSolver, EquilibriumNormalFormLP) {
     MatchingPenniesDomain d(AlternatingMoves);
     auto v = algorithms::findEquilibriumTwoPlayersZeroSum(d);
     auto strat = std::get<1>(v);
-    auto actionHeads = make_shared<MatchingPenniesAction>(Heads);
-    auto actionTails = make_shared<MatchingPenniesAction>(Tails);
+    auto actionHeads = make_shared<MatchingPenniesAction>(ActionHeads);
+    auto actionTails = make_shared<MatchingPenniesAction>(ActionTails);
     double headsProb = (*strat.begin()).second[actionHeads];
     double tailsProb = (*strat.begin()).second[actionTails];
 
