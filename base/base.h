@@ -396,68 +396,32 @@ class Domain {
 };
 }  // namespace GTLib2
 
-namespace std { // NOLINT(cert-dcl58-cpp)
+MAKE_PTR_HASHABLE(GTLib2::InformationSet *)
+MAKE_PTR_EQ(GTLib2::InformationSet *)
 
-template<>
-struct hash<shared_ptr<GTLib2::InformationSet>> {
-    size_t operator()(shared_ptr<GTLib2::InformationSet> const &p) const {
-        return p->getHash();
-    }
-};
+MAKE_PTR_HASHABLE(shared_ptr < GTLib2::InformationSet >)
+MAKE_PTR_EQ(shared_ptr < GTLib2::InformationSet >)
 
-template<>
-struct equal_to<shared_ptr<GTLib2::InformationSet>> {
-    bool operator()(shared_ptr<GTLib2::InformationSet> const &a,
-                    shared_ptr<GTLib2::InformationSet> const &b) const {
-        return *a == *b;
-    }
-};
+MAKE_PTR_HASHABLE(shared_ptr < GTLib2::AOH >)
+MAKE_PTR_EQ(shared_ptr < GTLib2::AOH >)
 
-template<>
-struct hash<GTLib2::InformationSet *> {
-    size_t operator()(GTLib2::InformationSet const *p) const {
-        return p->getHash();
-    }
-};
+MAKE_PTR_HASHABLE(shared_ptr < GTLib2::Action >)
+MAKE_PTR_EQ(shared_ptr < GTLib2::Action >)
 
-template<>
-struct equal_to<GTLib2::InformationSet *> {
-    bool operator()(GTLib2::InformationSet *a,
-                    GTLib2::InformationSet *b) const {
-        return *a == *b;
-    }
-};
+MAKE_PTR_HASHABLE(shared_ptr < GTLib2::Observation >)
+MAKE_PTR_EQ(shared_ptr < GTLib2::Observation >)
 
-template<>
-struct hash<shared_ptr<GTLib2::AOH>> {
-    size_t operator()(shared_ptr<GTLib2::AOH> const &p) const {
-        return p->getHash();
-    }
-};
+MAKE_PTR_HASHABLE(shared_ptr < GTLib2::State >)
+MAKE_PTR_EQ(shared_ptr < GTLib2::State >)
 
-template<>
-struct equal_to<shared_ptr<GTLib2::AOH>> {
-    bool operator()(shared_ptr<GTLib2::AOH> const &a,
-                    shared_ptr<GTLib2::AOH> const &b) const {
-        return *a == *b;
-    }
-};
+MAKE_HASHABLE(GTLib2::Outcome)
+MAKE_EQ(GTLib2::Outcome)
 
-template<>
-struct hash<shared_ptr<GTLib2::Action>> {
-    size_t operator()(const shared_ptr<GTLib2::Action> &p) const {
-        return p->getHash();
-    }
-};
+// todo:
+//MAKE_PTR_HASHABLE(shared_ptr<GTLib2::ActionSequence>)
+//MAKE_PTR_EQ(shared_ptr<GTLib2::ActionSequence>)
 
-template<>
-struct equal_to<shared_ptr<GTLib2::Action>> {
-    bool operator()(const shared_ptr<GTLib2::Action> &a,
-                    const shared_ptr<GTLib2::Action> &b) const {
-        return *a == *b;
-    }
-};
-
+namespace std {
 template<>
 struct hash<shared_ptr<GTLib2::ActionSequence>> {
     size_t operator()(const shared_ptr<GTLib2::ActionSequence> &seq) const {
@@ -518,61 +482,16 @@ struct equal_to<GTLib2::ActionSequence> {
         return true;
     }
 };
+}
 
-template<>
-struct hash<shared_ptr<GTLib2::Observation>> {
-    size_t operator()(const shared_ptr<GTLib2::Observation> &p) const {
-        return p->getHash();
-    }
-};
+namespace std { // NOLINT(cert-dcl58-cpp)
 
-template<>
-struct equal_to<shared_ptr<GTLib2::Observation>> {
-    bool operator()(const shared_ptr<GTLib2::Observation> &a,
-                    const shared_ptr<GTLib2::Observation> &b) const {
-        return *a == *b;
-    }
-};
-
-template<>
-struct hash<shared_ptr<GTLib2::State>> {
-    size_t operator()(const shared_ptr<GTLib2::State> &p) const {
-        return p->getHash();
-    }
-};
-
-template<>
-struct equal_to<shared_ptr<GTLib2::State>> {
-    bool operator()(const shared_ptr<GTLib2::State> &a,
-                    const shared_ptr<GTLib2::State> &b) const {
-        return *a == *b;
-    }
-};
-
-template<>
-struct hash<GTLib2::Outcome> {
-    size_t operator()(const GTLib2::Outcome &p) const {
-        return p.getHash();
-    }
-};
-
-template<>
-struct equal_to<GTLib2::Outcome> {
-    bool operator()(const GTLib2::Outcome &a,
-                    const GTLib2::Outcome &b) const {
-        return a == b;
-    }
-};
-
-template<
-    typename T,
-    typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type
->
+template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
 std::ostream &
 operator<<(std::ostream &ss, vector<T> arr) {
     ss << "[";
     for (int i = 0; i < arr.size(); ++i) {
-        if(i == 0) ss << arr[i];
+        if (i == 0) ss << arr[i];
         else ss << ", " << arr[i];
     }
     ss << "]";

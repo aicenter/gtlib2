@@ -269,67 +269,15 @@ class EFGPublicState {
 
 };  // namespace GTLib2
 
+MAKE_PTR_HASHABLE(shared_ptr<GTLib2::EFGNode>)
+MAKE_PTR_HASHABLE(GTLib2::EFGNode*)
+MAKE_PTR_HASHABLE(shared_ptr<GTLib2::EFGPublicState>)
+MAKE_PTR_HASHABLE(GTLib2::EFGPublicState*)
 
-using GTLib2::EFGNode;
-using GTLib2::EFGPublicState;
-
-namespace std { // NOLINT(cert-dcl58-cpp)
-template<>
-struct hash<shared_ptr < EFGNode>> {
-size_t operator()(const shared_ptr <EFGNode> &p) const {
-    return p->getHash();
-}
-};
-
-template<>
-struct equal_to<shared_ptr < EFGNode>> {
-bool operator()(const shared_ptr <EFGNode> &a, const shared_ptr <EFGNode> &b) const {
-    return *a == *b;
-}
-};
-
-template<>
-struct hash<EFGNode *> {
-    size_t operator()(const EFGNode *p) const {
-        return p->getHash();
-    }
-};
-
-template<>
-struct equal_to<EFGNode *> {
-    bool operator()(const EFGNode *a, const EFGNode *b) const {
-        return *a == *b;
-    }
-};
-
-template<>
-struct hash<shared_ptr<EFGPublicState>> {
-size_t operator()(const shared_ptr <EFGPublicState> &p) const {
-    return p->getHash();
-}
-};
-
-template<>
-struct equal_to<shared_ptr < EFGPublicState>> {
-bool operator()(const shared_ptr <EFGPublicState> &a, const shared_ptr <EFGPublicState> &b) const {
-    return *a == *b;
-}
-};
-
-template<>
-struct hash<EFGPublicState *> {
-    size_t operator()(const EFGPublicState *p) const {
-        return p->getHash();
-    }
-};
-
-template<>
-struct equal_to<EFGPublicState *> {
-    bool operator()(const EFGPublicState *a, const EFGPublicState *b) const {
-        return *a == *b;
-    }
-};
-}  // namespace std
+MAKE_PTR_EQ(shared_ptr<GTLib2::EFGNode>)
+MAKE_PTR_EQ(GTLib2::EFGNode*)
+MAKE_PTR_EQ(shared_ptr<GTLib2::EFGPublicState>)
+MAKE_PTR_EQ(GTLib2::EFGPublicState*)
 
 #endif  // BASE_EFG_H_
 

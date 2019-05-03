@@ -129,4 +129,41 @@ inline bool is_positive_zero(float val) { return ((val == 0.0f) && std::signbit(
 inline bool is_positive_zero(double val) { return ((val == 0.0) && std::signbit(val)); }
 }
 
+#define MAKE_HASHABLE(type)                                   \
+    namespace std {                                           \
+        template<> struct hash<type> {                        \
+            size_t operator()(const type &t) const {          \
+                return t.getHash();                           \
+            }                                                 \
+        };                                                    \
+    }
+
+#define MAKE_PTR_HASHABLE(type)                               \
+    namespace std {                                           \
+        template<> struct hash<type> {                        \
+            size_t operator()(const type &t) const {          \
+                return t->getHash();                          \
+            }                                                 \
+        };                                                    \
+    }
+
+#define MAKE_PTR_EQ(type)                                             \
+    namespace std {                                                   \
+        template<> struct equal_to<type> {                            \
+            bool operator()(const type &a, const type &b) const {     \
+                return *a == *b;                                      \
+            }                                                         \
+        };                                                            \
+    }
+
+#define MAKE_EQ(type)                                                 \
+    namespace std {                                                   \
+        template<> struct equal_to<type> {                            \
+            bool operator()(const type &a, const type &b) const {     \
+                return a == b;                                        \
+            }                                                         \
+        };                                                            \
+    }
+
+
 #endif  // UTILS_UTILS_H_
