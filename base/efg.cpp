@@ -156,7 +156,7 @@ shared_ptr<AOH> EFGNode::getAOHAugInfSet(Player player) const {
 }
 
 shared_ptr<EFGPublicState> EFGNode::getPublicState() const {
-    if(parent_) {
+    if (parent_) {
         return make_shared<EFGPublicState>(parent_->getPublicState(), publicObservation_);
     } else {
         return make_shared<EFGPublicState>(publicObservation_);
@@ -190,12 +190,14 @@ optional<Player> EFGNode::getCurrentPlayer() const {
     return currentPlayer_;
 }
 
-ActionSequence EFGNode::getActionsSeqOfPlayer(Player player) const {
-    auto actSeq = parent_ ? parent_->getActionsSeqOfPlayer(player) : ActionSequence();
+shared_ptr<ActionSequence> EFGNode::getActionsSeqOfPlayer(Player player) const {
+    vector<InfosetAction> actSeq = parent_
+                                   ? parent_->getActionsSeqOfPlayer(player).sequence_
+                                   : vector<InfosetAction>();
     if (parent_ && parent_->currentPlayer_ && *parent_->currentPlayer_ == player) {
-        actSeq.emplace_back(parent_->getAOHInfSet(), incomingAction_);
+        actSeq.emplace_back(InfosetAction(parent_->getAOHInfSet(), incomingAction_));
     }
-    return actSeq;
+    return make_shared<ActionSequence>(actSeq);
 }
 
 shared_ptr<EFGNode const> EFGNode::getParent() const {
@@ -338,10 +340,10 @@ EFGPublicState::EFGPublicState(const shared_ptr<Observation> &publicObservation)
     generateHash();
 }
 
-EFGPublicState::EFGPublicState(const shared_ptr<EFGPublicState>& parent,
+EFGPublicState::EFGPublicState(const shared_ptr<EFGPublicState> &parent,
                                const shared_ptr<Observation> &publicObservation) {
     publicObsHistory_ = parent->publicObsHistory_;
-    if(publicObservation) publicObsHistory_.push_back(publicObservation);
+    if (publicObservation) publicObsHistory_.push_back(publicObservation);
     generateDescriptor();
     generateHash();
 }

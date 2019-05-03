@@ -94,7 +94,7 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
     /**
      * Returns the sequence of actions performed by the player since the root.
      */
-    ActionSequence getActionsSeqOfPlayer(Player player) const;
+    shared_ptr<ActionSequence> getActionsSeqOfPlayer(Player player) const;
 
     double getProbabilityOfActionsSeqOfPlayer(Player player, const BehavioralStrategy &strat) const;
 

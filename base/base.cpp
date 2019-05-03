@@ -82,6 +82,18 @@ string AOH::toString() const {
     return s;
 }
 
+bool ActionSequence::operator==(const ActionSequence &rhs) const {
+    if (hash_ != rhs.hash_) return false;
+    if (sequence_.size() != rhs.sequence_.size()) return false;
+    for (int i = 0; i < sequence_.size(); ++i) {
+        if (sequence_[i].getHash() != rhs.sequence_[i].getHash()
+            || !(sequence_[i] == rhs.sequence_[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
 State::State(const Domain *domain, HashType hash) : domain_(domain), hash_(hash) {}
 
 // todo: explicit max utility!!!!

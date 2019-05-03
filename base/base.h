@@ -1,3 +1,5 @@
+#include <utility>
+
 /*
     Copyright 2019 Faculty of Electrical Engineering at CTU in Prague
 
@@ -104,16 +106,6 @@ typedef unordered_map<shared_ptr<InformationSet>, ActionProbDistribution> Behavi
  */
 typedef vector<BehavioralStrategy> StrategyProfile;
 
-/**
- * List of actions that had to be taken at information sets to get to current EFG node.
- */
-// todo: refactor pair into a more readable struct (avoid using .first/.second)
-typedef vector<pair<shared_ptr<InformationSet>, shared_ptr<Action>>> ActionSequence;
-
-/**
- * Realization plan is a probability distribution over action sequences.
- */
-typedef unordered_map<shared_ptr<ActionSequence>, double> RealizationPlan;
 
 /**
  * Action observation puts together what observation was made with an action.
@@ -264,13 +256,39 @@ class AOH: public InformationSet {
     const HashType hash_;
 };
 
+struct InfosetAction {
+    shared_ptr<InformationSet> infoset;
+    shared_ptr<Action> action;
+    InfosetAction(shared_ptr<InformationSet> infoset, shared_ptr<Action> action)
+        : infoset(move(infoset)), action(move(action)) {}
+    inline HashType getHash() const { return infoset->getHash() + action->getHash(); }
+    inline bool operator==(const InfosetAction &rhs) const {
+        return getHash() == rhs.getHash() && *infoset == *rhs.infoset && *action == *rhs.action;
+    };
+};
+
+/**
+ * List of actions that had to be taken at information sets to get to current EFG node.
+ */
+class ActionSequence {
+ public:
+    explicit ActionSequence(vector<InfosetAction> sequence)
+        : sequence_(move(sequence)), hash_(hashCombine(2315468453135153, sequence_)) {}
+    bool operator==(const ActionSequence &rhs) const;
+    inline HashType getHash() const { return hash_; };
+    const vector<InfosetAction> sequence_;
+    const HashType hash_;
+};
+
+/**
+ * Realization plan is a probability distribution over action sequences.
+ */
+typedef unordered_map<shared_ptr<ActionSequence>, double> RealizationPlan;
+
 /**
  * State is an abstract class that represents domain states.
  *
  * Domain is modeled using a (possibly cyclic) graph whose nodes represent state of the domain.
- *
- *
- *
  */
 class State {
  public:
@@ -391,72 +409,11 @@ MAKE_PTR_EQ(shared_ptr < GTLib2::State >)
 MAKE_HASHABLE(GTLib2::Outcome)
 MAKE_EQ(GTLib2::Outcome)
 
-// todo:
-//MAKE_PTR_HASHABLE(shared_ptr<GTLib2::ActionSequence>)
-//MAKE_PTR_EQ(shared_ptr<GTLib2::ActionSequence>)
+MAKE_PTR_HASHABLE(shared_ptr < GTLib2::ActionSequence >)
+MAKE_PTR_EQ(shared_ptr < GTLib2::ActionSequence >)
 
-namespace std {
-template<>
-struct hash<shared_ptr<GTLib2::ActionSequence>> {
-    size_t operator()(const shared_ptr<GTLib2::ActionSequence> &seq) const {
-        size_t seed = 0;
-        for (const auto &action : (*seq)) {
-            boost::hash_combine(seed, action.first);
-            boost::hash_combine(seed, action.second);
-        }
-        return seed;
-    }
-};
-
-template<>
-struct equal_to<shared_ptr<GTLib2::ActionSequence>> {
-    bool operator()(const shared_ptr<GTLib2::ActionSequence> &a,
-                    const shared_ptr<GTLib2::ActionSequence> &b) const {
-        hash<shared_ptr<GTLib2::ActionSequence>> hasher;
-        if (hasher(a) != hasher(b) || a->size() != b->size()) {
-            return false;
-        }
-        for (int i = 0; i <= a->size(); i++) {
-            if ((*a)[i] != (*b)[i]) {
-                return false;
-            }
-        }
-        return true;
-    }
-};
-
-template<>
-struct hash<GTLib2::ActionSequence> {
-    size_t operator()(const GTLib2::ActionSequence &seq) const {
-        size_t seed = 0;
-        hash<shared_ptr<GTLib2::InformationSet>> hasher;
-        hash<shared_ptr<GTLib2::Action>> hasher2;
-        for (const auto &action : seq) {
-            boost::hash_combine(seed, hasher(action.first));
-            boost::hash_combine(seed, hasher2(action.second));
-        }
-        return seed;
-    }
-};
-
-template<>
-struct equal_to<GTLib2::ActionSequence> {
-    bool operator()(const GTLib2::ActionSequence &a,
-                    const GTLib2::ActionSequence &b) const {
-        hash<GTLib2::ActionSequence> hasher;
-        if (hasher(a) != hasher(b) || a.size() != b.size()) {
-            return false;
-        }
-        for (int i = 0; i < a.size(); i++) {
-            if (!a[i].first->operator==(*b[i].first.get()) ||
-                !a[i].second->operator==(*b[i].second.get())) {
-                return false;
-            }
-        }
-        return true;
-    }
-};
-}
+MAKE_HASHABLE(GTLib2::ActionSequence)
+MAKE_EQ(GTLib2::ActionSequence)
 
 namespace std { // NOLINT(cert-dcl58-cpp)
 
