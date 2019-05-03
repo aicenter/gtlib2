@@ -54,10 +54,10 @@ PlayControl CFRAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &curr
     assert(!cache_.getNodesFor(*currentInfoset).empty());
 
     for (const auto &[node, chanceProb] : cache_.getRootNodes()) {
-        runIteration(node, std::array<double, 3>{1., 1., chanceProb}, Player(0));
+        runIteration(node, array<double, 3>{1., 1., chanceProb}, Player(0));
         delayedApplyRegretUpdates();
 
-        runIteration(node, std::array<double, 3>{1., 1., chanceProb}, Player(1));
+        runIteration(node, array<double, 3>{1., 1., chanceProb}, Player(1));
         delayedApplyRegretUpdates();
     }
 
@@ -109,10 +109,10 @@ void CFRAlgorithm::runIterations(int numIterations) {
 
     for (int i = 0; i < numIterations; ++i) {
         for (const auto &[node, chanceProb] : cache_.getRootNodes()) {
-            runIteration(node, std::array<double, 3>{1., 1., chanceProb}, Player(0));
+            runIteration(node, array<double, 3>{1., 1., chanceProb}, Player(0));
             delayedApplyRegretUpdates();
 
-            runIteration(node, std::array<double, 3>{1., 1., chanceProb}, Player(1));
+            runIteration(node, array<double, 3>{1., 1., chanceProb}, Player(1));
             delayedApplyRegretUpdates();
         }
     }
@@ -120,7 +120,7 @@ void CFRAlgorithm::runIterations(int numIterations) {
 
 
 double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
-                                  const std::array<double, 3> reachProbs,
+                                  const array<double, 3> reachProbs,
                                   const Player updatingPl) {
     assert(cache_.isCompletelyBuilt());
 
@@ -149,7 +149,7 @@ double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
 
     for (int i = 0; i != children.size(); i++) {
         for (const auto &[nextNode, chanceProb] : *children[i]) {
-            std::array<double, 3> newReachProbs = {
+            array<double, 3> newReachProbs = {
                 reachProbs[0], reachProbs[1], reachProbs[CHANCE_PLAYER]};
             newReachProbs[CHANCE_PLAYER] *= chanceProb;
             newReachProbs[actingPl] *= rmProbs[i];

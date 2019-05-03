@@ -57,7 +57,8 @@ class GoofSpielDomain: public Domain {
  public:
     explicit GoofSpielDomain(GoofSpielSettings settings);
     string getInfo() const override;
-    vector<Player> getPlayers() const override;
+    vector <Player> getPlayers() const { return {0, 1}; }
+
     const int numberOfCards_;
     const bool fixChanceCards_;
     const bool binaryTerminalRewards_;
@@ -75,7 +76,7 @@ class GoofSpielAction: public Action {
     GoofSpielAction(ActionId id, int card);
     string toString() const override;
     bool operator==(const Action &that) const override;
-    size_t getHash() const override;
+    HashType getHash() const override;
     int cardNumber_;
 };
 
@@ -91,7 +92,7 @@ enum GoofspielRoundOutcome {
 class GoofSpielObservation: public Observation {
  public:
     GoofSpielObservation(int initialNumOfCards,
-                         const std::array<int, 3> &chosenCards,
+                         const array<int, 3> &chosenCards,
                          GoofspielRoundOutcome roundResult);
     const int natureCard_; // the bidding card
     const int player0LastCard_;
@@ -102,28 +103,26 @@ class GoofSpielObservation: public Observation {
 
 class GoofSpielState: public State {
  public:
-    GoofSpielState(Domain *domain,
-                   std::array<vector<int>, 3> playerDecks,
-                   int natureSelectedCard,
-                   vector<double> cumulativeRewards,
-                   std::array<vector<int>, 3> playedCards);
-    GoofSpielState(Domain *domain,
-                   const GoofSpielState &previousState,
-                   std::array<int, 3> roundPlayedCards,
-                   vector<double> cumulativeRewards);
+    inline GoofSpielState(Domain *domain, array<vector<int>, 3> playerDecks,
+                          int natureSelectedCard, vector<double> cumulativeRewards,
+                          array<vector<int>, 3> playedCards) :
+        State(domain, hashCombine(98612345434231, playerDecks, playedCards, natureSelectedCard)),
+        playerDecks_(move(playerDecks)),
+        natureSelectedCard_(natureSelectedCard),
+        cumulativeRewards_(move(cumulativeRewards)),
+        playedCards_(move(playedCards)) {}
 
     unsigned long countAvailableActionsFor(Player player) const override;
-    vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
-    OutcomeDistribution performActions(const vector<PlayerAction> &actions) const override;
-    vector<Player> getPlayers() const override;
+    vector <shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
+    OutcomeDistribution performActions(const vector <PlayerAction> &actions) const override;
+    vector <Player> getPlayers() const override;
     string toString() const override;
     bool operator==(const State &rhs) const override;
-    size_t getHash() const override;
 
-    std::array<vector<int>, 3> playerDecks_;
-    std::array<vector<int>, 3> playedCards_;
-    int natureSelectedCard_;  // Not in the deck. For the last round it will be NO_NATURE_CARD
-    vector<double> cumulativeRewards_;
+    const array<vector<int>, 3> playerDecks_;
+    const array<vector<int>, 3> playedCards_;
+    const int natureSelectedCard_;  // Not in the deck. For the last round it will be NO_NATURE_CARD
+    const vector<double> cumulativeRewards_;
 };
 
 }  // namespace GTLib2

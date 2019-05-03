@@ -82,7 +82,7 @@ string AOH::toString() const {
     return s;
 }
 
-State::State(Domain *domain /*, HashType hash*/) : domain_(domain) /*, hash_(hash)*/ {}
+State::State(Domain *domain, HashType hash) : domain_(domain), hash_(hash) {}
 
 // todo: explicit max utility!!!!
 Domain::Domain(unsigned int maxDepth, unsigned int numberOfPlayers) :

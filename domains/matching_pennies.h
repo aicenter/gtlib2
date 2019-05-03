@@ -67,7 +67,7 @@ class MatchingPenniesAction: public Action {
     explicit MatchingPenniesAction(Move moveParm);
     string toString() const override;
     bool operator==(const Action &that) const override;
-    size_t getHash() const override;
+    HashType getHash() const override;
     Move move_;
 };
 
@@ -78,23 +78,27 @@ class MatchingPenniesObservation: public Observation {
 
 class MatchingPenniesState: public State {
  public:
-    MatchingPenniesState(Domain *domain, array<Move, 2> moves);
+    inline MatchingPenniesState(Domain *domain, array<Move, 2> moves)
+        : State(domain, hashCombine(5645642168421, moves)),
+          moves_(moves), variant_(static_cast<const MatchingPenniesDomain *>(domain)->variant_),
+          players_(makePlayers(moves_, variant_)) {}
 
     unsigned long countAvailableActionsFor(Player player) const override;
     vector <shared_ptr<Action>> getAvailableActionsFor(Player pl) const override;
-
     OutcomeDistribution performActions(const vector <PlayerAction> &actions) const override;
 
     inline int getNumberOfPlayers() const override { return int(players_.size()); }
     inline vector <Player> getPlayers() const override { return players_; };
     bool operator==(const State &rhs) const override;
-    size_t getHash() const override;
-
-    vector <Player> players_;
-    array<Move, 2> moves_;
-    MatchingPenniesVariant variant_;
 
     string toString() const override;
+
+ private:
+    const array<Move, 2> moves_;
+    const MatchingPenniesVariant variant_;
+    const vector <Player> players_;
+
+    const vector <Player> makePlayers(array<Move, 2> moves, MatchingPenniesVariant variant);
 };
 
 }  // namespace GTLib2

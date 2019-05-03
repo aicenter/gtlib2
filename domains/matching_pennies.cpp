@@ -41,29 +41,19 @@ MatchingPenniesDomain::MatchingPenniesDomain(MatchingPenniesVariant variant)
     rootStatesDistribution_.push_back(pair<Outcome, double>(outcome, 1.0));
 }
 
-MatchingPenniesState::MatchingPenniesState(Domain *domain, array<Move, 2> moves)
-    : State(domain), moves_(moves) {
-    const auto mpDomain = static_cast<MatchingPenniesDomain *>(domain_);
-    variant_ = mpDomain->variant_;
-
-
-    if (variant_ == SimultaneousMoves) {
-        assert((moves_[0] != NO_ACTION && moves_[1] != NO_ACTION)
-                   || (moves_[0] == NO_ACTION && moves_[1] == NO_ACTION));
-        if (moves_[0] == NO_ACTION) {
-            players_.push_back(Player(0));
-        }
-        if (moves_[1] == NO_ACTION) {
-            players_.push_back(Player(1));
-        }
+const vector<Player> MatchingPenniesState::makePlayers(array<Move, 2> moves,
+                                                       MatchingPenniesVariant variant) {
+    vector <Player> players;
+    if (variant == SimultaneousMoves) {
+        assert((moves[0] != NO_ACTION && moves[1] != NO_ACTION)
+                   || (moves[0] == NO_ACTION && moves[1] == NO_ACTION));
+        if (moves[0] == NO_ACTION) players.push_back(Player(0));
+        if (moves[1] == NO_ACTION) players.push_back(Player(1));
     } else {
-        if (moves_[0] == NO_ACTION && moves_[1] == NO_ACTION) {
-            players_.push_back(Player(0));
-        }
-        if (moves_[1] == NO_ACTION && moves_[0] != NO_ACTION) {
-            players_.push_back(Player(1));
-        }
+        if (moves[0] == NO_ACTION && moves[1] == NO_ACTION) players.push_back(Player(0));
+        if (moves[1] == NO_ACTION && moves[0] != NO_ACTION) players.push_back(Player(1));
     }
+    return players;
 }
 
 unsigned long MatchingPenniesState::countAvailableActionsFor(Player pl) const {
@@ -137,16 +127,10 @@ string MatchingPenniesState::toString() const {
         + " Player 2: " + to_string(moves_[1]);
 }
 
-size_t MatchingPenniesState::getHash() const {
-    size_t seed = 0;
-    boost::hash_combine(seed, moves_);
-    boost::hash_combine(seed, players_);
-    return seed;
-}
-
 bool MatchingPenniesState::operator==(const State &rhs) const {
     auto mpState = dynamic_cast<const MatchingPenniesState &>(rhs);
-    return moves_ == mpState.moves_
+    return hash_ == mpState.hash_
+        && moves_ == mpState.moves_
         && players_ == mpState.players_;
 }
 
@@ -177,7 +161,7 @@ bool MatchingPenniesAction::operator==(const Action &that) const {
     return false;
 }
 
-size_t MatchingPenniesAction::getHash() const {
+HashType MatchingPenniesAction::getHash() const {
     std::hash<int> h;
     return h(move_);
 }

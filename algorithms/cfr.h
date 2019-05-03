@@ -135,7 +135,7 @@ class CFRAlgorithm: public GamePlayingAlgorithm {
      * Run an updating iteration for specified player starting at some node.
      * @return counterfactual value for infoset under current (regret-matching) strategy.
      */
-    double runIteration(const shared_ptr<EFGNode> &node, const std::array<double, 3> reachProbs,
+    double runIteration(const shared_ptr<EFGNode> &node, const array<double, 3> reachProbs,
                         const Player updatingPl);
     void runIterations(int numIterations);
 

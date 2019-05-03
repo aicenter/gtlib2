@@ -50,7 +50,7 @@ class OshiZumoAction : public Action {
  public:
   explicit OshiZumoAction(ActionId id, int bid);
   bool operator==(const Action &that) const override;
-  size_t getHash() const override;
+  HashType getHash() const override;
   string toString() const override;
   inline int getBid() const {
       return bid_;
@@ -83,8 +83,8 @@ class OshiZumoDomain : public Domain {
 
 class OshiZumoState : public State {
  public:
-  OshiZumoState(Domain *domain, int wrestlerPosition, int startingCoins);
-  OshiZumoState(Domain *domain, int wrestlerPosition, vector<int> coinsPerPlayer);
+  OshiZumoState(Domain *domain, int wrestlerLocation, int startingCoins);
+  OshiZumoState(Domain *domain, int wrestlerLocation, vector<int> coinsPerPlayer);
 
   vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
   unsigned long countAvailableActionsFor(Player player) const override;
@@ -93,13 +93,10 @@ class OshiZumoState : public State {
   bool isGameEnd() const;
   string toString() const override;
   bool operator==(const State &rhs) const override;
-  size_t getHash() const override;
-  int getWrestlerLocation() const;
-  const vector<int> &getCoins() const;
 
  protected:
-  int wrestlerLocation_;
-  vector<int> coins_;
+  const int wrestlerLocation_;
+  const vector<int> coins_;
 
 };
 

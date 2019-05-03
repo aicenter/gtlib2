@@ -154,6 +154,8 @@ using std::vector;
 
 // Signatures for size
 inline size_t _hashCombineSize() { return 0; }
+template<typename... Rest>
+inline size_t _hashCombineSize(const std::string &v, Rest... rest);
 template<typename T, typename... Rest>
 inline typename enable_if<is_arithmetic<T>::value, size_t>::type
 _hashCombineSize(T v, Rest... rest);
@@ -174,6 +176,10 @@ template<typename Hashable, typename... Rest>
 inline size_t _hashCombineSize(const pair<Hashable, Hashable> &v, Rest... rest);
 
 // Implementations for size
+template<typename... Rest>
+inline size_t _hashCombineSize(const std::string &v, Rest... rest) {
+    return v.size() + _hashCombineSize(rest...);
+}
 template<typename T, typename... Rest>
 inline typename enable_if<is_arithmetic<T>::value, size_t>::type
 _hashCombineSize(T v, Rest... rest) {
@@ -217,6 +223,8 @@ inline size_t _hashCombineSize(const pair<Hashable, Hashable> &v, Rest... rest) 
 
 // Signatures for copy
 inline void _hashCpy(char *buf, size_t offset) {}
+template<typename... Rest>
+inline void _hashCpy(char *buf, size_t offset, const std::string &v, Rest... rest);
 template<typename T, typename... Rest>
 inline typename enable_if<is_arithmetic<T>::value, void>::type
 _hashCpy(char *buf, size_t offset, T v, Rest... rest);
@@ -237,6 +245,11 @@ template<typename Hashable, typename... Rest>
 inline void _hashCpy(char *buf, size_t offset, const pair<Hashable, Hashable> &v, Rest... rest);
 
 // Implementations for copy
+template<typename... Rest>
+inline void _hashCpy(char *buf, size_t offset, const std::string &v, Rest... rest) {
+    memcpy(buf + offset, v.data(), v.size());
+    _hashCpy(buf, offset + v.size(), rest...);
+}
 template<typename T, typename... Rest>
 inline typename enable_if<is_arithmetic<T>::value, void>::type
 _hashCpy(char *buf, size_t offset, T v, Rest... rest) {

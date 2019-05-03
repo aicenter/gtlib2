@@ -63,6 +63,13 @@ TEST(Hashing, CallHashCombine) {
         {make_pair(make_shared<A>(1), make_shared<A>(2))}, make_shared<A>(3)), val);
 
     EXPECT_EQ(hashCombine(10, uint64(1), uint64(2), uint64(3)), val);
+
+    using namespace std::string_literals;
+    string x = "\x01\x00\x00\x00\x00\x00\x00\x00"s
+               "\x02\x00\x00\x00\x00\x00\x00\x00"s
+               "\x03\x00\x00\x00\x00\x00\x00\x00"s;
+    EXPECT_EQ(hashCombine(10, x), val);
+    std::cout << std::setw(16) << std::setfill('0') << std::hex << uint64(1);
 }
 
 }

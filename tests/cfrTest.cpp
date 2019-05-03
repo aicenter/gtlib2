@@ -64,7 +64,7 @@ TEST(CFR, CheckRegretsAndAccInSmallDomain) {
     EXPECT_TRUE(childData.regretUpdates.empty());
 
     // ------ iteration player 0 ------
-    double cfvInfoset = cfr.runIteration(rootNode, std::array<double, 3>{1., 1., 1.}, Player(0));
+    double cfvInfoset = cfr.runIteration(rootNode, array<double, 3>{1., 1., 1.}, Player(0));
     EXPECT_TRUE(cfvInfoset == 0.0);
     EXPECT_TRUE(rootData.regrets[0] == 0.0);
     EXPECT_TRUE(rootData.regrets[1] == 0.0);
@@ -77,7 +77,7 @@ TEST(CFR, CheckRegretsAndAccInSmallDomain) {
     EXPECT_TRUE(childData.avgStratAccumulator[1] == 0.0);
 
     // ------ iteration player 1 ------
-    cfvInfoset = cfr.runIteration(rootNode, std::array<double, 3>{1., 1., 1.}, Player(1));
+    cfvInfoset = cfr.runIteration(rootNode, array<double, 3>{1., 1., 1.}, Player(1));
     // does not change regrets / acc for player 0 but it does for player 1!!
     EXPECT_TRUE(rootData.regrets[0] == 0.0);
     EXPECT_TRUE(rootData.regrets[1] == 0.0);
@@ -117,7 +117,7 @@ TEST(CFR, CheckRegretsAndAccInSmallDomainForInfosetUpdatingCFR) {
     EXPECT_TRUE(childData.regretUpdates.size() == 2);
 
     // ------ iteration player 0 ------
-    double cfvInfoset = cfr.runIteration(rootNode, std::array<double, 3>{1., 1., 1.}, Player(0));
+    double cfvInfoset = cfr.runIteration(rootNode, array<double, 3>{1., 1., 1.}, Player(0));
     cfr.delayedApplyRegretUpdates();
     EXPECT_TRUE(cfvInfoset == 0.0);
     EXPECT_TRUE(rootData.regrets[0] == 0.0);
@@ -135,7 +135,7 @@ TEST(CFR, CheckRegretsAndAccInSmallDomainForInfosetUpdatingCFR) {
     EXPECT_TRUE(childData.avgStratAccumulator[1] == 0.0);
 
     // ------ iteration player 1 ------
-    cfvInfoset = cfr.runIteration(rootNode, std::array<double, 3>{1., 1., 1.}, Player(1));
+    cfvInfoset = cfr.runIteration(rootNode, array<double, 3>{1., 1., 1.}, Player(1));
     cfr.delayedApplyRegretUpdates();
     // does not change regrets / acc for player 0
     EXPECT_TRUE(rootData.regrets[0] == 0.0);
@@ -203,7 +203,7 @@ TEST(CFR, CheckRegretsAndAccInSmallDomainFixStrategy) {
     EXPECT_TRUE(childData.regretUpdates.size() == 2);
 
     // ------ iteration player 0 ------
-    double cfvInfoset = cfr.runIteration(rootNode, std::array<double, 3>{1., 1., 1.}, Player(0));
+    double cfvInfoset = cfr.runIteration(rootNode, array<double, 3>{1., 1., 1.}, Player(0));
     cfr.delayedApplyRegretUpdates();
     EXPECT_TRUE(cfvInfoset == 0.0);
     EXPECT_TRUE(rootData.regrets[0] == 0.75);
@@ -220,7 +220,7 @@ TEST(CFR, CheckRegretsAndAccInSmallDomainFixStrategy) {
     EXPECT_TRUE(childData.avgStratAccumulator[1] == 0.875);
 
     // ------ iteration player 1 ------
-    cfvInfoset = cfr.runIteration(rootNode, std::array<double, 3>{1., 1., 1.}, Player(1));
+    cfvInfoset = cfr.runIteration(rootNode, array<double, 3>{1., 1., 1.}, Player(1));
     cfr.delayedApplyRegretUpdates();
     EXPECT_TRUE(rootData.regrets[0] == 0.75);
     EXPECT_TRUE(rootData.regrets[1] == 0.25);

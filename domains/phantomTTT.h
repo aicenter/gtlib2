@@ -31,36 +31,34 @@
 #include <string>
 
 namespace GTLib2::domains {
-const std::array<string, 9> moved_ = {"top left", "top", "top right",
-                                      "left", "center", "right", "bottom left",
-                                      "bottom", "bottom right"};
+
+const array<string, 9> phantomMoves = {"top left", "top", "top right",
+                                       "left", "center", "right",
+                                       "bottom left", "bottom", "bottom right"};
 
 /**
  * PhantomTTTAction is a class that represents PhantomTTT actions,
  * which are identified by their id and contain where to play.
  */
-class PhantomTTTAction : public Action {
+class PhantomTTTAction: public Action {
  public:
-  // constructor
-  PhantomTTTAction(ActionId id, int move);
+    PhantomTTTAction(ActionId id, int move);
+    inline string toString() const final {
+        if (id_ == NO_ACTION) return "NoA";
+        return phantomMoves[move_];
+    }
 
-  // Returns move description.
-  inline string toString() const final {
-    if (id_ == NO_ACTION)
-      return "NoA";
-    return moved_[move_];
-  }
+    bool operator==(const Action &that) const override;
+    HashType getHash() const override;
 
-  bool operator==(const Action &that) const override;
-  size_t getHash() const override;
-
-  // Returns index to 3x3 array, which describes where to move.
-  inline int GetMove() const {
-    return move_;
-  }
+    /**
+     * Returns index to 3x3 array (represented as array of 9 elements),
+     * which describes where to move.
+     */
+    inline int GetMove() const { return move_; }
 
  private:
-  int move_;
+    int move_;
 };
 
 /**
@@ -68,17 +66,13 @@ class PhantomTTTAction : public Action {
  * which are identified by their id and contain an integer value
  * indicating if an action was successful(1) or not (0).
  */
-class PhantomTTTObservation : public Observation {
+class PhantomTTTObservation: public Observation {
  public:
-  // constructor
-  explicit PhantomTTTObservation(int id);
-
-  // Returns description.
-  inline string toString() const final {
-    if (id_ == 1)
-      return "Success";
-    return "Fail";
-  };
+    explicit PhantomTTTObservation(int id);
+    inline string toString() const final {
+        if (id_ == 1) return "Success";
+        return "Failure";
+    };
 };
 
 /**
@@ -86,80 +80,39 @@ class PhantomTTTObservation : public Observation {
  * which contains players' board - what they can see,
  * and who can play in the turn.
  */
-class PhantomTTTState : public State {
+class PhantomTTTState: public State {
  public:
-  // Constructor
-  PhantomTTTState(Domain *domain, vector<vector<int>> p, vector<Player> players);
+    inline PhantomTTTState(Domain *domain, vector <vector<int>> board, vector <Player> players)
+        : State(domain, hashCombine(324816846515, board, players)),
+          board_(move(board)),
+          players_(move(players)) {}
+    ~PhantomTTTState() override = default;
 
-  // Destructor
-  ~PhantomTTTState() override = default;
+    unsigned long countAvailableActionsFor(Player player) const override;
+    vector <shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
+    OutcomeDistribution performActions(const vector <PlayerAction> &actions) const override;
+    inline vector <Player> getPlayers() const final { return players_; }
 
-  unsigned long countAvailableActionsFor(Player player) const override;
-
-  // GetActions returns possible actions for a player in the state.
-  vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
-
-  OutcomeDistribution
-  performActions(const vector<PlayerAction> &actions) const override;
-
-  inline vector<Player> getPlayers() const final {
-    return players_;
-  }
-
-  bool operator==(const State &rhs) const override;
-
-  size_t getHash() const override;
-
-  // ToString returns state description.
-  inline string toString() const override {
-    string s;
-    for (Player player = 0; player < place_.size(); ++player) {
-      s += "Player: " + to_string(player) + " board:\n";
-      for (int i = 0; i < 9; ++i) {
-        switch (place_[player][i]) {
-          case 0:s += "_ ";
-            break;
-          case 1:s += "x ";
-            break;
-          case 2:s += "o ";
-            break;
-          default:s += "- ";
-            break;
-        }
-        if (i == 2 || i == 5 || i == 8) {
-          s += "\n";
-        }
-      }
-    }
-    return s;
-  }
+    bool operator==(const State &rhs) const override;
+    inline string toString() const override;
 
  protected:
-  vector<vector<int>> place_;  // players' board
-  vector<string> strings_;
-  vector<Player> players_;
+    const vector <vector<int>> board_;
+    const vector <Player> players_;
 };
 
 /**
  * PhantomTTTDomain is a class that represents PhantomTTT domain,
  * which contain static height and static width.
  */
-class PhantomTTTDomain : public Domain {
+class PhantomTTTDomain: public Domain {
  public:
-  // constructor
-  explicit PhantomTTTDomain(unsigned int max);
-
-  // destructor
-  ~PhantomTTTDomain() override = default;
-
-  // GetInfo returns string containing domain information.
-  string getInfo() const final;
-
-  inline vector<Player> getPlayers() const final {
-    return {0, 1};
-  }
+    explicit PhantomTTTDomain(unsigned int max);
+    ~PhantomTTTDomain() override = default;
+    string getInfo() const final;
+    inline vector <Player> getPlayers() const final { return {Player(0), Player(1)}; }
 };
-}  // namespace GTLib2
+}
 #endif  // DOMAINS_PHANTOMTTT_H_
 
 #pragma clang diagnostic pop

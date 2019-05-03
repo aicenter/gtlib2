@@ -38,160 +38,85 @@ namespace GTLib2::domains {
  * RhodeIslandAction is a class that represents Rhode Island Poker actions,
  * which are identified by their id and contain card number or move.
  */
-class RhodeIslandPokerAction : public Action {
+class RhodeIslandPokerAction: public Action {
  public:
-  // constructor
-  RhodeIslandPokerAction(ActionId id, int type, int value);
-
-  // Returns move description.
-  inline string toString() const final {
-    if (id_ == NO_ACTION)
-      return "NoA";
-    switch (type_) {
-      case Check: return "Check";
-      case Bet: return "Bet: " + to_string(value_);
-      case Call: return "Call";
-      case Raise: return "Raise: " + to_string(value_);
-      case Fold: return "Fold";
-      default: return "ERROR";
-    }
-  }
-
-  inline int GetValue() const {
-    return value_;
-  }
-
-  inline int GetType() const {
-    return type_;
-  }
-
-  bool operator==(const Action &that) const override;
-  size_t getHash() const override;
+    RhodeIslandPokerAction(ActionId id, int type, int value);
+    inline string toString() const final;
+    inline int GetValue() const { return value_; }
+    inline int GetType() const { return type_; }
+    bool operator==(const Action &that) const override;
 
  private:
-  int value_;
-  int type_;
+    const int value_;
+    const int type_;
 };
 
 /**
  * RhodeIslandPokerObservation is a class that represents Rhode Island Poker observations,
  * which are identified by their id and contain a move type with value and color in case of card.
  */
-class RhodeIslandPokerObservation : public Observation {
+class RhodeIslandPokerObservation: public Observation {
  public:
-  // constructor
-  explicit RhodeIslandPokerObservation(int id, int type, int value, int color);
-  /**
-   * id: 0 - check; 1 - call; 2 - fold; from 3 to 3+maxCardTypes - first played cards;
-   * then next maxCardTypes numbers - second played cards
-   * then next BetsFirstRound.size() numbers - bets in first round
-   * then next BetsSecondRound.size() numbers - bets in second round
-   * then next BetsThirdRound.size() numbers - bets in third round
-   * then next RaisesFirstRound.size() numbers - raises in first round
-   * then next RaisesSecondRound.size() numbers - raises in second round
-   * then next RaisesThirdRound.size() numbers - raises in third round
-   */
+    explicit RhodeIslandPokerObservation(int id, int type, int value, int color);
+    /**
+     * id: 0 - check; 1 - call; 2 - fold; from 3 to 3+maxCardTypes - first played cards;
+     * then next maxCardTypes numbers - second played cards
+     * then next BetsFirstRound.size() numbers - bets in first round
+     * then next BetsSecondRound.size() numbers - bets in second round
+     * then next BetsThirdRound.size() numbers - bets in third round
+     * then next RaisesFirstRound.size() numbers - raises in first round
+     * then next RaisesSecondRound.size() numbers - raises in second round
+     * then next RaisesThirdRound.size() numbers - raises in third round
+     */
 
-  // Returns description.
-  inline string toString() const final {
-    if (id_ == NO_OBSERVATION)
-      return "NoOb";
-    switch (type_) {
-      case PlayCard: return "Card is " + to_string(value_) + " " + to_string(color_);
-      case Check: return "Check";
-      case Bet: return "Bet:" + to_string(value_);
-      case Call: return "Call";
-      case Raise: return "Raise:" + to_string(value_);
-      case Fold: return "Fold";
-      default: return "ERROR";
-    }
-  }
-  inline int GetValue() const {
-    return value_;
-  }
-
-  inline int GetType() const {
-    return type_;
-  }
+    inline string toString() const final;
+    inline int GetValue() const { return value_; }
+    inline int GetType() const { return type_; }
 
  private:
-  int value_;
-  int type_;
-  int color_;
+    const int value_;
+    const int type_;
+    const int color_;
 };
 
 /**
  * RhodeIslandPokerState is a class that represents Rhode Island Poker states,
  * which contains nature cards, pot, round etc. and who can play in the turn.
  */
-class RhodeIslandPokerState : public State {
+class RhodeIslandPokerState: public State {
  public:
-  // Constructor
-  RhodeIslandPokerState(Domain *domain, pair<int, int> p1card,
-                        pair<int, int> p2card, optional<pair<int, int>> natureCard1,
-                        optional<pair<int, int>> natureCard2, double firstPlayerReward,
-                        double pot, vector<Player> players, int round,
-                        shared_ptr<RhodeIslandPokerAction> lastAction, int continuousRaiseCount);
+    RhodeIslandPokerState(Domain *domain, pair<int, int> player1Card,
+                          pair<int, int> player2Card, optional<pair<int, int>> natureCard1,
+                          optional<pair<int, int>> natureCard2, double firstPlayerReward,
+                          double pot, vector<Player> players, int round,
+                          shared_ptr<RhodeIslandPokerAction> lastAction, int continuousRaiseCount);
+    RhodeIslandPokerState(Domain *domain,
+                          pair<int, int> player1card, pair<int, int> player2card,
+                          optional<pair<int, int>> natureCard1,
+                          optional<pair<int, int>> natureCard2,
+                          unsigned int ante,
+                          vector<Player> players);
+    ~RhodeIslandPokerState() override = default;
 
-  RhodeIslandPokerState(Domain *domain,
-                        pair<int, int> p1card,
-                        pair<int, int> p2card,
-                        optional<pair<int, int>> natureCard1,
-                        optional<pair<int, int>> natureCard2,
-                        unsigned int ante,
-                        vector<Player> players);
-
-  // Destructor
-  ~RhodeIslandPokerState() override = default;
-
-  unsigned long countAvailableActionsFor(Player player) const override;
-
-  // GetActions returns possible actions for a player in the state.
-  vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
-
-  OutcomeDistribution
-  performActions(const vector<PlayerAction> &actions) const override;
-
-  inline vector<Player> getPlayers() const final {
-    return players_;
-  }
-
-  int hasPlayerOneWon(const shared_ptr<RhodeIslandPokerAction> &lastAction, Player player) const;
-
-  bool operator==(const State &rhs) const override;
-
-  size_t getHash() const override;
-
-  inline string toString() const override {
-    string
-        s = "Player 1 card: " + to_string(player1Card_.first) + " " + to_string(player1Card_.second)
-        + "\nPlayer 2 card: " + to_string(player2Card_.first) + " " + to_string(player2Card_.second)
-        +
-            "\nNature cards: ";
-    if (natureCard1_) {
-      s += to_string(natureCard1_.value().first) + " " + to_string(natureCard1_.value().second)
-          + "  |  ";
-      if (natureCard2_) {
-        s += to_string(natureCard2_.value().first) + " " + to_string(natureCard2_.value().second);
-      }
-    }
-    return s + "\nPlayer on move: " + to_string(players_[0]) + "\nPot: " + to_string(pot_) +
-        "\nReward for first player: " + to_string(firstPlayerReward_) + "\nLast action: " +
-        lastAction_->toString() + "\nRound: " + to_string(round_) + "Continuous raise count: " +
-        to_string(continuousRaiseCount_) + "\n";
-  }
+    unsigned long countAvailableActionsFor(Player player) const override;
+    vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
+    OutcomeDistribution performActions(const vector<PlayerAction> &actions) const override;
+    inline vector<Player> getPlayers() const final { return players_; }
+    int hasPlayerOneWon(const shared_ptr<RhodeIslandPokerAction> &lastAction, Player player) const;
+    bool operator==(const State &rhs) const override;
+    inline string toString() const override;
 
  protected:
-  vector<Player> players_;
-  shared_ptr<RhodeIslandPokerAction> lastAction_;
-  optional<pair<int, int>> natureCard1_;  // first number, second color (type)
-  optional<pair<int, int>> natureCard2_;
-  double pot_;
-  double firstPlayerReward_;
-  pair<int, int> player1Card_;  // first number, second color (type)
-  pair<int, int> player2Card_;
-  int round_;
-  int continuousRaiseCount_;
+    const vector<Player> players_;
+    const shared_ptr<RhodeIslandPokerAction> lastAction_;
+    const optional<pair<int, int>> natureCard1_;  // first number, second color (type)
+    const optional<pair<int, int>> natureCard2_;
+    const double pot_;
+    const double firstPlayerReward_;
+    const pair<int, int> player1Card_;  // first number, second color (type)
+    const pair<int, int> player2Card_;
+    const int round_;
+    const int continuousRaiseCount_;
 };
 
 /**
@@ -199,44 +124,34 @@ class RhodeIslandPokerState : public State {
  * which contain possible bets and raises, max card types, max cards of each type, max different
  * bets and raises and Max utility.
  */
-class RhodeIslandPokerDomain : public Domain {
+class RhodeIslandPokerDomain: public Domain {
  public:
-  // constructor
-  RhodeIslandPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes,
-                         unsigned int maxRaisesInRow, unsigned int maxDifferentBets,
-                         unsigned int maxDifferentRaises, unsigned int ante);
+    RhodeIslandPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes,
+                           unsigned int maxRaisesInRow, unsigned int maxDifferentBets,
+                           unsigned int maxDifferentRaises, unsigned int ante);
+    RhodeIslandPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes,
+                           unsigned int maxRaisesInRow, unsigned int maxDifferentBets,
+                           unsigned int maxDifferentRaises);
+    RhodeIslandPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes);
+    RhodeIslandPokerDomain();
+    ~RhodeIslandPokerDomain() override = default;
 
-  RhodeIslandPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes,
-                         unsigned int maxRaisesInRow, unsigned int maxDifferentBets,
-                         unsigned int maxDifferentRaises);
+    string getInfo() const final;
+    inline vector<Player> getPlayers() const final { return {0, 1}; }
 
-  RhodeIslandPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes);
-
-  RhodeIslandPokerDomain();
-
-  // destructor
-  ~RhodeIslandPokerDomain() override = default;
-
-  // GetInfo returns string containing domain information.
-  string getInfo() const final;
-
-  inline vector<Player> getPlayers() const final {
-    return {0, 1};
-  }
-
-  vector<int> betsFirstRound_;
-  vector<int> raisesFirstRound_;
-  vector<int> betsSecondRound_;
-  vector<int> raisesSecondRound_;
-  vector<int> betsThirdRound_;
-  vector<int> raisesThirdRound_;
-  const unsigned int maxCardTypes_;  // cisla
-  const unsigned int maxCardsOfEachType_;  // barvy
-  const unsigned int maxRaisesInRow_;
-  const unsigned int maxDifferentBets_;
-  const unsigned int maxDifferentRaises_;
-  const unsigned int ante_;
-  const int TERMINAL_ROUND = 6;
+    vector<int> betsFirstRound_;
+    vector<int> raisesFirstRound_;
+    vector<int> betsSecondRound_;
+    vector<int> raisesSecondRound_;
+    vector<int> betsThirdRound_;
+    vector<int> raisesThirdRound_;
+    const unsigned int maxCardTypes_;  // cisla
+    const unsigned int maxCardsOfEachType_;  // barvy
+    const unsigned int maxRaisesInRow_;
+    const unsigned int maxDifferentBets_;
+    const unsigned int maxDifferentRaises_;
+    const unsigned int ante_;
+    const int TERMINAL_ROUND = 6;
 };
 }  // namespace GTLib2
 

@@ -274,7 +274,7 @@ class AOH: public InformationSet {
  */
 class State {
  public:
-    explicit State(/*const */Domain *domain); //, HashType hash);
+    explicit State(/*const */Domain *domain, HashType hash);
 
     virtual ~State() = default;
 
@@ -309,14 +309,13 @@ class State {
      */
     virtual string toString() const;
 
-    // todo:remove virtual
-    virtual HashType getHash() const { return hash_; };
+    HashType getHash() const { return hash_; };
     virtual bool operator==(const State &rhs) const = 0;
     inline /*const */ Domain *getDomain() const { return domain_; }
 
  protected:
     /*const */ Domain *domain_;
-    HashType hash_;
+    const HashType hash_;
 };
 
 /**
