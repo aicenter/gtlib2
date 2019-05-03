@@ -120,6 +120,16 @@ struct hash<std::vector<int>> {
     }
 };
 
+template<typename T, typename... Ts>
+std::vector<T> extend(const std::vector<T>& original, const Ts&... args) {
+    constexpr std::size_t numArgs = sizeof...(Ts);
+    std::vector<T> made;
+    made.reserve(original.size() + numArgs);
+    for (unsigned int i = 0; i < original.size(); i++) made.push_back(original[i]);
+    (made.push_back(args), ...);
+    return made;
+}
+
 }  // namespace std
 
 namespace GTLib2 {

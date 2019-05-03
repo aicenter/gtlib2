@@ -36,7 +36,7 @@ using std::setfill;
 using std::hex;
 using std::ofstream;
 using algorithms::treeWalkEFG;
-using algorithms::createRootEFGNodes;
+using algorithms::createRootEFGNode;
 
 
 struct Color {
@@ -85,24 +85,31 @@ inline Color getColor(double v, double vmin, double vmax) {
     }
 }
 
-inline string getShape(Player player) {
-    switch (player) {
-        case 0:
-            return "shape=triangle";
-        case 1:
-            return "shape=invtriangle";
+inline string getShape(const shared_ptr<EFGNode> &node) {
+    switch (node->type_) {
+        case ChanceNode:
+            return "circle";
+        case PlayerNode:
+            return array<string, 2>{"triangle", "invtriangle"}[node->getPlayer()];
+        case TerminalNode:
+            return "square";
+        default:
+            assert(false); // unrecognized option!
     }
 }
 
-inline string getColor(Player player) {
-    switch (player) {
-        case 0:
-            return "#FF0000";
-        case 1:
-            return "#00FF00";
+inline string getColor(const shared_ptr<EFGNode> &node) {
+    switch (node->type_) {
+        case ChanceNode:
+            return "#FFFFFF";
+        case PlayerNode:
+            return array<string, 2>{"#FF0000", "#00FF00"}[node->getPlayer()];
+        case TerminalNode:
+            return "#888888";
+        default:
+            assert(false); // unrecognized option!
     }
 }
-
 
 
 void exportGraphViz(const Domain &domain, std::ostream &fs) {
@@ -123,30 +130,32 @@ void exportGraphViz(const Domain &domain, std::ostream &fs) {
 //    labelloc = "t"; // place the label at the top (b seems to be default)
 
     auto walkPrint = [&fs, &domain](shared_ptr<EFGNode> node) {
-        if(node->isTerminal()) {
+        string color = getColor(node);
+        string shape = getShape(node);
+
+        if (node->type_ == TerminalNode) {
             // Print nodes
-            fs << "\t\"" << node->getDescriptor() << "\" "
-               << R"([fillcolor="#FFFFFF", label=")" << node->rewards_ <<"\"]\n";
+            fs << "\t\"" << node->history_ << "\" "
+               << "[fillcolor=\"" << color << "\""
+               << ",label=\"" << node->getUtilities() << "\""
+               << ",shape=\"" << shape << "\"]\n";
             return;
         }
 
         for (auto &action : node->availableActions()) {
-            auto children = node->performAction(action);
+            auto child = node->performAction(action);
 
             // Print edges
-            for (auto &[child, prob] : children) {
-                fs << "\t\"" << node->getDescriptor() << "\""
-                   << " -> "
-                   << "\"" << child->getDescriptor() << "\""
-                   << " [label=\"" << action->toString() << ", p=" << prob << "\"]\n";
-            }
+            fs << "\t\"" << node->toString() << "\""
+               << " -> "
+               << "\"" << child->toString() << "\""
+               << " [label=\"" << action->toString() << "\"]\n";
 
             // Print nodes
-            string color = getColor(*node->getCurrentPlayer());
-            string maybeShape = getShape(*node->getCurrentPlayer());
-
-            fs << "\t\"" << node->getDescriptor() << "\" "
-               << "[fillcolor=\"" << color << R"(", label="", )" << maybeShape << "]\n";
+            fs << "\t\"" << node->toString() << "\" "
+               << "[fillcolor=\"" << color << "\""
+               << ",label=\"\""
+               << ",shape=\"" << shape << "\"]\n";
         }
     };
 
@@ -176,70 +185,55 @@ void exportGambit(const Domain &domain, std::ostream &fs) {
     int terminalIdx = 0, chanceIdx = 0, infosetIdx = 0;
     unordered_map<shared_ptr<AOH>, int> infoset2id;
 
-    auto walkPrint = [&](shared_ptr<EFGNode> node, const auto &walkPrint) {
+    auto walkPrint = [&](shared_ptr<EFGNode> node) {
         auto nodeLabel = ""; //node->toString();
-        for (int j = 0; j < node->getEFGDepth(); ++j) fs << " ";
+        for (int j = 0; j < node->efgDepth_; ++j) fs << " ";
 
-        if (node->isTerminal()) {
-            fs << "t \"" << nodeLabel << "\" " << terminalIdx++ << " \"\" { ";
-            fs << node->rewards_[0] << ", " << node->rewards_[1];
-            fs << "}\n";
-            return;
-        }
-
-        // inner node
-        auto infoset = node->getAOHInfSet();
-        int isId;
-        if(infoset2id.find(infoset) == infoset2id.end()) {
-            infoset2id.emplace(make_pair(infoset, ++infosetIdx));
-            isId = infosetIdx;
-        } else {
-            isId = infoset2id.find(infoset)->second;
-        }
-
-        auto actions = node->availableActions();
-        fs << "p \"" << nodeLabel << "\" "
-           << (int(*node->getCurrentPlayer())+1) << " " << isId << " \"\" { ";
-        for (const auto &action: actions) {
-            fs << "\"" << action->toString() << "\" ";
-        }
-        fs << "} 0\n";
-
-        for (auto &action : actions) {
-            auto children = node->performAction(action);
-            if(children.size() == 1) {
-                walkPrint(children[0].first, walkPrint);
-                continue;
+        switch (node->type_) {
+            case ChanceNode: {
+                for (int j = 0; j < node->efgDepth_; ++j) fs << " ";
+                fs << "c \"" << nodeLabel << "\" " << chanceIdx++ << " \"\" { ";
+                int i = 0;
+                for (const auto &chanceProb : node->chanceProbs()) {
+                    fs << "\"" << i++ << "\" " << chanceProb << " ";
+                }
+                fs << "} 0\n";
+                return;
             }
 
-            for (int j = 0; j < node->getEFGDepth(); ++j) fs << " ";
-            fs << "c \"" << nodeLabel << "\" " << chanceIdx++ << " \"\" { ";
-            int i = 0;
-            for (const auto &[childNode, chanceProb]: children) {
-                fs << "\"" << i++ << "\" " << chanceProb << " ";
-            }
-            fs << "} 0\n";
+            case PlayerNode: {
+                auto infoset = node->getAOHInfSet();
+                int isId;
+                if (infoset2id.find(infoset) == infoset2id.end()) {
+                    infoset2id.emplace(make_pair(infoset, ++infosetIdx));
+                    isId = infosetIdx;
+                } else {
+                    isId = infoset2id.find(infoset)->second;
+                }
 
-            for(auto &[childNode, chanceProb] : children) {
-                walkPrint(childNode, walkPrint);
+                auto actions = node->availableActions();
+                fs << "p \"" << nodeLabel << "\" "
+                   << (int(node->getPlayer()) + 1) << " " << isId << " \"\" { ";
+                for (const auto &action: actions) {
+                    fs << "\"" << action->toString() << "\" ";
+                }
+                fs << "} 0\n";
+                return;
             }
+
+            case TerminalNode: {
+                fs << "t \"" << nodeLabel << "\" " << terminalIdx++ << " \"\" { ";
+                fs << node->getUtilities()[0] << ", " << node->getUtilities()[1];
+                fs << "}\n";
+                return;
+            }
+
+            default:
+                assert(false); // unrecognized option!
         }
     };
 
-    auto rootNodes = createRootEFGNodes(domain.getRootStatesDistribution());
-    // write initial chance node if there is one
-    if(rootNodes.size() > 1) {
-        fs << "c \"" << "" << "\" " << chanceIdx++ << " \"\" { ";
-        int i = 0;
-        for (const auto &[rootNode, chanceProb] : rootNodes) {
-            fs << "\"" << i++ << "\" " << chanceProb << " ";
-        }
-        fs << "} 0\n";
-    }
-
-    for (const auto &[rootNode, chanceProb] : rootNodes) {
-        walkPrint(rootNode, walkPrint);
-    }
+    treeWalkEFG(domain, walkPrint);
 }
 
 void exportGambit(const Domain &domain, const string &fileToSave) {

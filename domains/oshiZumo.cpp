@@ -191,7 +191,7 @@ OutcomeDistribution OshiZumoState::performActions(const vector<PlayerAction> &ac
     }
 
     vector<double> rewards{0.0, 0.0};
-    if (newState->isGameEnd()) {
+    if (newState->isTerminal()) {
         if (newWrestlerLocation < (OZdomain->getStartingLocation())) {
             rewards[0] = -1;
             rewards[1] = 1;
@@ -208,11 +208,11 @@ OutcomeDistribution OshiZumoState::performActions(const vector<PlayerAction> &ac
 }
 
 vector<Player> OshiZumoState::getPlayers() const {
-    if (isGameEnd()) return {};
+    if (isTerminal()) return {};
     return {0, 1};
 }
 
-bool OshiZumoState::isGameEnd() const {
+bool OshiZumoState::isTerminal() const {
     const auto OZdomain = static_cast<const OshiZumoDomain *>(domain_);
     return (wrestlerLocation_ < 0
         || wrestlerLocation_ > (2 * OZdomain->getStartingLocation())

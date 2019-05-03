@@ -92,6 +92,7 @@ class PhantomTTTState: public State {
     vector <shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
     OutcomeDistribution performActions(const vector <PlayerAction> &actions) const override;
     inline vector <Player> getPlayers() const final { return players_; }
+    inline bool isTerminal() const override { return players_.empty(); };
 
     bool operator==(const State &rhs) const override;
     inline string toString() const override;

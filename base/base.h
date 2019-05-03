@@ -322,6 +322,14 @@ class State {
      */
     virtual int getNumberOfPlayers() const;
 
+    virtual bool isPlayerMakingMove(Player pl) const;
+
+    /**
+     * Returns whether there is no more transition to any other state
+     */
+    virtual bool isTerminal() const = 0;
+
+
     /**
      * Returns state description
      */

@@ -53,12 +53,22 @@ struct GoofSpielSettings {
     vector<int> getNatureCards();
 };
 
+class GoofSpielAction: public Action {
+ public:
+    inline GoofSpielAction() : Action(), cardNumber_(0) {}
+    inline GoofSpielAction(ActionId id, int card) : Action(id), cardNumber_(card) {}
+    inline string toString() const override { return "Card: " + to_string(cardNumber_); };
+    bool operator==(const Action &that) const override;
+    inline HashType getHash() const override { return cardNumber_; };
+    const int cardNumber_;
+};
+
+
 class GoofSpielDomain: public Domain {
  public:
     explicit GoofSpielDomain(GoofSpielSettings settings);
     string getInfo() const override;
     vector <Player> getPlayers() const { return {0, 1}; }
-
     const int numberOfCards_;
     const bool fixChanceCards_;
     const bool binaryTerminalRewards_;
@@ -68,16 +78,6 @@ class GoofSpielDomain: public Domain {
  private:
     void initRandomCards(const vector<int> &natureCards);
     void initFixedCards(const vector<int> &natureCards);
-};
-
-
-class GoofSpielAction: public Action {
- public:
-    GoofSpielAction(ActionId id, int card);
-    string toString() const override;
-    bool operator==(const Action &that) const override;
-    HashType getHash() const override;
-    int cardNumber_;
 };
 
 constexpr int NO_NATURE_CARD = 0;
@@ -91,6 +91,11 @@ enum GoofspielRoundOutcome {
 
 class GoofSpielObservation: public Observation {
  public:
+    inline GoofSpielObservation() : Observation(),
+                                    natureCard_(0),
+                                    player0LastCard_(0),
+                                    player1LastCard_(0),
+                                    roundResult_(PL0_DRAW) {}
     GoofSpielObservation(int initialNumOfCards,
                          const array<int, 3> &chosenCards,
                          GoofspielRoundOutcome roundResult);
@@ -116,6 +121,7 @@ class GoofSpielState: public State {
     vector <shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
     OutcomeDistribution performActions(const vector <PlayerAction> &actions) const override;
     vector <Player> getPlayers() const override;
+    bool isTerminal() const override;
     string toString() const override;
     bool operator==(const State &rhs) const override;
 

@@ -423,6 +423,8 @@ class KriegspielState: public State {
         return v;
     }
 
+    inline bool isTerminal() const override { return gameHasEnded; };
+
     bool operator==(const State &rhs) const override;
 
     void updateAllPieces() const;

@@ -311,5 +311,9 @@ bool GoofSpielState::operator==(const State &rhs) const {
         && playerDecks_ == gsState.playerDecks_;
 }
 
+bool GoofSpielState::isTerminal() const {
+    return playerDecks_[0].empty() && playerDecks_[1].empty();
+}
+
 }  // namespace GTLib2
 #pragma clang diagnostic pop

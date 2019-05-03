@@ -76,7 +76,7 @@ void exampleExportDomain() {
 }
 
 int main(int argc, char *argv[]) {
-//    exampleBenchmarkCFR();
+    exampleBenchmarkCFR();
 //    exampleExportDomain();
     return 0;
 }

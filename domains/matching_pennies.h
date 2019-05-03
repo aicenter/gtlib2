@@ -85,6 +85,7 @@ class MatchingPenniesState: public State {
 
     inline int getNumberOfPlayers() const override { return int(players_.size()); }
     inline vector <Player> getPlayers() const override { return players_; };
+    inline bool isTerminal() const override { return players_.empty(); };
     bool operator==(const State &rhs) const override;
 
     string toString() const override;

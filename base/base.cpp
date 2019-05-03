@@ -108,6 +108,13 @@ int State::getNumberOfPlayers() const {
     return static_cast<int> (getPlayers().size());
 }
 
+bool State::isPlayerMakingMove(Player pl) const {
+    for (const auto movingPl : getPlayers()) {
+        if(movingPl == pl) return true;
+    }
+    return false;
+}
+
 string State::toString() const {
     return std::string();
 }

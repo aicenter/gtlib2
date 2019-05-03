@@ -90,7 +90,7 @@ class OshiZumoState : public State {
   unsigned long countAvailableActionsFor(Player player) const override;
   OutcomeDistribution performActions(const vector<PlayerAction> &actions) const override;
   vector<Player> getPlayers() const override;
-  bool isGameEnd() const;
+  bool isTerminal() const override;
   string toString() const override;
   bool operator==(const State &rhs) const override;
 

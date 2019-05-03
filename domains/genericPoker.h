@@ -81,6 +81,38 @@ class GenericPokerObservation: public Observation {
 };
 
 /**
+ * GenericPokerDomain is a class that represents Generic Poker domain,
+ * which contain possible bets and raises, max card types, max cards of each type, max different
+ * bets and raises and Max utility.
+ */
+class GenericPokerDomain: public Domain {
+ public:
+    GenericPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes,
+                       unsigned int maxRaisesInRow, unsigned int maxDifferentBets,
+                       unsigned int maxDifferentRaises, unsigned int ante);
+    GenericPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes,
+                       unsigned int maxRaisesInRow, unsigned int maxDifferentBets,
+                       unsigned int maxDifferentRaises);
+    GenericPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes);
+    GenericPokerDomain();
+    ~GenericPokerDomain() override = default;
+    string getInfo() const final;
+    inline vector <Player> getPlayers() const final { return {0, 1}; }
+
+    vector<int> betsFirstRound_;
+    vector<int> raisesFirstRound_;
+    vector<int> betsSecondRound_;
+    vector<int> raisesSecondRound_;
+    const unsigned int maxCardTypes_;   // numbers
+    const unsigned int maxCardsOfEachType_;  // colors
+    const unsigned int maxRaisesInRow_;
+    const unsigned int maxDifferentBets_;
+    const unsigned int maxDifferentRaises_;
+    const unsigned int ante_;
+    const static int TERMINAL_ROUND = 4;
+};
+
+/**
  * GenericPokerState is a class that represents Generic Poker states,
  * which contains nature cards, pot, round etc. and who can play in the turn.
  */
@@ -111,6 +143,7 @@ class GenericPokerState: public State {
 
     inline vector <Player> getPlayers() const final { return players_; }
     int hasPlayerOneWon(const shared_ptr <GenericPokerAction> &lastAction, Player player) const;
+    inline bool isTerminal() const override { return round_ == GenericPokerDomain::TERMINAL_ROUND;};
 
     bool operator==(const State &rhs) const override;
     inline string toString() const override;
@@ -127,37 +160,6 @@ class GenericPokerState: public State {
     const int continuousRaiseCount_;
 };
 
-/**
- * GenericPokerDomain is a class that represents Generic Poker domain,
- * which contain possible bets and raises, max card types, max cards of each type, max different
- * bets and raises and Max utility.
- */
-class GenericPokerDomain: public Domain {
- public:
-    GenericPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes,
-                       unsigned int maxRaisesInRow, unsigned int maxDifferentBets,
-                       unsigned int maxDifferentRaises, unsigned int ante);
-    GenericPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes,
-                       unsigned int maxRaisesInRow, unsigned int maxDifferentBets,
-                       unsigned int maxDifferentRaises);
-    GenericPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes);
-    GenericPokerDomain();
-    ~GenericPokerDomain() override = default;
-    string getInfo() const final;
-    inline vector <Player> getPlayers() const final { return {0, 1}; }
-
-    vector<int> betsFirstRound_;
-    vector<int> raisesFirstRound_;
-    vector<int> betsSecondRound_;
-    vector<int> raisesSecondRound_;
-    const unsigned int maxCardTypes_;   // numbers
-    const unsigned int maxCardsOfEachType_;  // colors
-    const unsigned int maxRaisesInRow_;
-    const unsigned int maxDifferentBets_;
-    const unsigned int maxDifferentRaises_;
-    const unsigned int ante_;
-    const int TERMINAL_ROUND = 4;
-};
 }  // namespace GTLib2
 
 #endif  // DOMAINS_GENERICPOKER_H_
