@@ -34,14 +34,6 @@ endif ()
 add_subdirectory(external/googletest)
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
-# link boost library
-include_directories(${Boost_INCLUDE_DIR})
-# disable auto link
-add_definitions(-DBOOST_ALL_NO_LIB)
-# link against dynamic libraries
-add_definitions(-DBOOST_TEST_DYN_LINK)
-find_package(Boost COMPONENTS unit_test_framework system REQUIRED)
-
 # add cmake
 include_directories(${CMAKE_SOURCE_DIR})
 
@@ -226,8 +218,7 @@ target_link_libraries(main
         ${GUROBILIB}
         ${CPLEXLIB}
         ${CMAKE_THREAD_LIBS_INIT}
-        ${GLPKLIB}
-        ${Boost_LIBRARIES})
+        ${GLPKLIB})
 
 # test
 add_executable(tester
