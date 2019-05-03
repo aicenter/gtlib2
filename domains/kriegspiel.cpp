@@ -840,7 +840,7 @@ shared_ptr<KriegspielAction> KriegspielAction::clone() const {
 
 string KriegspielDomain::getInfo() const {
     return "************ Kriegspiel *************\n" +
-        rootStatesDistribution_[0].first.state_->toString() + "\n";
+        rootStatesDistribution_[0].first.state->toString() + "\n";
 }
 
 KriegspielDomain::KriegspielDomain(unsigned int maxDepth, unsigned int legalMaxDepth, string s)

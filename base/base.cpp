@@ -27,134 +27,62 @@
 
 namespace GTLib2 {
 
-Action::Action(ActionId id) : id_(id) {}
+Outcome::Outcome(shared_ptr<State> _state,
+                 vector<shared_ptr<Observation>> _privateObservations,
+                 shared_ptr<Observation> _publicObservation,
+                 vector<double> _rewards) :
+    state(move(_state)),
+    privateObservations(move(_privateObservations)),
+    publicObservation(move(_publicObservation)),
+    rewards(move(_rewards)),
+    hash(hashCombine(1984534684564L, state, privateObservations, publicObservation)) {}
 
-bool Action::operator==(const Action &that) const {
-    return id_ == that.id_;
-}
-
-string Action::toString() const {
-    if (id_ == NO_ACTION) return "NoA";
-    return to_string(id_);
-}
-
-ActionId Action::getId() const {
-    return id_;
-}
-
-size_t Action::getHash() const {
-    std::hash<size_t> h;
-    return h(id_);
-}
-
-Observation::Observation(ObservationId id) : id_(id) {}
-
-string Observation::toString() const {
-    if (id_ == NO_OBSERVATION) {
-        return "NoOb;";
-    }
-    return to_string(id_);
-}
-
-ObservationId Observation::getId() const {
-    return id_;
-}
-
-bool Observation::operator==(const Observation &rhs) const {
-    return id_ == rhs.id_;
-}
-
-size_t Observation::getHash() const {
-    std::hash<size_t> h;
-    return h(id_);
-}
-
-Outcome::Outcome(shared_ptr<State> s,
-                 vector<shared_ptr<Observation>> observations,
-                 shared_ptr<Observation> publicObservation,
-                 vector<double> rewards)
-    : state_(move(s)), rewards_(move(rewards)),
-      privateObservations_(move(observations)), publicObservation_(move(publicObservation)) {}
-
-size_t Outcome::getHash() const {
-    size_t seed = state_->getHash();
-    for (const auto &playerObservation : privateObservations_) {
-        boost::hash_combine(seed, playerObservation);
-    }
-    boost::hash_combine(seed, publicObservation_);
-    for (const auto &playerReward : rewards_) {
-        boost::hash_combine(seed, playerReward);
-    }
-    return seed;
-}
 
 bool Outcome::operator==(const Outcome &rhs) const {
-    if (privateObservations_.size() != rhs.privateObservations_.size()) {
-        return false;
-    }
-    if (rewards_.size() != rhs.rewards_.size()) {
-        return false;
-    }
-    if (!(state_ == rhs.state_)) {
-        return false;
-    }
-    if (rewards_ != rhs.rewards_) {
-        return false;
-    }
-    if (publicObservation_ != rhs.publicObservation_) {
-        return false;
-    }
-    return privateObservations_ == rhs.privateObservations_;
+    return hash == rhs.hash
+        && state == rhs.state
+        && privateObservations == rhs.privateObservations
+        && publicObservation == rhs.publicObservation
+        && rewards == rhs.rewards;
 }
 
-size_t AOH::computeHash() const {
-    size_t seed = 0;
-    for (auto actionObservation : aoh_) {
-        boost::hash_combine(seed, actionObservation.first);
-        boost::hash_combine(seed, actionObservation.second);
-    }
-    boost::hash_combine(seed, player_);
-    return seed;
-}
 
-AOH::AOH(Player player, const vector<ActionObservation> &aoHistory) {
-    aoh_ = aoHistory;
-    player_ = player;
-    hashValue_ = computeHash();
-}
+AOH::AOH(Player player, const vector<ActionObservation> &aoHistory)
+    : player_(player), aoh_(aoHistory), hash_(hashCombine(5645138468, aoh_, player_)) {}
 
 bool AOH::operator==(const InformationSet &rhs) const {
     // cheap alternative to dynamic_cast,
     // this should be safe because we do not need any intermediate types
     // todo: Kuba please finish comment with better explanation :)
-    if (typeid(rhs) == typeid(*this)) {
-        const auto rhsAOH = static_cast<const AOH *>(&rhs);
-        if (player_ != rhsAOH->player_ ||
-            hashValue_ != rhsAOH->hashValue_ ||
-            aoh_.size() != rhsAOH->aoh_.size()) {
+    if (typeid(rhs) != typeid(*this)) {
+        return false;
+    }
+
+    const auto rhsAOH = static_cast<const AOH *>(&rhs);
+    if (hash_ != rhsAOH->hash_
+        || player_ != rhsAOH->player_
+        || aoh_.size() != rhsAOH->aoh_.size()) {
+        return false;
+    }
+    for (int i = 0; i < aoh_.size(); ++i) {
+        if (aoh_[i] != rhsAOH->aoh_[i]) {
             return false;
         }
-        for (int i = 0; i < aoh_.size(); ++i) {
-            if (aoh_[i] != rhsAOH->aoh_[i]) {
-                return false;
-            }
-        }
-        return true;
     }
-    return false;
+    return true;
 }
 
 string AOH::toString() const {
     string s = "Player: " + to_string(player_) + ",  init observation:" +
         to_string(aoh_.front().second) + ", hash value: " +
-        to_string(hashValue_) + "\n";
+        to_string(hash_) + "\n";
     for (const auto &ao : aoh_) {
         s += "Action: " + to_string(ao.first) + ", Obs: " + to_string(ao.second) + " | ";
     }
     return s;
 }
 
-State::State(Domain *domain) : domain_(domain) {}
+State::State(Domain *domain /*, HashType hash*/) : domain_(domain) /*, hash_(hash)*/ {}
 
 // todo: explicit max utility!!!!
 Domain::Domain(unsigned int maxDepth, unsigned int numberOfPlayers) :

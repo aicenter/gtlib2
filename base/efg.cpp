@@ -62,10 +62,10 @@ EFGNodesDistribution EFGNode::performAction(const shared_ptr<Action> &action) co
         auto probDist = state_->performActions(actionsToBePerformed);
         for (auto const&[outcome, prob] : probDist) {
 
-            auto newNode = make_shared<EFGNode>(outcome.state_, shared_from_this(),
-                                                outcome.privateObservations_,
-                                                outcome.publicObservation_,
-                                                outcome.rewards_, prob * natureProbability_,
+            auto newNode = make_shared<EFGNode>(outcome.state, shared_from_this(),
+                                                outcome.privateObservations,
+                                                outcome.publicObservation,
+                                                outcome.rewards, prob * natureProbability_,
                                                 action, stateDepth_ + 1);
             newNodes.emplace_back(newNode, prob);
         }

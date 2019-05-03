@@ -122,7 +122,6 @@ typedef unordered_map<shared_ptr<ActionSequence>, double> RealizationPlan;
 typedef pair<ActionId, ObservationId> ActionObservation;
 
 
-
 /**
  * Special value of action id, indicating no action has been taken.
  *
@@ -138,23 +137,25 @@ constexpr ActionId NO_ACTION = 0xFFFFFFFF;
  *
  * Each domain must implement it's own Action subclass.
  */
+
+
 class Action {
  public:
-    explicit Action(ActionId id);
+    inline explicit Action(ActionId id) : id_(id) {}
     explicit Action() : Action(NO_ACTION) {};
-
     virtual ~Action() = default;
 
-    virtual string toString() const;
+    inline virtual string toString() const {
+        if (id_ == NO_ACTION) return "NoA";
+        return to_string(id_);
+    }
 
-    ActionId getId() const;
-
-    virtual bool operator==(const Action &that) const;
-
-    virtual size_t getHash() const;
+    inline ActionId getId() const { return id_; };
+    inline virtual HashType getHash() const { return id_; };
+    inline virtual bool operator==(const Action &that) const { return id_ == that.id_; };
 
  protected:
-    ActionId id_;
+    const ActionId id_ = NO_ACTION;
 };
 
 
@@ -170,23 +171,27 @@ constexpr ObservationId NO_OBSERVATION = 0xFFFFFFFF;
  *
  * It's up to each domain to guarantee consistency of observation ids.
  */
+
+
 class Observation {
  public:
-    explicit Observation(ObservationId id);
+    inline explicit Observation(ObservationId id) : id_(id) {}
     explicit Observation() : Observation(NO_OBSERVATION) {};
-
     virtual ~Observation() = default;
 
-    virtual string toString() const;
+    inline virtual string toString() const {
+        if (id_ == NO_OBSERVATION) return "NoOb";
+        return to_string(id_);
+    }
 
-    ObservationId getId() const;
-
-    virtual bool operator==(const Observation &rhs) const;
-
-    virtual size_t getHash() const;
+    inline ObservationId getId() const { return id_; };
+    inline virtual const HashType getHash() const { return id_; };
+    inline virtual bool operator==(const Observation &that) const { return id_ == that.id_; };
 
  protected:
-    ObservationId id_;
+    // we do not set it const, as computation of it can be non-trivial
+    // todo: maybe we should and provide helper function for computation?
+    ObservationId id_ = NO_OBSERVATION;
 };
 
 
@@ -199,20 +204,20 @@ class Observation {
  * - public observation for all players,
  * - rewards for each player.
 */
-class Outcome {
+struct Outcome {
  public:
-    Outcome(shared_ptr<State> s,
-            vector<shared_ptr<Observation>> observations,
+    Outcome(shared_ptr<State> _state,
+            vector<shared_ptr<Observation>> privateObservations,
             shared_ptr<Observation> publicObservation,
             vector<double> rewards);
 
-    shared_ptr<State> state_;
-    vector<shared_ptr<Observation>> privateObservations_;
-    shared_ptr<Observation> publicObservation_;
-    vector<double> rewards_;
+    const shared_ptr<State> state;
+    const vector<shared_ptr<Observation>> privateObservations;
+    const shared_ptr<Observation> publicObservation;
+    const vector<double> rewards;
+    const HashType hash;
 
-    size_t getHash() const;
-
+    HashType getHash() const { return hash; };
     bool operator==(const Outcome &rhs) const;
 };
 
@@ -224,11 +229,8 @@ class Outcome {
 class InformationSet {
  public:
     InformationSet() = default;
-
     virtual bool operator==(const InformationSet &rhs) const = 0;
-
-    virtual size_t getHash() const = 0;
-
+    virtual HashType getHash() const = 0;
     virtual string toString() const = 0;
 };
 
@@ -247,34 +249,19 @@ class AOH: public InformationSet {
  public:
     AOH(Player player, const vector<ActionObservation> &aoHistory);
 
-    inline unsigned long getSize() const {
-        return aoh_.size();
-    }
-
-    inline size_t getHash() const final {
-        return hashValue_;
-    }
-
-    // Overloaded for comparing two AOHs
+    inline unsigned long getSize() const { return aoh_.size(); }
+    inline HashType getHash() const final { return hash_; }
     bool operator==(const InformationSet &rhs) const override;
 
-    inline Player getPlayer() const {
-        return player_;
-    }
-    inline ObservationId getInitialObservationId() const {
-        return aoh_.front().second;
-    }
-    inline vector<ActionObservation> getAOHistory() const {
-        return aoh_;
-    }
-
+    inline Player getPlayer() const { return player_; }
+    inline ObservationId getInitialObservationId() const { return aoh_.front().second; }
+    inline vector<ActionObservation> getAOHistory() const { return aoh_; }
     string toString() const override;
 
  private:
-    size_t computeHash() const;
-    vector<ActionObservation> aoh_;
-    size_t hashValue_;
-    Player player_;
+    const Player player_;
+    const vector<ActionObservation> aoh_;
+    const HashType hash_;
 };
 
 /**
@@ -287,7 +274,7 @@ class AOH: public InformationSet {
  */
 class State {
  public:
-    explicit State(Domain *domain);
+    explicit State(/*const */Domain *domain); //, HashType hash);
 
     virtual ~State() = default;
 
@@ -322,16 +309,14 @@ class State {
      */
     virtual string toString() const;
 
+    // todo:remove virtual
+    virtual HashType getHash() const { return hash_; };
     virtual bool operator==(const State &rhs) const = 0;
-
-    virtual size_t getHash() const = 0;
-
-    inline Domain *getDomain() const {
-        return domain_;
-    }
+    inline /*const */ Domain *getDomain() const { return domain_; }
 
  protected:
-    Domain *domain_;
+    /*const */ Domain *domain_;
+    HashType hash_;
 };
 
 /**
@@ -364,24 +349,14 @@ class Domain {
     /**
      * Returns number of players in the game.
      */
-    inline unsigned int getNumberOfPlayers() const {
-        return numberOfPlayers_;
-    }
+    inline unsigned int getNumberOfPlayers() const { return numberOfPlayers_; }
 
     /**
      * Returns default maximal depth used in algorithms.
      */
-    inline unsigned int getMaxDepth() const {
-        return maxDepth_;
-    }
-
-    inline double getMaxUtility() const {
-        return maxUtility_;
-    }
-
-    inline double getMinUtility() const {
-        return -maxUtility_;
-    }
+    inline unsigned int getMaxDepth() const { return maxDepth_; }
+    inline double getMaxUtility() const { return maxUtility_; }
+    inline double getMinUtility() const { return -maxUtility_; }
 
     /**
      * Returns string containing detailed domain information.

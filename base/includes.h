@@ -37,6 +37,7 @@
 #include <vector>
 #include <iterator>
 #include <random>
+#include <sstream>
 #include <stdlib.h>
 #include <stdint.h>
 

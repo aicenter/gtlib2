@@ -246,7 +246,7 @@ _hashCpy(char *buf, size_t offset, T v, Rest... rest) {
 template<typename Hashable, typename... Rest>
 inline typename enable_if<is_same<HashType, decltype(declval<shared_ptr<Hashable>>()->getHash())>::value,void>::type
 _hashCpy(char *buf, size_t offset, const shared_ptr<Hashable> &v, Rest... rest) {
-    HashType hash = v->getHash();
+    HashType hash = v != nullptr ? v->getHash() : 0;
     memcpy(buf + offset, &hash, sizeof(hash));
     _hashCpy(buf, offset + sizeof(hash), rest...);
 }

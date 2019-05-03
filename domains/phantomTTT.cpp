@@ -216,7 +216,7 @@ PhantomTTTDomain::PhantomTTTDomain(unsigned int max) :
 
 string PhantomTTTDomain::getInfo() const {
   return "************ Phantom Tic Tac Toe *************\n" +
-      rootStatesDistribution_[0].first.state_->toString() + "\n";
+      rootStatesDistribution_[0].first.state->toString() + "\n";
 }
 }  // namespace GTLib2
 #pragma clang diagnostic pop

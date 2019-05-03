@@ -503,7 +503,7 @@ string PursuitDomain::getInfo() const {
   return "Pursuit evasion\nDimensions: " + to_string(height_) + " x " +
       to_string(width_) + "\nMax depth: " +
       to_string(maxDepth_) + "\nPlayers' starting location: " +
-      rootStatesDistribution_[0].first.state_->toString();
+      rootStatesDistribution_[0].first.state->toString();
 }
 
 PursuitDomain::PursuitDomain(unsigned int max, int height, int width) :
