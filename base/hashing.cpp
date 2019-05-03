@@ -37,6 +37,7 @@
 
 using namespace std;
 
+namespace GTLib2 {
 static uint64 UNALIGNED_LOAD64(const char *p) {
     uint64 result;
     memcpy(&result, p, sizeof(result));
@@ -646,3 +647,5 @@ uint128 CityHashCrc128(const char *s, size_t len) {
 }
 
 #endif
+
+}

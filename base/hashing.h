@@ -67,6 +67,11 @@
 #include <stdlib.h>  // for size_t.
 #include <stdint.h>
 #include <utility>
+#include <cstring>
+#include <vector>
+#include <memory>
+
+namespace GTLib2 {
 
 typedef uint8_t uint8;
 typedef uint32_t uint32;
@@ -112,7 +117,7 @@ inline uint64 Hash128to64(const uint128& x) {
 }
 
 
-typedef uint64 HashType;
+typedef uint64 HashType; // aka size_t
 
 inline HashType hash(const char *buf, size_t len) {
     return CityHash64(buf, len);
@@ -128,6 +133,175 @@ inline HashType hashWithSeed(const char *buf, size_t len, uint64 seed) {
 
 inline HashType hashWithSeed(const uint32_t *buf, size_t len, uint64 seed) {
     return CityHash64WithSeed(reinterpret_cast<const char*>(buf), len, seed);
+}
+
+
+
+/**
+ * Calculate hash size to preallocate buffer, in which each element is copied.
+ * Pass this buffer to CityHash. Export only relevant hashCombine to not pollute namespace.
+ */
+namespace _hashing {
+
+using std::array;
+using std::declval;
+using std::enable_if;
+using std::is_arithmetic;
+using std::is_same;
+using std::pair;
+using std::shared_ptr;
+using std::vector;
+
+// Signatures for size
+inline size_t _hashCombineSize() { return 0; }
+template<typename T, typename... Rest>
+inline typename enable_if<is_arithmetic<T>::value, size_t>::type
+_hashCombineSize(T v, Rest... rest);
+template<typename Hashable, typename... Rest>
+inline typename enable_if<is_same<HashType,decltype(declval<shared_ptr<Hashable>>()->getHash())>::value, size_t>::type
+_hashCombineSize(const shared_ptr<Hashable> &v, Rest... rest);
+template<typename Hashable, typename... Rest>
+inline typename enable_if<!is_same<HashType,decltype(declval<shared_ptr<Hashable>>()->getHash())>::value, size_t>::type
+_hashCombineSize(const shared_ptr<Hashable> &v, Rest... rest);
+template<typename Hashable, typename... Rest>
+inline typename enable_if<is_same<HashType,decltype(declval<Hashable>().getHash())>::value,size_t>::type
+_hashCombineSize(const Hashable &v, Rest... rest);
+template<typename Hashable, typename... Rest>
+inline size_t _hashCombineSize(const vector<Hashable> &v, Rest... rest);
+template<typename Hashable, size_t Num, typename... Rest>
+inline size_t _hashCombineSize(const array<Hashable, Num> &v, Rest... rest);
+template<typename Hashable, typename... Rest>
+inline size_t _hashCombineSize(const pair<Hashable, Hashable> &v, Rest... rest);
+
+// Implementations for size
+template<typename T, typename... Rest>
+inline typename enable_if<is_arithmetic<T>::value, size_t>::type
+_hashCombineSize(T v, Rest... rest) {
+    return sizeof(v) + _hashCombineSize(rest...);
+}
+template<typename Hashable, typename... Rest>
+inline typename enable_if<is_same<HashType,decltype(declval<shared_ptr<Hashable>>()->getHash())>::value,size_t>::type
+_hashCombineSize(const shared_ptr<Hashable> &v, Rest... rest) {
+    return sizeof(HashType) + _hashCombineSize(rest...);
+}
+template<typename Hashable, typename... Rest>
+inline typename enable_if<!is_same<HashType,decltype(declval<shared_ptr<Hashable>>()->getHash())>::value,size_t>::type
+_hashCombineSize(const shared_ptr<Hashable> &v, Rest... rest) {
+    return _hashCombineSize(*v) + _hashCombineSize(rest...);
+}
+template<typename Hashable, typename... Rest>
+inline typename enable_if<is_same<HashType,decltype(declval<Hashable>().getHash())>::value,size_t>::type
+_hashCombineSize(const Hashable &v, Rest... rest) {
+    return sizeof(HashType) + _hashCombineSize(rest...);
+}
+template<typename Hashable, typename... Rest>
+inline size_t _hashCombineSize(const vector<Hashable> &v, Rest... rest) {
+    size_t len = 0;
+    for (const auto &item : v) {
+        len += _hashCombineSize(item);
+    }
+    return len + _hashCombineSize(rest...);
+}
+template<typename Hashable, size_t Num, typename... Rest>
+inline size_t _hashCombineSize(const array<Hashable, Num> &v, Rest... rest) {
+    size_t len = 0;
+    for (const auto &item : v) {
+        len += _hashCombineSize(item);
+    }
+    return len + _hashCombineSize(rest...);
+}
+template<typename Hashable, typename... Rest>
+inline size_t _hashCombineSize(const pair<Hashable, Hashable> &v, Rest... rest) {
+    return _hashCombineSize(v.first) + _hashCombineSize(v.second) + _hashCombineSize(rest...);
+}
+
+// Signatures for copy
+inline void _hashCpy(char *buf, size_t offset) {}
+template<typename T, typename... Rest>
+inline typename enable_if<is_arithmetic<T>::value, void>::type
+_hashCpy(char *buf, size_t offset, T v, Rest... rest);
+template<typename Hashable, typename... Rest>
+inline typename enable_if<is_same<HashType,decltype(declval<shared_ptr<Hashable>>()->getHash())>::value,void>::type
+_hashCpy(char *buf, size_t offset, const shared_ptr<Hashable> &v, Rest... rest);
+template<typename Hashable, typename... Rest>
+inline typename enable_if<!is_same<HashType,decltype(declval<shared_ptr<Hashable>>()->getHash())>::value,void>::type
+_hashCpy(char *buf, size_t offset, const shared_ptr<Hashable> &v, Rest... rest);
+template<typename Hashable, typename... Rest>
+inline typename enable_if<is_same<HashType,decltype(declval<Hashable>().getHash())>::value,void>::type
+_hashCpy(char *buf, size_t offset, const Hashable &v, Rest... rest);
+template<typename Hashable, typename... Rest>
+inline void _hashCpy(char *buf, size_t offset, const vector<Hashable> &v, Rest... rest);
+template<typename Hashable, size_t Num, typename... Rest>
+inline void _hashCpy(char *buf, size_t offset, const array<Hashable, Num> &v, Rest... rest);
+template<typename Hashable, typename... Rest>
+inline void _hashCpy(char *buf, size_t offset, const pair<Hashable, Hashable> &v, Rest... rest);
+
+// Implementations for copy
+template<typename T, typename... Rest>
+inline typename enable_if<is_arithmetic<T>::value, void>::type
+_hashCpy(char *buf, size_t offset, T v, Rest... rest) {
+    memcpy(buf + offset, &v, sizeof(v));
+    _hashCpy(buf, offset + sizeof(v), rest...);
+}
+template<typename Hashable, typename... Rest>
+inline typename enable_if<is_same<HashType, decltype(declval<shared_ptr<Hashable>>()->getHash())>::value,void>::type
+_hashCpy(char *buf, size_t offset, const shared_ptr<Hashable> &v, Rest... rest) {
+    HashType hash = v->getHash();
+    memcpy(buf + offset, &hash, sizeof(hash));
+    _hashCpy(buf, offset + sizeof(hash), rest...);
+}
+template<typename Hashable, typename... Rest>
+inline typename enable_if<!is_same<HashType,decltype(declval<shared_ptr<Hashable>>()->getHash())>::value,void>::type
+_hashCpy(char *buf, size_t offset, const shared_ptr<Hashable> &v, Rest... rest) {
+    _hashCpy(buf, offset, *v);
+}
+template<typename Hashable, typename... Rest>
+inline typename enable_if<is_same<HashType, decltype(declval<Hashable>().getHash())>::value,void>::type
+_hashCpy(char *buf, size_t offset, const Hashable &v, Rest... rest) {
+    HashType hash = v.getHash();
+    memcpy(buf + offset, &hash, sizeof(hash));
+    _hashCpy(buf, offset + sizeof(hash), rest...);
+}
+template<typename Hashable, typename... Rest>
+inline void _hashCpy(char *buf, size_t offset, const vector<Hashable> &v, Rest... rest) {
+    for (const auto &item : v) {
+        _hashCpy(buf, offset, item);
+        offset += _hashCombineSize(item);
+    }
+    _hashCpy(buf, offset, rest...);
+}
+template<typename Hashable, size_t Num, typename... Rest>
+inline void _hashCpy(char *buf, size_t offset, const array<Hashable, Num> &v, Rest... rest) {
+    for (const auto &item : v) {
+        _hashCpy(buf, offset, item);
+        offset += _hashCombineSize(item);
+    }
+    _hashCpy(buf, offset, rest...);
+}
+template<typename Hashable, typename... Rest>
+inline void _hashCpy(char *buf, size_t offset, const pair<Hashable, Hashable> &v, Rest... rest) {
+    _hashCpy(buf, offset, v.first);
+    offset += _hashCombineSize(v.first);
+    _hashCpy(buf, offset, v.second);
+    offset += _hashCombineSize(v.second);
+    _hashCpy(buf, offset, rest...);
+}
+
+// final hashCombine
+template<typename... Rest>
+inline HashType hashCombine(HashType seed, Rest... rest) {
+    size_t bufSize = _hashCombineSize(rest...);
+    char *buf = new char[bufSize];
+    _hashCpy(buf, 0, rest...);
+    HashType h = hashWithSeed(buf, bufSize, seed);
+    delete[] buf;
+    return h;
+}
+
+}
+
+using _hashing::hashCombine;
+
 }
 
 #endif  // CITY_HASH_H_
