@@ -24,8 +24,6 @@
 #include "domains/genericPoker.h"
 #include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"
-
-#include "utils/functools.h"
 #include "utils/export.h"
 
 #include "gtest/gtest.h"

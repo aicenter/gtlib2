@@ -28,7 +28,6 @@
 #include "algorithms/utility.h"
 #include "algorithms/stats.h"
 #include "domains/genericPoker.h"
-#include "utils/functools.h"
 #include "tests/domainsTest.h"
 
 #include "gtest/gtest.h"
@@ -38,15 +37,13 @@ namespace GTLib2::domains {
 
 using algorithms::DomainStatistics;
 
-
 GenericPokerDomain testDomainsPoker[] = { // NOLINT(cert-err58-cpp)
     GenericPokerDomain(2, 2, 2, 2, 2),
     GenericPokerDomain(3, 3, 1, 2, 3),
 };
 
-
 TEST(Poker, BuildGameTreeAndCheckSizes) {
-    DomainStatistics expectedStats[] = {
+    vector<DomainStatistics> expectedResults = {
         {
             .max_EFGDepth   = 10,
             .max_StateDepth = 10,
@@ -68,12 +65,10 @@ TEST(Poker, BuildGameTreeAndCheckSizes) {
         }
     };
 
-    for (auto tuple : zip(testDomainsPoker, expectedStats)) {
-        unzip(tuple, testDomain, expectedStat);
-        DomainStatistics actualStat;
-        calculateDomainStatistics(testDomain, &actualStat);
-
-        EXPECT_EQ(actualStat, expectedStat);
+    for (int i = 0; i < expectedResults.size(); ++i) {
+        DomainStatistics stats;
+        calculateDomainStatistics(testDomainsPoker[i], &stats);
+        EXPECT_EQ(stats, expectedResults[i]);
     }
 }
 

@@ -193,7 +193,6 @@ set(SOURCE_FILES
         LPsolvers/LPSolver.h
         # utils
         utils/utils.h
-        utils/functools.h
         utils/export.cpp utils/export.h
         )
 

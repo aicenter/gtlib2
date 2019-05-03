@@ -26,7 +26,6 @@
 #include "algorithms/tree.h"
 #include "algorithms/utility.h"
 #include "domains/oshiZumo.h"
-#include "utils/functools.h"
 
 #include "gtest/gtest.h"
 
@@ -49,11 +48,10 @@ OshiZumoDomain testDomainsOshiZumo[]{ // NOLINT(cert-err58-cpp)
     OshiZumoDomain({.variant =  IncompleteObservation, .startingCoins = 3, .startingLocation = 0, .minBid = 1, .optimalEndGame = true}),
     OshiZumoDomain({.variant =  IncompleteObservation, .startingCoins = 1, .startingLocation = 3, .minBid = 0, .optimalEndGame = true}),
     OshiZumoDomain({.variant =  IncompleteObservation, .startingCoins = 3, .startingLocation = 3, .minBid = 1, .optimalEndGame = true}),
-
 };
 
 TEST(Oshizumo, BuildAndCheckGameTree) {
-    DomainStatistics expectedResults[]{
+    vector<DomainStatistics> expectedResults = {
         {
             .max_EFGDepth = 6,
             .max_StateDepth = 3,
@@ -164,17 +162,21 @@ TEST(Oshizumo, BuildAndCheckGameTree) {
             .num_sequences = {11, 11},
         }
     };
-    for (auto tuple : zip(testDomainsOshiZumo, expectedResults)) {
-        unzip(tuple, testDomain, expectedRes);
+    for (int i = 0; i < expectedResults.size(); ++i) {
         DomainStatistics stats;
-        calculateDomainStatistics(testDomain, &stats);
-        EXPECT_EQ(stats, expectedRes);
+        calculateDomainStatistics(testDomainsOshiZumo[i], &stats);
+        EXPECT_EQ(stats, expectedResults[i]);
     }
 }
 
 TEST(Oshizumo, CorrectRewardsDistribution) {
-    OshiZumoDomain ozd
-        ({.variant =  CompleteObservation, .startingCoins = 3, .startingLocation = 0, .minBid = 1, .optimalEndGame = true});
+    OshiZumoDomain ozd({
+                           .variant =  CompleteObservation,
+                           .startingCoins = 3,
+                           .startingLocation = 0,
+                           .minBid = 1,
+                           .optimalEndGame = true
+                       });
     vector<int> rew{0, 0, 0};
 
     auto getRewards = [&rew](shared_ptr<EFGNode> node) {

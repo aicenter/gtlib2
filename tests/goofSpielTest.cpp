@@ -30,7 +30,6 @@
 #include "algorithms/utility.h"
 #include "algorithms/strategy.h"
 #include "domains/goofSpiel.h"
-#include "utils/functools.h"
 #include "tests/domainsTest.h"
 
 #include "gtest/gtest.h"
@@ -62,7 +61,7 @@ GoofSpielDomain testDomainsGoofSpiel[] = { // NOLINT(cert-err58-cpp)
 
 
 TEST(Goofspiel, BuildGameTreeAndCheckSizes) {
-    DomainStatistics expectedStats[] = {
+    vector<DomainStatistics> expectedResults = {
         {
             .max_EFGDepth   = 2,
             .max_StateDepth = 1,
@@ -174,12 +173,10 @@ TEST(Goofspiel, BuildGameTreeAndCheckSizes) {
         }
     };
 
-    for (auto tuple : zip(testDomainsGoofSpiel, expectedStats)) {
-        unzip(tuple, testDomain, expectedStat);
-        DomainStatistics actualStat;
-        calculateDomainStatistics(testDomain, &actualStat);
-
-        EXPECT_EQ(actualStat, expectedStat);
+    for (int i = 0; i < expectedResults.size(); ++i) {
+        DomainStatistics stats;
+        calculateDomainStatistics(testDomainsGoofSpiel[i], &stats);
+        EXPECT_EQ(stats, expectedResults[i]);
     }
 }
 
