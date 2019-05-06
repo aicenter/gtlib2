@@ -77,14 +77,17 @@ bool areAvailableActionsSorted(const Domain &domain) {
     return num_violations == 0;
 }
 
-bool isDomainMaxUtilityCorrect(const Domain &domain) {
+bool isDomainMaxUtilityCorrect(const Domain &domain, bool strict) {
     double maxLeafUtility = 0;
     auto countViolations = [&maxLeafUtility](shared_ptr<EFGNode> node) {
         maxLeafUtility = max({node->rewards_[0], node->rewards_[1], maxLeafUtility});
     };
 
     treeWalkEFG(domain, countViolations, domain.getMaxDepth());
-    return maxLeafUtility == domain.getMaxUtility();
+    if (strict) {
+        return maxLeafUtility == domain.getMaxUtility();
+    }
+    return maxLeafUtility <= domain.getMaxUtility();
 }
 
 bool isDomainMaxDepthCorrect(const Domain &domain) {
@@ -112,17 +115,14 @@ bool isActionGenerationAndAOHConsistent(const Domain &domain) {
       if (aoh) {
           size_t hashAOH = aoh->getHash();
           Player currentPlayer = *node->getCurrentPlayer();
-          auto mappedAOH = maps[currentPlayer].find(hashAOH);
           auto actionsNode = node->availableActions();
-
+          auto mappedAOH = maps[currentPlayer].find(hashAOH);
           if (mappedAOH != maps[currentPlayer].end()) {
               auto actionsMappedAOH = mappedAOH->second;
 
               if (actionsNode.size() == actionsMappedAOH.size()) {
                   for (int j = 0; j < actionsNode.size(); ++j) {
-                      Action a1 = *actionsNode[j].get();
-                      Action a2 = *actionsMappedAOH[j].get();
-                      if (!(a1 == a2)) {
+                      if (!(*actionsNode[j] == *actionsMappedAOH[j])) {
                           num_violation++;
                       }
                   }
@@ -168,6 +168,16 @@ OshiZumoDomain iioz3({.variant =  IncompleteObservation, .startingCoins = 1, .st
 OshiZumoDomain iioz4({.variant =  IncompleteObservation, .startingCoins = 3, .startingLocation = 3,  .minBid = 1, .optimalEndGame = false});
 OshiZumoDomain iioz5({.variant =  IncompleteObservation, .startingCoins = 5, .startingLocation = 3,  .minBid = 1, .optimalEndGame = false});
 
+RandomGameDomain rg1({});
+RandomGameDomain rg2
+    ({.seed = 13, .maximalDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 4, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = true, .fixedBranchingFactor = true});
+RandomGameDomain rg3
+    ({.seed = 13, .maximalDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = true, .fixedBranchingFactor = true});
+RandomGameDomain rg4
+    ({.seed = 13, .maximalDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = true, .fixedBranchingFactor = false});
+RandomGameDomain rg5
+    ({.seed = 13, .maximalDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = true, .fixedBranchingFactor = false});
+
 // @formatter:on
 GenericPokerDomain gp1(2, 2, 2, 2, 2);
 GenericPokerDomain gp2(3, 3, 1, 2, 3);
@@ -175,16 +185,15 @@ GenericPokerDomain gp2(3, 3, 1, 2, 3);
 MatchingPenniesDomain mp1(AlternatingMoves);
 MatchingPenniesDomain mp2(SimultaneousMoves);
 
-RandomGameDomain rg1({});
 
 Domain *testDomains[] = { // NOLINT(cert-err58-cpp)
-//    &gs1, &gs2, &gs3, &gs1_fix, &gs2_fix, &gs3_fix,
-//    &iigs1, &iigs2, &iigs3, &iigs1_fix, &iigs2_fix, &iigs3_fix,
+    &gs1, &gs2, &gs3, &gs1_fix, &gs2_fix, &gs3_fix,
+    &iigs1, &iigs2, &iigs3, &iigs1_fix, &iigs2_fix, &iigs3_fix,
 //    // todo: maxUtility and maxDepth do not work for poker!
 //    // &gp1, &gp2,
-//    &oz1, &oz2, &oz3, &oz4, &oz5, &iioz1, &iioz2, &iioz3, &iioz4, &iioz5,
-//    &mp1, &mp2,
-    &rg1,
+    &oz1, &oz2, &oz3, &oz4, &oz5, &iioz1, &iioz2, &iioz3, &iioz4, &iioz5,
+    &mp1, &mp2,
+    &rg1, &rg2, &rg3, &rg4, &rg5,
 };
 
 BOOST_AUTO_TEST_CASE(zeroSumGame) {
@@ -211,7 +220,11 @@ BOOST_AUTO_TEST_CASE(checkAvailableActionsAreSorted) {
 BOOST_AUTO_TEST_CASE(maxUtility) {
     for (auto domain : testDomains) {
         cout << "checking " << domain->getInfo() << endl;
-        BOOST_CHECK(isDomainMaxUtilityCorrect(*domain));
+        if (typeid(*domain) == typeid(RandomGameDomain)) {
+            BOOST_CHECK(isDomainMaxUtilityCorrect(*domain, false));
+        } else {
+            BOOST_CHECK(isDomainMaxUtilityCorrect(*domain, true));
+        }
     }
 }
 

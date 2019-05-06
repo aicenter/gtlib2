@@ -19,7 +19,6 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <random>
 #include "domains/randomGame.h"
 
 namespace GTLib2::domains {
@@ -35,7 +34,7 @@ bool RandomGameAction::operator==(const Action &other) const {
 }
 
 size_t RandomGameAction::getHash() const {
-    return Action::getHash();
+    return id_;
 }
 
 string RandomGameAction::toString() const {
@@ -49,22 +48,29 @@ RandomGameDomain::RandomGameDomain(RandomGameSettings settings) :
     maxDifferentObservations_(settings.maxDifferentObservations),
     binaryUtility_(settings.binaryUtility),
     fixedBranchingFactor_(settings.fixedBranchingFactor),
-    maxCenterModification_(settings.maxCenterModification) {
+    maxRewardModification_(settings.maxRewardModification),
+    utilityCorrelation_(settings.utilityCorrelation) {
 
     assert(maxDepth > 0);
     assert(maxBranchingFactor > 1);
     assert(maxDifferentObservations > 0);
     assert(maxCenterModification > 0);
 
-    if (binaryUtility_) {
-        maxUtility_ = 1.0;
+    if (settings.utilityCorrelation) {
+        if (binaryUtility_) {
+            maxUtility_ = 1.0;
+        } else {
+            maxUtility_ = maxRewardModification_ * maxDepth_;
+        }
     } else {
-        maxUtility_ = maxCenterModification_ * maxDepth_;
+        maxUtility_ = settings.maxUtility;
     }
-    std::mt19937 generator(seed_);
-    vector<long> histories = {0L, 0L};
 
-    auto rootState = make_shared<RandomGameState>(this, generator(), histories, 0, 0);
+    std::mt19937 generator(seed_);
+    long initValue = generator();
+    vector<long> histories = {initValue, initValue};
+
+    auto rootState = make_shared<RandomGameState>(this, initValue, histories, 0, 0);
     auto pubObs = make_shared<RandomGameObservation>(NO_OBSERVATION);
     auto p0Obs = make_shared<RandomGameObservation>(*pubObs);
     auto p1Obs = make_shared<RandomGameObservation>(*pubObs);
@@ -78,17 +84,20 @@ string RandomGameDomain::getInfo() const {
            "\nMax depth: " + to_string(maxDepth_) +
         "\nSeed: " + to_string(seed_) +
         "\nMax branching factor: " + to_string(maxBranchingFactor_) +
-        "\nFixed branching factor: " + to_string(fixedBranchingFactor_) +
         "\nMax different observations: " + to_string(maxDifferentObservations_) +
-        "\nBinary utility: " + to_string(binaryUtility_) + "\n";
+        "\nMax reward modification: " + to_string(maxRewardModification_) +
+        "\nMax utility: " + to_string(maxUtility_) +
+        "\nUtility correlation: " + (utilityCorrelation_ ? "True" : "False") +
+        "\nFixed branching factor: " + (fixedBranchingFactor_ ? "True" : "False") +
+        "\nBinary utility: " + (binaryUtility_ ? "True" : "False") + "\n";
 }
 
 RandomGameState::RandomGameState(Domain *domain,
-                                 int id,
+                                 int stateSeed,
                                  vector<long> histories,
-                                 int center,
-                                 int depth) :
-    State(domain), stateId_(id), center_(center), depth_(depth) {
+                                 double cumulativeReward,
+                                 unsigned int depth) :
+    State(domain), stateSeed_(stateSeed), cumulativeReward_(cumulativeReward), depth_(depth) {
 
     playerHistories_ = move(histories);
 }
@@ -96,8 +105,9 @@ RandomGameState::RandomGameState(Domain *domain,
 vector<shared_ptr<Action>> RandomGameState::getAvailableActionsFor(Player player) const {
     vector<shared_ptr<Action>> actions;
     auto possibleMoves = countAvailableActionsFor(player);
-    cout << "Player: " << (player == 1) << ", moves: " << possibleMoves << ", depth: "
-         << this->depth_ << endl;
+//    cout << "Player: " << (player == 1) << ", histories: " << playerHistories_[player]
+//         << ", moves: " << possibleMoves << ", depth: "
+//         << this->depth_ << endl;
     for (int i = 0; i < possibleMoves; ++i) {
         actions.push_back(make_shared<RandomGameAction>(i));
     }
@@ -120,41 +130,41 @@ OutcomeDistribution RandomGameState::performActions(const vector<PlayerAction> &
     auto p0Action = dynamic_cast<RandomGameAction *>(actions[0].second.get());
     auto p1Action = dynamic_cast<RandomGameAction *>(actions[1].second.get());
 
-    int newID = (stateId_ + p0Action->getId() + p1Action->getId()) * 31 + 17;
-
-    std::mt19937 generator(newID);
-    std::uniform_int_distribution<int> centerDistribution
-        (-RGdomain->getMaxCenterModification(), RGdomain->getMaxCenterModification());
-    int newCenter = center_ + centerDistribution(generator);
-
-//    std::cout << "newCenter: " << newCenter << " newID: " << newID << std::endl;
-
-    vector<double> rewards{0.0, 0.0};
-    vector<long> newHistories(playerHistories_);
-
-    std::uniform_int_distribution<int>
-        observationDistribution(RGdomain->getMaxDifferentObservations() - 1);
-    int observation = observationDistribution(generator);
-
-    auto pubObs = make_shared<RandomGameObservation>(observation);
+    auto pubObs = make_shared<RandomGameObservation>(NO_OBSERVATION);
     auto player0Obs = p1Action->getId() % RGdomain->getMaxDifferentObservations();
     auto player1Obs = p0Action->getId() % RGdomain->getMaxDifferentObservations();
     vector<shared_ptr<Observation>> observations{make_shared<RandomGameObservation>(player0Obs),
                                                  make_shared<RandomGameObservation>(player1Obs)};
+    vector<long> newHistories{
+        playerHistories_[0] + (p0Action->getId() + 1) * 31 + (player0Obs + 1) * 17,
+        playerHistories_[1] + (p1Action->getId() + 1) * 31 + (player1Obs + 1) * 17
+    };
 
-    newHistories[0] += p0Action->getId() * 31 + player0Obs * 17;
-    newHistories[1] += p1Action->getId() * 31 + player0Obs * 17;
-
-    double reward = newCenter;
-    if (RGdomain->isBinaryUtility()) {
-        reward = (0 < newCenter) - (newCenter < 0);
-//        std::cout << rewards[0] << ":" << rewards[1] << std::endl;
-    }
-    rewards[0] = reward;
-    rewards[1] = -reward;
+    long newStateSeed = (stateSeed_ + p0Action->getId() + p1Action->getId()) * 31 + 17;
+    std::mt19937 generator(newStateSeed);
+    std::uniform_real_distribution<double> cumulativeRewardDistribution
+        (-RGdomain->getMaxRewardModification(), RGdomain->getMaxRewardModification());
+    double newCumulativeReward = cumulativeReward_ + cumulativeRewardDistribution(generator);
 
     auto newState =
-        make_shared<RandomGameState>(domain_, newID, newHistories, newCenter, depth_ + 1);
+        make_shared<RandomGameState>(domain_,
+                                     newStateSeed,
+                                     newHistories,
+                                     newCumulativeReward,
+                                     depth_ + 1);
+
+    if (RGdomain->isUtilityCorrelation()) {
+        if (RGdomain->isBinaryUtility()) {
+            // signum(newCumulativeReward)
+            newCumulativeReward = (double) (0 < newCumulativeReward) - (newCumulativeReward < 0);
+        }
+    } else {
+        std::uniform_real_distribution<double>
+            rewardDistribution(RGdomain->getMinUtility(), RGdomain->getMaxUtility());
+        newCumulativeReward = rewardDistribution(generator);
+    }
+    vector<double> rewards{newCumulativeReward, -newCumulativeReward};
+
     Outcome outcome(newState, observations, pubObs, rewards);
     OutcomeDistribution dist;
     dist.emplace_back(outcome, 1.0);
@@ -164,11 +174,10 @@ OutcomeDistribution RandomGameState::performActions(const vector<PlayerAction> &
 
 size_t RandomGameState::getHash() const {
     size_t seed = 0;
-    boost::hash_combine(seed, stateId_);
-    boost::hash_combine(seed, center_);
+    boost::hash_combine(seed, stateSeed_);
+    boost::hash_combine(seed, cumulativeReward_);
     return seed;
 }
-
 
 vector<Player> RandomGameState::getPlayers() const {
     auto RGdomain = dynamic_cast<RandomGameDomain *>(domain_);
@@ -177,8 +186,8 @@ vector<Player> RandomGameState::getPlayers() const {
 }
 
 string RandomGameState::toString() const {
-    return "stateId: " + to_string(stateId_) +
-        "\ncenter: " + to_string(center_) +
+    return "stateId: " + to_string(stateSeed_) +
+        "\ncenter: " + to_string(cumulativeReward_) +
         "\ndepth: " + to_string(depth_) + '\n';
 }
 
@@ -187,8 +196,8 @@ bool RandomGameState::operator==(const State &other) const {
         return false;
     }
     auto otherState = dynamic_cast<const RandomGameState &>(other);
-    return stateId_ == otherState.stateId_ &&
-        center_ == otherState.center_ &&
+    return stateSeed_ == otherState.stateSeed_ &&
+        cumulativeReward_ == otherState.cumulativeReward_ &&
         depth_ == otherState.depth_;
 }
 
