@@ -105,9 +105,6 @@ RandomGameState::RandomGameState(Domain *domain,
 vector<shared_ptr<Action>> RandomGameState::getAvailableActionsFor(Player player) const {
     vector<shared_ptr<Action>> actions;
     auto possibleMoves = countAvailableActionsFor(player);
-//    cout << "Player: " << (player == 1) << ", histories: " << playerHistories_[player]
-//         << ", moves: " << possibleMoves << ", depth: "
-//         << this->depth_ << endl;
     for (int i = 0; i < possibleMoves; ++i) {
         actions.push_back(make_shared<RandomGameAction>(i));
     }
@@ -162,6 +159,10 @@ OutcomeDistribution RandomGameState::performActions(const vector<PlayerAction> &
         std::uniform_real_distribution<double>
             rewardDistribution(RGdomain->getMinUtility(), RGdomain->getMaxUtility());
         newCumulativeReward = rewardDistribution(generator);
+        if (RGdomain->isBinaryUtility()) {
+            // signum(newCumulativeReward)
+            newCumulativeReward = (double) (0 < newCumulativeReward) - (newCumulativeReward < 0);
+        }
     }
     vector<double> rewards{newCumulativeReward, -newCumulativeReward};
 
@@ -186,8 +187,8 @@ vector<Player> RandomGameState::getPlayers() const {
 }
 
 string RandomGameState::toString() const {
-    return "stateId: " + to_string(stateSeed_) +
-        "\ncenter: " + to_string(cumulativeReward_) +
+    return "stateSeed: " + to_string(stateSeed_) +
+        "\ncumulativeReward: " + to_string(cumulativeReward_) +
         "\ndepth: " + to_string(depth_) + '\n';
 }
 

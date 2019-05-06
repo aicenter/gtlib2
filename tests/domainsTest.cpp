@@ -172,11 +172,19 @@ RandomGameDomain rg1({});
 RandomGameDomain rg2
     ({.seed = 13, .maximalDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 4, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = true, .fixedBranchingFactor = true});
 RandomGameDomain rg3
-    ({.seed = 13, .maximalDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = true, .fixedBranchingFactor = true});
+    ({.seed = 7, .maximalDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = true, .fixedBranchingFactor = true});
 RandomGameDomain rg4
-    ({.seed = 13, .maximalDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = true, .fixedBranchingFactor = false});
+    ({.seed = 5, .maximalDepth = 2, .maxBranchingFactor = 6, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = true, .fixedBranchingFactor = false});
 RandomGameDomain rg5
-    ({.seed = 13, .maximalDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = true, .fixedBranchingFactor = false});
+    ({.seed = 9, .maximalDepth = 3, .maxBranchingFactor = 6, .maxDifferentObservations = 3, .maxRewardModification = 20, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = true, .fixedBranchingFactor = false});
+RandomGameDomain rg6
+    ({.seed = 17, .maximalDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 20, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = true, .fixedBranchingFactor = false});
+RandomGameDomain rg7
+    ({.seed = 1, .maximalDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = false, .fixedBranchingFactor = false});
+RandomGameDomain rg8
+    ({.seed = 3, .maximalDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 20, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = true, .fixedBranchingFactor = false});
+RandomGameDomain rg9
+    ({.seed = 13, .maximalDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = false, .fixedBranchingFactor = false});
 
 // @formatter:on
 GenericPokerDomain gp1(2, 2, 2, 2, 2);
@@ -193,7 +201,7 @@ Domain *testDomains[] = { // NOLINT(cert-err58-cpp)
 //    // &gp1, &gp2,
     &oz1, &oz2, &oz3, &oz4, &oz5, &iioz1, &iioz2, &iioz3, &iioz4, &iioz5,
     &mp1, &mp2,
-    &rg1, &rg2, &rg3, &rg4, &rg5,
+    &rg1, &rg2, &rg3, &rg4, &rg5, &rg6, &rg7, &rg8, &rg9,
 };
 
 BOOST_AUTO_TEST_CASE(zeroSumGame) {

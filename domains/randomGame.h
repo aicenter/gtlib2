@@ -29,6 +29,10 @@
 #include "base/base.h"
 #include "utils/utils.h"
 
+
+/**
+ * Random game, players move simultaneously.
+ */
 namespace GTLib2::domains {
 
 struct RandomGameSettings {
@@ -36,7 +40,7 @@ struct RandomGameSettings {
   uint32_t maximalDepth = 2;
   uint32_t maxBranchingFactor = 2;
   uint32_t maxDifferentObservations = 2;
-  uint32_t maxRewardModification = 2;
+  int maxRewardModification = 2;
   uint32_t maxUtility = 100;
   bool binaryUtility = true;
   bool utilityCorrelation = true;
@@ -75,7 +79,7 @@ class RandomGameDomain : public Domain {
   inline bool isFixedBranchingFactor() const {
       return fixedBranchingFactor_;
   }
-  inline uint32_t getMaxRewardModification() const {
+  inline int getMaxRewardModification() const {
       return maxRewardModification_;
   }
 
@@ -87,7 +91,7 @@ class RandomGameDomain : public Domain {
   long seed_;
   uint32_t maxBranchingFactor_;
   uint32_t maxDifferentObservations_;
-  uint32_t maxRewardModification_;
+  int maxRewardModification_;
   bool binaryUtility_;
   bool fixedBranchingFactor_;
   bool utilityCorrelation_;
