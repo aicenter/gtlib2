@@ -34,8 +34,7 @@ bool OshiZumoAction::operator==(const Action &that) const {
         return false;
     }
     const auto otherAction = dynamic_cast<const OshiZumoAction &>(that);
-    return this->bid_ == otherAction.bid_ &&
-        this->id_ == otherAction.id_;
+    return this->bid_ == otherAction.bid_;
 }
 
 string OshiZumoAction::toString() const {
