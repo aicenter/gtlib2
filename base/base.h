@@ -1,5 +1,3 @@
-#include <utility>
-
 /*
     Copyright 2019 Faculty of Electrical Engineering at CTU in Prague
 
@@ -97,14 +95,6 @@ typedef unordered_map<shared_ptr<InformationSet>, ActionProbDistribution> Behavi
  */
 typedef vector<BehavioralStrategy> StrategyProfile;
 
-
-/**
- * Action observation puts together what observation was made with an action.
- */
-// todo: refactor pair into a more readable struct (avoid using .first/.second)
-typedef pair<ActionId, ObservationId> ActionObservation;
-
-
 /**
  * Special value of action id, indicating no action has been taken.
  *
@@ -120,8 +110,6 @@ constexpr ActionId NO_ACTION = 0xFFFFFFFF;
  *
  * Each domain must implement it's own Action subclass.
  */
-
-
 class Action {
  public:
     inline explicit Action(ActionId id) : id_(id) {}
@@ -175,6 +163,23 @@ class Observation {
     // we do not set it const, as computation of it can be non-trivial
     // todo: maybe we should and provide helper function for computation?
     ObservationId id_ = NO_OBSERVATION;
+};
+
+
+/**
+ * Action observation puts together what observation was made with an action.
+ */
+struct ActionObservationIds {
+    ActionId action;
+    ObservationId observation;
+
+    bool operator==(const ActionObservationIds &rhs) const;
+    bool operator!=(const ActionObservationIds &rhs) const;
+};
+
+const ActionObservationIds NO_ACTION_OBSERVATION {
+    .action = NO_ACTION,
+    .observation = NO_OBSERVATION
 };
 
 
@@ -247,20 +252,20 @@ class InformationSet {
  */
 class AOH: public InformationSet {
  public:
-    AOH(Player player, const vector<ActionObservation> &aoHistory);
+    AOH(Player player, const vector<ActionObservationIds> &aoHistory);
 
     inline unsigned long getSize() const { return aoh_.size(); }
     inline HashType getHash() const final { return hash_; }
     bool operator==(const InformationSet &rhs) const override;
 
     inline Player getPlayer() const { return player_; }
-    inline ObservationId getInitialObservationId() const { return aoh_.front().second; }
-    inline vector<ActionObservation> getAOHistory() const { return aoh_; }
+    inline ObservationId getInitialObservationId() const { return aoh_.front().observation; }
+    inline vector<ActionObservationIds> getAOHistory() const { return aoh_; }
     string toString() const override;
 
  private:
     const Player player_;
-    const vector<ActionObservation> aoh_;
+    const vector<ActionObservationIds> aoh_;
     const HashType hash_;
 };
 

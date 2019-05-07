@@ -47,7 +47,7 @@ bool Outcome::operator==(const Outcome &rhs) const {
 }
 
 
-AOH::AOH(Player player, const vector<ActionObservation> &aoHistory)
+AOH::AOH(Player player, const vector<ActionObservationIds> &aoHistory)
     : player_(player), aoh_(aoHistory), hash_(hashCombine(5645138468, aoh_, player_)) {}
 
 bool AOH::operator==(const InformationSet &rhs) const {
@@ -74,10 +74,10 @@ bool AOH::operator==(const InformationSet &rhs) const {
 
 string AOH::toString() const {
     string s = "Player: " + to_string(player_) + ",  init observation:" +
-        to_string(aoh_.front().second) + ", hash value: " +
+        to_string(aoh_.front().observation) + ", hash value: " +
         to_string(hash_) + "\n";
     for (const auto &ao : aoh_) {
-        s += "Action: " + to_string(ao.first) + ", Obs: " + to_string(ao.second) + " | ";
+        s += "Action: " + to_string(ao.action) + ", Obs: " + to_string(ao.observation) + " | ";
     }
     return s;
 }
@@ -116,7 +116,15 @@ bool State::isPlayerMakingMove(Player pl) const {
 }
 
 string State::toString() const {
-    return std::string();
+    return std::string("not implemented");
+}
+
+bool ActionObservationIds::operator==(const ActionObservationIds &rhs) const {
+    return action == rhs.action
+        && observation == rhs.observation;
+}
+bool ActionObservationIds::operator!=(const ActionObservationIds &rhs) const {
+    return !(rhs == *this);
 }
 }  // namespace GTLib2
 
