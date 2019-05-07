@@ -202,8 +202,8 @@ vector<shared_ptr<Action>> GenericPokerState::getAvailableActionsFor(Player play
 
 OutcomeDistribution GenericPokerState::performActions(const vector<PlayerAction> &actions) const {
     const auto pokerDomain = static_cast<const GenericPokerDomain *>(domain_);
-    const auto a1 = dynamic_pointer_cast<GenericPokerAction>(actions[0].second);
-    const auto a2 = dynamic_pointer_cast<GenericPokerAction>(actions[1].second);
+    const auto a1 = dynamic_pointer_cast<GenericPokerAction>(actions[0].action);
+    const auto a2 = dynamic_pointer_cast<GenericPokerAction>(actions[1].action);
     OutcomeDistribution newOutcomes;
     vector<Player> next_players = vector<Player>(1);
     auto newLastAction = lastAction_;

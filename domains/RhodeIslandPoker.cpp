@@ -268,8 +268,8 @@ vector<shared_ptr<Action>> RhodeIslandPokerState::getAvailableActionsFor(Player 
 OutcomeDistribution
 RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const {
     const auto pokerDomain = static_cast<const RhodeIslandPokerDomain *>(domain_);
-    auto a1 = dynamic_pointer_cast<RhodeIslandPokerAction>(actions[0].second);
-    auto a2 = dynamic_pointer_cast<RhodeIslandPokerAction>(actions[1].second);
+    auto a1 = dynamic_pointer_cast<RhodeIslandPokerAction>(actions[0].action);
+    auto a2 = dynamic_pointer_cast<RhodeIslandPokerAction>(actions[1].action);
     auto observations = vector<shared_ptr<Observation>>(2);
     OutcomeDistribution newOutcomes;
     vector<Player> next_players = vector<Player>(1);

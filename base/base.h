@@ -62,7 +62,10 @@ typedef uint32_t ObservationId;
  * Specify action that given player played.
  */
 // todo: refactor pair into a more readable struct (avoid using .first/.second)
-typedef pair<Player, shared_ptr<Action>> PlayerAction;
+struct PlayerAction {
+    Player player;
+    shared_ptr<Action> action;
+};
 
 /**
  * The probability of given outcome.

@@ -1069,9 +1069,9 @@ Square KriegspielState::getEnPassantSquare() const {
 
 
 OutcomeDistribution KriegspielState::performActions(
-    const vector<pair<Player, shared_ptr<GTLib2::Action>>> &actions) const {
-    auto a1 = dynamic_cast<KriegspielAction *>(actions[0].second.get());
-    auto a2 = dynamic_cast<KriegspielAction *>(actions[1].second.get());
+    const vector<PlayerAction> &actions) const {
+    auto a1 = dynamic_cast<KriegspielAction *>(actions[0].action.get());
+    auto a2 = dynamic_cast<KriegspielAction *>(actions[1].action.get());
     vector<shared_ptr<Observation>> observations(2);
     vector<double> rewards(2);
     shared_ptr<KriegspielState> s;

@@ -132,8 +132,8 @@ unsigned long OshiZumoState::countAvailableActionsFor(Player player) const {
 }
 
 OutcomeDistribution OshiZumoState::performActions(const vector<PlayerAction> &actions) const {
-    auto player0Action = dynamic_cast<OshiZumoAction *>(actions[0].second.get());
-    auto player1Action = dynamic_cast<OshiZumoAction *>(actions[1].second.get());
+    auto player0Action = dynamic_cast<OshiZumoAction &>(*actions[0].action);
+    auto player1Action = dynamic_cast<OshiZumoAction &>(*actions[1].action);
     const auto OZdomain = static_cast<const OshiZumoDomain *>(domain_);
     assert(player0Action != nullptr && player1Action != nullptr);
 
@@ -141,15 +141,15 @@ OutcomeDistribution OshiZumoState::performActions(const vector<PlayerAction> &ac
     int newWrestlerLocation = this->wrestlerLocation_;
 
     OshiZumoRoundOutcome roundResult = DRAW;
-    if (player0Action->getBid() > player1Action->getBid()) {
+    if (player0Action.getBid() > player1Action.getBid()) {
         newWrestlerLocation++;
         roundResult = PLAYER0_WIN;
-    } else if (player0Action->getBid() < player1Action->getBid()) {
+    } else if (player0Action.getBid() < player1Action.getBid()) {
         newWrestlerLocation--;
         roundResult = PLAYER0_LOSE;
     }
-    newCoins[0] -= player0Action->getBid();
-    newCoins[1] -= player1Action->getBid();
+    newCoins[0] -= player0Action.getBid();
+    newCoins[1] -= player1Action.getBid();
 
     //if optimalEndGame is allowed, check if wrestler is on board
     // if any player cannot make any legal bid from now on, simulate rest of the game,
@@ -176,15 +176,15 @@ OutcomeDistribution OshiZumoState::performActions(const vector<PlayerAction> &ac
     if (OZdomain->getVariant() == IncompleteObservation) {
         publicObs =
             make_shared<OshiZumoObservation>(NO_BID_OBSERVATION, NO_BID_OBSERVATION, roundResult);
-        player0Obs = make_shared<OshiZumoObservation>(player0Action->getBid(),
+        player0Obs = make_shared<OshiZumoObservation>(player0Action.getBid(),
                                                       NO_BID_OBSERVATION,
                                                       roundResult);
         player1Obs = make_shared<OshiZumoObservation>(NO_BID_OBSERVATION,
-                                                      player1Action->getBid(),
+                                                      player1Action.getBid(),
                                                       roundResult);
     } else {
-        publicObs = make_shared<OshiZumoObservation>(player0Action->getBid(),
-                                                     player1Action->getBid(),
+        publicObs = make_shared<OshiZumoObservation>(player0Action.getBid(),
+                                                     player1Action.getBid(),
                                                      roundResult);
         player0Obs = make_shared<OshiZumoObservation>(*publicObs);
         player1Obs = make_shared<OshiZumoObservation>(*publicObs);

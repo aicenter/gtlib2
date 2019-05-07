@@ -80,8 +80,8 @@ vector<shared_ptr<Action>> MatchingPenniesState::getAvailableActionsFor(Player p
 
 OutcomeDistribution
 MatchingPenniesState::performActions(const vector<PlayerAction> &actions) const {
-    auto p0Action = dynamic_cast<MatchingPenniesAction *>(actions[0].second.get());
-    auto p1Action = dynamic_cast<MatchingPenniesAction *>(actions[1].second.get());
+    auto p0Action = dynamic_cast<MatchingPenniesAction &>(*actions[0].action);
+    auto p1Action = dynamic_cast<MatchingPenniesAction &>(*actions[1].action);
 
     if (variant_ == SimultaneousMoves) {
         assert(p0Action != nullptr || p1Action != nullptr); // Both actions must be performed
@@ -92,8 +92,8 @@ MatchingPenniesState::performActions(const vector<PlayerAction> &actions) const 
 
     auto newState = make_shared<MatchingPenniesState>(
         domain_, array<ActionId, 2>{
-            p0Action == nullptr ? moves_[0] : p0Action->getId(),
-            p1Action == nullptr ? NO_ACTION : p1Action->getId()
+            p0Action == nullptr ? moves_[0] : p0Action.getId(),
+            p1Action == nullptr ? NO_ACTION : p1Action.getId()
         });
 
     const bool finalState = newState->moves_[0] != NO_ACTION && newState->moves_[1] != NO_ACTION;

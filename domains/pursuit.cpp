@@ -117,7 +117,7 @@ OutcomeDistribution PursuitState::performActions(const vector<PlayerAction> &act
     vector<PursuitAction *> pursuitActions(actions.size());
     const auto purDomain = static_cast<const PursuitDomain *>(domain_);
     for (auto &i : actions) {
-        pursuitActions[i.first] = dynamic_cast<PursuitAction *>(i.second.get());
+        pursuitActions[i.player] = dynamic_cast<PursuitAction *>(i.action.get());
     }
     // number of all combinations
     auto actionssize = static_cast<unsigned int>(pursuitActions.size());
