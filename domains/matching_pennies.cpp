@@ -38,7 +38,7 @@ MatchingPenniesDomain::MatchingPenniesDomain(MatchingPenniesVariant variant)
     vector<double> rewards(2, 0.);
 
     Outcome outcome(rootState, {obs0, obs1}, pubObs, rewards);
-    rootStatesDistribution_.push_back(pair<Outcome, double>(outcome, 1.0));
+    rootStatesDistribution_.push_back(OutcomeEntry(outcome));
 }
 
 const vector<Player> MatchingPenniesState::makePlayers(array<ActionId, 2> moves,
@@ -80,8 +80,8 @@ vector<shared_ptr<Action>> MatchingPenniesState::getAvailableActionsFor(Player p
 
 OutcomeDistribution
 MatchingPenniesState::performActions(const vector<PlayerAction> &actions) const {
-    auto p0Action = dynamic_cast<MatchingPenniesAction &>(*actions[0].action);
-    auto p1Action = dynamic_cast<MatchingPenniesAction &>(*actions[1].action);
+    auto p0Action = dynamic_cast<MatchingPenniesAction *>(actions[0].action.get());
+    auto p1Action = dynamic_cast<MatchingPenniesAction *>(actions[1].action.get());
 
     if (variant_ == SimultaneousMoves) {
         assert(p0Action != nullptr || p1Action != nullptr); // Both actions must be performed
@@ -92,8 +92,8 @@ MatchingPenniesState::performActions(const vector<PlayerAction> &actions) const 
 
     auto newState = make_shared<MatchingPenniesState>(
         domain_, array<ActionId, 2>{
-            p0Action == nullptr ? moves_[0] : p0Action.getId(),
-            p1Action == nullptr ? NO_ACTION : p1Action.getId()
+            p0Action == nullptr ? moves_[0] : p0Action->getId(),
+            p1Action == nullptr ? NO_ACTION : p1Action->getId()
         });
 
     const bool finalState = newState->moves_[0] != NO_ACTION && newState->moves_[1] != NO_ACTION;
@@ -118,7 +118,7 @@ MatchingPenniesState::performActions(const vector<PlayerAction> &actions) const 
 
     Outcome outcome(newState, {obs0, obs1}, pubObs, rewards);
     OutcomeDistribution distr;
-    distr.push_back(pair<Outcome, double>(outcome, 1.0));
+    distr.push_back(OutcomeEntry(outcome));
     return distr;
 }
 

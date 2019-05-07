@@ -204,7 +204,7 @@ OutcomeDistribution PursuitState::performActions(const vector<PlayerAction> &act
 
         double p2 = s->prob_ / prob_;
         Outcome o(move(s), observations, shared_ptr<Observation>(), rewards);
-        prob.emplace_back(move(o), p2);  // pair of an outcome and its probability
+        prob.emplace_back(OutcomeEntry(o, p2));  
     }
     return prob;
 }
@@ -254,7 +254,7 @@ OutcomeDistribution MMPursuitState::performActions(const vector<PlayerAction> &a
     vector<PursuitAction *> pursuitActions(actions.size());
     const auto purDomain = static_cast<const PursuitDomain *>(domain_);
     for (auto &i : actions) {
-        pursuitActions[i.first] = dynamic_cast<PursuitAction *>(i.second.get());
+        pursuitActions[i.player] = dynamic_cast<PursuitAction *>(i.action.get());
     }
     // unsigned int count = 2;
     auto actionssize = static_cast<unsigned int>(pursuitActions.size());
@@ -342,7 +342,7 @@ OutcomeDistribution MMPursuitState::performActions(const vector<PlayerAction> &a
         }
         double p2 = s->prob_ / prob_;
         Outcome p(move(s), observations, shared_ptr<Observation>(), rewards);
-        prob.emplace_back(move(p), p2);  // pair of an outcome and its probability
+        prob.emplace_back(OutcomeEntry(p, p2));  
     }
     return prob;
 }
@@ -435,7 +435,8 @@ OutcomeDistribution ObsPursuitState::performActions(const vector<PlayerAction> &
             ob.clear();
         }
         double p2 = s->prob_ / prob_;
-        outcomes.emplace_back(Outcome(move(s), observations, shared_ptr<Observation>(), rewards), p2);  // pair of an outcome and its probability
+        outcomes.emplace_back(OutcomeEntry(
+            Outcome(move(s), observations, shared_ptr<Observation>(), rewards), p2));
     }
     return outcomes;
 }
@@ -453,15 +454,15 @@ PursuitDomain::PursuitDomain(unsigned int max,
     for (int j = 0; j < numberOfPlayers; ++j) {
         Obs.push_back(make_shared<Observation>(NO_OBSERVATION));
     }
-    rootStatesDistribution_.push_back(make_pair(
-        Outcome(state, Obs, shared_ptr<Observation>(), rewards), 1.0));
+    rootStatesDistribution_.push_back(OutcomeEntry(
+        Outcome(state, Obs, shared_ptr<Observation>(), rewards)));
 }
 
 string PursuitDomain::getInfo() const {
     return "Pursuit evasion\nDimensions: " + to_string(height_) + " x " +
         to_string(width_) + "\nMax depth: " +
         to_string(maxDepth_) + "\nPlayers' starting location: " +
-        rootStatesDistribution_[0].first.state->toString();
+        rootStatesDistribution_[0].outcome.state->toString();
 }
 
 PursuitDomain::PursuitDomain(unsigned int max, int height, int width) :
@@ -478,8 +479,8 @@ PursuitDomain::PursuitDomain(unsigned int max, unsigned int numberOfPlayers,
         Obs.push_back(make_shared<Observation>(NO_OBSERVATION));
     }
 
-    rootStatesDistribution_.push_back(make_pair(
-        Outcome(state, Obs, shared_ptr<Observation>(), rewards), 1.0));
+    rootStatesDistribution_.push_back(OutcomeEntry(
+        Outcome(state, Obs, shared_ptr<Observation>(), rewards)));
 }
 
 vector<Player> PursuitDomain::getPlayers() const {
@@ -497,10 +498,8 @@ PursuitDomain::PursuitDomain(unsigned int max, unsigned int numberOfPlayers,
     for (int j = 0; j < numberOfPlayers; ++j) {
         Obs.push_back(make_shared<Observation>(NO_OBSERVATION));
     }
-    rootStatesDistribution_.push_back(make_pair(
-        Outcome(state, Obs, shared_ptr<Observation>(), rewards),
-        1.0
-    ));
+    rootStatesDistribution_.push_back(OutcomeEntry(
+        Outcome(state, Obs, shared_ptr<Observation>(), rewards)));
 }
 
 PursuitDomain::PursuitDomain(unsigned int max, unsigned int numberOfPlayers, const vector<Pos> &loc,
@@ -532,7 +531,7 @@ PursuitDomainChance::PursuitDomainChance(unsigned int max,
             Obs.push_back(make_shared<Observation>(NO_OBSERVATION));
         }
 
-        rootStatesDistribution_.push_back(make_pair(
+        rootStatesDistribution_.push_back(OutcomeEntry(
             Outcome(state, Obs, shared_ptr<Observation>(), rewards),
             1.0 / firstPlayerLocation.size()
         ));

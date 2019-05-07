@@ -763,7 +763,7 @@ KriegspielDomain::KriegspielDomain(unsigned int maxDepth,
               Obs,
               shared_ptr<Observation>(),
               rewards);
-    rootStatesDistribution_.push_back(pair<Outcome, double>(move(o), 1.0));
+    rootStatesDistribution_.push_back(OutcomeEntry(o));
     maxUtility_ = 1;
 }
 KriegspielObservation::KriegspielObservation(int id) : Observation(id) {}
@@ -833,7 +833,7 @@ shared_ptr<KriegspielAction> KriegspielAction::clone() const {
 
 string KriegspielDomain::getInfo() const {
     return "************ Kriegspiel *************\n" +
-        rootStatesDistribution_[0].first.state->toString() + "\n";
+        rootStatesDistribution_[0].outcome.state->toString() + "\n";
 }
 
 KriegspielDomain::KriegspielDomain(unsigned int maxDepth, unsigned int legalMaxDepth, string s)
@@ -845,7 +845,7 @@ KriegspielDomain::KriegspielDomain(unsigned int maxDepth, unsigned int legalMaxD
               Obs,
               shared_ptr<Observation>(),
               rewards);
-    rootStatesDistribution_.push_back(pair<Outcome, double>(move(o), 1.0));
+    rootStatesDistribution_.push_back(OutcomeEntry(o));
 }
 
 // todo: this is only hotfix
@@ -1120,7 +1120,7 @@ OutcomeDistribution KriegspielState::performActions(
     }
     Outcome o(s, observations, shared_ptr<Observation>(), rewards);
     OutcomeDistribution prob;
-    prob.push_back(std::pair<Outcome, double>(std::move(o), 1.0));
+    prob.push_back(OutcomeEntry(o));
     return prob;
 }
 

@@ -214,14 +214,14 @@ PhantomTTTDomain::PhantomTTTDomain(unsigned int max) :
         make_shared<Observation>(NO_OBSERVATION)
     };
 
-    rootStatesDistribution_.push_back(make_pair(
+    rootStatesDistribution_.push_back(OutcomeEntry(
         Outcome(make_shared<PhantomTTTState>(this, vec, players), privateObs,
-                shared_ptr<Observation>(), rewards), 1.0));
+                shared_ptr<Observation>(), rewards)));
 }
 
 string PhantomTTTDomain::getInfo() const {
     return "************ Phantom Tic Tac Toe *************\n" +
-        rootStatesDistribution_[0].first.state->toString() + "\n";
+        rootStatesDistribution_[0].outcome.state->toString() + "\n";
 }
 }  // namespace GTLib2
 #pragma clang diagnostic pop

@@ -67,7 +67,7 @@ OshiZumoDomain::OshiZumoDomain(OshiZumoSettings settings) :
     vector<double> rewards{0.0, 0.0};
 
     Outcome outcome(rootState, {player0Obs, player1Obs}, publicObs, rewards);
-    rootStatesDistribution_.emplace_back(outcome, 1.0);
+    rootStatesDistribution_.emplace_back(OutcomeEntry(outcome));
 }
 
 string OshiZumoDomain::getInfo() const {
@@ -203,7 +203,7 @@ OutcomeDistribution OshiZumoState::performActions(const vector<PlayerAction> &ac
 
     Outcome outcome(newState, {player0Obs, player1Obs}, publicObs, rewards);
     OutcomeDistribution distribution;
-    distribution.emplace_back(outcome, 1.0);
+    distribution.emplace_back(OutcomeEntry(outcome));
     return distribution;
 }
 

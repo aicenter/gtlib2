@@ -151,7 +151,7 @@ RhodeIslandPokerDomain::RhodeIslandPokerDomain(unsigned int maxCardTypes,
                                              color2)};
                     Outcome outcome(newState, newObservations, shared_ptr<Observation>(), rewards);
 
-                    rootStatesDistribution_.emplace_back(outcome, prob);
+                    rootStatesDistribution_.emplace_back(OutcomeEntry(outcome, prob));
                 }
             }
         }
@@ -403,7 +403,7 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
                                             j)},
                                     shared_ptr<Observation>(),
                                     vector<double>(2));
-                    newOutcomes.emplace_back(outcome, prob);
+                    newOutcomes.emplace_back(OutcomeEntry(outcome, prob));
                 }
             }
             return newOutcomes;
@@ -437,7 +437,7 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
                                             j)},
                                     shared_ptr<Observation>(),
                                     vector<double>(2));
-                    newOutcomes.emplace_back(outcome, prob);
+                    newOutcomes.emplace_back(OutcomeEntry(outcome, prob));
                 }
             }
             return newOutcomes;
@@ -586,7 +586,7 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
                                     shared_ptr<Observation>(),
                                     vector<double>(2));
 
-                    newOutcomes.emplace_back(outcome, prob);
+                    newOutcomes.emplace_back(OutcomeEntry(outcome, prob));
                 }
                 return newOutcomes;
             }
@@ -622,7 +622,7 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
                                     shared_ptr<Observation>(),
                                     vector<double>(2));
 
-                    newOutcomes.emplace_back(outcome, prob);
+                    newOutcomes.emplace_back(OutcomeEntry(outcome, prob));
                 }
             }
             return newOutcomes;
@@ -648,7 +648,7 @@ RhodeIslandPokerState::performActions(const vector<PlayerAction> &actions) const
         rewards = vector<double>{result * newFirstPlayerReward, -result * newFirstPlayerReward};
     }
     Outcome outcome(newState, observations, shared_ptr<Observation>(), rewards);
-    newOutcomes.emplace_back(outcome, 1.0);
+    newOutcomes.emplace_back(OutcomeEntry(outcome));
 
     return newOutcomes;
 }

@@ -134,7 +134,7 @@ void GoofSpielDomain::initFixedCards(const vector<int> &natureCards) {
     auto player1Obs = make_shared<GoofSpielObservation>(*publicObs);
 
     Outcome outcome(newState, {player0Obs, player1Obs}, publicObs, cumulativeRewards);
-    rootStatesDistribution_.emplace_back(outcome, 1.0);
+    rootStatesDistribution_.emplace_back(OutcomeEntry(outcome));
 }
 
 void GoofSpielDomain::initRandomCards(const vector<int> &natureCards) {
@@ -164,7 +164,7 @@ void GoofSpielDomain::initRandomCards(const vector<int> &natureCards) {
         auto player1Obs = make_shared<GoofSpielObservation>(*publicObs);
 
         Outcome outcome(newState, {player0Obs, player1Obs}, publicObs, cumulativeRewards);
-        rootStatesDistribution_.emplace_back(outcome, 1.0 / deck.size());
+        rootStatesDistribution_.emplace_back(OutcomeEntry(outcome, 1.0 / deck.size()));
     }
 }
 
@@ -262,7 +262,7 @@ OutcomeDistribution GoofSpielState::performActions(const vector<PlayerAction> &a
         }
 
         const auto newOutcome = Outcome(newState, {obs0, obs1}, publicObs, newRewards);
-        newOutcomes.emplace_back(newOutcome, chanceProb);
+        newOutcomes.emplace_back(OutcomeEntry(newOutcome, chanceProb));
     };
 
     if (goofdomain->fixChanceCards_) {

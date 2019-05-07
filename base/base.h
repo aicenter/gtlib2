@@ -61,22 +61,10 @@ typedef uint32_t ObservationId;
 /**
  * Specify action that given player played.
  */
-// todo: refactor pair into a more readable struct (avoid using .first/.second)
 struct PlayerAction {
     Player player;
     shared_ptr<Action> action;
 };
-
-/**
- * The probability of given outcome.
- */
-// todo: refactor pair into a more readable struct (avoid using .first/.second)
-typedef pair<Outcome, double> distributionEntry;
-
-/**
- * Probabilities of outcomes.
- */
-typedef vector<distributionEntry> OutcomeDistribution;
 
 /**
  * Specify weight d[i] for each event i in vector, such that p[i] := d[i] / sum_j d[j]
@@ -215,6 +203,23 @@ struct Outcome {
     HashType getHash() const { return hash; };
     bool operator==(const Outcome &rhs) const;
 };
+
+/**
+ * The probability of given outcome.
+ */
+struct OutcomeEntry {
+    Outcome outcome;
+    double prob;
+
+    inline OutcomeEntry(Outcome outcome_) : outcome(move(outcome_)), prob(1.0) {}
+    inline OutcomeEntry(Outcome outcome_, double prob_) : outcome(move(outcome_)), prob(prob_) {}
+};
+
+/**
+ * Probabilities of outcomes.
+ */
+typedef vector<OutcomeEntry> OutcomeDistribution;
+
 
 /**
  * Abstract class that represents information sets.
