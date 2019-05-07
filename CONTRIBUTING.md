@@ -144,7 +144,8 @@ It will produce files `callgrind.out.#` which can be opened and analyzed in `KCa
 
 For a reference example how to implement a domain please take a look at `domains/goofSpiel.h`, `domains/goofSpiel.cpp`
 
-Each domain must pass automatic test evaluation -- please write several instances of your domains and add them to `tests/domainsTest.cpp`
+Each domain must pass automatic test evaluation -- please write several instances of your domains and add them to `tests/domainsTest.cpp`.
+You should also implement tests of your specific domains, testing if it behaves correctly under small set of different parameterizations.
 
 You should understand the basic model of how domains work, see "High-level overview" in `README.md`.
 
@@ -171,3 +172,8 @@ Each domain must implement:
 - Observation class, for example `GoofSpielObservation` deriving from `Observation`:
     - Observation id must be unique within the subsequence 
       `(h -> chance outcomes -> h')` if player has received different observations.  
+
+When writing, please use arrays for saving player-related information, instead of variables like `p1Action, p2Action` -- use `playerActions[]` even if it is 2-element array.
+
+There is no such thing as a chance player in the domain: there are stochastic transitions between each state. Good rule of thumb is that you should have players `{Player(0), Player(1)}`.
+
