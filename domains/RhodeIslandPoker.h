@@ -40,6 +40,7 @@ namespace GTLib2::domains {
  */
 class RhodeIslandPokerAction: public Action {
  public:
+    inline RhodeIslandPokerAction() : Action(), value_(0), type_(0) {}
     RhodeIslandPokerAction(ActionId id, int type, int value);
     inline string toString() const final;
     inline int GetValue() const { return value_; }
@@ -57,6 +58,7 @@ class RhodeIslandPokerAction: public Action {
  */
 class RhodeIslandPokerObservation: public Observation {
  public:
+    inline RhodeIslandPokerObservation() : Observation(), value_(0), type_(0), color_(0) {};
     explicit RhodeIslandPokerObservation(int id, int type, int value, int color);
     /**
      * id: 0 - check; 1 - call; 2 - fold; from 3 to 3+maxCardTypes - first played cards;

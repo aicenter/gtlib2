@@ -39,6 +39,7 @@ enum MOVES { Check, Call, Fold, Bet, Raise, PlayCard };
  */
 class GenericPokerAction: public Action {
  public:
+    inline GenericPokerAction() : Action(), type_(0), value_(0), hash_(0) {}
     inline GenericPokerAction(ActionId id, int type, int value)
         : Action(id), type_(type), value_(value),
           hash_(hashCombine(698645853454825462, type_, value_)) {}
@@ -61,6 +62,7 @@ class GenericPokerAction: public Action {
  */
 class GenericPokerObservation: public Observation {
  public:
+    inline GenericPokerObservation() : Observation(), value_(0), type_(0) {}
     inline GenericPokerObservation(int id, int type, int value) :
         Observation(id), type_(type), value_(value) {}
     /**
@@ -143,7 +145,9 @@ class GenericPokerState: public State {
 
     inline vector <Player> getPlayers() const final { return players_; }
     int hasPlayerOneWon(const shared_ptr <GenericPokerAction> &lastAction, Player player) const;
-    inline bool isTerminal() const override { return round_ == GenericPokerDomain::TERMINAL_ROUND;};
+    inline bool isTerminal() const override {
+        return round_ == GenericPokerDomain::TERMINAL_ROUND;
+    };
 
     bool operator==(const State &rhs) const override;
     inline string toString() const override;

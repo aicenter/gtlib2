@@ -372,7 +372,8 @@ class State {
  */
 class Domain {
  public:
-    Domain(unsigned int maxDepth, unsigned int numberOfPlayers);
+    Domain(unsigned int maxDepth, unsigned int numberOfPlayers,
+           shared_ptr<Action> noAction, shared_ptr<Observation> noObservation);
 
     virtual ~Domain() = default;
 
@@ -401,11 +402,17 @@ class Domain {
      */
     virtual string getInfo() const = 0;
 
+    inline const shared_ptr<Action> &getNoAction() const { return noAction_; }
+    inline const shared_ptr<Observation> &getNoObservation() const { return noObservation_; }
+
  protected:
     OutcomeDistribution rootStatesDistribution_;
     unsigned int maxDepth_;
     unsigned int numberOfPlayers_;
     double maxUtility_;
+
+    const shared_ptr<Action> noAction_;
+    const shared_ptr<Observation> noObservation_;
 };
 }  // namespace GTLib2
 

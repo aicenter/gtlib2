@@ -28,18 +28,6 @@
 
 namespace GTLib2::domains {
 
-GoofSpielAction::GoofSpielAction(ActionId id, int card) : Action(id) {
-    cardNumber_ = card;
-}
-
-string GoofSpielAction::toString() const {
-    return "Card: " + to_string(cardNumber_);
-}
-
-HashType GoofSpielAction::getHash() const {
-    return cardNumber_;
-}
-
 bool GoofSpielAction::operator==(const Action &that) const {
     if (typeid(that) == typeid(*this)) {
         const auto rhsAction = static_cast<const GoofSpielAction *>(&that);
@@ -87,7 +75,9 @@ vector<int> GoofSpielSettings::getNatureCards() {
 }
 
 GoofSpielDomain::GoofSpielDomain(GoofSpielSettings settings) :
-    Domain(settings.numCards, 2),
+    Domain(settings.numCards, 2,
+           make_shared<GoofSpielAction>(),
+           make_shared<GoofSpielObservation>()),
     numberOfCards_(settings.numCards),
     fixChanceCards_(settings.fixChanceCards),
     binaryTerminalRewards_(settings.binaryTerminalRewards),

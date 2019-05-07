@@ -289,6 +289,7 @@ class KriegspielAction: public Action {
      */
     KriegspielAction(ActionId id, pair<shared_ptr<AbstractPiece>, chess::Square>, chess::Square);
     explicit KriegspielAction(ActionId id);
+    inline KriegspielAction() : Action() {}
     inline string toString() const final {
         if (id_ == NO_ACTION)
             return "No action";
@@ -342,10 +343,9 @@ class KriegspielDomain: public Domain {
  */
 class KriegspielObservation: public Observation {
  public:
-    // constructor
+    inline KriegspielObservation() : Observation() {}
     explicit KriegspielObservation(int id);
 
-    // Returns description.
     inline string toString() const final {
         if (id_ == 1)
             return "Success";

@@ -28,7 +28,9 @@
 
 namespace GTLib2::domains {
 MatchingPenniesDomain::MatchingPenniesDomain(MatchingPenniesVariant variant)
-    : Domain(variant == AlternatingMoves ? 2 : 1, 2), variant_(variant) {
+    : Domain(variant == AlternatingMoves ? 2 : 1, 2,
+             make_shared<MatchingPenniesAction>(),
+             make_shared<MatchingPenniesObservation>()), variant_(variant) {
     maxUtility_ = 1.0;
     auto rootState = make_shared<MatchingPenniesState>(this, array<ActionId, 2>{NO_ACTION, NO_ACTION});
 

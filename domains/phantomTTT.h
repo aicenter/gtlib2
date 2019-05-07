@@ -42,6 +42,7 @@ const array<string, 9> phantomMoves = {"top left", "top", "top right",
  */
 class PhantomTTTAction: public Action {
  public:
+    inline PhantomTTTAction() : Action(), move_(0) {}
     PhantomTTTAction(ActionId id, int move);
     inline string toString() const final {
         if (id_ == NO_ACTION) return "NoA";
@@ -68,7 +69,8 @@ class PhantomTTTAction: public Action {
  */
 class PhantomTTTObservation: public Observation {
  public:
-    explicit PhantomTTTObservation(int id);
+    inline explicit PhantomTTTObservation() : Observation() {};
+    inline explicit PhantomTTTObservation(ObservationId id) : Observation(id) {}
     inline string toString() const final {
         if (id_ == 1) return "Success";
         return "Failure";

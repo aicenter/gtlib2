@@ -47,8 +47,14 @@ HashType OshiZumoAction::getHash() const {
 }
 
 OshiZumoDomain::OshiZumoDomain(OshiZumoSettings settings) :
-    Domain(static_cast<unsigned> (settings.minBid == 0 ? settings.startingCoins * 2 :
-                                  settings.startingCoins / settings.minBid), 2),
+    Domain(static_cast<unsigned>
+           (settings.minBid == 0
+            ? settings.startingCoins * 2
+            : settings.startingCoins / settings.minBid),
+           2,
+           make_shared<OshiZumoAction>(),
+           make_shared<OshiZumoObservation>()
+    ),
     startingCoins_(settings.startingCoins),
     startingLocation_(settings.startingLocation),
     minBid_(settings.minBid),
@@ -102,7 +108,8 @@ const int OshiZumoDomain::getStartingCoins() const {
 OshiZumoState::OshiZumoState(const Domain *domain, int wrestlerLocation, int startingCoins) :
     OshiZumoState(domain, wrestlerLocation, {startingCoins, startingCoins}) {}
 
-OshiZumoState::OshiZumoState(const Domain *domain, int wrestlerLocation, vector<int> coinsPerPlayer) :
+OshiZumoState::OshiZumoState(const Domain *domain, int wrestlerLocation, vector<int> coinsPerPlayer)
+    :
     State(domain, hashCombine(145623198715, coinsPerPlayer, wrestlerLocation)),
     wrestlerLocation_(wrestlerLocation),
     coins_(move(coinsPerPlayer)) {}

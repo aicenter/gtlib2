@@ -47,8 +47,6 @@ HashType PhantomTTTAction::getHash() const {
     return h(move_);
 }
 
-PhantomTTTObservation::PhantomTTTObservation(int id) : Observation(id) {}
-
 unsigned long PhantomTTTState::countAvailableActionsFor(Player player) const {
     int count = 0;
     for (int i = 0; i < 9; ++i)
@@ -164,7 +162,7 @@ OutcomeDistribution PhantomTTTState::performActions
     }
     Outcome o(move(s), observations, shared_ptr<Observation>(), rewards);
     OutcomeDistribution prob;
-    prob.push_back(pair<Outcome, double>(move(o), 1.0));
+    prob.push_back(Outcome(o)));
     return prob;
 }
 
@@ -204,7 +202,8 @@ string PhantomTTTState::toString() const {
 }
 
 PhantomTTTDomain::PhantomTTTDomain(unsigned int max) :
-    Domain(max, 2) {
+    Domain(max, 2, make_shared<PhantomTTTAction>(),
+           make_shared<PhantomTTTObservation>()) {
     auto vec = vector<vector<int>>{{0, 0, 0, 0, 0, 0, 0, 0, 0},
                                    {0, 0, 0, 0, 0, 0, 0, 0, 0}};
     auto players = vector<Player>({0});

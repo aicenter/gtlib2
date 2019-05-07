@@ -755,7 +755,10 @@ Square KriegspielAction::movingFrom() const {
 
 KriegspielDomain::KriegspielDomain(unsigned int maxDepth,
                                    unsigned int legalMaxDepth,
-                                   chess::BOARD b) : Domain(maxDepth, 2) {
+                                   chess::BOARD b)
+    : Domain(maxDepth, 2,
+             make_shared<KriegspielAction>(),
+             make_shared<KriegspielObservation>()) {
     vector<double> rewards(2);
     vector<shared_ptr<Observation>>
         Obs{make_shared<Observation>(NO_OBSERVATION), make_shared<Observation>(NO_OBSERVATION)};

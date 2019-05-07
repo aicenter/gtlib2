@@ -63,12 +63,14 @@ constexpr ObservationId Pl1Wins = 0;
 
 class MatchingPenniesAction: public Action {
  public:
+    inline MatchingPenniesAction() : Action() {}
     inline MatchingPenniesAction(ActionId move) : Action(move) {}
     string toString() const override;
 };
 
 class MatchingPenniesObservation: public Observation {
  public:
+    inline MatchingPenniesObservation() : Observation() {}
     inline MatchingPenniesObservation(ObservationId otherMove) : Observation(otherMove) {}
 };
 

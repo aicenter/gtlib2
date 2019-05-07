@@ -91,11 +91,9 @@ enum GoofspielRoundOutcome {
 
 class GoofSpielObservation: public Observation {
  public:
-    inline GoofSpielObservation() : Observation(),
-                                    natureCard_(0),
-                                    player0LastCard_(0),
-                                    player1LastCard_(0),
-                                    roundResult_(PL0_DRAW) {}
+    inline GoofSpielObservation() :
+        Observation(),
+        natureCard_(0), player0LastCard_(0), player1LastCard_(0), roundResult_(PL0_DRAW) {}
     GoofSpielObservation(int initialNumOfCards,
                          const array<int, 3> &chosenCards,
                          GoofspielRoundOutcome roundResult);

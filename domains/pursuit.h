@@ -67,6 +67,7 @@ static array<string, 5> movedes_ = {"stay", "right", "down", "left", "up"};
  */
 class PursuitAction: public Action {
  public:
+    inline PursuitAction() : Action(), move_(0) {}
     PursuitAction(ActionId id, int move);
     inline string toString() const final {
         if (id_ == NO_ACTION) return "NoA";
@@ -89,6 +90,7 @@ class PursuitAction: public Action {
  */
 class PursuitObservation: public Observation {
  public:
+    inline PursuitObservation() : Observation(), values_() {};
     PursuitObservation(int id, vector<int> values);
     string toString() const final;
     // Returns vector of mini-observations to others.
