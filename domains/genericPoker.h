@@ -24,10 +24,6 @@
 #define DOMAINS_GENERICPOKER_H_
 
 #include "base/base.h"
-#include <utility>
-#include <string>
-#include <vector>
-
 
 namespace GTLib2::domains {
 
@@ -99,8 +95,6 @@ class GenericPokerDomain: public Domain {
     GenericPokerDomain();
     ~GenericPokerDomain() override = default;
     string getInfo() const final;
-    inline vector <Player> getPlayers() const final { return {0, 1}; }
-
     vector<int> betsFirstRound_;
     vector<int> raisesFirstRound_;
     vector<int> betsSecondRound_;
@@ -141,7 +135,7 @@ class GenericPokerState: public State {
 
     unsigned long countAvailableActionsFor(Player player) const override;
     vector <shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
-    OutcomeDistribution performActions(const vector <PlayerAction> &actions) const override;
+    OutcomeDistribution performActions(const vector <shared_ptr<Action>> &actions) const override;
 
     inline vector <Player> getPlayers() const final { return players_; }
     int hasPlayerOneWon(const shared_ptr <GenericPokerAction> &lastAction, Player player) const;

@@ -24,30 +24,18 @@
 #define ALGORITHMS_BESTRESPONSE_H_
 
 #include "base/base.h"
+#include "algorithms/strategy.h"
 
 
 namespace GTLib2::algorithms {
 
-// todo: refactor pair into a more readable struct (avoid using .first/.second)
-pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStrat, Player opponent,
-                                                Player player, const Domain &domain,
-                                                int maxDepth);
 
-inline pair<BehavioralStrategy, double> bestResponseTo(const BehavioralStrategy &opoStrat,
-                                                       Player opponent, Player player,
-                                                       const Domain &domain) {
-    return bestResponseTo(opoStrat, opponent, player, domain, domain.getMaxDepth());
-}
+StrategyValue bestResponseTo(const BehavioralStrategy &opoStrat, Player opponent, Player player,
+                             const Domain &domain);
 
-pair<BehavioralStrategy, double> bestResponseToPrunning(const BehavioralStrategy &opoStrat,
-                                                        Player opponent, Player player,
-                                                        const Domain &domain, int maxDepth);
-
-inline pair<BehavioralStrategy, double> bestResponseToPrunning(const BehavioralStrategy &opoStrat,
-                                                               Player opponent, Player player,
-                                                               const Domain &domain) {
-    return bestResponseToPrunning(opoStrat, opponent, player, domain, domain.getMaxDepth());
-}
+// todo:
+//StrategyValue bestResponseToPrunning(const BehavioralStrategy &opoStrat, Player opponent,
+//                                     Player player, const Domain &domain);
 
 }  // namespace GTLib2
 

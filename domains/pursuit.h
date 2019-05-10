@@ -26,10 +26,6 @@
 #define DOMAINS_PURSUIT_H_
 
 #include "base/base.h"
-#include <utility>
-#include <numeric>
-#include <vector>
-#include <string>
 
 namespace GTLib2::domains {
 
@@ -128,7 +124,7 @@ class PursuitState: public State {
 
     unsigned long countAvailableActionsFor(Player player) const override;
     vector <shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
-    OutcomeDistribution performActions(const vector <PlayerAction> &actions) const override;
+    OutcomeDistribution performActions(const vector <shared_ptr<Action>> &actions) const override;
     inline vector <Player> getPlayers() const final { return players_; }
     inline bool isTerminal() const override { return players_.empty(); };
 
@@ -161,7 +157,7 @@ class MMPursuitState: public PursuitState {
                    const vector <Player> &players, vector<int> numberOfMoves,
                    int currentNOM, int currentPlayer);
 
-    OutcomeDistribution performActions(const vector <PlayerAction> &actions) const override;
+    OutcomeDistribution performActions(const vector <shared_ptr<Action>> &actions) const override;
 
     bool operator==(const State &rhs) const override;
 
@@ -182,7 +178,7 @@ class ObsPursuitState: public PursuitState {
  public:
     explicit ObsPursuitState(const Domain *domain, const vector <Pos> &p);
     ObsPursuitState(const Domain *domain, const vector <Pos> &p, double prob);
-    OutcomeDistribution performActions(const vector <PlayerAction> &actions) const override;
+    OutcomeDistribution performActions(const vector <shared_ptr<Action>> &actions) const override;
 };
 
 /**
@@ -193,20 +189,16 @@ class PursuitDomain: public Domain {
  public:
     PursuitDomain(unsigned int max, unsigned int numberOfPlayers,
                   const vector <Pos> &loc, int height, int width);
-
     PursuitDomain(unsigned int max, unsigned int numberOfPlayers,
                   const vector <Pos> &loc, int height, int width, vector<double> probability);
-
     PursuitDomain(unsigned int max, unsigned int numberOfPlayers,
                   const shared_ptr <MMPursuitState> &state, int height, int width);
-
     PursuitDomain(unsigned int max,
                   unsigned int numberOfPlayers,
                   const shared_ptr <MMPursuitState> &state,
                   int height,
                   int width,
                   vector<double> probability);
-
     PursuitDomain(unsigned int max, unsigned int numberOfPlayers,
                   const shared_ptr <ObsPursuitState> &state, int height, int width);
     PursuitDomain(unsigned int max,
@@ -215,14 +207,10 @@ class PursuitDomain: public Domain {
                   int height,
                   int width,
                   vector<double> probability);
-
     PursuitDomain(unsigned int max, int height, int width);
-
     ~PursuitDomain() override = default;
 
     string getInfo() const final;
-    vector <Player> getPlayers() const final;
-
     vector<double> probability_;  // probability of stay or move
     int height_;
     int width_;

@@ -22,7 +22,6 @@
 #include "base/base.h"
 #include "algorithms/common.h"
 
-#include <utility>
 
 #include "algorithms/tree.h"
 
@@ -32,20 +31,6 @@
 
 namespace GTLib2::algorithms {
 
-EFGNodesDistribution createRootEFGNodes(const OutcomeDistribution &probDist) {
-    EFGNodesDistribution nodes;
-
-    for (auto &outcomeProb : probDist) {
-        auto &outcome = outcomeProb.first;
-        auto prob = outcomeProb.second;
-        auto node = make_shared<EFGNode>(outcome.state, nullptr,
-                                         outcome.privateObservations, outcome.publicObservation,
-                                         outcome.rewards, prob, nullptr, 0);
-        nodes.emplace_back(move(node), prob);
-    }
-    return nodes;
-}
-
 BehavioralStrategy mixedToBehavioralStrategy(const Domain &domain,
                                              const vector<BehavioralStrategy> &pureStrats,
                                              const ProbDistribution &distribution,
@@ -53,24 +38,29 @@ BehavioralStrategy mixedToBehavioralStrategy(const Domain &domain,
     BehavioralStrategy behavStrat;
 
     auto updateBehavStrategy = [&behavStrat, &player](shared_ptr<EFGNode> node) {
-        if (node->isTerminal()) return;
-        if (*node->getCurrentPlayer() != player) return;
+        if (node->type_ == TerminalNode) return;
+        if (node->getPlayer() != player) return;
 
-        auto infoSet = node->getAOHInfSet();
+        const auto infoSet = node->getAOHInfSet();
         if (behavStrat.find(infoSet) == behavStrat.end()) {
-            behavStrat[infoSet] = unordered_map<shared_ptr<Action>, double>();
-            for (auto &action : node->availableActions()) {
-                behavStrat[infoSet][action] = 0.0;
-            }
+            behavStrat[infoSet] = ActionProbDistribution();
         }
     };
 
-    treeWalkEFG(domain, updateBehavStrategy, domain.getMaxDepth());
+    treeWalkEFG(domain, updateBehavStrategy, domain.getMaxStateDepth());
 
     for (int i = 0; i < pureStrats.size(); ++i) {
-        for (const auto &infosetStrat : pureStrats[i]) {
-            for (auto &action : infosetStrat.second) {
-                behavStrat[infosetStrat.first][action.first] += action.second * distribution[i];
+        for (const auto &pureStrat : pureStrats[i]) {
+            const auto infoset = pureStrat.first;
+            const auto actions = pureStrat.second;
+
+            for (auto &action : actions) {
+                const shared_ptr<Action> actionPtr = action.first;
+                assert(action.second == 1.0);
+                if (behavStrat[infoset].find(actionPtr) == behavStrat[infoset].end()) {
+                    behavStrat[infoset][actionPtr] = 0;
+                }
+                behavStrat[infoset][actionPtr] += distribution[i];
             }
         }
     }
@@ -78,85 +68,62 @@ BehavioralStrategy mixedToBehavioralStrategy(const Domain &domain,
     return behavStrat;
 }
 
-EFGNodesDistribution getAllNodesInTheInformationSetWithNatureProbability(
-    const shared_ptr<AOH> &infSet, const Domain &domain) {
+bool isAOCompatible(const vector<ActionObservationIds> &aoTarget,
+                    const vector<ActionObservationIds> &aoCmp) {
+    auto sizeTarget = aoTarget.size();
+    auto sizeCmp = aoCmp.size();
+    if (min(sizeTarget, sizeCmp) == 0) return true;
 
-    vector<pair<shared_ptr<EFGNode>, double>> nodes;
-
-    auto aoh = infSet->getAOHistory();
-    Player player = infSet->getPlayer();
-
-    function<void(shared_ptr<EFGNode>, int, int)> traverse =
-        [&nodes, &aoh, &player, &traverse, &infSet](shared_ptr<EFGNode> node,
-                                                    int actionIndex, int observationIdToCheck) {
-            if (node->getNumberOfRemainingPlayers() == 1 && node->noActionPerformedInThisRound()) {
-                if (node->getCurrentPlayer() && *node->getCurrentPlayer() == player) {
-                    if (observationIdToCheck == node->getLastObservationIdOfCurrentPlayer()) {
-                        if (actionIndex >= aoh.size()) {
-                            if (node->isContainedInInformationSet(infSet)) {
-                                nodes.emplace_back(node, node->natureProbability_);
-                                return;
-                            }
-                        }
-                        auto observationId = std::get<1>(aoh[actionIndex]);
-                        auto actions = node->availableActions();
-                        for (const auto &action : actions) {
-                            auto nextNodes = node->performAction(action);
-                            for (const auto &nextNode : nextNodes) {
-                                traverse(nextNode.first, actionIndex + 1, observationId);
-                            }
-                        }
-                    }
-                } else {
-                    if (node->getLastObservationOfPlayer(player) == observationIdToCheck) {
-                        auto actions = node->availableActions();
-                        auto observationId = std::get<1>(aoh[actionIndex]);
-                        for (const auto &action : actions) {
-                            auto nextNodes = node->performAction(action);
-                            for (const auto &nextNode : nextNodes) {
-                                traverse(nextNode.first, actionIndex + 1, observationId);
-                            }
-                        }
-                    }
-                }
-            } else {
-                if (node->getCurrentPlayer() && *node->getCurrentPlayer() == player) {
-                    if (node->getLastObservationIdOfCurrentPlayer() == observationIdToCheck) {
-                        if (actionIndex >= aoh.size()) {
-                            nodes.emplace_back(node, node->natureProbability_);
-                            assert(node->isContainedInInformationSet(infSet));
-                            return;
-                        }
-                        auto actionId = std::get<0>(aoh[actionIndex]);
-                        auto observationId = std::get<1>(aoh[actionIndex]);
-                        auto actions = node->availableActions();
-                        for (const auto &action : actions) {
-                            if (action->getId() == actionId) {
-                                auto nextNodes = node->performAction(action);
-                                for (const auto &nextNode : nextNodes) {
-                                    traverse(nextNode.first, actionIndex + 1, observationId);
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    auto actions = node->availableActions();
-                    for (const auto &action : actions) {
-                        auto nextNodes = node->performAction(action);
-                        for (const auto &nextNode : nextNodes) {
-                            traverse(nextNode.first, actionIndex, observationIdToCheck);
-                        }
-                    }
-                }
-            }
-        };
-
-    auto rootNodes = createRootEFGNodes(
-        domain.getRootStatesDistribution());
-
-    for (const auto &rootNode : rootNodes) {
-        traverse(rootNode.first, 1, infSet->getInitialObservationId());
+    size_t cmpBytes;
+    if (aoCmp[aoCmp.size() - 1].observation == NO_OBSERVATION
+        || aoTarget[aoTarget.size() - 1].observation == NO_OBSERVATION) {
+        cmpBytes = min(sizeTarget, sizeCmp) * sizeof(ActionObservationIds) - sizeof(ObservationId);
+    } else {
+        cmpBytes = min(sizeTarget, sizeCmp) * sizeof(ActionObservationIds);
     }
+
+    return !memcmp(aoTarget.data(), aoCmp.data(), cmpBytes);
+}
+
+vector<shared_ptr<EFGNode>> getAllNodesInInfoset(const shared_ptr<AOH> &infoset,
+                                                 const Domain &domain) {
+
+    vector<shared_ptr<EFGNode>> nodes;
+    const auto aoTarget = infoset->getAOHistory();
+    const Player player = infoset->getPlayer();
+
+    function<void(shared_ptr<EFGNode>)> traverse = [&](shared_ptr<EFGNode> node) {
+        switch (node->type_) {
+            case ChanceNode:
+            case PlayerNode: {
+                const auto aoNode = node->getAOids(player);
+                assert(aoTarget.size() >= aoNode.size()); // we should not get below the infoset
+
+                if (node->type_ == PlayerNode
+                    && node->getPlayer() == player
+                    && aoTarget.size() == aoNode.size()
+                    && isAOCompatible(aoTarget, aoNode)) {
+                    nodes.push_back(node);
+                    return; // do not go below infoset
+                }
+
+                if (isAOCompatible(aoTarget, aoNode)) {
+                    for (const auto &action : node->availableActions()) {
+                        traverse(node->performAction(action));
+                    }
+                }
+                return;
+            }
+            case TerminalNode:
+                return;
+            default:
+                assert(false); // unrecognized option!
+        }
+    };
+
+    const auto rootNode = createRootEFGNode(domain);
+    assert(isAOCompatible(aoTarget, rootNode->getAOids(player)));
+    traverse(rootNode);
 
     return nodes;
 }

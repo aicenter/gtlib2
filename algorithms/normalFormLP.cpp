@@ -26,197 +26,180 @@
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
 namespace GTLib2::algorithms {
-NormalFormLP::NormalFormLP(const unsigned int _p1_actions, const unsigned int _p2_actions,
-                           const vector<double> &_utilities,
-                           unique_ptr<AbstractLPSolver> _lp_solver) {
-  ValidateInput(_p1_actions, _p2_actions, _utilities);
-  lp_solver_ = move(_lp_solver);
-  rows_ = _p2_actions;
-  cols_ = _p1_actions;
-  BuildModel(&_utilities);
+
+NormalFormLP::NormalFormLP(const unsigned int p1_actions, const unsigned int p2_actions,
+                           const vector<double> &utilities,
+                           unique_ptr<AbstractLPSolver> lp_solver) {
+    ValidateInput(p1_actions, p2_actions, utilities);
+    lp_solver_ = move(lp_solver);
+    rows_ = p2_actions;
+    cols_ = p1_actions;
+    BuildModel(&utilities);
 }
 
-NormalFormLP::NormalFormLP(const unsigned int _p1_actions, const unsigned int _p2_actions,
-                           const vector<vector<double>> &_utilities,
-                           unique_ptr<AbstractLPSolver> _lp_solver) {
-  lp_solver_ = move(_lp_solver);
-  rows_ = _p2_actions;
-  cols_ = _p1_actions;
+NormalFormLP::NormalFormLP(const unsigned int p1_actions, const unsigned int p2_actions,
+                           const vector<vector<double>> &utilities,
+                           unique_ptr<AbstractLPSolver> lp_solver) {
+    lp_solver_ = move(lp_solver);
+    rows_ = p2_actions;
+    cols_ = p1_actions;
 
-  assert(rows_ == _utilities.size() && rows_ >= 0);
-  assert(cols_ == _utilities[0].size() && cols_ >= 0);
+    assert(rows_ == utilities.size() && rows_ >= 0);
+    assert(cols_ == utilities[0].size() && cols_ >= 0);
 
-  vector<double> tmp(rows_ * cols_);
+    vector<double> tmp(rows_ * cols_);
 
-  for (int i = 0; i < rows_; i++) {
-    for (int j = 0; j < cols_; j++) {
-      tmp[i * cols_ + j] = _utilities[i][j];
+    for (int i = 0; i < rows_; i++) {
+        for (int j = 0; j < cols_; j++) {
+            tmp[i * cols_ + j] = utilities[i][j];
+        }
     }
-  }
-  BuildModel(&tmp);
+    BuildModel(&tmp);
 }
 
-NormalFormLP::NormalFormLP(const Domain &_game, unique_ptr<AbstractLPSolver> _lp_solver) {
-  lp_solver_ = move(_lp_solver);
+NormalFormLP::NormalFormLP(const Domain &domain, unique_ptr<AbstractLPSolver> _lp_solver) {
+    lp_solver_ = move(_lp_solver);
 
-  Player player1 = _game.getPlayers()[0];
-  Player player2 = _game.getPlayers()[1];
-  auto player1InfSetsAndActions = generateInformationSetsAndAvailableActions(_game, player1);
-  auto player2InfSetsAndActions = generateInformationSetsAndAvailableActions(_game, player2);
-  auto player1PureStrats = generateAllPureStrategies(player1InfSetsAndActions);
-  auto player2PureStrats = generateAllPureStrategies(player2InfSetsAndActions);
-  auto utilityMatrixPlayer1 =
-      constructUtilityMatrixFor(_game, player1, player1PureStrats, player2PureStrats);
-  rows_ = std::get<1>(utilityMatrixPlayer1);
-  cols_ = std::get<2>(utilityMatrixPlayer1);
-  BuildModel(&std::get<0>(utilityMatrixPlayer1));
+    const array<vector<BehavioralStrategy>, 2> pureStrats = {
+        generateAllPureStrategies(createInfosetsAndActions(domain, Player(0))),
+        generateAllPureStrategies(createInfosetsAndActions(domain, Player(1)))
+    };
+    const auto utils = constructUtilityMatrixFor(domain, Player(0), pureStrats);
+    rows_ = utils.rows;
+    cols_ = utils.cols;
+    BuildModel(&utils.u);
 }
 
 NormalFormLP::~NormalFormLP() {
-  CleanModel();
+    CleanModel();
 }
 
 void NormalFormLP::CleanModel() {
-  model_ready_ = false;
-  model_solved_ = false;
-  value_of_the_game_ = NAN;
-  lp_solver_->CleanModel();
+    model_ready_ = false;
+    model_solved_ = false;
+    value_of_the_game_ = NAN;
+    lp_solver_->CleanModel();
 }
 
 double NormalFormLP::SolveGame() {
-  if (!model_ready_)
-    throw(-1);
+    if (!model_ready_) throw (-1);
 
-  value_of_the_game_ = lp_solver_->SolveGame();
-  model_solved_ = true;
-  return value_of_the_game_;
+    value_of_the_game_ = lp_solver_->SolveGame();
+    model_solved_ = true;
+    return value_of_the_game_;
 }
 
 void NormalFormLP::BuildModel(const vector<double> *_utility_matrix) {
-  assert(_utility_matrix != nullptr);
-  lp_solver_->BuildModel(rows_, cols_, _utility_matrix, OUTPUT);
-
-  model_ready_ = true;
+    assert(_utility_matrix != nullptr);
+    lp_solver_->BuildModel(rows_, cols_, _utility_matrix, OUTPUT);
+    model_ready_ = true;
 }
 
-vector<double> NormalFormLP::GetStrategy(int _player) {
-  assert(_player == 0 || _player == 1);
-  vector<double> result;
-  if (!model_solved_) {
-    if (SolveGame() == NAN) {
-      return result;
+vector<double> NormalFormLP::GetStrategy(int player) {
+    assert(player == 0 || player == 1);
+    vector<double> result;
+    if (!model_solved_ && SolveGame() == NAN) {
+        return result;
     }
-  }
 
-  if (_player == 0) {
-    result.reserve(cols_);
-    for (int i = 0; i < cols_; ++i) {
-      result.emplace_back(lp_solver_->GetValue(i));
+    if (player == 0) {
+        result.reserve(cols_);
+        for (int i = 0; i < cols_; ++i) {
+            result.emplace_back(lp_solver_->GetValue(i));
+        }
+    } else {
+        result.reserve(rows_);
+        for (int i = 0; i < rows_; ++i) {
+            result.emplace_back(-lp_solver_->GetDual(i));
+        }
     }
-  } else {
-    result.reserve(rows_);
-    for (int i = 0; i < rows_; ++i) {
-      result.emplace_back(-lp_solver_->GetDual(i));
+    return result;
+}
+
+void NormalFormLP::AddActions(const int player,
+                              const vector<vector<double>> &utility_for_opponent) {
+    if (player == 0) {
+        AddCols(utility_for_opponent);
+    } else if (player == 1) {
+        AddRows(utility_for_opponent);
+    } else {
+        throw (-1);
     }
-  }
-  return result;
+
+    model_ready_ = true;
+    model_solved_ = false;
 }
 
-void NormalFormLP::AddActions(const int _player,
-                              const vector<vector<double>> &_utility_for_opponent) {
-  if (_player == 0) {
-    AddCols(_utility_for_opponent);
-  } else if (_player == 1) {
-    AddRows(_utility_for_opponent);
-  } else {
-    throw(-1);
-  }
-
-  model_ready_ = true;
-  model_solved_ = false;
+void NormalFormLP::UpdateUtilityMatrix(const vector<double> &utilities) {
+    ValidateInput(rows_, cols_, utilities);
+    CleanModel();
+    BuildModel(&utilities);
 }
 
-void NormalFormLP::UpdateUtilityMatrix(const vector<double> &_utilities) {
-  ValidateInput(rows_, cols_, _utilities);
-  CleanModel();
-  BuildModel(&_utilities);
-}
+void NormalFormLP::UpdateUtilityMatrix(const vector<vector<double>> &utilities) {
+    assert(rows_ == utilities.size() && rows_ >= 0);
+    assert(cols_ == utilities[0].size() && cols_ >= 0);
 
-void NormalFormLP::UpdateUtilityMatrix(const vector<vector<double>> &_utilities) {
-  assert(rows_ == _utilities.size() && rows_ >= 0);
-  assert(cols_ == _utilities[0].size() && cols_ >= 0);
+    vector<double> tmp(rows_ * cols_);
 
-  vector<double> tmp(rows_ * cols_);
-
-  for (int i = 0; i < rows_; i++) {
-    for (int j = 0; j < cols_; j++) {
-      tmp[i * cols_ + j] = _utilities[i][j];
+    for (int i = 0; i < rows_; i++) {
+        for (int j = 0; j < cols_; j++) {
+            tmp[i * cols_ + j] = utilities[i][j];
+        }
     }
-  }
 
-  CleanModel();
-  BuildModel(&tmp);
+    CleanModel();
+    BuildModel(&tmp);
 }
 
-bool NormalFormLP::ValidateInput(const int _p1_actions, const int _p2_actions,
-                                 const vector<double> &_utilities) {
-  if (!(_p1_actions >= 1 && _p2_actions >= 1
-      && _utilities.size() == _p1_actions * _p2_actions)) {
-    throw("Illegal Argument in NormalFormLP");
-  }
-  return true;
+bool NormalFormLP::ValidateInput(const int p1_actions, const int p2_actions,
+                                 const vector<double> &utilities) {
+    if (!(p1_actions >= 1 && p2_actions >= 1
+        && utilities.size() == p1_actions * p2_actions)) {
+        throw ("Illegal Argument in NormalFormLP");
+    }
+    return true;
 }
 
-void NormalFormLP::ChangeOutcome(const int _action_for_p1,
-                                 const int _action_for_p2,
-                                 double _new_utility) {
-  if (!(_action_for_p1 >= 0 && _action_for_p1 < cols_ && _action_for_p2 >= 0
-      && _action_for_p2 < rows_)) {
-    throw("Illegal Argument in NormalFormLP - Change Outcome");
-  }
+void NormalFormLP::ChangeOutcome(const int action_for_p1,
+                                 const int action_for_p2,
+                                 double new_utility) {
+    if (!(action_for_p1 >= 0 && action_for_p1 < cols_
+        && action_for_p2 >= 0 && action_for_p2 < rows_)) {
+        throw ("Illegal Argument in NormalFormLP - Change Outcome");
+    }
 
-  if (!model_ready_) {
-    throw(-1);
-  }
-  // constrain. variable
-  lp_solver_->SetConstraintCoefForVariable(_action_for_p2,
-                                          _action_for_p1, _new_utility);
-  model_solved_ = false;
+    if (!model_ready_) throw (-1);
+    // constrain. variable
+    lp_solver_->SetConstraintCoefForVariable(action_for_p2, action_for_p1, new_utility);
+    model_solved_ = false;
 }
 
 void NormalFormLP::SaveLP(const char *_file) {
-  if (!model_ready_) {
-    throw(-1);
-  }
-  lp_solver_->SaveLP(_file);
+    if (!model_ready_) throw (-1);
+    lp_solver_->SaveLP(_file);
 }
 
 void NormalFormLP::AddRows(const vector<vector<double>> &_utility_for_cols) {
-  auto new_rows = static_cast<unsigned int>(_utility_for_cols.size());
-  if (new_rows == 0) return;
-  assert(_utility_for_cols[0].size() == cols_);
+    auto new_rows = static_cast<unsigned int>(_utility_for_cols.size());
+    if (new_rows == 0) return;
+    assert(_utility_for_cols[0].size() == cols_);
 
-  if (!model_ready_) {
-    throw(-1);
-  }
+    if (!model_ready_) throw (-1);
+    lp_solver_->AddRows(cols_, _utility_for_cols);
 
-  lp_solver_->AddRows(cols_, _utility_for_cols);
-
-  rows_ += new_rows;
+    rows_ += new_rows;
 }
 
 void NormalFormLP::AddCols(const vector<vector<double>> &_utility_for_rows) {
-  auto new_cols = static_cast<unsigned int>(_utility_for_rows.size());
-  if (new_cols == 0) return;
-  assert(_utility_for_rows[0].size() == rows_);
+    auto new_cols = static_cast<unsigned int>(_utility_for_rows.size());
+    if (new_cols == 0) return;
+    assert(_utility_for_rows[0].size() == rows_);
 
-  if (!model_ready_) {
-    throw(-1);
-  }
+    if (!model_ready_) throw (-1);
 
-  lp_solver_->AddCols(rows_, _utility_for_rows);
-
-  cols_ += new_cols;
+    lp_solver_->AddCols(rows_, _utility_for_rows);
+    cols_ += new_cols;
 }
 }  // namespace GTLib2
 

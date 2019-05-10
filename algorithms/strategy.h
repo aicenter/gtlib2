@@ -33,6 +33,23 @@
 namespace GTLib2::algorithms {
 
 /**
+ * Get probability of a (possibly missing) action in the ActionProbDistribution map.
+ */
+inline double getActionProb(const ActionProbDistribution &dist, const shared_ptr<Action> &action) {
+    if (dist.find(action) == dist.end()) return 0.0;
+    return dist.at(action);
+}
+
+struct StrategyValue {
+    BehavioralStrategy strategy;
+    double value; // at root node
+
+    inline StrategyValue() : strategy(BehavioralStrategy()), value(0) {}
+    inline StrategyValue(BehavioralStrategy strategy, double value)
+        : strategy(move(strategy)), value(value) {}
+};
+
+/**
  * Calculate average strategy for each player.
  */
 StrategyProfile getAverageStrategy(CFRData &data, int maxDepth);

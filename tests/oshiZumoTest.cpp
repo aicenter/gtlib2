@@ -51,10 +51,10 @@ OshiZumoDomain testDomainsOshiZumo[]{ // NOLINT(cert-err58-cpp)
 };
 
 TEST(Oshizumo, BuildAndCheckGameTree) {
-    vector<DomainStatistics> expectedResults = {
+    vector<DomainStatistics> expectedStats = {
         {
             .max_EFGDepth = 6,
-            .max_StateDepth = 3,
+            .max_StateDepth = 4,
             .num_nodes = 23,
             .num_terminals = 12,
             .num_states = 16,
@@ -63,7 +63,7 @@ TEST(Oshizumo, BuildAndCheckGameTree) {
             .num_sequences = {8, 8},
         }, {
             .max_EFGDepth = 6,
-            .max_StateDepth = 3,
+            .max_StateDepth = 4,
             .num_nodes = 53,
             .num_terminals = 16,
             .num_states = 32,
@@ -72,16 +72,16 @@ TEST(Oshizumo, BuildAndCheckGameTree) {
             .num_sequences = {22, 22},
         }, {
             .max_EFGDepth = 4,
-            .max_StateDepth = 2,
+            .max_StateDepth = 3,
             .num_nodes = 20,
-            .num_terminals = 4,
+            .num_terminals = 9,
             .num_states = 13,
-            .num_histories = {9, 7},
-            .num_infosets = {9, 4},
+            .num_histories = {4, 7},
+            .num_infosets = {4, 4},
             .num_sequences = {8, 8},
         }, {
             .max_EFGDepth = 6,
-            .max_StateDepth = 3,
+            .max_StateDepth = 4,
             .num_nodes = 23,
             .num_terminals = 12,
             .num_states = 16,
@@ -90,16 +90,16 @@ TEST(Oshizumo, BuildAndCheckGameTree) {
             .num_sequences = {8, 8},
         }, {
             .max_EFGDepth = 4,
-            .max_StateDepth = 2,
+            .max_StateDepth = 3,
             .num_nodes = 13,
-            .num_terminals = 6,
+            .num_terminals = 7,
             .num_states = 9,
-            .num_histories = {3, 4},
-            .num_infosets = {3, 2},
+            .num_histories = {2, 4},
+            .num_infosets = {2, 2},
             .num_sequences = {5, 5},
         }, {
             .max_EFGDepth = 6,
-            .max_StateDepth = 3,
+            .max_StateDepth = 4,
             .num_nodes = 30,
             .num_terminals = 14,
             .num_states = 20,
@@ -108,7 +108,7 @@ TEST(Oshizumo, BuildAndCheckGameTree) {
             .num_sequences = {11, 11},
         }, {
             .max_EFGDepth = 6,
-            .max_StateDepth = 3,
+            .max_StateDepth = 4,
             .num_nodes = 23,
             .num_terminals = 12,
             .num_states = 16,
@@ -117,7 +117,7 @@ TEST(Oshizumo, BuildAndCheckGameTree) {
             .num_sequences = {8, 8},
         }, {
             .max_EFGDepth = 6,
-            .max_StateDepth = 3,
+            .max_StateDepth = 4,
             .num_nodes = 53,
             .num_terminals = 16,
             .num_states = 32,
@@ -126,16 +126,16 @@ TEST(Oshizumo, BuildAndCheckGameTree) {
             .num_sequences = {19, 19},
         }, {
             .max_EFGDepth = 4,
-            .max_StateDepth = 2,
+            .max_StateDepth = 3,
             .num_nodes = 20,
-            .num_terminals = 4,
+            .num_terminals = 9,
             .num_states = 13,
-            .num_histories = {9, 7},
-            .num_infosets = {9, 4},
+            .num_histories = {4, 7},
+            .num_infosets = {4,4},
             .num_sequences = {8, 8},
         }, {
             .max_EFGDepth = 6,
-            .max_StateDepth = 3,
+            .max_StateDepth = 4,
             .num_nodes = 23,
             .num_terminals = 12,
             .num_states = 16,
@@ -144,16 +144,16 @@ TEST(Oshizumo, BuildAndCheckGameTree) {
             .num_sequences = {8, 8},
         }, {
             .max_EFGDepth = 4,
-            .max_StateDepth = 2,
+            .max_StateDepth = 3,
             .num_nodes = 13,
-            .num_terminals = 6,
+            .num_terminals = 7,
             .num_states = 9,
-            .num_histories = {3, 4},
-            .num_infosets = {3, 2},
+            .num_histories = {2, 4},
+            .num_infosets = {2, 2},
             .num_sequences = {5, 5},
         }, {
             .max_EFGDepth = 6,
-            .max_StateDepth = 3,
+            .max_StateDepth = 4,
             .num_nodes = 30,
             .num_terminals = 14,
             .num_states = 20,
@@ -162,10 +162,12 @@ TEST(Oshizumo, BuildAndCheckGameTree) {
             .num_sequences = {11, 11},
         }
     };
-    for (int i = 0; i < expectedResults.size(); ++i) {
-        DomainStatistics stats;
-        calculateDomainStatistics(testDomainsOshiZumo[i], &stats);
-        EXPECT_EQ(stats, expectedResults[i]);
+
+    for (int i = 0; i < expectedStats.size(); ++i) {
+        cout << ">> checking domain [" << i << "] " << testDomainsOshiZumo[i].getInfo() << endl;
+        DomainStatistics actualStats;
+        calculateDomainStatistics(testDomainsOshiZumo[i], &actualStats);
+        EXPECT_EQ(actualStats, expectedStats[i]);
     }
 }
 
@@ -180,10 +182,10 @@ TEST(Oshizumo, CorrectRewardsDistribution) {
     vector<int> rew{0, 0, 0};
 
     auto getRewards = [&rew](shared_ptr<EFGNode> node) {
-        if (node->isTerminal()) {
-            if (node->rewards_[0] == 0) {
+        if (node->type_ == TerminalNode) {
+            if (node->getUtilities()[0] == 0) {
                 rew[0]++;
-            } else if (node->rewards_[0] == 1) {
+            } else if (node->getUtilities()[0] == 1) {
                 rew[1]++;
             } else {
                 rew[2]++;

@@ -67,9 +67,9 @@ vector<shared_ptr<Action>> PhantomTTTState::getAvailableActionsFor(Player player
 }
 
 OutcomeDistribution PhantomTTTState::performActions
-    (const vector<PlayerAction> &actions) const {
-    auto a1 = dynamic_cast<PhantomTTTAction *>(actions[0].action.get());
-    auto a2 = dynamic_cast<PhantomTTTAction *>(actions[1].action.get());
+    (const vector <shared_ptr<Action>> &actions) const {
+    auto a1 = dynamic_cast<PhantomTTTAction *>(actions[0].get());
+    auto a2 = dynamic_cast<PhantomTTTAction *>(actions[1].get());
     vector<shared_ptr<Observation>> observations(2);
     vector<double> rewards(2);
     int success = 0;
@@ -162,7 +162,7 @@ OutcomeDistribution PhantomTTTState::performActions
     }
     Outcome o(move(s), observations, shared_ptr<Observation>(), rewards);
     OutcomeDistribution prob;
-    prob.push_back(Outcome(o)));
+    prob.push_back(Outcome(o));
     return prob;
 }
 

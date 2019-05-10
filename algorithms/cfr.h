@@ -25,10 +25,6 @@
 
 #include "base/base.h"
 
-#include <vector>
-#include <array>
-#include <utility>
-
 #include "base/algorithm.h"
 #include "base/efg.h"
 #include "base/cache.h"
@@ -99,9 +95,10 @@ class CFRData: public virtual InfosetCache {
 
  protected:
     CFRUpdating updatingPolicy_ = HistoriesUpdating;
+
  private:
     void createCFRInfosetData(const shared_ptr<EFGNode> &node) {
-        if (node->isTerminal()) return;
+        if (node->type_ != PlayerNode) return;
 
         auto infoSet = node->getAOHInfSet();
         if (infosetData.find(infoSet) == infosetData.end()) {

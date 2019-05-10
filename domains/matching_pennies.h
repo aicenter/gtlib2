@@ -26,9 +26,6 @@
 #define DOMAINS_MATCHING_PENNIES_H_
 
 #include "base/base.h"
-#include <utility>
-#include <vector>
-#include <string>
 
 namespace GTLib2::domains {
 
@@ -41,7 +38,6 @@ enum MatchingPenniesVariant { SimultaneousMoves, AlternatingMoves };
 class MatchingPenniesDomain: public Domain {
  public:
     explicit MatchingPenniesDomain(MatchingPenniesVariant variant);
-    vector <Player> getPlayers() const override { return {0, 1}; };
     string getInfo() const override {
         return variant_ == SimultaneousMoves
                ? "Simultaneous matching pennies"
@@ -83,9 +79,8 @@ class MatchingPenniesState: public State {
 
     unsigned long countAvailableActionsFor(Player player) const override;
     vector <shared_ptr<Action>> getAvailableActionsFor(Player pl) const override;
-    OutcomeDistribution performActions(const vector <PlayerAction> &actions) const override;
+    OutcomeDistribution performActions(const vector <shared_ptr<Action>> &actions) const override;
 
-    inline int getNumberOfPlayers() const override { return int(players_.size()); }
     inline vector <Player> getPlayers() const override { return players_; };
     inline bool isTerminal() const override { return players_.empty(); };
     bool operator==(const State &rhs) const override;

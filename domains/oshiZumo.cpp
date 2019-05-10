@@ -33,24 +33,20 @@ bool OshiZumoAction::operator==(const Action &that) const {
         return false;
     }
     const auto otherAction = dynamic_cast<const OshiZumoAction &>(that);
-    return this->bid_ == otherAction.bid_ &&
-        this->id_ == otherAction.id_;
+    return this->bid_ == otherAction.bid_;
 }
 
 string OshiZumoAction::toString() const {
-    return "id: " + to_string(id_) +
-        "bid: " + to_string(bid_);
+    return "Bid: " + to_string(bid_);
 }
 
-HashType OshiZumoAction::getHash() const {
-    return bid_;
-}
+HashType OshiZumoAction::getHash() const { return bid_; }
 
 OshiZumoDomain::OshiZumoDomain(OshiZumoSettings settings) :
     Domain(static_cast<unsigned>
            (settings.minBid == 0
             ? settings.startingCoins * 2
-            : settings.startingCoins / settings.minBid),
+            : settings.startingCoins / settings.minBid) + 1,
            2,
            make_shared<OshiZumoAction>(),
            make_shared<OshiZumoObservation>()
@@ -83,7 +79,7 @@ string OshiZumoDomain::getInfo() const {
         "\nStarting coins: " + to_string(startingCoins_) +
         "\nStartingLocation: " + to_string(startingLocation_) +
         "\nMinimum bid: " + to_string(minBid_) +
-        "\nMax depth: " + to_string(maxDepth_) + '\n';
+        "\nMax depth: " + to_string(maxStateDepth_) + '\n';
 }
 
 const int OshiZumoDomain::getStartingLocation() const {
@@ -138,11 +134,10 @@ unsigned long OshiZumoState::countAvailableActionsFor(Player player) const {
     }
 }
 
-OutcomeDistribution OshiZumoState::performActions(const vector<PlayerAction> &actions) const {
-    auto player0Action = dynamic_cast<OshiZumoAction &>(*actions[0].action);
-    auto player1Action = dynamic_cast<OshiZumoAction &>(*actions[1].action);
+OutcomeDistribution OshiZumoState::performActions(const vector<shared_ptr<Action>> &actions) const {
+    auto player0Action = dynamic_cast<OshiZumoAction &>(*actions[0]);
+    auto player1Action = dynamic_cast<OshiZumoAction &>(*actions[1]);
     const auto OZdomain = static_cast<const OshiZumoDomain *>(domain_);
-    assert(player0Action != nullptr && player1Action != nullptr);
 
     vector<int> newCoins(coins_);
     int newWrestlerLocation = this->wrestlerLocation_;

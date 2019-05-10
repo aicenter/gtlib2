@@ -1,5 +1,3 @@
-#include <utility>
-
 /*
     Copyright 2019 Faculty of Electrical Engineering at CTU in Prague
 
@@ -840,7 +838,7 @@ string KriegspielDomain::getInfo() const {
 }
 
 KriegspielDomain::KriegspielDomain(unsigned int maxDepth, unsigned int legalMaxDepth, string s)
-    : Domain(maxDepth, 2) {
+    : Domain(maxDepth, 2, make_shared<KriegspielAction>(), make_shared<KriegspielObservation>()) {
     vector<double> rewards(2);
     vector<shared_ptr<Observation>>
         Obs{make_shared<Observation>(NO_OBSERVATION), make_shared<Observation>(-1)};
@@ -1051,7 +1049,7 @@ vector<double> KriegspielState::checkGameOver() const {
             rewards[chess::WHITE] = 0.5;
             rewards[chess::BLACK] = 0.5;
         } else if (this->moveHistory->size() + this->attemptedMoveHistory->size()
-            == domain_->getMaxDepth()) {
+            == domain_->getMaxStateDepth()) {
             rewards[chess::WHITE] = 0.5;
             rewards[chess::BLACK] = 0.5;
         }
@@ -1072,9 +1070,9 @@ Square KriegspielState::getEnPassantSquare() const {
 
 
 OutcomeDistribution KriegspielState::performActions(
-    const vector<PlayerAction> &actions) const {
-    auto a1 = dynamic_cast<KriegspielAction *>(actions[0].action.get());
-    auto a2 = dynamic_cast<KriegspielAction *>(actions[1].action.get());
+    const vector <shared_ptr<Action>> &actions) const {
+    auto a1 = dynamic_cast<KriegspielAction *>(actions[0].get());
+    auto a2 = dynamic_cast<KriegspielAction *>(actions[1].get());
     vector<shared_ptr<Observation>> observations(2);
     vector<double> rewards(2);
     shared_ptr<KriegspielState> s;

@@ -107,17 +107,15 @@ class GoofSpielObservation: public Observation {
 class GoofSpielState: public State {
  public:
     inline GoofSpielState(const Domain *domain, array<vector<int>, 3> playerDecks,
-                          int natureSelectedCard, vector<double> cumulativeRewards,
-                          array<vector<int>, 3> playedCards) :
+                          int natureSelectedCard, array<vector<int>, 3> playedCards) :
         State(domain, hashCombine(98612345434231, playerDecks, playedCards, natureSelectedCard)),
         playerDecks_(move(playerDecks)),
         natureSelectedCard_(natureSelectedCard),
-        cumulativeRewards_(move(cumulativeRewards)),
         playedCards_(move(playedCards)) {}
 
     unsigned long countAvailableActionsFor(Player player) const override;
     vector <shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
-    OutcomeDistribution performActions(const vector <PlayerAction> &actions) const override;
+    OutcomeDistribution performActions(const vector <shared_ptr<Action>> &actions) const override;
     vector <Player> getPlayers() const override;
     bool isTerminal() const override;
     string toString() const override;
@@ -126,7 +124,6 @@ class GoofSpielState: public State {
     const array<vector<int>, 3> playerDecks_;
     const array<vector<int>, 3> playedCards_;
     const int natureSelectedCard_;  // Not in the deck. For the last round it will be NO_NATURE_CARD
-    const vector<double> cumulativeRewards_;
 };
 
 }  // namespace GTLib2

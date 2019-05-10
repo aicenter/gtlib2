@@ -41,16 +41,13 @@ using domains::MatchingPenniesVariant::AlternatingMoves;
 using domains::MatchingPenniesAction;
 using domains::ActionHeads;
 using domains::ActionTails;
-using algorithms::createRootEFGNodes;
 
 
 TEST(Cache, CacheHit) {
     MatchingPenniesDomain mp(AlternatingMoves);
-    auto rootNodes = createRootEFGNodes(
-        mp.getRootStatesDistribution());
+    auto rootNode = createRootEFGNode(mp);
     InfosetCache cache(mp);
 
-    auto rootNode = rootNodes[0].first;
     auto actions = rootNode->availableActions();
     EXPECT_TRUE(!cache.hasNode(rootNode));
     EXPECT_TRUE(!cache.hasInfoset(rootNode->getAOHInfSet()));
@@ -61,26 +58,25 @@ TEST(Cache, CacheHit) {
     EXPECT_TRUE(!cache.hasAllChildren(rootNode));
     EXPECT_TRUE(!cache.hasChildren(rootNode, actions[0]));
 
-    cache.getChildrenFor(rootNode, actions[0]);
+    cache.getChildFor(rootNode, actions[0]);
     EXPECT_TRUE(!cache.hasAllChildren(rootNode));
     EXPECT_TRUE(cache.hasChildren(rootNode, actions[0]));
-    cache.getChildrenFor(rootNode, actions[1]);
+    cache.getChildFor(rootNode, actions[1]);
     EXPECT_TRUE(cache.hasAllChildren(rootNode));
     EXPECT_TRUE(cache.hasChildren(rootNode, actions[1]));
 
     // check that getting children doesn't create new uses of shared pointer
     long old_use_cnt = rootNode.use_count();
-    cache.getChildrenFor(rootNode, actions[0]);
-    EXPECT_TRUE(old_use_cnt - rootNode.use_count() == 0);
+    cache.getChildFor(rootNode, actions[0]);
+    EXPECT_EQ(old_use_cnt - rootNode.use_count(), 0);
 }
 
 
 TEST(Cache, BuildCacheMaxDepth) {
     MatchingPenniesDomain mp(AlternatingMoves);
-    auto rootNodes = createRootEFGNodes(mp.getRootStatesDistribution());
+    auto rootNode = createRootEFGNode(mp);
     InfosetCache cache(mp);
 
-    auto rootNode = rootNodes[0].first;
     auto actions = rootNode->availableActions();
     EXPECT_TRUE(!cache.hasNode(rootNode));
     EXPECT_TRUE(!cache.hasInfoset(rootNode->getAOHInfSet()));
@@ -108,10 +104,9 @@ TEST(Cache, BuildCacheMaxDepth) {
 
 TEST(Cache, BuildCacheLimitedDepth) {
     MatchingPenniesDomain mp(AlternatingMoves);
-    auto rootNodes = createRootEFGNodes(mp.getRootStatesDistribution());
+    auto rootNode = createRootEFGNode(mp);
     InfosetCache cache(mp);
 
-    auto rootNode = rootNodes[0].first;
     auto actions = rootNode->availableActions();
     EXPECT_TRUE(!cache.hasNode(rootNode));
     EXPECT_TRUE(!cache.hasInfoset(rootNode->getAOHInfSet()));
@@ -119,8 +114,8 @@ TEST(Cache, BuildCacheLimitedDepth) {
     EXPECT_TRUE(!cache.hasChildren(rootNode, actions[0]));
     EXPECT_TRUE(!cache.hasChildren(rootNode, actions[1]));
 
-    auto node0 = rootNode->performAction(actions[0])[0].first;
-    auto node1 = rootNode->performAction(actions[1])[0].first;
+    auto node0 = rootNode->performAction(actions[0]);
+    auto node1 = rootNode->performAction(actions[1]);
     EXPECT_TRUE(!cache.hasNode(rootNode));
     EXPECT_TRUE(!cache.hasInfoset(rootNode->getAOHInfSet()));
     EXPECT_TRUE(!cache.hasAllChildren(rootNode));
@@ -139,13 +134,22 @@ TEST(Cache, BuildCacheLimitedDepth) {
     cache.buildForest(1);
     EXPECT_TRUE(cache.hasNode(rootNode));
     EXPECT_TRUE(cache.hasInfoset(rootNode->getAOHInfSet()));
+    EXPECT_TRUE(!cache.hasAllChildren(rootNode));
+    EXPECT_TRUE(!cache.hasChildren(rootNode, actions[0]));
+    EXPECT_TRUE(!cache.hasChildren(rootNode, actions[1]));
+    EXPECT_TRUE(!cache.hasAllChildren(node0));
+    EXPECT_TRUE(!cache.hasAllChildren(node1));
+
+    cache.buildForest(2);
+    EXPECT_TRUE(cache.hasNode(rootNode));
+    EXPECT_TRUE(cache.hasInfoset(rootNode->getAOHInfSet()));
     EXPECT_TRUE(cache.hasAllChildren(rootNode));
     EXPECT_TRUE(cache.hasChildren(rootNode, actions[0]));
     EXPECT_TRUE(cache.hasChildren(rootNode, actions[1]));
     EXPECT_TRUE(!cache.hasAllChildren(node0));
     EXPECT_TRUE(!cache.hasAllChildren(node1));
 
-    cache.buildForest(2);
+    cache.buildForest(3);
     EXPECT_TRUE(cache.hasNode(rootNode));
     EXPECT_TRUE(cache.hasInfoset(rootNode->getAOHInfSet()));
     EXPECT_TRUE(cache.hasAllChildren(rootNode));
@@ -159,10 +163,9 @@ TEST(Cache, BuildPublicStateCache) {
     MatchingPenniesDomain domains[] = {MatchingPenniesDomain(AlternatingMoves),
                                        MatchingPenniesDomain(SimultaneousMoves)};
     for (const auto &mp : domains) {
-        auto rootNodes = createRootEFGNodes(mp.getRootStatesDistribution());
+        auto rootNode = createRootEFGNode(mp);
         PublicStateCache cache(mp);
 
-        auto rootNode = rootNodes[0].first;
         auto actions = rootNode->availableActions();
         EXPECT_TRUE(!cache.hasNode(rootNode));
         EXPECT_TRUE(!cache.hasPublicState(rootNode->getPublicState()));
@@ -175,7 +178,7 @@ TEST(Cache, BuildPublicStateCache) {
         cache.buildForest();
         EXPECT_TRUE(cache.hasNode(rootNode));
         EXPECT_TRUE(cache.hasPublicState(rootNode->getPublicState()));
-        EXPECT_TRUE(cache.countPublicStates() == 4);
+        EXPECT_EQ(cache.countPublicStates(), 4);
     }
 }
 
@@ -206,13 +209,13 @@ TEST(Cache, BuildLargePublicStateCache) {
         cache.buildForest();
         switch (domain.numberOfCards_) {
             case 2:
-                EXPECT_TRUE(cache.countPublicStates() == 11);
+                EXPECT_EQ(cache.countPublicStates(), 11);
                 break;
             case 3:
-                EXPECT_TRUE(cache.countPublicStates() == 39);
+                EXPECT_EQ(cache.countPublicStates(), 39);
                 break;
             case 4:
-                EXPECT_TRUE(cache.countPublicStates() == 131);
+                EXPECT_EQ(cache.countPublicStates(), 131);
                 break;
         }
     }
@@ -228,24 +231,32 @@ TEST(Cache, PublicStateCacheGetInfosets) {
     PublicStateCache cache(domain);
     cache.buildForest();
 
-    auto rootNode = cache.getRootNodes()[0].first;
+    auto rootNode = cache.getRootNode();
     auto childNodes = cache.getChildrenFor(rootNode);
-    shared_ptr<EFGNode> aNode = (*childNodes[0])[0].first;
-    shared_ptr<EFGNode> bNode = (*childNodes[1])[0].first;
+    shared_ptr<EFGNode> aNode = childNodes[0];
+    shared_ptr<EFGNode> bNode = childNodes[1];
     auto children = unordered_set<shared_ptr<EFGNode>>{aNode, bNode};
     auto pubState = cache.getPublicStateFor(aNode);
-    EXPECT_TRUE(cache.getNodesFor(pubState).size() == 2);
-    EXPECT_TRUE(cache.getNodesFor(pubState) == children);
+    EXPECT_EQ(cache.getNodesFor(pubState).size(), 2);
+    EXPECT_EQ(cache.getNodesFor(pubState), children);
 
+    // infoset for player 1 contains the two nodes
     shared_ptr<AOH> actualInfoset = aNode->getAOHInfSet();
     shared_ptr<AOH> expectedInfoset = *cache.getInfosetsFor(pubState, Player(1)).begin();
-    EXPECT_TRUE(expectedInfoset != actualInfoset);
-    EXPECT_TRUE(*expectedInfoset == *actualInfoset);
+    EXPECT_NE(expectedInfoset, actualInfoset);
+    EXPECT_EQ(*expectedInfoset, *actualInfoset);
 
-    actualInfoset = aNode->getAOHAugInfSet(Player(0));
-    expectedInfoset = *cache.getInfosetsFor(pubState, Player(0)).begin();
-    EXPECT_TRUE(expectedInfoset != actualInfoset);
-    EXPECT_TRUE(*expectedInfoset == *actualInfoset);
+    // infoset for player 0 contains two augmented infosets
+    auto actualInfosets = unordered_set<AOH>{
+        *aNode->getAOHAugInfSet(Player(0)),
+        *bNode->getAOHAugInfSet(Player(0)),
+    };
+    auto cachedInfosets = cache.getInfosetsFor(pubState, Player(0));
+    auto it = cachedInfosets.begin();
+    const AOH &x = *(*std::next(it, 0));
+    const AOH &y = *(*std::next(it, 1));
+    auto expectedInfosets = unordered_set<AOH>{x, y};
+    EXPECT_EQ(expectedInfosets, actualInfosets);
 }
 
 TEST(Cache, PublicStateCacheGetInfosetsLarge) {
@@ -258,31 +269,31 @@ TEST(Cache, PublicStateCacheGetInfosetsLarge) {
     PublicStateCache cache(domain);
     cache.buildForest();
 
-    auto rootNode = cache.getRootNodes()[0].first;
-    auto aNode = (*cache.getChildrenFor(rootNode)[0])[0].first;
-    auto bNode = (*cache.getChildrenFor(aNode)[0])[0].first;
-    auto cNode = (*cache.getChildrenFor(bNode)[0])[0].first;
-    auto dNode = (*cache.getChildrenFor(cNode)[0])[0].first;
-    auto eNode = (*cache.getChildrenFor(dNode)[0])[0].first;
+    auto rootNode = cache.getRootNode();
+    auto aNode = cache.getChildrenFor(rootNode)[0];
+    auto bNode = cache.getChildrenFor(aNode)[0];
+    auto cNode = cache.getChildrenFor(bNode)[0];
+    auto dNode = cache.getChildrenFor(cNode)[0];
+    auto eNode = cache.getChildrenFor(dNode)[0];
     // eNode == draw outcome 3 times in a row
 
     auto pubState = cache.getPublicStateFor(eNode);
     cout << cache.getNodesFor(pubState).size() << " ";
-    EXPECT_TRUE(cache.getNodesFor(pubState).size() == 24); // 3! * 4
+    EXPECT_EQ(cache.getNodesFor(pubState).size(), 24); // 3! * 4
 
     auto expectedInfosets = cache.getInfosetsFor(pubState, Player(0));
     cout << expectedInfosets.size() << " ";
-    EXPECT_TRUE(expectedInfosets.size() == 12);
+    EXPECT_EQ(expectedInfosets.size(), 24);
 
     expectedInfosets = cache.getInfosetsFor(pubState, Player(1));
     cout << expectedInfosets.size() << " ";
-    EXPECT_TRUE(expectedInfosets.size() == 12);
+    EXPECT_EQ(expectedInfosets.size(), 12);
 
     const vector<shared_ptr<Observation>> obsHistory = pubState->getPublicHistory();
     const vector<shared_ptr<GoofSpielObservation>>
         goofObsHistory = Cast<Observation, GoofSpielObservation>(obsHistory);
     for (const auto &obs : goofObsHistory) {
-        EXPECT_TRUE(obs->roundResult_ == GoofspielRoundOutcome::PL0_DRAW);
+        EXPECT_EQ(obs->roundResult_, GoofspielRoundOutcome::PL0_DRAW);
     }
 }
 

@@ -113,11 +113,11 @@ vector<shared_ptr<Action>> PursuitState::getAvailableActionsFor(Player player) c
     return list;
 }
 
-OutcomeDistribution PursuitState::performActions(const vector<PlayerAction> &actions) const {
+OutcomeDistribution PursuitState::performActions(const vector <shared_ptr<Action>> &actions) const {
     vector<PursuitAction *> pursuitActions(actions.size());
     const auto purDomain = static_cast<const PursuitDomain *>(domain_);
-    for (auto &i : actions) {
-        pursuitActions[i.player] = dynamic_cast<PursuitAction *>(i.action.get());
+    for (int i = 0; i < actions.size(); ++i) {
+        pursuitActions[i] = dynamic_cast<PursuitAction *>(actions[i].get());
     }
     // number of all combinations
     auto actionssize = static_cast<unsigned int>(pursuitActions.size());
@@ -250,11 +250,11 @@ MMPursuitState::MMPursuitState(const Domain *domain, const vector<Pos> &p, doubl
     PursuitState(domain, p, prob), players_(players), numberOfMoves_(move(numberOfMoves)),
     currentNOM_(currentNOM), currentPlayer_(currentPlayer) {}
 
-OutcomeDistribution MMPursuitState::performActions(const vector<PlayerAction> &actions) const {
+OutcomeDistribution MMPursuitState::performActions(const vector <shared_ptr<Action>> &actions) const {
     vector<PursuitAction *> pursuitActions(actions.size());
     const auto purDomain = static_cast<const PursuitDomain *>(domain_);
-    for (auto &i : actions) {
-        pursuitActions[i.player] = dynamic_cast<PursuitAction *>(i.action.get());
+    for (int i = 0; i < actions.size(); ++i) {
+        pursuitActions[i] = dynamic_cast<PursuitAction *>(actions[i].get());
     }
     // unsigned int count = 2;
     auto actionssize = static_cast<unsigned int>(pursuitActions.size());
@@ -365,11 +365,11 @@ ObsPursuitState::ObsPursuitState(const Domain *domain, const vector<Pos> &p) :
 ObsPursuitState::ObsPursuitState(const Domain *domain, const vector<Pos> &p,
                                  double prob) : PursuitState(domain, p, prob) {}
 
-OutcomeDistribution ObsPursuitState::performActions(const vector<PlayerAction> &actions) const {
+OutcomeDistribution ObsPursuitState::performActions(const vector <shared_ptr<Action>> &actions) const {
     vector<PursuitAction *> pursuitActions(actions.size());
     const auto purDomain = static_cast<const PursuitDomain *>(domain_);
-    for (auto &i : actions) {
-        pursuitActions[i.player] = dynamic_cast<PursuitAction *>(i.action.get());
+    for (int i = 0; i < actions.size(); ++i) {
+        pursuitActions[i] = dynamic_cast<PursuitAction *>(actions[i].get());
     }
     // number of all combinations
     auto actionssize = static_cast<unsigned int>(pursuitActions.size());
@@ -462,7 +462,7 @@ PursuitDomain::PursuitDomain(unsigned int max,
 string PursuitDomain::getInfo() const {
     return "Pursuit evasion\nDimensions: " + to_string(height_) + " x " +
         to_string(width_) + "\nMax depth: " +
-        to_string(maxDepth_) + "\nPlayers' starting location: " +
+        to_string(maxStateDepth_) + "\nPlayers' starting location: " +
         rootStatesDistribution_[0].outcome.state->toString();
 }
 
@@ -483,12 +483,6 @@ PursuitDomain::PursuitDomain(unsigned int max, unsigned int numberOfPlayers,
 
     rootStatesDistribution_.push_back(OutcomeEntry(
         Outcome(state, Obs, shared_ptr<Observation>(), rewards)));
-}
-
-vector<Player> PursuitDomain::getPlayers() const {
-    auto players = vector<Player>(numberOfPlayers_);
-    std::iota(players.begin(), players.end(), 0);
-    return players;
 }
 
 PursuitDomain::PursuitDomain(unsigned int max, unsigned int numberOfPlayers,

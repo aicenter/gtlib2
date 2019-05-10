@@ -29,11 +29,9 @@
 
 namespace GTLib2 {
 
-using algorithms::createRootEFGNodes;
 using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::microseconds;
-
 
 bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
                          const optional<shared_ptr<AOH>> &currentInfoset,
@@ -53,7 +51,6 @@ bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
 
     return state != GiveUp;
 }
-
 
 FixedActionPlayer::FixedActionPlayer(const Domain &domain, Player playingPlayer, int actionIdx)
     : GamePlayingAlgorithm(domain, playingPlayer),
@@ -97,43 +94,56 @@ vector<double> playMatch(const Domain &domain,
     }
 
     auto generator = std::mt19937(matchSeed);
-    auto uniformDist = std::uniform_real_distribution<double>(0.0, 1.0);
 
-    shared_ptr<EFGNode> node;
-    EFGNodesDistribution nodesDist = createRootEFGNodes(domain.getRootStatesDistribution());
-    int chanceAction = pickRandom(nodesDist, uniformDist, generator);
-    node = nodesDist[chanceAction].first;
+    shared_ptr<EFGNode> node = createRootEFGNode(domain.getRootStatesDistribution());
 
-    while (!node->isTerminal()) {
-        auto infoset = node->getAOHInfSet();
+    while (node->type_ != TerminalNode) {
+        int playerAction;
         auto actions = node->availableActions();
-        Player pl = *node->getCurrentPlayer();
 
-        if (continuePlay[pl])
-            continuePlay[pl] = playForMicroseconds(algs[pl], infoset, moveBudgetMicrosec[pl]);
+        switch(node->type_) {
+            case ChanceNode:
+                playerAction = pickRandom(*node, generator);
+                break;
 
-        ProbDistribution probs;
-        if(continuePlay[pl]) {
-             auto maybeProbs = algs[pl]->getPlayDistribution(infoset);
-            if (maybeProbs == nullopt) continuePlay[pl] = false;
-            else probs = *maybeProbs;
+            case PlayerNode:
+            {
+                auto infoset = node->getAOHInfSet();
+                Player pl = node->getPlayer();
+
+                if (continuePlay[pl])
+                    continuePlay[pl] = playForMicroseconds(algs[pl], infoset, moveBudgetMicrosec[pl]);
+
+                ProbDistribution probs;
+                if(continuePlay[pl]) {
+                    auto maybeProbs = algs[pl]->getPlayDistribution(infoset);
+                    if (maybeProbs == nullopt) continuePlay[pl] = false;
+                    else probs = *maybeProbs;
+                }
+                if(!continuePlay[pl]) {
+                    probs = ProbDistribution(actions.size(), 1. / actions.size());
+                }
+
+                assert(probs.size() == actions.size());
+                double sumProbs = 0.0;
+                for (double prob : probs) sumProbs += prob;
+                assert(fabs(1.0 - sumProbs) < 1e-9);
+
+                playerAction = pickRandom(probs, generator);
+                break;
+            }
+
+            case TerminalNode:
+                assert(false); // unreachable
+                break;
+            default:
+                assert(false); // unrecognized option!
         }
-        if(!continuePlay[pl]) {
-            probs = ProbDistribution(actions.size(), 1. / actions.size());
-        }
 
-        assert(probs.size() == actions.size());
-        double sumProbs = 0.0;
-        for (double prob : probs) sumProbs += prob;
-        assert(fabs(1.0 - sumProbs) < 1e-9);
-
-        int playerAction = pickRandom(probs, uniformDist, generator);
-        nodesDist = node->performAction(actions[playerAction]);
-        chanceAction = pickRandom(nodesDist, uniformDist, generator);
-        node = nodesDist[chanceAction].first;
+        node = node->performAction(actions[playerAction]);
     }
 
-    return node->rewards_;
+    return node->getUtilities();
 }
 
 }  // namespace GTLib2

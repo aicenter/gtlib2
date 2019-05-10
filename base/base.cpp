@@ -96,21 +96,42 @@ bool ActionSequence::operator==(const ActionSequence &rhs) const {
 
 State::State(const Domain *domain, HashType hash) : domain_(domain), hash_(hash) {}
 
+OutcomeDistribution State::performPartialActions(const vector<PlayerAction> & plActions) const {
+    // no padding is necessary (but we don't check if the players are indeed the correct ones!)
+    auto actions = vector<shared_ptr<Action>>();
+    actions.reserve(domain_->getNumberOfPlayers());
+
+    for (int i = 0; i < domain_->getNumberOfPlayers(); ++i) {
+        shared_ptr<Action> actionFound;
+        for (const auto&[requestedPlayer, requestedAction] : plActions) {
+            if (Player(i) == requestedPlayer) {
+                actionFound = requestedAction;
+                break;
+            }
+        }
+
+        actions.emplace_back(actionFound ? actionFound : domain_->getNoAction());
+    }
+
+    return performActions(actions);
+}
+
 // todo: explicit max utility!!!!
-Domain::Domain(unsigned int maxDepth, unsigned int numberOfPlayers) :
-    maxDepth_(maxDepth), numberOfPlayers_(numberOfPlayers), maxUtility_(0) {}
+Domain::Domain(unsigned int maxStateDepth, unsigned int numberOfPlayers,
+               shared_ptr<Action> noAction, shared_ptr<Observation> noObservation) :
+    maxStateDepth_(maxStateDepth), numberOfPlayers_(numberOfPlayers), maxUtility_(0),
+    noAction_(move(noAction)), noObservation_(move(noObservation)) {
+    assert(noAction_->getId() == NO_ACTION);
+    assert(noObservation_->getId() == NO_OBSERVATION);
+}
 
 const OutcomeDistribution &Domain::getRootStatesDistribution() const {
     return rootStatesDistribution_;
 }
 
-int State::getNumberOfPlayers() const {
-    return static_cast<int> (getPlayers().size());
-}
-
 bool State::isPlayerMakingMove(Player pl) const {
     for (const auto movingPl : getPlayers()) {
-        if(movingPl == pl) return true;
+        if (movingPl == pl) return true;
     }
     return false;
 }

@@ -190,20 +190,23 @@ set(SOURCE_FILES
 
 set(TEST_FILES
         tests/domainsTest.h tests/domainsTest.cpp
-        tests/genericPokerTest.cpp
-        tests/goofSpielTest.cpp
-        tests/kriegSpielTest.cpp
-        tests/matchingPenniesTest.cpp
-        tests/oshiZumoTest.cpp
-        tests/matchingPenniesTest.cpp
-        tests/cacheTest.cpp
-        tests/cfrTest.cpp
         tests/algorithmTest.cpp
         tests/bestResponseTest.cpp
-        tests/utilityTest.cpp
-        tests/LPTest.cpp
+        tests/cacheTest.cpp
+        tests/cfrTest.cpp
+        tests/commonTest.cpp
+        tests/efgTest.cpp
         tests/exportTest.cpp
-        tests/hashingTest.cpp)
+        tests/genericPokerTest.cpp
+        tests/goofSpielTest.cpp
+        tests/hashingTest.cpp
+        tests/kriegSpielTest.cpp
+        tests/LPTest.cpp
+        tests/matchingPenniesTest.cpp
+        tests/matchingPenniesTest.cpp
+        tests/oshiZumoTest.cpp
+        tests/utilityTest.cpp
+        )
 
 # -------------------- Executables, linking --------------------
 

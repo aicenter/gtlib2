@@ -36,7 +36,6 @@ using std::setfill;
 using std::hex;
 using std::ofstream;
 using algorithms::treeWalkEFG;
-using algorithms::createRootEFGNode;
 
 
 struct Color {
@@ -135,12 +134,18 @@ void exportGraphViz(const Domain &domain, std::ostream &fs) {
 
         if (node->type_ == TerminalNode) {
             // Print nodes
-            fs << "\t\"" << node->history_ << "\" "
+            fs << "\t\"" << node->toString() << "\" "
                << "[fillcolor=\"" << color << "\""
                << ",label=\"" << node->getUtilities() << "\""
                << ",shape=\"" << shape << "\"]\n";
             return;
         }
+
+        // Print node
+        fs << "\t\"" << node->toString() << "\" "
+           << "[fillcolor=\"" << color << "\""
+           << ",label=\"" << node->toString() << "\""
+           << ",shape=\"" << shape << "\"]\n";
 
         for (auto &action : node->availableActions()) {
             auto child = node->performAction(action);
@@ -150,12 +155,6 @@ void exportGraphViz(const Domain &domain, std::ostream &fs) {
                << " -> "
                << "\"" << child->toString() << "\""
                << " [label=\"" << action->toString() << "\"]\n";
-
-            // Print nodes
-            fs << "\t\"" << node->toString() << "\" "
-               << "[fillcolor=\"" << color << "\""
-               << ",label=\"\""
-               << ",shape=\"" << shape << "\"]\n";
         }
     };
 

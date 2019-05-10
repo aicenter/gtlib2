@@ -28,11 +28,12 @@
 
 namespace GTLib2::domains {
 MatchingPenniesDomain::MatchingPenniesDomain(MatchingPenniesVariant variant)
-    : Domain(variant == AlternatingMoves ? 2 : 1, 2,
+    : Domain((variant == AlternatingMoves ? 2 : 1) + 1, 2,
              make_shared<MatchingPenniesAction>(),
              make_shared<MatchingPenniesObservation>()), variant_(variant) {
     maxUtility_ = 1.0;
-    auto rootState = make_shared<MatchingPenniesState>(this, array<ActionId, 2>{NO_ACTION, NO_ACTION});
+    auto rootState =
+        make_shared<MatchingPenniesState>(this, array<ActionId, 2>{NO_ACTION, NO_ACTION});
 
     auto obs0 = make_shared<MatchingPenniesObservation>(NO_OBSERVATION);
     auto obs1 = make_shared<MatchingPenniesObservation>(NO_OBSERVATION);
@@ -81,28 +82,33 @@ vector<shared_ptr<Action>> MatchingPenniesState::getAvailableActionsFor(Player p
 }
 
 OutcomeDistribution
-MatchingPenniesState::performActions(const vector<PlayerAction> &actions) const {
-    auto p0Action = dynamic_cast<MatchingPenniesAction *>(actions[0].action.get());
-    auto p1Action = dynamic_cast<MatchingPenniesAction *>(actions[1].action.get());
+MatchingPenniesState::performActions(const vector <shared_ptr<Action>> &actions) const {
+    auto p0Action = dynamic_cast<MatchingPenniesAction *>(actions[0].get());
+    auto p1Action = dynamic_cast<MatchingPenniesAction *>(actions[1].get());
 
     if (variant_ == SimultaneousMoves) {
-        assert(p0Action != nullptr || p1Action != nullptr); // Both actions must be performed
+        // Both actions must be performed
+        assert(p0Action->getId() != NO_ACTION && p1Action->getId() != NO_ACTION);
     } else {
-        assert(p0Action == nullptr || p1Action == nullptr); // Only one action can be performed
-        assert(moves_[0] == NO_ACTION || p1Action != nullptr); // pl0 played -> pl1 has to play.
+        // Only one action can be performed
+        assert(p0Action->getId() == NO_ACTION || p1Action->getId() == NO_ACTION);
+        // pl0 played -> pl1 has to play.
+        assert(moves_[0] == NO_ACTION || p1Action->getId() != NO_ACTION);
     }
 
     auto newState = make_shared<MatchingPenniesState>(
         domain_, array<ActionId, 2>{
-            p0Action == nullptr ? moves_[0] : p0Action->getId(),
-            p1Action == nullptr ? NO_ACTION : p1Action->getId()
+            p0Action->getId() == NO_ACTION ? moves_[0] : p0Action->getId(),
+            p1Action->getId()
         });
 
     const bool finalState = newState->moves_[0] != NO_ACTION && newState->moves_[1] != NO_ACTION;
     auto obs0 = make_shared<MatchingPenniesObservation>(
-        finalState ? (newState->moves_[1] == ActionHeads ? OtherHeads : OtherTails) : NO_OBSERVATION);
+        finalState ? (newState->moves_[1] == ActionHeads ? OtherHeads : OtherTails)
+                   : NO_OBSERVATION);
     auto obs1 = make_shared<MatchingPenniesObservation>(
-        finalState ? (newState->moves_[0] == ActionHeads ? OtherHeads : OtherTails) : NO_OBSERVATION);
+        finalState ? (newState->moves_[0] == ActionHeads ? OtherHeads : OtherTails)
+                   : NO_OBSERVATION);
 
     shared_ptr<MatchingPenniesObservation> pubObs;
     vector<double> rewards(2, 0.);

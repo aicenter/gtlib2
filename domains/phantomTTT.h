@@ -26,9 +26,6 @@
 #define DOMAINS_PHANTOMTTT_H_
 
 #include "base/base.h"
-#include <utility>
-#include <vector>
-#include <string>
 
 namespace GTLib2::domains {
 
@@ -92,7 +89,7 @@ class PhantomTTTState: public State {
 
     unsigned long countAvailableActionsFor(Player player) const override;
     vector <shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
-    OutcomeDistribution performActions(const vector <PlayerAction> &actions) const override;
+    OutcomeDistribution performActions(const vector <shared_ptr<Action>> &actions) const override;
     inline vector <Player> getPlayers() const final { return players_; }
     inline bool isTerminal() const override { return players_.empty(); };
 
@@ -113,7 +110,6 @@ class PhantomTTTDomain: public Domain {
     explicit PhantomTTTDomain(unsigned int max);
     ~PhantomTTTDomain() override = default;
     string getInfo() const final;
-    inline vector <Player> getPlayers() const final { return {Player(0), Player(1)}; }
 };
 }
 #endif  // DOMAINS_PHANTOMTTT_H_

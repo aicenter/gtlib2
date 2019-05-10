@@ -33,36 +33,19 @@
 
 namespace GTLib2 {
 
+extern std::uniform_real_distribution<double> uniformDist;
+
 /**
  * Return index of which event should be picked according to given probability distribution
  */
-int pickRandom(const ProbDistribution &probs,
-               std::uniform_real_distribution<double> &uniformDist,
-               std::mt19937 &generator);
+int pickRandom(const ProbDistribution &probs, std::mt19937 &generator);
 
+int pickRandom(const Distribution &probs, double probSum, std::mt19937 &generator);
 
-int pickRandom(const Distribution &probs, double probSum,
-               std::uniform_real_distribution<double> &uniformDist,
-               std::mt19937 &generator);
+int pickRandom(const EFGNode &node, std::mt19937 &generator);
 
+int pickUniform(unsigned int numOutcomes, std::mt19937 &generator);
 
-int pickRandom(const EFGNodesDistribution &probs,
-               std::uniform_real_distribution<double> &uniformDist,
-               std::mt19937 &generator);
-
-int pickUniform(unsigned int numOutcomes,
-                std::uniform_real_distribution<double> &uniformDist,
-                std::mt19937 &generator);
-
-inline int pickRandom(const ProbDistribution &probs, std::mt19937 &generator) {
-    auto uniformDist = std::uniform_real_distribution<double>(0.0, 1.0);
-    return pickRandom(probs, uniformDist, generator);
-}
-
-inline int pickRandom(const EFGNodesDistribution &probs, std::mt19937 &generator) {
-    auto uniformDist = std::uniform_real_distribution<double>(0.0, 1.0);
-    return pickRandom(probs, uniformDist, generator);
-}
 
 struct RandomLeafOutcome {
     vector<double> utilities; // for player 0
@@ -70,13 +53,10 @@ struct RandomLeafOutcome {
     double chanceReachProb;
 };
 
-RandomLeafOutcome pickRandomLeaf(const std::shared_ptr<EFGNode> &start,
-                                 std::uniform_real_distribution<double> &uniformDist,
-                                 std::mt19937 &generator);
+RandomLeafOutcome pickRandomLeaf(const std::shared_ptr<EFGNode> &start, std::mt19937 &generator);
 
 RandomLeafOutcome pickRandomLeaf(const std::shared_ptr<EFGNode> &start,
                                  const std::shared_ptr<GTLib2::Action> &firstAction,
-                                 std::uniform_real_distribution<double> &uniformDist,
                                  std::mt19937 &generator);
 
 }  // namespace std

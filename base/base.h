@@ -60,8 +60,8 @@ typedef uint32_t ObservationId;
  * Specify action that given player played.
  */
 struct PlayerAction {
-    Player player;
-    shared_ptr<Action> action;
+    const Player player;
+    const shared_ptr<Action> action;
 };
 
 /**
@@ -175,9 +175,13 @@ struct ActionObservationIds {
 
     bool operator==(const ActionObservationIds &rhs) const;
     bool operator!=(const ActionObservationIds &rhs) const;
+    const HashType getHash() const { return hashCombine(132456456, action, observation); }
 };
 
-const ActionObservationIds NO_ACTION_OBSERVATION {
+static_assert(sizeof(ActionObservationIds) == 8, "Should fit within size_t (64 bit)");
+static_assert(sizeof(ActionObservationIds) == sizeof(HashType), "Should have the same size");
+
+const ActionObservationIds NO_ACTION_OBSERVATION{
     .action = NO_ACTION,
     .observation = NO_OBSERVATION
 };
@@ -217,7 +221,9 @@ struct OutcomeEntry {
     double prob;
 
     inline OutcomeEntry(Outcome outcome_) : outcome(move(outcome_)), prob(1.0) {}
-    inline OutcomeEntry(Outcome outcome_, double prob_) : outcome(move(outcome_)), prob(prob_) {}
+    inline OutcomeEntry(Outcome outcome_, double prob_) : outcome(move(outcome_)), prob(prob_) {
+        assert(prob > 0); // domain should not produce outcomes that have zero probability!
+    }
 };
 
 /**
@@ -235,6 +241,7 @@ class InformationSet {
  public:
     InformationSet() = default;
     virtual bool operator==(const InformationSet &rhs) const = 0;
+    inline bool operator!=(const InformationSet &rhs) const { return !(rhs == *this); };
     virtual HashType getHash() const = 0;
     virtual string toString() const = 0;
 };
@@ -270,8 +277,8 @@ class AOH: public InformationSet {
 };
 
 struct InfosetAction {
-    shared_ptr<InformationSet> infoset;
-    shared_ptr<Action> action;
+    const shared_ptr<InformationSet> infoset;
+    const shared_ptr<Action> action;
     InfosetAction(shared_ptr<InformationSet> infoset, shared_ptr<Action> action)
         : infoset(move(infoset)), action(move(action)) {}
     inline HashType getHash() const { return infoset->getHash() + action->getHash(); }
@@ -320,10 +327,16 @@ class State {
     virtual vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const = 0;
 
     /**
-     * Performs actions given by vector of  <player, action> and return
-     * new outcome distribution.
+     * Performs actions given by vector of  <player, action>. If actions for some players
+     * are missing, they will be padded by NO_ACTION.
      */
-    virtual OutcomeDistribution performActions(const vector<PlayerAction> &actions) const = 0;
+    OutcomeDistribution performPartialActions(const vector<PlayerAction> &plActions) const;
+
+    /**
+     * Performs actions by all the players, indexed from 0.
+     * Players that do not have an action will receive special NO_ACTION.
+     */
+    virtual OutcomeDistribution performActions(const vector<shared_ptr<Action>> &actions) const = 0;
 
     /**
      * Returns players that can play in this state
@@ -331,11 +344,9 @@ class State {
     virtual vector<Player> getPlayers() const = 0;
 
     /**
-     * Returns number of players who can play in this state.
+     * Check if given player is making a move in this state
      */
-    virtual int getNumberOfPlayers() const;
-
-    virtual bool isPlayerMakingMove(Player pl) const;
+    bool isPlayerMakingMove(Player pl) const;
 
     /**
      * Returns whether there is no more transition to any other state
@@ -372,7 +383,7 @@ class State {
  */
 class Domain {
  public:
-    Domain(unsigned int maxDepth, unsigned int numberOfPlayers,
+    Domain(unsigned int maxStateDepth, unsigned int numberOfPlayers,
            shared_ptr<Action> noAction, shared_ptr<Observation> noObservation);
 
     virtual ~Domain() = default;
@@ -383,8 +394,6 @@ class Domain {
      */
     const OutcomeDistribution &getRootStatesDistribution() const;
 
-    virtual vector<Player> getPlayers() const = 0;
-
     /**
      * Returns number of players in the game.
      */
@@ -393,7 +402,7 @@ class Domain {
     /**
      * Returns default maximal depth used in algorithms.
      */
-    inline unsigned int getMaxDepth() const { return maxDepth_; }
+    inline unsigned int getMaxStateDepth() const { return maxStateDepth_; }
     inline double getMaxUtility() const { return maxUtility_; }
     inline double getMinUtility() const { return -maxUtility_; }
 
@@ -407,7 +416,7 @@ class Domain {
 
  protected:
     OutcomeDistribution rootStatesDistribution_;
-    unsigned int maxDepth_;
+    unsigned int maxStateDepth_;
     unsigned int numberOfPlayers_;
     double maxUtility_;
 
@@ -416,38 +425,26 @@ class Domain {
 };
 }  // namespace GTLib2
 
-MAKE_PTR_HASHABLE(GTLib2::InformationSet *)
-MAKE_PTR_EQ(GTLib2::InformationSet *)
-
-MAKE_PTR_HASHABLE(shared_ptr < GTLib2::InformationSet >)
-MAKE_PTR_EQ(shared_ptr < GTLib2::InformationSet >)
-
-MAKE_PTR_HASHABLE(shared_ptr < GTLib2::AOH >)
-MAKE_PTR_EQ(shared_ptr < GTLib2::AOH >)
-
-MAKE_PTR_HASHABLE(shared_ptr < GTLib2::Action >)
-MAKE_PTR_EQ(shared_ptr < GTLib2::Action >)
-
-MAKE_PTR_HASHABLE(shared_ptr < GTLib2::Observation >)
-MAKE_PTR_EQ(shared_ptr < GTLib2::Observation >)
-
-MAKE_PTR_HASHABLE(shared_ptr < GTLib2::State >)
-MAKE_PTR_EQ(shared_ptr < GTLib2::State >)
-
-MAKE_HASHABLE(GTLib2::Outcome)
+MAKE_EQ(GTLib2::InformationSet)
+MAKE_EQ(GTLib2::AOH)
+MAKE_EQ(GTLib2::Action)
+MAKE_EQ(GTLib2::Observation)
+MAKE_EQ(GTLib2::State)
 MAKE_EQ(GTLib2::Outcome)
-
-MAKE_PTR_HASHABLE(shared_ptr < GTLib2::ActionSequence >)
-MAKE_PTR_EQ(shared_ptr < GTLib2::ActionSequence >)
-
-MAKE_HASHABLE(GTLib2::ActionSequence)
 MAKE_EQ(GTLib2::ActionSequence)
+
+MAKE_HASHABLE(GTLib2::InformationSet)
+MAKE_HASHABLE(GTLib2::AOH)
+MAKE_HASHABLE(GTLib2::Action)
+MAKE_HASHABLE(GTLib2::Observation)
+MAKE_HASHABLE(GTLib2::State)
+MAKE_HASHABLE(GTLib2::Outcome)
+MAKE_HASHABLE(GTLib2::ActionSequence)
 
 namespace std { // NOLINT(cert-dcl58-cpp)
 
 template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
-std::ostream &
-operator<<(std::ostream &ss, vector<T> arr) {
+std::ostream &operator<<(std::ostream &ss, vector<T> arr) {
     ss << "[";
     for (int i = 0; i < arr.size(); ++i) {
         if (i == 0) ss << arr[i];

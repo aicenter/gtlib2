@@ -32,306 +32,363 @@
 
 namespace GTLib2 {
 
-EFGNodesDistribution EFGNode::performAction(const shared_ptr<Action> &action) const {
-    vector<PlayerAction> actionsToBePerformed(performedActionsInThisRound_);
-    actionsToBePerformed.emplace_back(*currentPlayer_, action);
-
-    // todo: add check that the given action can be performed!
-    //   maybe do the check only in debug mode to sustain performance?
-
-    EFGNodesDistribution newNodes;
-    if (remainingPlayersInTheRound_.size() == 1) {
-        std::sort(actionsToBePerformed.begin(), actionsToBePerformed.end(),
-                  [](const pair<Player, shared_ptr<Action>> &a,
-                     const pair<Player, shared_ptr<Action>> &b) {
-                      return (a.first < b.first);
-                  });
-
-        for (auto &player : state_->getDomain()->getPlayers()) {
-            auto action2 = std::find_if(actionsToBePerformed.begin(), actionsToBePerformed.end(),
-                                        [&player](pair<Player, shared_ptr<Action>> const &elem) {
-                                            return elem.first == player;
-                                        });
-            if (action2 == actionsToBePerformed.end()) {
-                actionsToBePerformed.emplace(
-                    actionsToBePerformed.begin() + player, player, make_shared<Action>(NO_ACTION));
-            }
-        }
-
-        // Last player in the round. So we proceed to the next state
-        auto probDist = state_->performActions(actionsToBePerformed);
-        for (auto const&[outcome, prob] : probDist) {
-
-            auto newNode = make_shared<EFGNode>(outcome.state, shared_from_this(),
-                                                outcome.privateObservations,
-                                                outcome.publicObservation,
-                                                outcome.rewards, prob * natureProbability_,
-                                                action, stateDepth_ + 1);
-            newNodes.emplace_back(newNode, prob);
-        }
-    } else {
-        auto newNode = make_shared<EFGNode>(shared_from_this(),
-                                            actionsToBePerformed, action, stateDepth_);
-        newNodes.emplace_back(newNode, 1.0);
+bool EFGChanceAction::operator==(const Action &that) const {
+    if (typeid(that) == typeid(*this)) {
+        const auto rhsAction = static_cast<const EFGChanceAction *>(&that);
+        return id_ == rhsAction->id_;
     }
-    return newNodes;
+    return false;
 }
 
-EFGNode::EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,
-                 const vector<shared_ptr<Observation>> &privateObservations,
-                 const shared_ptr<Observation> &publicObservation,
-                 const vector<double> &rewards,
-                 double natureProbability, shared_ptr<Action> incomingAction, int depth) {
-    state_ = move(newState);
-    privateObservations_ = privateObservations;
-    publicObservation_ = publicObservation;
-    rewards_ = rewards;
-    natureProbability_ = natureProbability;
-    stateDepth_ = depth;
-    remainingPlayersInTheRound_ = state_->getPlayers();
-    std::reverse(remainingPlayersInTheRound_.begin(), remainingPlayersInTheRound_.end());
-    if (!remainingPlayersInTheRound_.empty()) {
-        currentPlayer_ = remainingPlayersInTheRound_.back();
-    } else {
-        currentPlayer_ = nullopt;
-    }
-    parent_ = move(parent);
-    incomingAction_ = move(incomingAction);
-
-    generateDescriptor();
-    generateHash();
+EFGNode::EFGNode(EFGNodeType type, shared_ptr<EFGNode const> parent,
+                 shared_ptr<Action> incomingAction, shared_ptr<Outcome> lastOutcome,
+                 double chanceProb, OutcomeDistribution outcomeDist,
+                 vector<Player> remainingRoundPlayers, vector<PlayerAction> roundActions,
+                 unsigned int stateDepth) :
+    parent_(move(parent)), type_(type),
+    incomingAction_(move(incomingAction)), lastOutcome_(move(lastOutcome)),
+    lastChanceProb_(chanceProb), outcomeDist_(move(outcomeDist)),
+    chanceReachProb_(parent_ == nullptr ? 1.0 : parent_->chanceReachProb_ * chanceProb),
+    remainingRoundPlayers_(move(remainingRoundPlayers)),
+    currentPlayer_(type_ == PlayerNode ? remainingRoundPlayers[0] : -1),
+    roundActions_(move(roundActions)),
+    stateDepth_(stateDepth), efgDepth_(parent_ == nullptr ? 0 : parent_->efgDepth_ + 1),
+    history_(parent_ == nullptr
+             ? vector<ActionId>()
+             : extend(parent_->history_, incomingAction->getId())),
+    cumRewards_(parent_ == nullptr
+                ? vector<double>(2, 0.0) // todo: num of players? needs to be gotten from domain...
+                : hasNewOutcome() ? (parent_->cumRewards_ + lastOutcome_->rewards)
+                                  : parent_->cumRewards_),
+    hashNode_(hashWithSeed(history_.data(), history_.size() * sizeof(ActionId), 1412914847)) {
+    assert(history_.size() == efgDepth_);
+    // state terminal implies EFGNode terminal
+    assert(!parent_ || (!lastOutcome_->state->isTerminal() || type_ == TerminalNode));
 }
 
-EFGNode::EFGNode(shared_ptr<EFGNode const> parent,
-                 const vector<PlayerAction> &performedActions,
-                 shared_ptr<Action> incomingAction, int depth) {
-    state_ = parent->state_;
-    privateObservations_ = parent->privateObservations_;
-    publicObservation_ = parent->publicObservation_;
-    rewards_ = parent->rewards_;
-    natureProbability_ = parent->natureProbability_;
-    incomingAction_ = move(incomingAction);
-    stateDepth_ = depth;
-    performedActionsInThisRound_ = performedActions;
-    remainingPlayersInTheRound_ = parent->remainingPlayersInTheRound_;
-    remainingPlayersInTheRound_.pop_back();
-    if (!remainingPlayersInTheRound_.empty()) {
-        currentPlayer_ = remainingPlayersInTheRound_.back();
-    } else {
-        currentPlayer_ = nullopt;
+shared_ptr<EFGNode> EFGNode::performAction(const shared_ptr<Action> &action) const {
+    switch (type_) { // dispatch
+        case ChanceNode:
+            return performChanceAction(action);
+        case PlayerNode: {
+            auto newnode = performPlayerAction(action);
+            return newnode;
+        }
+        case TerminalNode:
+            assert(false); // Cannot perform any actions in terminal node!
+        default:
+            assert(false); // Unrecognized node type!
     }
-    parent_ = move(parent);
+}
 
-    generateDescriptor();
-    generateHash();
+shared_ptr<EFGNode> EFGNode::performChanceAction(const shared_ptr<Action> &action) const {
+    // Chance player is always the last player in a given round
+    assert(remainingRoundPlayers_.empty());
+
+    // There are two cases where we encounter chance node:
+    //
+    // 1) Chance is the only EFGNode in the current round
+    //     Because: All the players have played NO_ACTION (domain wants to do some kind of padding).
+    //              Or it is the initial distribution.
+    // 2) Chance comes after all of the round players have played.
+    //
+    // In both of them, we have already received the outcome distribution by which to play.
+
+    assert(action->getId() >= 0
+               && action->getId() < outcomeDist_.size()
+               && typeid(*action) == typeid(EFGChanceAction));
+
+    return createNodeForSpecificOutcome(action, outcomeDist_[action->getId()]);
+}
+
+shared_ptr<EFGNode> EFGNode::performPlayerAction(const shared_ptr<Action> &action) const {
+    // When doing player actions, there always must be someone to play.
+    assert(!remainingRoundPlayers_.empty());
+
+    auto updatedActions = extend(roundActions_, PlayerAction{currentPlayer_, action});
+
+    // When there are multiple players, we just pass along the data.
+    if (remainingRoundPlayers_.size() > 1) {
+        const auto shiftedPlayers = vector<Player>(remainingRoundPlayers_.begin() + 1,
+                                                   remainingRoundPlayers_.end());
+        return make_shared<EFGNode>(PlayerNode, shared_from_this(), action, lastOutcome_, 1.0,
+                                    OutcomeDistribution(), shiftedPlayers, updatedActions,
+                                    stateDepth_);
+    }
+
+    // Now we have all the actions of round players that are needed to go to next state.
+    const auto &currentState = lastOutcome_->state;
+    auto outcomeDistribution = currentState->performPartialActions(updatedActions);
+
+    // Should we create a chance node?
+    if (outcomeDistribution.size() > 1) {
+        return make_shared<EFGNode>(ChanceNode, shared_from_this(), action, lastOutcome_, 1.0,
+                                    outcomeDistribution, vector<Player>(), updatedActions,
+                                    stateDepth_);
+    }
+
+    // There is only one outcome.
+    assert(outcomeDistribution[0].prob == 1.0);
+    return createNodeForSpecificOutcome(action, outcomeDistribution[0]);
+}
+
+
+shared_ptr<EFGNode> EFGNode::createNodeForSpecificOutcome(
+    const shared_ptr<Action> &playerAction, const OutcomeEntry &specificOutcome) const {
+
+    // Now there is only one outcome, thus entering a new round. We will create either:
+    //
+    // - Terminal node - state is terminal, or we run out of state depth
+    // - Player node   - there needs to be at least one player playing in next round
+    // - Chance node   - there are no players playing (they use NO_ACTION).
+    //                   If there is only one chance outcome for the new chance node,
+    //                   we will create it anyway, as we need to make sure we store intermediate
+    //                   outcomes somewhere and don't have to accumulate them in some while loop
+    //                   and pass as a vector.
+    const auto &[outcome, chanceProb] = specificOutcome;
+
+    const shared_ptr<State> &nextState = outcome.state;
+    const Domain *domain = nextState->getDomain();
+    EFGNodeType childType = ChanceNode;
+    if (nextState->isTerminal()) {
+        childType = TerminalNode;
+    } else if (stateDepth_ + 1 == domain->getMaxStateDepth()) {
+        childType = TerminalNode;
+    } else if (!nextState->getPlayers().empty()) {
+        childType = PlayerNode;
+    }
+
+    if (childType != ChanceNode) {
+        // Enter new round without chance node.
+        return make_shared<EFGNode>(childType, shared_from_this(), playerAction,
+                                    make_shared<Outcome>(outcome), chanceProb,
+                                    OutcomeDistribution(), nextState->getPlayers(),
+                                    vector<PlayerAction>(), stateDepth_ + 1);
+    }
+
+    // We will return chance node, but we need to call NO_ACTION
+    // for all players to get distribution for the chance player.
+    const auto outcomeDistribution = nextState->performPartialActions(vector<PlayerAction>());
+
+    return make_shared<EFGNode>(ChanceNode, shared_from_this(), playerAction,
+                                make_shared<Outcome>(outcome), chanceProb, outcomeDistribution,
+                                vector<Player>(), vector<PlayerAction>(), stateDepth_ + 1);
 }
 
 unsigned long EFGNode::countAvailableActions() const {
-    if (currentPlayer_) {
-        return state_->countAvailableActionsFor(*currentPlayer_);
+    switch (type_) {
+        case PlayerNode:
+            return lastOutcome_->state->countAvailableActionsFor(currentPlayer_);
+        case ChanceNode:
+            return outcomeDist_.size();
+        case TerminalNode:
+            assert(false); // Not defined for terminal nodes!
+        default:
+            assert(false); // Unrecognized node type!
     }
-    return 0;
 }
 
 vector<shared_ptr<Action>> EFGNode::availableActions() const {
-    if (currentPlayer_) {
-        return state_->getAvailableActionsFor(*currentPlayer_);
+    switch (type_) {
+        case PlayerNode:
+            return lastOutcome_->state->getAvailableActionsFor(currentPlayer_);
+        case ChanceNode:
+            return createChanceActions();
+        case TerminalNode:
+            assert(false); // Not defined for terminal nodes!
+        default:
+            assert(false); // Unrecognized node type!
     }
-    return vector<shared_ptr<Action>>();
 }
 
-shared_ptr<AOH> EFGNode::getAOHInfSet() const {
-    if (currentPlayer_) {
-        auto aoh = getAOH(*currentPlayer_);
-        return make_shared<AOH>(*currentPlayer_, aoh);
-    } else {
-        // todo: shouldn't the return type be optional??
-        return nullptr;
+vector<shared_ptr<Action>> EFGNode::createChanceActions() const {
+    vector<shared_ptr<Action>> actions;
+    for (int i = 0; i < outcomeDist_.size(); ++i) {
+        actions.emplace_back(make_shared<EFGChanceAction>(
+            EFGChanceAction(i, outcomeDist_[i].prob)));
     }
+    return actions;
+}
+
+double EFGNode::chanceProbForAction(const shared_ptr<Action> &action) const {
+    assert(type_ == ChanceNode);
+    assert(typeid(*action) == typeid(EFGChanceAction));
+    return outcomeDist_[action->getId()].prob;
+}
+
+ProbDistribution EFGNode::chanceProbs() const {
+    assert(type_ == ChanceNode);
+    auto dist = ProbDistribution();
+    dist.reserve(outcomeDist_.size());
+    for (const auto &outcome : outcomeDist_) {
+        dist.push_back(outcome.prob);
+    }
+    return dist;
 }
 
 shared_ptr<AOH> EFGNode::getAOHAugInfSet(Player player) const {
-    auto aoh = getAOH(player);
-    return make_shared<AOH>(player, aoh);
+    return make_shared<AOH>(player, getAOids(player));
 }
 
 shared_ptr<EFGPublicState> EFGNode::getPublicState() const {
     if (parent_) {
-        return make_shared<EFGPublicState>(parent_->getPublicState(), publicObservation_);
+        return make_shared<EFGPublicState>(parent_->getPublicState(),
+                                           lastOutcome_->publicObservation);
     } else {
-        return make_shared<EFGPublicState>(publicObservation_);
+        return make_shared<EFGPublicState>(lastOutcome_->publicObservation);
     }
 }
 
-vector<ActionObservation> EFGNode::getAOH(Player player) const {
-    if (!parent_) {
-        return vector<ActionObservation>{
-            make_pair(NO_ACTION, privateObservations_[player]->getId())};
+vector<ActionObservationIds> EFGNode::getAOids(Player player) const {
+    if (!parent_) return vector<ActionObservationIds>{NO_ACTION_OBSERVATION};
+
+    ObservationId lastObservation = lastOutcome_->privateObservations[player]->getId();
+    auto aoh = parent_->getAOids(player);
+
+    switch (parent_->type_) {
+
+        case ChanceNode: // after chance, we always append private observation
+            if (lastOutcome_->state->isPlayerMakingMove(player)) {
+                aoh[aoh.size() - 1].observation = lastObservation;
+            } else {
+                aoh.emplace_back(ActionObservationIds{NO_ACTION, lastObservation});
+            }
+            break;
+
+        case PlayerNode:
+            // There are two possibilities of player node:
+            // - one that continues to the same round
+            // - one that continues to the next round
+            //   (because chance node is omitted - only one chance action)
+
+            if (parent_->getPlayer() == player) {
+                aoh.emplace_back(ActionObservationIds{incomingAction_->getId(), NO_OBSERVATION});
+            }
+            if (parent_->stateDepth_ != stateDepth_) {
+                aoh[aoh.size() - 1].observation = lastObservation;
+            }
+            break;
+
+        case TerminalNode:
+            assert(false); // parent cannot be terminal!
+            break;
+
+        default:
+            assert(false); // unrecognized option
     }
-    auto aoh = parent_->getAOH(player);
-    if (parent_->stateDepth_ != stateDepth_) {
-        auto action = std::find_if(parent_->performedActionsInThisRound_.begin(),
-                                   parent_->performedActionsInThisRound_.end(),
-                                   [&player](pair<int, shared_ptr<Action>> const &elem) {
-                                       return elem.first == player;
-                                   });
-        if (action != parent_->performedActionsInThisRound_.end()) {
-            aoh.emplace_back(action->second->getId(), privateObservations_[player]->getId());
-        } else if (*parent_->currentPlayer_ == player) {
-            aoh.emplace_back(incomingAction_->getId(), privateObservations_[player]->getId());
-        } else {
-            aoh.emplace_back(NO_ACTION, privateObservations_[player]->getId());
-        }
+
+    // Prevent agent getting some information by appending "no information" :-)
+    // Except for the potential root NO_ACTION_OBSERVATION
+    //   In this case no one will gain information by "no information",
+    //   because it's prefix of every history.
+    //   We do this to ensure that [aoh.size()-1] is always defined.
+    if (aoh.size() > 1 && aoh[aoh.size() - 1] == NO_ACTION_OBSERVATION) {
+        aoh.erase(aoh.end());
     }
+
     return aoh;
 }
 
-optional<Player> EFGNode::getCurrentPlayer() const {
+Player EFGNode::getPlayer() const {
+    assert(type_ == PlayerNode);
     return currentPlayer_;
 }
 
+vector<double> EFGNode::getUtilities() const {
+    assert(type_ == TerminalNode);
+    return cumRewards_;
+}
+
 shared_ptr<ActionSequence> EFGNode::getActionsSeqOfPlayer(Player player) const {
-    vector<InfosetAction> actSeq = parent_
-                                   ? parent_->getActionsSeqOfPlayer(player)->sequence_
-                                   : vector<InfosetAction>();
-    if (parent_ && parent_->currentPlayer_ && *parent_->currentPlayer_ == player) {
+    vector<InfosetAction> actSeq = !parent_
+                                   ? vector<InfosetAction>()
+                                   : parent_->getActionsSeqOfPlayer(player)->sequence_;
+
+    if (parent_ && parent_->currentPlayer_ == player) {
         actSeq.emplace_back(InfosetAction(parent_->getAOHInfSet(), incomingAction_));
     }
     return make_shared<ActionSequence>(actSeq);
 }
 
-shared_ptr<EFGNode const> EFGNode::getParent() const {
-    return parent_;
-}
+double EFGNode::getProbabilityOfActionSeq(Player player, const BehavioralStrategy &strat) const {
+    if (!parent_) return 1.0;
 
-shared_ptr<State> EFGNode::getState() const {
-    return state_;
-}
+    auto prob = parent_->getProbabilityOfActionSeq(player, strat);
+    if (prob == 0.0 || parent_->type_ == ChanceNode) return prob;
 
-bool EFGNode::isContainedInInformationSet(const shared_ptr<AOH> &infSet) const {
-    auto mySet = getAOHInfSet();
-    if (mySet == nullptr) {
-        return false;
-    }
-    return *mySet == *infSet;
-}
-
-const shared_ptr<Action> &EFGNode::getIncomingAction() const {
-    return incomingAction_;
-}
-
-double EFGNode::getProbabilityOfActionsSeqOfPlayer(Player player,
-                                                   const BehavioralStrategy &strat) const {
-    if (!parent_) {
-        return 1.0;
-    }
-
-    auto prob = parent_->getProbabilityOfActionsSeqOfPlayer(player, strat);
-
-    if (*parent_->getCurrentPlayer() == player) {
+    if (parent_->getPlayer() == player) {
         auto parentInfSet = parent_->getAOHInfSet();
         auto &actionsProbs = strat.at(parentInfSet);
-        double actionProb = (actionsProbs.find(incomingAction_) != actionsProbs.end()) ?
-                            actionsProbs.at(incomingAction_) : 0.0;
-        return actionProb * prob;
+        double actionProb = (actionsProbs.find(incomingAction_) != actionsProbs.end())
+                            ? actionsProbs.at(incomingAction_) : 0.0;
+        return prob * actionProb;
     } else {
         return prob;
     }
 }
 
-void EFGNode::generateDescriptor() const {
-    if (parent_) {
-        descriptor_ = parent_->descriptor_;
-        descriptor_.push_back(incomingAction_->getId());
-    }
-    if (!parent_ || stateDepth_ != parent_->stateDepth_) {
-        for (const auto &observation : privateObservations_) {
-            descriptor_.push_back(observation->getId());
-        }
-    }
-    if (!isTerminal()) {
-        descriptor_.push_back(*currentPlayer_);
-    }
-}
-
-void EFGNode::generateHash() const {
-    hashNode_ = hashWithSeed(descriptor_.data(), descriptor_.size() * sizeof(uint32_t), 1412914847);
-}
-
-bool EFGNode::compareAOH(const EFGNode &rhs) const {
-    if (parent_) {
-        if (stateDepth_ != parent_->stateDepth_) {
-            for (int i = 0; i < privateObservations_.size(); ++i) {
-                if (privateObservations_[i]->getId() != rhs.privateObservations_[i]->getId()) {
-                    return false;
-                }
-            }
-        }
-        return *incomingAction_ == *rhs.incomingAction_ && parent_->compareAOH(*rhs.parent_);
-    }
-    for (int i = 0; i < privateObservations_.size(); ++i) {
-        if (privateObservations_[i]->getId() != rhs.privateObservations_[i]->getId()) {
-            return false;
-        }
-    }
-    return true;
-}
-
 bool EFGNode::operator==(const EFGNode &rhs) const {
     if (hashNode_ != rhs.hashNode_) return false;
-    if (descriptor_.size() != rhs.descriptor_.size()) return false;
-    return !memcmp(descriptor_.data(), rhs.descriptor_.data(), descriptor_.size());
+    if (history_.size() != rhs.history_.size()) return false;
+    return !memcmp(history_.data(), rhs.history_.data(), history_.size());
 }
 
-int EFGNode::getEFGDepth() const {
-    if (!parent_) return 0;
-    return 1 + parent_->getEFGDepth();
-}
-
-ObservationId EFGNode::getLastObservationIdOfCurrentPlayer() const {
-    return privateObservations_[*currentPlayer_]->getId();
-}
 
 string EFGNode::toString() const {
-    string s = "Player: " + to_string(*currentPlayer_) + "\nIncoming action: ";
-    s += incomingAction_ ? incomingAction_->toString() : "none (root)";
-    s += ", nature probability: " + to_string(natureProbability_) + "\n" +
-        "State: " + state_->toString() + "\nRewards: [";
-    std::stringstream rews;
-    std::copy(rewards_.begin(), rewards_.end(), std::ostream_iterator<int>(rews, ", "));
-    std::stringstream rem;
-    std::copy(remainingPlayersInTheRound_.begin(), remainingPlayersInTheRound_.end(),
-              std::ostream_iterator<int>(rem, ", "));
-    s += rews.str().substr(0, rews.str().length() - 2) + "]\nObs: [";
-    for (auto &i : privateObservations_) {
-        s += i->toString() + " ";
-    }
-    s += "]\nRemaining players: [" + rem.str().substr(0, rem.str().length() - 2)
-        + "]\nPerformed actions in this round:\n";
-    for (auto &i : performedActionsInThisRound_) {
-        s += to_string(i.first) + "  " + i.second->toString() + "\n";
-    }
-    return s;
+    if (!parent_) return "∅";
+    return parent_->toString() + "," + to_string(incomingAction_->getId());
 }
 
-int EFGNode::getNumberOfRemainingPlayers() const {
-    return static_cast<int>(remainingPlayersInTheRound_.size());
-}
 
-ObservationId EFGNode::getLastObservationOfPlayer(Player player) const {
-    return privateObservations_[player]->getId();
-}
-int EFGNode::getStateDepth() const {
-    return stateDepth_;
-}
-ActionId EFGNode::getIncomingActionId() const {
-    return incomingAction_->getId();
-}
-bool EFGNode::noActionPerformedInThisRound() const {
-    return performedActionsInThisRound_.empty();
-}
-bool EFGNode::isTerminal() const {
-    return currentPlayer_ == nullopt;
+// todo: move to efg.cpp
+shared_ptr<EFGNode> createRootEFGNode(const OutcomeDistribution &rootOutcomes) {
+    if (rootOutcomes.size() > 1) {
+        return make_shared<EFGNode>(ChanceNode, shared_ptr<EFGNode const>(), shared_ptr<Action>(),
+                                    shared_ptr<Outcome>(), 1.0, rootOutcomes, vector<Player>(),
+                                    vector<PlayerAction>(), 0);
+    }
+
+    // This is similar to EFGNode::createNodeForSpecificOutcome,
+    // it's just that we do this for the root distribution
+    const auto &[outcome, chanceProb] = rootOutcomes[0];
+    assert(chanceProb == 1.0);
+    const shared_ptr<State> &rootState = outcome.state;
+
+    EFGNodeType childType = ChanceNode;
+    if (rootState->isTerminal()) {
+        // some weird game where no one plays and players get utility right away
+        childType = TerminalNode;
+    } else if (!rootState->getPlayers().empty()) {
+        childType = PlayerNode;
+    }
+
+    if (childType != ChanceNode) {
+        // Enter new round without chance node.
+        // Note that the state depth is set to 1 -- only the root chance node
+        // gets to have state depth equal to 0
+        return make_shared<EFGNode>(childType,
+                                    shared_ptr<EFGNode const>(),
+                                    shared_ptr<Action>(),
+                                    make_shared<Outcome>(outcome),
+                                    chanceProb,
+                                    OutcomeDistribution(),
+                                    rootState->getPlayers(),
+                                    vector<PlayerAction>(),
+                                    1);
+    }
+
+    // We will return chance node, but we need to call NO_ACTION
+    // for all players to get distribution for the chance player.
+    const auto outcomeDistribution = rootState->performPartialActions(vector<PlayerAction>());
+    return make_shared<EFGNode>(ChanceNode,
+                                shared_ptr<EFGNode const>(),
+                                shared_ptr<Action>(),
+                                make_shared<Outcome>(outcome),
+                                chanceProb,
+                                outcomeDistribution,
+                                vector<Player>(),
+                                vector<PlayerAction>(),
+                                0);
 }
 
 EFGPublicState::EFGPublicState(const shared_ptr<Observation> &publicObservation) {

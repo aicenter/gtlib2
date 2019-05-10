@@ -49,25 +49,23 @@ using domains::ActionTails;
 
 
 TEST(LPSolver, BestResponseToEquilibrium) {
-    MatchingPenniesDomain d(AlternatingMoves);
-    auto v = algorithms::findEquilibriumTwoPlayersZeroSum(d);
-    auto strat = std::get<1>(v);
-    auto brsVal = algorithms::bestResponseTo(strat, 0, 1, d, 5);
-    double val = std::get<1>(brsVal);
-    EXPECT_TRUE(val == 0.0);
+    MatchingPenniesDomain domain(AlternatingMoves);
+    auto stratValue = algorithms::findEquilibriumTwoPlayersZeroSum(domain);
+    auto brsVal = algorithms::bestResponseTo(stratValue.strategy, 0, 1, domain);
+    EXPECT_EQ(stratValue.value, 0.0);
 }
 
 TEST(LPSolver, EquilibriumNormalFormLP) {
-    MatchingPenniesDomain d(AlternatingMoves);
-    auto v = algorithms::findEquilibriumTwoPlayersZeroSum(d);
-    auto strat = std::get<1>(v);
+    MatchingPenniesDomain domain(AlternatingMoves);
+    auto stratValue = algorithms::findEquilibriumTwoPlayersZeroSum(domain);
     auto actionHeads = make_shared<MatchingPenniesAction>(ActionHeads);
     auto actionTails = make_shared<MatchingPenniesAction>(ActionTails);
-    double headsProb = (*strat.begin()).second[actionHeads];
-    double tailsProb = (*strat.begin()).second[actionTails];
+    double headsProb = (*stratValue.strategy.begin()).second[actionHeads];
+    double tailsProb = (*stratValue.strategy.begin()).second[actionTails];
 
-    EXPECT_TRUE(std::get<0>(v) == 0);
-    EXPECT_TRUE(headsProb == 0.5 && tailsProb == 0.5);
+    EXPECT_EQ(stratValue.value, 0);
+    EXPECT_EQ(headsProb, 0.5);
+    EXPECT_EQ(tailsProb, 0.5);
 }
 
 }  // namespace GTLib2

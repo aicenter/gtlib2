@@ -65,9 +65,6 @@ class OshiZumoDomain: public Domain {
  public:
     explicit OshiZumoDomain(OshiZumoSettings settings);
     string getInfo() const override;
-    inline vector <Player> getPlayers() const final {
-        return {0, 1};
-    }
     const int getStartingLocation() const;
     const int getMinBid() const;
     const bool isOptimalEndGame() const;
@@ -89,7 +86,7 @@ class OshiZumoState: public State {
 
     vector <shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
     unsigned long countAvailableActionsFor(Player player) const override;
-    OutcomeDistribution performActions(const vector <PlayerAction> &actions) const override;
+    OutcomeDistribution performActions(const vector <shared_ptr<Action>> &actions) const override;
     vector <Player> getPlayers() const override;
     bool isTerminal() const override;
     string toString() const override;

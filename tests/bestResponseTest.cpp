@@ -51,24 +51,23 @@ using domains::GoofSpielAction;
 TEST(BestResponse, TestSmallDomain) {
     MatchingPenniesDomain domain(AlternatingMoves);
 
-    auto initNodes = algorithms::createRootEFGNodes(domain.getRootStatesDistribution());
+    auto rootNode = createRootEFGNode(domain.getRootStatesDistribution());
     auto tailAction = make_shared<MatchingPenniesAction>(ActionTails);
     auto headAction = make_shared<MatchingPenniesAction>(ActionHeads);
 
-    auto rootNode = initNodes[0].first;
     auto rootInfoset = rootNode->getAOHInfSet();
 
-    auto childNode = rootNode->performAction(headAction)[0].first;
+    auto childNode = rootNode->performAction(headAction);
     auto childInfoset = childNode->getAOHInfSet();
 
     BehavioralStrategy stratHeads;
-    auto action = make_shared<MatchingPenniesAction>(ActionHeads);
-    stratHeads[rootInfoset] = {{action, 1.0}};
+    stratHeads[rootInfoset] = {{headAction, 1.0}};
 
-    auto brsVal = algorithms::bestResponseTo(stratHeads, Player(0), Player(1), domain, 2);
-    auto optAction = (*brsVal.first[childInfoset].begin()).first;
+    auto response = algorithms::bestResponseTo(stratHeads, Player(0), Player(1), domain);
+    auto infosetStrategy = response.strategy[childInfoset];
+    auto optimalAction = (*infosetStrategy.begin()).first;
 
-    EXPECT_TRUE(*optAction == *tailAction);
+    EXPECT_EQ(*optimalAction, *tailAction);
 }
 
 TEST(BestResponse, GoofspielFullDepthCard4) {
@@ -81,28 +80,28 @@ TEST(BestResponse, GoofspielFullDepthCard4) {
     InfosetCache cache(domain);
     StrategyProfile profile = getUniformStrategy(cache);
 
-    auto lowestCardAction = make_shared<GoofSpielAction>(0, 1);
-    auto secondLowestCardAction = make_shared<GoofSpielAction>(0, 2);
-    auto thirdLowestCardAction = make_shared<GoofSpielAction>(0, 3);
-    auto fourthLowestCardAction = make_shared<GoofSpielAction>(0, 4);
+    // specify which card should the opponent play at each depth of the tree
+    // the sequence of players playing goes like this:
+    // C01C01C0101
+    unordered_map<int, shared_ptr<GoofSpielAction>> actions;
+    actions.emplace(1, make_shared<GoofSpielAction>(0, 1));
+    actions.emplace(4, make_shared<GoofSpielAction>(0, 2));
+    actions.emplace(7, make_shared<GoofSpielAction>(0, 3));
+    actions.emplace(9, make_shared<GoofSpielAction>(0, 4));
 
-    auto setAction = [&](shared_ptr<EFGNode> node) {
-        auto infoset = node->getAOHInfSet();
-        if (node->getEFGDepth() == 0) {
-            playOnlyAction(profile[opponent][infoset], lowestCardAction);
-        } else if (node->getEFGDepth() == 2) {
-            playOnlyAction(profile[opponent][infoset], secondLowestCardAction);
-        } else if (node->getEFGDepth() == 4) {
-            playOnlyAction(profile[opponent][infoset], thirdLowestCardAction);
-        } else if (node->getEFGDepth() == 6) {
-            playOnlyAction(profile[opponent][infoset], fourthLowestCardAction);
+    auto setAction = [&](shared_ptr <EFGNode> node) {
+        if(node->type_ != PlayerNode) return;
+
+        if(node->getPlayer() == opponent) {
+            auto infoset = node->getAOHInfSet();
+            playOnlyAction(profile[opponent][infoset], actions[node->efgDepth_]);
         }
     };
     algorithms::treeWalkEFG(domain, setAction);
 
     auto bestResponse = algorithms::bestResponseTo(profile[opponent], opponent, player, domain);
 
-    EXPECT_TRUE(std::abs(bestResponse.second - 5.25) <= 0.001);
+    EXPECT_LE(std::abs(bestResponse.value - 5.25), 0.001);
 }
 
 TEST(BestResponse, GoofspielDepth2Card4) {
@@ -118,44 +117,48 @@ TEST(BestResponse, GoofspielDepth2Card4) {
     auto lowestCardAction = make_shared<GoofSpielAction>(0, 1);
     auto secondLowestCardAction = make_shared<GoofSpielAction>(0, 2);
 
-    auto setAction = [&](shared_ptr<EFGNode> node) {
+    auto setAction = [&](shared_ptr <EFGNode> node) {
+        if(node->type_ != PlayerNode) return;
+
         auto infoset = node->getAOHInfSet();
-        if (node->getEFGDepth() == 0) {
+        if (node->efgDepth_ == 1) {
             playOnlyAction(profile[opponent][infoset], lowestCardAction);
-        } else if (node->getEFGDepth() == 2) {
+        } else if (node->efgDepth_ == 4) {
             playOnlyAction(profile[opponent][infoset], secondLowestCardAction);
         }
     };
     algorithms::treeWalkEFG(domain, setAction);
 
     auto bestResponse = algorithms::bestResponseTo(profile[opponent], opponent, player, domain);
-
-    EXPECT_TRUE(std::abs(bestResponse.second - 5) <= 0.001);
+    EXPECT_LE(std::abs(bestResponse.value - 5), 0.001);
 }
 
-TEST(BestResponse, GoofspielDepth1Card13) {
-    GoofSpielDomain domain
-        ({variant:  CompleteObservations, numCards: 13, fixChanceCards: false, chanceCards: {}});
-
-    auto player = Player(1);
-    auto opponent = Player(0);
-
-    InfosetCache cache(domain);
-    StrategyProfile profile = getUniformStrategy(cache, 1);
-
-    auto lowestCardAction = make_shared<GoofSpielAction>(0, 1);
-
-    auto setAction = [&](shared_ptr<EFGNode> node) {
-        auto infoset = node->getAOHInfSet();
-        if (node->getEFGDepth() == 0) {
-            playOnlyAction(profile[opponent][infoset], lowestCardAction);
-        }
-    };
-    algorithms::treeWalkEFG(domain, setAction, 1);
-
-    auto bestResponse = algorithms::bestResponseTo(profile[opponent], opponent, player, domain, 1);
-
-    EXPECT_TRUE(std::abs(bestResponse.second - 7) <= 0.001);
-}
+// todo: im not sure what to do with max depth and best response at the moment
+//   seems like a weird concept. I think only the domain should specify optional max depth
+//TEST(BestResponse, GoofspielDepth1Card13) {
+//    GoofSpielDomain domain
+//        ({variant:  CompleteObservations, numCards: 13, fixChanceCards: false, chanceCards: {}});
+//
+//    auto player = Player(1);
+//    auto opponent = Player(0);
+//
+//    InfosetCache cache(domain);
+//    StrategyProfile profile = getUniformStrategy(cache, 1);
+//
+//    auto lowestCardAction = make_shared<GoofSpielAction>(0, 1);
+//
+//    auto setAction = [&](shared_ptr<EFGNode> node) {
+//        if(node->type_ != PlayerNode) return;
+//
+//        if (node->efgDepth_ == 1) {
+//            auto infoset = node->getAOHInfSet();
+//            playOnlyAction(profile[opponent][infoset], lowestCardAction);
+//        }
+//    };
+//    algorithms::treeWalkEFG(domain, setAction, 1);
+//
+//    auto bestResponse = algorithms::bestResponseTo(profile[opponent], opponent, player, domain);
+//    EXPECT_LE(std::abs(bestResponse.value - 7), 0.001);
+//}
 
 }  // namespace GTLib2

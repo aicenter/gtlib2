@@ -61,10 +61,10 @@ GoofSpielDomain testDomainsGoofSpiel[] = { // NOLINT(cert-err58-cpp)
 
 
 TEST(Goofspiel, BuildGameTreeAndCheckSizes) {
-    vector<DomainStatistics> expectedResults = {
+    vector<DomainStatistics> expectedStats = {
         {
             .max_EFGDepth   = 2,
-            .max_StateDepth = 1,
+            .max_StateDepth = 2,
             .num_nodes      = 3,
             .num_terminals  = 1,
             .num_states     = 2,
@@ -72,35 +72,36 @@ TEST(Goofspiel, BuildGameTreeAndCheckSizes) {
             .num_infosets   = {1, 1},
             .num_sequences  = {2, 2},
         }, {
-            .max_EFGDepth   = 4,
-            .max_StateDepth = 2,
-            .num_nodes      = 30,
+            .max_EFGDepth   = 5,
+            .max_StateDepth = 3,
+            .num_nodes      = 31,
             .num_terminals  = 8,
-            .num_states     = 18,
+            .num_states     = 19,
             .num_histories  = {10, 12},
             .num_infosets   = {10, 10},
             .num_sequences  = {13, 13},
         }, {
-            .max_EFGDepth   = 6,
-            .max_StateDepth = 3,
-            .num_nodes      = 822,
+            .max_EFGDepth   = 8,
+            .max_StateDepth = 4,
+            .num_nodes      = 850,
             .num_terminals  = 216,
-            .num_states     = 489,
+            .num_states     = 490,
             .num_histories  = {273, 333},
             .num_infosets   = {273, 273},
             .num_sequences  = {334, 334},
         }, {
             .max_EFGDepth   = 2,
-            .max_StateDepth = 1,
+            .max_StateDepth = 2,
             .num_nodes      = 3,
             .num_terminals  = 1,
             .num_states     = 2,
             .num_histories  = {1, 1},
             .num_infosets   = {1, 1},
             .num_sequences  = {2, 2},
-        }, {
+        },
+        {
             .max_EFGDepth   = 4,
-            .max_StateDepth = 2,
+            .max_StateDepth = 3,
             .num_nodes      = 15,
             .num_terminals  = 4,
             .num_states     = 9,
@@ -109,7 +110,7 @@ TEST(Goofspiel, BuildGameTreeAndCheckSizes) {
             .num_sequences  = {7, 7},
         }, {
             .max_EFGDepth   = 6,
-            .max_StateDepth = 3,
+            .max_StateDepth = 4,
             .num_nodes      = 139,
             .num_terminals  = 36,
             .num_states     = 82,
@@ -118,7 +119,7 @@ TEST(Goofspiel, BuildGameTreeAndCheckSizes) {
             .num_sequences  = {58, 58},
         }, {
             .max_EFGDepth   = 2,
-            .max_StateDepth = 1,
+            .max_StateDepth = 2,
             .num_nodes      = 3,
             .num_terminals  = 1,
             .num_states     = 2,
@@ -126,26 +127,26 @@ TEST(Goofspiel, BuildGameTreeAndCheckSizes) {
             .num_infosets   = {1, 1},
             .num_sequences  = {2, 2},
         }, {
-            .max_EFGDepth   = 4,
-            .max_StateDepth = 2,
-            .num_nodes      = 30,
+            .max_EFGDepth   = 5,
+            .max_StateDepth = 3,
+            .num_nodes      = 31,
             .num_terminals  = 8,
-            .num_states     = 18,
+            .num_states     = 19,
             .num_histories  = {10, 12},
             .num_infosets   = {10, 10},
             .num_sequences  = {13, 13},
         }, {
-            .max_EFGDepth   = 6,
-            .max_StateDepth = 3,
-            .num_nodes      = 822,
+            .max_EFGDepth   = 8,
+            .max_StateDepth = 4,
+            .num_nodes      = 850,
             .num_terminals  = 216,
-            .num_states     = 489,
+            .num_states     = 490,
             .num_histories  = {273, 333},
             .num_infosets   = {213, 213},
             .num_sequences  = {262, 262},
         }, {
             .max_EFGDepth   = 2,
-            .max_StateDepth = 1,
+            .max_StateDepth = 2,
             .num_nodes      = 3,
             .num_terminals  = 1,
             .num_states     = 2,
@@ -154,7 +155,7 @@ TEST(Goofspiel, BuildGameTreeAndCheckSizes) {
             .num_sequences  = {2, 2},
         }, {
             .max_EFGDepth   = 4,
-            .max_StateDepth = 2,
+            .max_StateDepth = 3,
             .num_nodes      = 15,
             .num_terminals  = 4,
             .num_states     = 9,
@@ -163,7 +164,7 @@ TEST(Goofspiel, BuildGameTreeAndCheckSizes) {
             .num_sequences  = {7, 7},
         }, {
             .max_EFGDepth   = 6,
-            .max_StateDepth = 3,
+            .max_StateDepth = 4,
             .num_nodes      = 139,
             .num_terminals  = 36,
             .num_states     = 82,
@@ -173,10 +174,11 @@ TEST(Goofspiel, BuildGameTreeAndCheckSizes) {
         }
     };
 
-    for (int i = 0; i < expectedResults.size(); ++i) {
-        DomainStatistics stats;
-        calculateDomainStatistics(testDomainsGoofSpiel[i], &stats);
-        EXPECT_EQ(stats, expectedResults[i]);
+    for (int i = 0; i < expectedStats.size(); ++i) {
+        cout << ">> checking domain [" << i << "] " << testDomainsGoofSpiel[i].getInfo() << endl;
+        DomainStatistics actualStats;
+        calculateDomainStatistics(testDomainsGoofSpiel[i], &actualStats);
+        EXPECT_EQ(actualStats, expectedStats[i]);
     }
 }
 
@@ -198,20 +200,19 @@ TEST(Goofspiel, checkBinaryUtilities) {
 
     int numViolations;
     auto binaryChecker = [&numViolations](shared_ptr<EFGNode> node) {
-        if (!node->isTerminal()) return;
-        if (node->rewards_[0] != 1.0
-            && node->rewards_[0] != -1.0
-            && node->rewards_[0] != 0.0)
+        if (node->type_ != TerminalNode) return;
+        if (abs(node->getUtilities()[0]) - 1.0 > 1e-5
+            && node->getUtilities()[0] > 1e-5)
             numViolations++;
     };
 
     numViolations = 0;
     treeWalkEFG(binary, binaryChecker);
-    EXPECT_TRUE(numViolations == 0);
+    EXPECT_EQ(numViolations, 0);
 
     numViolations = 0;
     treeWalkEFG(nonBinary, binaryChecker);
-    EXPECT_TRUE(numViolations == 84);
+    EXPECT_EQ(numViolations, 42);
 }
 
 // todo: create an actual domain test!

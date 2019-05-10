@@ -31,25 +31,18 @@ bool EFGCache::hasAllChildren(const shared_ptr<EFGNode> &node) const {
     auto it = nodesChildren_.find(node);
     if (it == nodesChildren_.end()) return false;
 
-    auto &nodeDist = it->second;
-    bool hasMissing = false;
-    for (auto &ptr : nodeDist) {
-        if (ptr == nullptr) {
-            hasMissing = true;
-            break;
-        }
+    for (auto &childNode : it->second) {
+        if (!childNode) return false;
     }
-
-    return !hasMissing;
+    return true;
 }
 
 bool EFGCache::hasAnyChildren(const shared_ptr<EFGNode> &node) const {
     auto it = nodesChildren_.find(node);
     if (it == nodesChildren_.end()) return false;
 
-    auto &nodeDist = it->second;
-    for (auto &ptr : nodeDist) {
-        if (ptr != nullptr) return true;
+    for (auto &childNode : it->second) {
+        if (childNode) return true;
     }
 
     return false;
@@ -59,87 +52,72 @@ bool EFGCache::hasChildren(const shared_ptr<EFGNode> &node,
                            const shared_ptr<Action> &action) const {
     auto it = nodesChildren_.find(node);
     if (it == nodesChildren_.end()) return false;
-    auto &distributionEntry = it->second;
+    const EFGChildNodes &actionNodes = it->second;
     auto id = action->getId();
-    return distributionEntry.size() >= id && distributionEntry[id] != nullptr;
+    return actionNodes.size() >= id && actionNodes[id];
 }
 
-EFGActionNodesDistribution &EFGCache::getCachedNode(const shared_ptr<EFGNode> &node) {
-    auto maybeNode = nodesChildren_.find(node);
-
+EFGChildNodes &EFGCache::getCachedNode(const shared_ptr<EFGNode> &node) {
     // Node not found -- maybe trying to get children
     // for a node gotten outside from cache?
-    if (maybeNode == nodesChildren_.end()) {
+    if (nodesChildren_.find(node) == nodesChildren_.end()) {
+        if (*getRootNode() == *node) {
+            processNode(getRootNode());
 
-        for (auto &rootNode : getRootNodes()) {
-            if (*rootNode.first == *node) {
-                processNode(rootNode.first);
-                // createNode must append to nodesChildren
-                return nodesChildren_[node];
-            }
+            // createNode must append to nodesChildren
+            return nodesChildren_[node];
         }
 
-        // not found even in root nodes :/
-        assert(false);
+        assert(false); // not found even in root nodes :/
     }
 
     return nodesChildren_[node];
 }
 
 
-const EFGNodesDistribution &
-EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action) {
-    auto &cachedNodeDist = getCachedNode(node);
+const shared_ptr<EFGNode> &
+EFGCache::getChildFor(const shared_ptr<EFGNode> &node, const shared_ptr<Action> &action) {
+    EFGChildNodes &nodes = getCachedNode(node);
 
     // fetch from cache if possible
     const auto actionId = action->getId();
-    if (cachedNodeDist.size() >= actionId && cachedNodeDist[actionId] != nullptr) {
-        return *cachedNodeDist[action->getId()];
-    }
+    if (nodes.size() >= actionId && nodes[actionId]) return nodes[actionId];
 
     // create new nodes and save them to cache
-    assert(cachedNodeDist.size() > actionId);
-    auto newDist = node->performAction(action);
-    cachedNodeDist[actionId] = make_shared<EFGNodesDistribution>(newDist);
+    assert(nodes.size() > actionId);
+    auto childNode = node->performAction(action);
+    nodes[actionId] = childNode;
+    this->processNode(childNode);
 
-    for (auto &[childNode, _]: newDist) {
-        this->processNode(childNode);
-    }
-
-    // retrieve from map directly to return a reference,
-    // this is guaranteed to exist there since we've just inserted it
-    return *nodesChildren_[node][actionId];
+    return nodes[actionId];
 }
 
-const EFGActionNodesDistribution &EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node) {
-    auto &cachedNodeDist = getCachedNode(node);
+const EFGChildNodes &EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node) {
+    EFGChildNodes &nodes = getCachedNode(node);
 
     // Check that we have built all of the actions
-    if (builtForest_) return cachedNodeDist;
+    if (builtForest_) return nodes;
 
     int missingIdx = -1;
-    for (int i = 0; i < cachedNodeDist.size(); i++) {
-        if (cachedNodeDist[i] == nullptr) {
+    for (int i = 0; i < nodes.size(); i++) {
+        if (!nodes[i]) {
             missingIdx = i;
             break;
         }
     }
-    if (missingIdx == -1) return cachedNodeDist;
+    if (missingIdx == -1) return nodes;
 
     // Add missing actions
     auto actions = node->availableActions();
     for (int i = missingIdx; i < actions.size(); ++i) {
-        if (cachedNodeDist[i] != nullptr) continue;
+        if (nodes[i]) continue;
 
-        auto newDist = node->performAction(actions[i]);
-        cachedNodeDist[i] = make_shared<EFGNodesDistribution>(newDist);
-
-        for (auto &[childNode, _]: newDist) {
-            this->processNode(childNode);
-        }
+        auto childNode = node->performAction(actions[i]);
+        nodes[i] = childNode;
+        this->processNode(childNode);
     }
 
-    return cachedNodeDist;
+    return nodes;
 }
 
 vector<shared_ptr<EFGNode>> EFGCache::getNodes() const {
@@ -150,19 +128,27 @@ vector<shared_ptr<EFGNode>> EFGCache::getNodes() const {
 }
 
 void EFGCache::createNode(const shared_ptr<EFGNode> &node) {
-    nodesChildren_.emplace(
-        node, EFGActionNodesDistribution(node->countAvailableActions(), nullptr));
+    nodesChildren_.emplace(node,
+                           EFGChildNodes(node->type_ == TerminalNode
+                                         ? 0 : node->countAvailableActions(), nullptr));
 }
 
-void EFGCache::buildForest(int maxDepth) {
-    algorithms::treeWalkEFG(*this, [](shared_ptr<EFGNode> _) {}, maxDepth);
+void EFGCache::buildForest(int maxStateDepth) {
+    // Root node can have state depth of either
+    // 0 - it's a chance node which decides about the root distribution of outcomes
+    // 1 - it's another node that had previously only one outcome
+    if (rootNode_->stateDepth_ <= maxStateDepth
+        && nodesChildren_.find(rootNode_) == nodesChildren_.end()) {
+        processNode(rootNode_);
+    }
+
+    algorithms::treeWalkEFG(*this, [](shared_ptr<EFGNode> _) {}, maxStateDepth);
+    if (maxStateDepth >= domain_.getMaxStateDepth()) builtForest_ = true;
 }
 
 void EFGCache::buildForest() {
-    buildForest(domain_.getMaxDepth());
-    builtForest_ = true;
+    buildForest(domain_.getMaxStateDepth());
 }
-
 
 void InfosetCache::createAugInfosets(const shared_ptr<EFGNode> &node) {
     vector<shared_ptr<AOH>> infosets;

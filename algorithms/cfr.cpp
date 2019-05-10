@@ -22,12 +22,6 @@
 #include "base/base.h"
 #include "algorithms/cfr.h"
 
-#include <array>
-#include <algorithm>
-#include <utility>
-#include <functional>
-#include <cstdio>
-
 #include "algorithms/tree.h"
 #include "algorithms/common.h"
 #include "algorithms/utility.h"
@@ -53,13 +47,11 @@ PlayControl CFRAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &curr
     // the tree has been built before, we must have this infoset in memory
     assert(!cache_.getNodesFor(*currentInfoset).empty());
 
-    for (const auto &[node, chanceProb] : cache_.getRootNodes()) {
-        runIteration(node, array<double, 3>{1., 1., chanceProb}, Player(0));
-        delayedApplyRegretUpdates();
+    runIteration(cache_.getRootNode(), array<double, 3>{1., 1., 1.}, Player(0));
+    delayedApplyRegretUpdates();
 
-        runIteration(node, array<double, 3>{1., 1., chanceProb}, Player(1));
-        delayedApplyRegretUpdates();
-    }
+    runIteration(cache_.getRootNode(), array<double, 3>{1., 1., 1.}, Player(1));
+    delayedApplyRegretUpdates();
 
     return ContinueImproving;
 }
@@ -73,7 +65,7 @@ CFRAlgorithm::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
 
 
 void CFRAlgorithm::nodeUpdateRegrets(const shared_ptr<EFGNode> &node) {
-    if (node->isTerminal()) return;
+    if (node->type_ == TerminalNode) return;
 
     const auto &infoSet = cache_.getInfosetFor(node);
     auto &infosetData = cache_.infosetData;
@@ -108,13 +100,11 @@ void CFRAlgorithm::runIterations(int numIterations) {
     }
 
     for (int i = 0; i < numIterations; ++i) {
-        for (const auto &[node, chanceProb] : cache_.getRootNodes()) {
-            runIteration(node, array<double, 3>{1., 1., chanceProb}, Player(0));
-            delayedApplyRegretUpdates();
+        runIteration(cache_.getRootNode(), array<double, 3>{1., 1., 1.}, Player(0));
+        delayedApplyRegretUpdates();
 
-            runIteration(node, array<double, 3>{1., 1., chanceProb}, Player(1));
-            delayedApplyRegretUpdates();
-        }
+        runIteration(cache_.getRootNode(), array<double, 3>{1., 1., 1.}, Player(1));
+        delayedApplyRegretUpdates();
     }
 }
 
@@ -123,16 +113,24 @@ double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
                                   const array<double, 3> reachProbs,
                                   const Player updatingPl) {
     assert(cache_.isCompletelyBuilt());
+    if (reachProbs[0] == 0 && reachProbs[1] == 0) return 0.0;
+    if (node->type_ == TerminalNode) return node->getUtilities()[updatingPl];
+    if (node->type_ == ChanceNode) {
+        const auto &children = cache_.getChildrenFor(node);
+        double cfvInfoset = 0.0;
+        auto chanceProbs = node->chanceProbs();
 
-    if (reachProbs[0] == 0 && reachProbs[1] == 0) {
-        return 0.0;
+        for (int i = 0; i != children.size(); i++) {
+            array<double, 3> newReachProbs = {reachProbs[0],
+                                              reachProbs[1],
+                                              reachProbs[CHANCE_PLAYER] * chanceProbs[i]};
+            cfvInfoset += chanceProbs[i] * runIteration(children[i], newReachProbs, updatingPl);
+        }
+        return cfvInfoset;
     }
 
-    if (node->isTerminal()) {
-        return node->rewards_[updatingPl];
-    }
-
-    const auto actingPl = *node->getCurrentPlayer();
+    assert(node->type_ == PlayerNode);
+    const auto actingPl = node->getPlayer();
     const auto oppExploringPl = 1 - updatingPl;
     const auto &children = cache_.getChildrenFor(node);
     const auto &infoSet = cache_.getInfosetFor(node);
@@ -148,14 +146,12 @@ double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
     std::fill(cfvAction.begin(), cfvAction.end(), 0.0);
 
     for (int i = 0; i != children.size(); i++) {
-        for (const auto &[nextNode, chanceProb] : *children[i]) {
-            array<double, 3> newReachProbs = {
-                reachProbs[0], reachProbs[1], reachProbs[CHANCE_PLAYER]};
-            newReachProbs[CHANCE_PLAYER] *= chanceProb;
-            newReachProbs[actingPl] *= rmProbs[i];
+        array<double, 3> newReachProbs = {reachProbs[0],
+                                          reachProbs[1],
+                                          reachProbs[CHANCE_PLAYER]};
+        newReachProbs[actingPl] *= rmProbs[i];
 
-            cfvAction[i] += chanceProb * runIteration(nextNode, newReachProbs, updatingPl);
-        }
+        cfvAction[i] += runIteration(children[i], newReachProbs, updatingPl);
         cfvInfoset += rmProbs[i] * cfvAction[i];
     }
 
@@ -211,30 +207,41 @@ void calcAvgProbs(const vector<double> &acc, ProbDistribution *pProbs) {
     }
 }
 
-ExpectedUtility calcExpectedUtility(CFRData &cache,
-                                    const shared_ptr<EFGNode> &node,
-                                    Player pl) {
-    if (node->isTerminal()) {
-        return ExpectedUtility(node->rewards_[pl], node->rewards_[pl]);
-    }
-
-    const auto &children = cache.getChildrenFor(node);
-    const auto &infoSet = cache.getInfosetFor(node);
-    auto &infosetData = cache.infosetData.at(infoSet);
-
-    double rmUtility = 0.;
-    double avgUtility = 0.;
-    auto rmProbs = calcRMProbs(infosetData.regrets);
-    auto avgProbs = calcAvgProbs(infosetData.avgStratAccumulator);
-
-    for (int i = 0; i != children.size(); i++) {
-        for (const auto &[nextNode, chanceProb] : *children[i]) {
-            auto childUtils = calcExpectedUtility(cache, nextNode, pl);
-            rmUtility += chanceProb * rmProbs[i] * childUtils.rmUtility;
-            avgUtility += chanceProb * avgProbs[i] * childUtils.avgUtility;
+ExpectedUtility calcExpectedUtility(CFRData &cache, const shared_ptr<EFGNode> &node, Player pl) {
+    switch (node->type_) {
+        case ChanceNode: {
+            const auto &children = cache.getChildrenFor(node);
+            double rmUtility = 0., avgUtility = 0.;
+            const auto chanceProbs = node->chanceProbs();
+            for (int i = 0; i < children.size(); ++i) {
+                auto childUtils = calcExpectedUtility(cache, children[i], pl);
+                rmUtility += chanceProbs[i] * childUtils.rmUtility;
+                avgUtility += chanceProbs[i] * childUtils.avgUtility;
+            }
+            return ExpectedUtility(rmUtility, avgUtility);
         }
+        case PlayerNode: {
+            const auto &children = cache.getChildrenFor(node);
+            const auto &infoSet = cache.getInfosetFor(node);
+            auto &infosetData = cache.infosetData.at(infoSet);
+
+            double rmUtility = 0., avgUtility = 0.;
+            auto rmProbs = calcRMProbs(infosetData.regrets);
+            auto avgProbs = calcAvgProbs(infosetData.avgStratAccumulator);
+
+            for (int i = 0; i < children.size(); ++i) {
+                auto childUtils = calcExpectedUtility(cache, children[i], pl);
+                rmUtility += rmProbs[i] * childUtils.rmUtility;
+                avgUtility += avgProbs[i] * childUtils.avgUtility;
+            }
+            return ExpectedUtility(rmUtility, avgUtility);
+        }
+        case TerminalNode:
+            return ExpectedUtility(node->getUtilities()[pl], node->getUtilities()[pl]);
+        default:
+            assert(false); // unrecognized option!
     }
-    return ExpectedUtility(rmUtility, avgUtility);
+
 }
 
 }  // namespace GTLib2

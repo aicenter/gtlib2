@@ -289,7 +289,7 @@ class KriegspielAction: public Action {
      */
     KriegspielAction(ActionId id, pair<shared_ptr<AbstractPiece>, chess::Square>, chess::Square);
     explicit KriegspielAction(ActionId id);
-    inline KriegspielAction() : Action() {}
+    inline KriegspielAction() : KriegspielAction(NO_ACTION) {}
     inline string toString() const final {
         if (id_ == NO_ACTION)
             return "No action";
@@ -332,10 +332,6 @@ class KriegspielDomain: public Domain {
 
     // GetInfo returns string containing domain information.
     string getInfo() const final;
-
-    inline vector<Player> getPlayers() const final {
-        return {chess::player::WHITE, chess::player::BLACK};
-    }
 };
 
 /**
@@ -410,7 +406,7 @@ class KriegspielState: public State {
      * @returns OutcomeDistribution containing the Outcome(a new state (should be a completely new object), observations for the players, rewards for the players)
      *                              and the NaturalProbability of the Outcome
      */
-    OutcomeDistribution  performActions(const vector<PlayerAction> &actions) const override;
+    OutcomeDistribution  performActions(const vector <shared_ptr<Action>> &actions) const override;
 
     /**
      * Gets the player(s) moving in the current game state
@@ -418,7 +414,7 @@ class KriegspielState: public State {
      */
     inline vector<Player> getPlayers() const final {
         vector<Player> v;
-        if (!this->gameHasEnded || this->moveHistory->size() == domain_->getMaxDepth())
+        if (!this->gameHasEnded || this->moveHistory->size() == domain_->getMaxStateDepth())
             v.emplace_back(playerOnTheMove);
         return v;
     }
