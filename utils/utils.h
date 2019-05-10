@@ -139,29 +139,26 @@ inline bool is_positive_zero(float val) { return ((val == 0.0f) && std::signbit(
 inline bool is_positive_zero(double val) { return ((val == 0.0) && std::signbit(val)); }
 }
 
-#define MAKE_HASHABLE(type)                                   \
-    namespace std {                                           \
-        template<> struct hash<type> {                        \
-            size_t operator()(const type &t) const {          \
-                return t.getHash();                           \
-            }                                                 \
-        };                                                    \
-    }
-
-#define MAKE_PTR_HASHABLE(type)                               \
-    namespace std {                                           \
-        template<> struct hash<type> {                        \
-            size_t operator()(const type &t) const {          \
-                return t->getHash();                          \
-            }                                                 \
-        };                                                    \
-    }
-
-#define MAKE_PTR_EQ(type)                                             \
+#define MAKE_HASHABLE(type)                                           \
     namespace std {                                                   \
-        template<> struct equal_to<type> {                            \
-            bool operator()(const type &a, const type &b) const {     \
-                return *a == *b;                                      \
+        template<> struct hash<type> {                                \
+            size_t operator()(const type &t) const {                  \
+                return t.getHash();                                   \
+            }                                                         \
+        };                                                            \
+        template<> struct hash<type*> {                               \
+            size_t operator()(type* &t) const {                       \
+                return t->getHash();                                  \
+            }                                                         \
+        };                                                            \
+        template<> struct hash<shared_ptr<type>> {                    \
+            size_t operator()(const shared_ptr<type> &t) const {      \
+                return t->getHash();                                  \
+            }                                                         \
+        };                                                            \
+        template<> struct hash<unique_ptr<type>> {                    \
+            size_t operator()(const unique_ptr<type> &t) const {      \
+                return t->getHash();                                  \
             }                                                         \
         };                                                            \
     }
@@ -171,6 +168,23 @@ inline bool is_positive_zero(double val) { return ((val == 0.0) && std::signbit(
         template<> struct equal_to<type> {                            \
             bool operator()(const type &a, const type &b) const {     \
                 return a == b;                                        \
+            }                                                         \
+        };                                                            \
+        template<> struct equal_to<type*> {                           \
+            bool operator()(const type* &a, const type* &b) const {   \
+                return *a == *b;                                      \
+            }                                                         \
+        };                                                            \
+        template<> struct equal_to<shared_ptr<type>> {                \
+            bool operator()(const shared_ptr<type> &a,                \
+                            const shared_ptr<type> &b) const {        \
+                return *a == *b;                                      \
+            }                                                         \
+        };                                                            \
+        template<> struct equal_to<unique_ptr<type>> {                \
+            bool operator()(const unique_ptr<type> &a,                \
+                            const unique_ptr<type> &b) const {        \
+                return *a == *b;                                      \
             }                                                         \
         };                                                            \
     }
