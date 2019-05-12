@@ -68,38 +68,94 @@ LiarsDiceDomain::LiarsDiceDomain(vector<int> playersDice, int faces) :
     initRootStates();
 }
 
-vector<shared_ptr<Observation>> LiarsDiceDomain::createInitialObservations(std::vector<int> rolls) const {
+int LiarsDiceDomain::comb(int n, int m) const {
+    int res = 1;
+
+    for(int i = n; i > m; i--){
+        res *= i;
+    }
+
+    for(int i = 2; i <= n - m; i++){
+        res /= i;
+    }
+    return res;
+}
+
+double LiarsDiceDomain::calculateProbabilityForRolls(double baseProbability, std::vector<std::vector<int>> rolls) const {
+    double result = baseProbability;
+
+    sort(rolls[0].begin(), rolls[0].end());
+    sort(rolls[1].begin(), rolls[1].end());
+
+    vector<int> combinations = {1, 1};
+
+    int currentRoll;
+    int streak;
+    int remaining;
+
+    for(int i = 0; i < 2; i++) {
+        if (getPlayerNDice(i) == 0) {
+            combinations[i] = 1;
+        } else {
+            currentRoll = rolls[i][0];
+            streak = 0;
+            remaining = getPlayerNDice(i);
+            for (int roll : rolls[i]) {
+                if (roll == currentRoll) {
+                    streak++;
+                } else {
+                    combinations[i] *= comb(remaining, streak);
+                    remaining -= streak;
+                    streak = 1;
+                    currentRoll = roll;
+                }
+            }
+        }
+    }
+
+    result *= combinations[0] * combinations[1];
+    return  result;
+}
+
+void LiarsDiceDomain::addToRootStates(std::vector<int> rolls, double baseProbability) {
     vector<vector<int>> playerRolls(2);
 
-    for(int i = 0 ; i < getPlayerNDice(PLAYER_1); i++){
+    for (int i = 0; i < getPlayerNDice(PLAYER_1); i++) {
         playerRolls[PLAYER_1].push_back(rolls[i]);
     }
-    for(int j = getPlayerNDice(PLAYER_1) ; j < getSumDice(); j++){
+    for (int j = getPlayerNDice(PLAYER_1); j < getSumDice(); j++) {
         playerRolls[PLAYER_2].push_back(rolls[j]);
     }
     vector<shared_ptr<Observation>> observations{make_shared<LiarsDiceObservation>(true, playerRolls[PLAYER_1], -1),
                                                  make_shared<LiarsDiceObservation>(true, playerRolls[PLAYER_2], -1)};
-    return observations;
+
+    auto newState = make_shared<LiarsDiceState>(this, 0, 0, 0, PLAYER_1, rolls);
+    Outcome outcome(newState, observations, shared_ptr<Observation>(), {0.0, 0.0});
+    rootStatesDistribution_.emplace_back(outcome, calculateProbabilityForRolls(baseProbability, playerRolls));
 }
 
 void LiarsDiceDomain::initRootStates() {
-    double probability = 1.0 / pow(double(faces_), double(getSumDice()));
+    double baseProbability = 1.0 / pow(double(faces_), double(getSumDice()));
 
-    function<void(int, vector<int>)> backtrack = [&](int depth, vector<int> rolls) -> void {
-        if (depth == 0) {
-            auto newState = make_shared<LiarsDiceState>(this, 0, 0, 0, PLAYER_1, rolls);
-            Outcome outcome(newState, createInitialObservations(rolls), shared_ptr<Observation>(), {0.0, 0.0});
-            rootStatesDistribution_.emplace_back(outcome, probability);
+    function<void(int, int, vector<int>)> backtrack = [&](int depth, int limit, vector<int> rolls) -> void {
+        if (depth == getSumDice()) {
+            addToRootStates(rolls, baseProbability);
         } else {
-            for (int i = 0; i < faces_; i++) {
+            for (int i = 0; i <= limit; i++) {
                 vector<int> appendedRolls(rolls);
                 appendedRolls.push_back(i);
-                backtrack(depth - 1, appendedRolls);
+                if(depth + 1 == getPlayerNDice(0)){
+                    backtrack(depth + 1, faces_ - 1, appendedRolls);
+                }
+                else{
+                    backtrack(depth + 1, i, appendedRolls);
+                }
             }
         }
     };
 
-    backtrack(getSumDice(), {});
+    backtrack(0, faces_ - 1, {});
+
 }
 
 string LiarsDiceDomain::getInfo() const {
@@ -189,7 +245,7 @@ OutcomeDistribution LiarsDiceState::performActions(const std::vector<GTLib2::Pla
                                                       newPlayer,
                                                       rolls_); // TODO: ask if appropriate to pass vector object from other State object
 
-    const auto publicObs = make_shared<LiarsDiceObservation>(false, vector<int>() , newBid);
+    const auto publicObs = make_shared<LiarsDiceObservation>(false, vector<int>(), newBid);
 
     vector<double> rewards;
 

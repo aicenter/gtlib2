@@ -37,7 +37,7 @@ class LiarsDiceDomain : public Domain {
     string getInfo() const override;
     vector<Player> getPlayers() const override;
     void initRootStates();
-    vector<shared_ptr<Observation>> createInitialObservations(vector<int> rolls) const;
+    void addToRootStates(vector<int> rolls, double baseProbability);
 
     inline const int getPlayerNDice(int n) const {
         return playersDice_[n];
@@ -59,6 +59,9 @@ class LiarsDiceDomain : public Domain {
     const vector<int> playersDice_;
     const int faces_;
     const int maxBid_;
+
+    int comb(int n, int m) const;
+    double calculateProbabilityForRolls(double baseProbability, vector<vector<int>> rolls) const;
 };
 
 class LiarsDiceAction : public Action {

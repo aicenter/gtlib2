@@ -51,10 +51,10 @@ void exampleBenchmarkCFR() {
 }
 
 void exampleExportDomain() {
-    auto ld2 =
-        LiarsDiceDomain({1,1},2);
+//    auto ld2 =
+//        LiarsDiceDomain({1,1},2);
     auto ld3 =
-        LiarsDiceDomain({1,0},2);
+        LiarsDiceDomain({3,0},3);
 //    auto gs3 =
 //        GoofSpielDomain({variant:  CompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}, binaryTerminalRewards: true});
 //    auto gs3_seed =
@@ -63,15 +63,15 @@ void exampleExportDomain() {
 //        GoofSpielDomain({variant:  IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
 //    auto iigs3_seed =
 //        GoofSpielDomain({variant:  IncompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
-    exportGambit(ld2, "./ld2.gbt");
-    exportGambit(ld3, "./ld3.gbt");
+//    exportGambit(ld2, "./ld2.gbt");
+//    exportGambit(ld3, "./ld3.gbt");
 //    exportGambit(gs3_seed, "./gs3_seed.gbt");
 //    exportGambit(iigs3, "./iigs3.gbt");
 //    exportGambit(iigs3_seed, "./iigs3_seed.gbt");
 
     // you can run this for visualization
     // $ dot -Tsvg iigs3_seed.dot -o iigs3_seed.svg
-    //exportGraphViz(gs2, "./iigs3_seed.dot");
+    exportGraphViz(ld3, "./iigs3_seed.dot");
 }
 
 int main(int argc, char *argv[]) {
