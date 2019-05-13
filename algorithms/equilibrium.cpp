@@ -35,24 +35,19 @@
 
 namespace GTLib2::algorithms {
 
+StrategyValue findEquilibriumTwoPlayersZeroSum(const Domain &domain) {
+    const array<vector<BehavioralStrategy>, 2> pureStrats = {
+        generateAllPureStrategies(createInfosetsAndActions(domain, Player(0))),
+        generateAllPureStrategies(createInfosetsAndActions(domain, Player(1)))
+    };
+    const auto utils = constructUtilityMatrixFor(domain, Player(0), pureStrats);
 
-tuple<double, BehavioralStrategy> findEquilibriumTwoPlayersZeroSum(const Domain &domain) {
-  Player player1 = domain.getPlayers()[0];
-  Player player2 = domain.getPlayers()[1];
-  auto player1InfSetsAndActions = generateInformationSetsAndAvailableActions(domain, player1);
-  auto player2InfSetsAndActions = generateInformationSetsAndAvailableActions(domain, player2);
-  auto player1PureStrats = generateAllPureStrategies(player1InfSetsAndActions);
-  auto player2PureStrats = generateAllPureStrategies(player2InfSetsAndActions);
-  auto utilityMatrixPlayer1 =
-      constructUtilityMatrixFor(domain, player1, player1PureStrats, player2PureStrats);
-  // Solution is a probability distribution over player1PureStrats
-  vector<double> solution(std::get<2>(utilityMatrixPlayer1), 0.0);
-
-  double val = solveLP(std::get<1>(utilityMatrixPlayer1), std::get<2>(utilityMatrixPlayer1),
-                       std::get<0>(utilityMatrixPlayer1), solution);
-  auto equilibriumStrat = mixedToBehavioralStrategy(
-      domain, player1PureStrats, solution, player1);
-  return tuple<double, BehavioralStrategy>(val, equilibriumStrat);
+    // Solution is a probability distribution over player1PureStrats
+    vector<double> solution = utils.u;
+    auto value = solveLP(utils.rows, utils.cols, utils.u, solution);
+    auto equilibriumStrat = mixedToBehavioralStrategy(domain, pureStrats[0], solution, Player(0));
+    return StrategyValue(equilibriumStrat, value);
 }
+
 }  // namespace GTLib2
 #pragma clang diagnostic pop

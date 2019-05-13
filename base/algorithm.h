@@ -26,10 +26,21 @@
 #include "base/base.h"
 #include "base/efg.h"
 #include "base/cache.h"
-#include <random>
-#include <utility>
 
 namespace GTLib2 {
+
+/**
+ * Specify the control flow of the playing algorithm.
+ * If
+ * - ContinueImproving: runPlayIteration will be called again in current round if there is time left
+ * - StopImproving: do not call another runPlayIteration in this round
+ * - GiveUp: do not call runPlayIteration anymore in the match and play randomly for the rest of the game
+ */
+enum PlayControl {
+    ContinueImproving,
+    StopImproving,
+    GiveUp,
+};
 
 /**
  * Algorithm that is capable of playing games by being supplied
@@ -51,22 +62,25 @@ class GamePlayingAlgorithm {
      * Run one step of the algorithm and improve play distribution in current infoset.
      *
      * Infoset in which this algorithm should currently play is provided.
-     * It will always be only infosets of the previously specified player.
+     * It will always be only infosets of the previously specified playing player.
      * If currentInfoset is empty, it means root iterations (preplay) should be done.
      *
-     * @return whether algorithm decided to continue to play (true) or give up the game (false).
+     * @return how the game flow should operatore, see PlayControl
      */
-    virtual bool runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) = 0;
+    virtual PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) = 0;
 
     /**
      * Return probability distribution by which the next action should be selected.
-     * They must sum up to 1.
+     * They must sum up to 1. If the distribution is null, it means algorithm failed to find
+     * any valid distribution and the consequence is that it gives up the game.
      */
-    virtual vector<double> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) = 0;
+    virtual optional<ProbDistribution>
+    getPlayDistribution(const shared_ptr<AOH> &currentInfoset) = 0;
 };
 
 /**
- * Run iterations of give algorithm for a given time budget in microseconds.
+ * Run iterations of given algorithm for a given time budget in microseconds.
+ * @return whether algorithm decided to continue (true) or give up (false)
  */
 bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
                          const optional<shared_ptr<AOH>> &currentInfoset,
@@ -79,19 +93,21 @@ class RandomPlayer: public GamePlayingAlgorithm {
  public:
     inline RandomPlayer(const Domain &domain, Player playingPlayer)
         : GamePlayingAlgorithm(domain, playingPlayer) {}
-    inline bool runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override { return false; };
-    inline vector<double> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override {};
+    inline PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset)
+    override { return StopImproving; };
+    inline optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset)
+    override {};
 };
 
 /**
- * Player that always chooses specified fixed action.
+ * Player that always chooses fixed action specified by it's index (action id).
  * You can use modulo algebra to specify the action, even with negative integers.
  */
 class FixedActionPlayer: public GamePlayingAlgorithm {
  public:
     explicit FixedActionPlayer(const Domain &domain, Player playingPlayer, int actionIdx);
-    bool runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
-    vector<double> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override;
+    PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
+    optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override;
  private:
     InfosetCache cache_;
     const int actionIdx_;

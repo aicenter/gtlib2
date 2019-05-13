@@ -29,11 +29,10 @@
 using GTLib2::Domain;
 
 bool isDomainZeroSum(const Domain &domain);
-bool isEFGNodeAndStateConsistent(const Domain &domain);
+//bool isEFGNodeAndStateConsistent(const Domain &domain);
 bool areAvailableActionsSorted(const Domain &domain);
-bool isDomainMaxUtilityCorrect(const Domain &domain);
-bool isDomainMaxDepthCorrect(const Domain &domain);
-bool doesCreateRootNodes(const Domain &domain);
-bool isActionGenerationAndAOHConsistent(const Domain &domain);
+double domainMaxUtility(const Domain &domain);
+double domainMaxDepth(const Domain &domain);
+bool isNumPlayersCountActionsConsistentInState(const Domain &domain);
 
 #endif  // TESTS_TESTUTILS_H_

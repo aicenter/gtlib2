@@ -34,26 +34,37 @@ namespace GTLib2 {
 class EFGNode;
 class EFGPublicState;
 
-/**
- * The chance probability of an EFGNode after performing some action,
- * i.e. not from the root, but from a parent node `h` to it's child `g` -- $\pi_c(g|h)$.
- */
-// todo: refactor pair into a more readable struct (avoid using .first/.second)
-typedef pair<shared_ptr<EFGNode>, double> EFGDistEntry;
+
+enum EFGNodeType {
+    ChanceNode,
+    PlayerNode,
+    TerminalNode
+};
+
+class EFGChanceAction: public Action {
+ private:
+    explicit inline EFGChanceAction(ActionId id, double chanceProb)
+        : Action(id), chanceProb_(chanceProb) {}
+ public:
+    inline string toString() const override {
+        return to_string(id_) + ", p=" + to_string(chanceProb_);
+    }
+    bool operator==(const Action &that) const override;
+    inline size_t getHash() const override {
+        return id_;
+    }
+
+    double chanceProb_ = 1.0;
+    friend EFGNode; // only EFGNode can create instance of EFGChanceAction
+};
+
 
 /**
- * Entire probability distribution over the next EFGNodes after performing some action.
- *
- * This should sum up to 1.
- */
-typedef vector<EFGDistEntry> EFGNodesDistribution;
-
-/**
- * Distribution of nodes after following a specified action id.
+ * Vector of nodes after following a specified action id.
  *
  * Note that action ids are indexed from 0..N-1
  */
-typedef vector<shared_ptr<EFGNodesDistribution>> EFGActionNodesDistribution;
+typedef vector <shared_ptr<EFGNode>> EFGChildNodes;
 
 /**
  * EFGNode is a class that represents node in an extensive form game (EFG).
@@ -75,28 +86,24 @@ typedef vector<shared_ptr<EFGNodesDistribution>> EFGActionNodesDistribution;
  */
 class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
  public:
-    /**
-     * Constructor for the same round node
-     */
-    EFGNode(shared_ptr<EFGNode const> parent,
-            const vector<PlayerAction> &performedActions,
-            shared_ptr<Action> incomingAction, int depth);
 
-    /**
-     * Constructor for the new round node
-     */
-    EFGNode(shared_ptr<State> newState, shared_ptr<EFGNode const> parent,
-            const vector<shared_ptr<Observation>> &privateObservations,
-            const shared_ptr<Observation> &publicObservation,
-            const vector<double> &rewards,
-            double natureProbability, shared_ptr<Action> incomingAction, int depth);
+    explicit EFGNode(EFGNodeType type, shared_ptr<EFGNode const> parent,
+                     shared_ptr <Action> incomingAction, shared_ptr <Outcome> lastOutcome,
+                     double chanceProb, OutcomeDistribution outcomeDist,
+                     vector <Player> remainingRoundPlayers, vector <PlayerAction> roundActions,
+                     unsigned int stateDepth);
+
+    inline bool hasNewOutcome() const {
+        if(!parent_) return false;
+        return parent_->stateDepth_ != stateDepth_;
+    }
 
     /**
      * Returns the sequence of actions performed by the player since the root.
      */
-    ActionSequence getActionsSeqOfPlayer(Player player) const;
+    shared_ptr <ActionSequence> getActionsSeqOfPlayer(Player player) const;
 
-    double getProbabilityOfActionsSeqOfPlayer(Player player, const BehavioralStrategy &strat) const;
+//    double getProbabilityOfActionsSeqOfPlayer(Player player, const BehavioralStrategy &strat) const;
 
     /**
      * Returns number of available actions for the current player
@@ -108,18 +115,19 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
      * Returns available actions for the current player
      * Leaves do not have any available actions.
      */
-    vector<shared_ptr<Action>> availableActions() const;
+    vector <shared_ptr<Action>> availableActions() const;
 
     /**
      * Perform the given action and returns the next node
      * or nodes in case of stochastic games together with the probabilities.
      */
-    EFGNodesDistribution performAction(const shared_ptr<Action> &action) const;
+    shared_ptr <EFGNode> performAction(const shared_ptr <Action> &action) const;
 
-    /**
-     * Gets the information set of the node represented as ActionObservationHistory set.
-     */
-    shared_ptr<AOH> getAOHInfSet() const;
+
+    double chanceProbForAction(const shared_ptr <Action> &action) const;
+    ProbDistribution chanceProbs() const;
+
+    double getProbabilityOfActionSeq(Player player, const BehavioralStrategy &strat) const;
 
     /**
      * Gets the augmented information set of the node.
@@ -127,125 +135,71 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
      * Note that augmented information sets coincide with ordinary information sets
      * when the requested player is acting in this node.
      */
-    shared_ptr<AOH> getAOHAugInfSet(Player player) const;
+    shared_ptr <AOH> getAOHAugInfSet(Player player) const;
 
+    /**
+     * Gets the information set of the node represented as ActionObservationHistory set.
+     */
+    inline shared_ptr <AOH> getAOHInfSet() const {
+        assert(type_ == PlayerNode);
+        return getAOHAugInfSet(currentPlayer_);
+    }
+
+    vector <ActionObservationIds> getAOids(Player player) const;
 
     /**
      * Gets the public state of the node based on public observation history.
      */
-    shared_ptr<EFGPublicState> getPublicState() const;
+    shared_ptr <EFGPublicState> getPublicState() const;
 
-    /**
-     * Check if the node is in the given information set.
-     */
-    bool isContainedInInformationSet(const shared_ptr<AOH> &infSet) const;
-
-    /**
-     * Gets the parent efg node.
-     */
-    shared_ptr<EFGNode const> getParent() const;
-
-    /**
-     * Gets action that was performed at parent node and the result led to this node.
-     */
-    const shared_ptr<Action> &getIncomingAction() const;
-
-    /**
-     * Gets id of action that was performed at parent node and the result led to this node.
-     */
-    ActionId getIncomingActionId() const;
-
-    /**
-     * Returns the game state of that is represented by EFG node.
-     * Note that in simultaneous games one state corresponds to multiple efg nodes.
-     */
-    shared_ptr<State> getState() const;
-
-    /**
-     * Check if NO actions were played in this round
-     */
-    bool noActionPerformedInThisRound() const;
-
-    /**
-     * Return if this node is terminal (leaf)
-     */
-    bool isTerminal() const;
-
+    inline HashType getHash() const { return hashNode_; };
     string toString() const;
-
-    inline HashType getHash() const {
-        return hashNode_;
-    };
-
-    /**
-     * Get the depth in the sense of State depth
-     */
-    int getStateDepth() const;
-
-    /**
-     * Get the depth in the sense of EFG depth
-     */
-    int getEFGDepth() const;
-
-    ObservationId getLastObservationIdOfCurrentPlayer() const;
-
-    /**
-     * Number of remaining players in corresponding State
-     */
-    int getNumberOfRemainingPlayers() const;
-
-    ObservationId getLastObservationOfPlayer(Player player) const;
 
     /**
      * Get current player playing in this round.
-     * Leaves do not have a player and no value is present.
      */
-    optional<Player> getCurrentPlayer() const;
+    Player getPlayer() const;
 
-    /**
-     * Cumulative rewards we have gotten on the path from the root to this node
-     */
-    vector<double> rewards_;
-
-    /**
-     * Nature reach probability from root
-     */
-    double natureProbability_;
+    vector<double> getUtilities() const;
 
     bool operator==(const EFGNode &rhs) const;
 
-    inline const vector<uint32_t>& getDescriptor() const {
-        return descriptor_;
-    }
+    const shared_ptr<EFGNode const> parent_;
+    const EFGNodeType type_;
+    const double chanceReachProb_;
+    const double lastChanceProb_;
+    const vector <ActionId> history_;
+    const shared_ptr <Action> incomingAction_;
+    const int stateDepth_;
+    const int efgDepth_;
 
  private:
-    vector<ActionObservation> getAOH(Player player) const;
-    bool compareAOH(const EFGNode &rhs) const;
+    shared_ptr <EFGNode> performChanceAction(const shared_ptr <Action> &action) const;
+    shared_ptr <EFGNode> performPlayerAction(const shared_ptr <Action> &action) const;
+    shared_ptr <EFGNode> createNodeForSpecificOutcome(
+        const shared_ptr <Action> &playerAction, const OutcomeEntry &specificOutcome) const;
+    vector <shared_ptr<Action>> createChanceActions() const;
 
-    void generateDescriptor() const;
-    void generateHash() const;
+    const Player currentPlayer_;
+    const shared_ptr <Outcome> lastOutcome_;
+    const OutcomeDistribution outcomeDist_;
+    const vector <Player> remainingRoundPlayers_;
+    const vector <PlayerAction> roundActions_;
+    const vector<double> cumRewards_;
 
-    vector<shared_ptr<Observation>> privateObservations_;
-    shared_ptr<Observation> publicObservation_;
-    vector<PlayerAction> performedActionsInThisRound_;
-    vector<Player> remainingPlayersInTheRound_;
-    // todo: const for member variables and constructors?
-    shared_ptr<State> state_;
-    shared_ptr<EFGNode const> parent_;
-    shared_ptr<Action> incomingAction_;  // Action performed in the parent node.
-    optional<Player> currentPlayer_ = nullopt;
-    int stateDepth_;
+    const HashType hashNode_ = 0;
 
-    mutable HashType hashNode_ = 0;
-    mutable vector<uint32_t> descriptor_;
+    friend bool isEFGNodeAndStateConsistent(const Domain &domain);
+    friend bool isNumPlayersCountActionsConsistentInState(const Domain &domain);
 };
 
 class EFGPublicState {
  public:
-    EFGPublicState(const shared_ptr<Observation> &publicObservation);
-    EFGPublicState(const shared_ptr<EFGPublicState>& parent, const shared_ptr<Observation> &publicObservation);
+    EFGPublicState(const shared_ptr <Observation> &publicObservation);
+    EFGPublicState(const shared_ptr <EFGPublicState> &parent,
+                   const shared_ptr <Observation> &publicObservation);
 
-    inline const vector<shared_ptr<Observation>>& getPublicHistory() const {
+    inline const vector <shared_ptr<Observation>> &getPublicHistory() const {
         return publicObsHistory_;
     }
     inline HashType getHash() const {
@@ -253,83 +207,32 @@ class EFGPublicState {
     };
     bool operator==(const EFGPublicState &rhs) const;
 
-    inline const vector<uint32_t>& getDescriptor() const {
+    inline const vector <uint32_t> &getDescriptor() const {
         return descriptor_;
     }
 
  private:
-    vector<shared_ptr<Observation>> publicObsHistory_;
+    vector <shared_ptr<Observation>> publicObsHistory_;
     mutable HashType hashNode_ = 0;
-    mutable vector<uint32_t> descriptor_;
+    mutable vector <uint32_t> descriptor_;
 
     void generateDescriptor() const;
     void generateHash() const;
 
 };
 
+shared_ptr<EFGNode> createRootEFGNode(const OutcomeDistribution &rootOutcomes);
+inline shared_ptr<EFGNode> createRootEFGNode(const Domain &domain) {
+    return createRootEFGNode(domain.getRootStatesDistribution());
+}
+
 };  // namespace GTLib2
 
+MAKE_EQ(GTLib2::EFGNode)
+MAKE_EQ(GTLib2::EFGPublicState)
 
-using GTLib2::EFGNode;
-using GTLib2::EFGPublicState;
-
-namespace std { // NOLINT(cert-dcl58-cpp)
-template<>
-struct hash<shared_ptr < EFGNode>> {
-size_t operator()(const shared_ptr <EFGNode> &p) const {
-    return p->getHash();
-}
-};
-
-template<>
-struct equal_to<shared_ptr < EFGNode>> {
-bool operator()(const shared_ptr <EFGNode> &a, const shared_ptr <EFGNode> &b) const {
-    return *a == *b;
-}
-};
-
-template<>
-struct hash<EFGNode *> {
-    size_t operator()(const EFGNode *p) const {
-        return p->getHash();
-    }
-};
-
-template<>
-struct equal_to<EFGNode *> {
-    bool operator()(const EFGNode *a, const EFGNode *b) const {
-        return *a == *b;
-    }
-};
-
-template<>
-struct hash<shared_ptr<EFGPublicState>> {
-size_t operator()(const shared_ptr <EFGPublicState> &p) const {
-    return p->getHash();
-}
-};
-
-template<>
-struct equal_to<shared_ptr < EFGPublicState>> {
-bool operator()(const shared_ptr <EFGPublicState> &a, const shared_ptr <EFGPublicState> &b) const {
-    return *a == *b;
-}
-};
-
-template<>
-struct hash<EFGPublicState *> {
-    size_t operator()(const EFGPublicState *p) const {
-        return p->getHash();
-    }
-};
-
-template<>
-struct equal_to<EFGPublicState *> {
-    bool operator()(const EFGPublicState *a, const EFGPublicState *b) const {
-        return *a == *b;
-    }
-};
-}  // namespace std
+MAKE_HASHABLE(GTLib2::EFGNode)
+MAKE_HASHABLE(GTLib2::EFGPublicState)
 
 #endif  // BASE_EFG_H_
 

@@ -28,136 +28,118 @@
 
 #include "algorithms/common.h"
 #include "algorithms/tree.h"
+#include "algorithms/strategy.h"
 
 namespace GTLib2::algorithms {
 
-pair<double, double> computeUtilityTwoPlayersGame(const Domain &domain,
-                                                  const BehavioralStrategy &player1Strat,
-                                                  const BehavioralStrategy &player2Strat,
-                                                  const Player player1,
-                                                  const Player player2) {
-  // Inner function
-  function<pair<double, double>(shared_ptr<EFGNode>, double)> calculate =
-      [&player1Strat, &player2Strat, &player1, &player2, &domain, &calculate]
-          (shared_ptr<EFGNode> node, double prob) {
-        auto findActionProb = [](const shared_ptr<AOH> &infSet,
-                                 const BehavioralStrategy &strat,
-                                 const shared_ptr<Action> &action) -> double {
-          return (strat.at(infSet).find(action) != strat.at(infSet).end()) ?
-                 strat.at(infSet).at(action) : 0.0;
-        };
+vector<double> computeUtilitiesTwoPlayerGame(const Domain &domain,
+                                             const StrategyProfile &stratProfile) {
 
-        if (node->getStateDepth() == domain.getMaxDepth() || !node->getCurrentPlayer()) {
-          return pair<double, double>(node->rewards_[player1] * prob,
-                                      node->rewards_[player2] * prob);
-        }
-        double p1Util = 0.0;
-        double p2Util = 0.0;
-        const auto actions = node->availableActions();
-        for (const auto &action : actions) {
-          auto infSet = node->getAOHInfSet();
-          double actionStratProb = findActionProb(infSet,
-                                                  (*node->getCurrentPlayer() == player1) ?
-                                                  player1Strat : player2Strat, action);
-          if (actionStratProb > 0) {
-            // Non-deterministic - can get multiple nodes
-            auto newNodes = node->performAction(action);
-            for (const auto &newNodeProb : newNodes) {
-              auto util = calculate(newNodeProb.first,
-                                    actionStratProb * newNodeProb.second * prob);
-              p1Util += util.first;
-              p2Util += util.second;
+    function<vector<double>(shared_ptr<EFGNode>)> calculate = [&](shared_ptr<EFGNode> node) {
+        switch (node->type_) {
+            case ChanceNode: {
+                vector<double> utils = {0.0, 0.0};
+                const auto chanceProbs = node->chanceProbs();
+                for (const auto &action : node->availableActions()) {
+                    const auto newNode = node->performAction(action);
+                    const auto childUtils = calculate(newNode);
+                    utils[0] += chanceProbs[action->getId()] * childUtils[0];
+                    utils[1] += chanceProbs[action->getId()] * childUtils[1];
+                }
+                return utils;
             }
-          }
-        }
-        return pair<double, double>(p1Util, p2Util);
-      };
-  // Inner function end
 
-  double player1Utility = 0.0;
-  double player2Utility = 0.0;
-  auto rootNodes = createRootEFGNodes(
-      domain.getRootStatesDistribution());
-  for (const auto &nodeProb : rootNodes) {
-    auto utility = calculate(nodeProb.first, nodeProb.second);
-    player1Utility += utility.first;
-    player2Utility += utility.second;
-  }
-  return pair<double, double>(player1Utility, player2Utility);
+            case PlayerNode: {
+                auto utils = vector<double>{0.0, 0.0};
+                for (const auto &action : node->availableActions()) {
+                    const auto infoset = node->getAOHInfSet();
+                    auto dist = stratProfile[node->getPlayer()].at(infoset);
+                    double prob = getActionProb(dist, action);
+                    if (prob <= 0) continue;
+
+                    const auto childNode = node->performAction(action);
+                    const auto childUtils = calculate(childNode);
+                    utils[0] += prob * childUtils[0];
+                    utils[1] += prob * childUtils[1];
+                }
+                return utils;
+            }
+
+            case TerminalNode:
+                return node->getUtilities();
+
+            default:
+                assert(false); // unrecognized option!
+        }
+    };
+
+    return calculate(createRootEFGNode(domain));
 }
 
 unordered_map<shared_ptr<AOH>, vector<shared_ptr<Action>>>
-generateInformationSetsAndAvailableActions(const Domain &domain, const Player player) {
-  unordered_map<shared_ptr<AOH>, vector<shared_ptr<Action>>> infSetsAndActions;
+createInfosetsAndActions(const Domain &domain, const Player player) {
+    unordered_map<shared_ptr<AOH>, vector<shared_ptr<Action>>> infosetsActions;
 
-  function<void(shared_ptr<EFGNode>)> extract =
-      [&infSetsAndActions, &player](shared_ptr<EFGNode> node) {
-        if (node->getCurrentPlayer() && *node->getCurrentPlayer() == player) {
-          auto infSet = node->getAOHInfSet();
-          auto actions = node->availableActions();
-          if (!actions.empty()) {
-            infSetsAndActions[infSet] = actions;
-          }
-        }
-      };
+    function<void(shared_ptr<EFGNode>)> extract = [&](shared_ptr<EFGNode> node) {
+        if (node->type_ != PlayerNode) return;
+        if (node->getPlayer() != player) return;
 
-  treeWalkEFG(domain, extract, domain.getMaxDepth());
-  return infSetsAndActions;
+        const auto infoset = node->getAOHInfSet();
+        if (infosetsActions.find(infoset) != infosetsActions.end()) return;
+
+        infosetsActions[infoset] = node->availableActions();
+    };
+
+    treeWalkEFG(domain, extract, domain.getMaxStateDepth());
+    return infosetsActions;
 }
 
 vector<BehavioralStrategy> generateAllPureStrategies(
-    const unordered_map<shared_ptr<AOH>, vector<shared_ptr<Action>>> &infSetsAndActions) {
+    const unordered_map<shared_ptr<AOH>, vector<shared_ptr<Action>>> &infosetsActions) {
 
-  vector<BehavioralStrategy> allPureStrats;
+    vector<BehavioralStrategy> pureStrats;
+    const vector<pair<shared_ptr<AOH>, vector<shared_ptr<Action>>>> infosetsActionsPairs(
+        infosetsActions.begin(), infosetsActions.end());
 
-  vector<pair<shared_ptr<AOH>, vector<shared_ptr<Action>>>> infSetsAndActionsVector(
-      infSetsAndActions.begin(), infSetsAndActions.end());
-
-  function<void(BehavioralStrategy, int)> gener =
-      [&gener, &infSetsAndActionsVector, &allPureStrats](BehavioralStrategy strat,
-                                                         int setIndex) {
-        if (setIndex >= infSetsAndActionsVector.size()) {
-          allPureStrats.push_back(strat);
-        } else {
-          auto infSetWithActions = infSetsAndActionsVector[setIndex];
-          for (const auto& action : infSetWithActions.second) {
-            ActionProbDistribution dist = {{action, 1.0}};
-            strat[infSetWithActions.first] = dist;
-            gener(strat, setIndex + 1);
-          }
+    function<void(BehavioralStrategy, int)> generate = [&](BehavioralStrategy strat, int setIndex) {
+        if (setIndex >= infosetsActionsPairs.size()) {
+            pureStrats.push_back(strat);
+            return;
         }
-      };
 
-  auto s = BehavioralStrategy();
-  gener(s, 0);
-  return allPureStrats;
+        const auto infosetWithActions = infosetsActionsPairs[setIndex];
+        const auto actions = infosetWithActions.second;
+        for (const auto &action : actions) {
+            const ActionProbDistribution dist = {{action, 1.0}};
+            const auto infoset = infosetWithActions.first;
+            strat[infoset] = dist;
+
+            generate(strat, setIndex + 1);
+        }
+    };
+
+    auto s = BehavioralStrategy();
+    generate(s, 0);
+    return pureStrats;
 }
 
-tuple<vector<double>, unsigned int, unsigned int> constructUtilityMatrixFor(
+UtilityMatrix constructUtilityMatrixFor(
     const Domain &domain, const Player player,
-    const vector<BehavioralStrategy> &player1PureStrats,
-    const vector<BehavioralStrategy> &player2PureStrats) {
+    const array<vector<BehavioralStrategy>, 2> &playersPureStrats) {
 
-  Player player1 = domain.getPlayers()[0];
-  Player player2 = domain.getPlayers()[1];
+    const auto rows = playersPureStrats[0].size();
+    const auto cols = playersPureStrats[1].size();
+    vector<double> matrix(rows * cols, 0.0);
 
-  const auto numberOfRows = player1PureStrats.size();
-  const auto numberOfColls = player2PureStrats.size();
-
-  vector<double> matrix(numberOfRows * numberOfColls, 0.0);
-  int row = 0;
-  for (const auto &stratPlayer1 : player1PureStrats) {
-    int col = 0;
-    for (const auto &stratPlayer2 : player2PureStrats) {
-      auto u12 = computeUtilityTwoPlayersGame(domain, stratPlayer1, stratPlayer2,
-                                              player1, player2);
-      double u = player1 == player ? u12.first : u12.second;
-      matrix[numberOfColls * row + col] = u;
-      col++;
+    for (int row = 0; row < rows; ++row) {
+        for (int col = 0; col < cols; ++col) {
+            auto utils = computeUtilitiesTwoPlayerGame(
+                domain, {playersPureStrats[0][row], playersPureStrats[1][col]});
+            matrix[cols * row + col] = utils[player];
+        }
     }
-    row++;
-  }
-  return tuple<vector<double>, unsigned int, unsigned int>(matrix, numberOfRows, numberOfColls);
+
+    return UtilityMatrix{.u = matrix, .rows = rows, .cols = cols};
 }
 
 }  // namespace GTLib2

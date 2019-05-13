@@ -39,87 +39,82 @@ enum OshiZumoVariant { CompleteObservation, IncompleteObservation };
  * @param optimalEndGame allow to simulate end optimal game, if one of the players can only bid 0
  */
 struct OshiZumoSettings {
-  OshiZumoVariant variant = CompleteObservation;
-  int startingCoins = 3;
-  int startingLocation = 3;
-  int minBid = 1;
-  bool optimalEndGame = true;
+    OshiZumoVariant variant = CompleteObservation;
+    int startingCoins = 3;
+    int startingLocation = 3;
+    int minBid = 1;
+    bool optimalEndGame = true;
 };
 
-class OshiZumoAction : public Action {
+class OshiZumoAction: public Action {
  public:
-  explicit OshiZumoAction(ActionId id, int bid);
-  bool operator==(const Action &that) const override;
-  size_t getHash() const override;
-  string toString() const override;
-  inline int getBid() const {
-      return bid_;
-  }
+    inline OshiZumoAction() : Action(), bid_(0) {}
+    explicit OshiZumoAction(ActionId id, int bid);
+    bool operator==(const Action &that) const override;
+    HashType getHash() const override;
+    string toString() const override;
+    inline int getBid() const {
+        return bid_;
+    }
 
  private:
-  int bid_;
+    int bid_;
 };
 
-class OshiZumoDomain : public Domain {
+class OshiZumoDomain: public Domain {
  public:
-  explicit OshiZumoDomain(OshiZumoSettings settings);
-  string getInfo() const override;
-  inline vector<Player> getPlayers() const final {
-      return {0, 1};
-  }
-  const int getStartingLocation() const;
-  const int getMinBid() const;
-  const bool isOptimalEndGame() const;
-  const OshiZumoVariant getVariant() const;
-  const int getStartingCoins() const;
+    explicit OshiZumoDomain(OshiZumoSettings settings);
+    string getInfo() const override;
+    const int getStartingLocation() const;
+    const int getMinBid() const;
+    const bool isOptimalEndGame() const;
+    const OshiZumoVariant getVariant() const;
+    const int getStartingCoins() const;
 
  private:
-  const int startingCoins_;
-  const int startingLocation_;
-  const int minBid_;
-  const bool optimalEndGame_;
-  const OshiZumoVariant variant_;
+    const int startingCoins_;
+    const int startingLocation_;
+    const int minBid_;
+    const bool optimalEndGame_;
+    const OshiZumoVariant variant_;
 };
 
-class OshiZumoState : public State {
+class OshiZumoState: public State {
  public:
-  OshiZumoState(Domain *domain, int wrestlerPosition, int startingCoins);
-  OshiZumoState(Domain *domain, int wrestlerPosition, vector<int> coinsPerPlayer);
+    OshiZumoState(const Domain *domain, int wrestlerLocation, int startingCoins);
+    OshiZumoState(const Domain *domain, int wrestlerLocation, vector<int> coinsPerPlayer);
 
-  vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
-  unsigned long countAvailableActionsFor(Player player) const override;
-  OutcomeDistribution performActions(const vector<PlayerAction> &actions) const override;
-  vector<Player> getPlayers() const override;
-  bool isGameEnd() const;
-  string toString() const override;
-  bool operator==(const State &rhs) const override;
-  size_t getHash() const override;
-  int getWrestlerLocation() const;
-  const vector<int> &getCoins() const;
+    vector <shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
+    unsigned long countAvailableActionsFor(Player player) const override;
+    OutcomeDistribution performActions(const vector <shared_ptr<Action>> &actions) const override;
+    vector <Player> getPlayers() const override;
+    bool isTerminal() const override;
+    string toString() const override;
+    bool operator==(const State &rhs) const override;
 
  protected:
-  int wrestlerLocation_;
-  vector<int> coins_;
+    const int wrestlerLocation_;
+    const vector<int> coins_;
 
 };
 
 constexpr int NO_BID_OBSERVATION = -1;
 enum OshiZumoRoundOutcome {
-  DRAW = 0,
-  PLAYER0_WIN = 1,
-  PLAYER0_LOSE = -1,
+    DRAW = 0,
+    PLAYER0_WIN = 1,
+    PLAYER0_LOSE = -1,
 };
 
-class OshiZumoObservation : public Observation {
+class OshiZumoObservation: public Observation {
  public:
-  explicit OshiZumoObservation(int player0Bid,
-                               int player1Bid,
-                               OshiZumoRoundOutcome roundResult);
+    inline explicit OshiZumoObservation()
+        : Observation(), player0Bid_(0), player1Bid_(0), roundResult_(DRAW) {};
+    explicit OshiZumoObservation(int player0Bid, int player1Bid, OshiZumoRoundOutcome roundResult);
 
  private:
-  const int player0Bid_;
-  const int player1Bid_;
-  const OshiZumoRoundOutcome roundResult_;
+    const int player0Bid_;
+    const int player1Bid_;
+    const OshiZumoRoundOutcome roundResult_;
 
 };
 } // namespace GTLib2

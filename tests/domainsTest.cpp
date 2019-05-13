@@ -23,85 +23,82 @@
 #include "tests/domainsTest.h"
 
 #include "algorithms/tree.h"
-
-#include <boost/test/unit_test.hpp>
 #include "algorithms/common.h"
+
 #include "domains/genericPoker.h"
 #include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"
 #include "domains/oshiZumo.h"
 #include "domains/randomGame.h"
 
+#include "gtest/gtest.h"
+
 namespace GTLib2::domains {
 
 using algorithms::treeWalkEFG;
 using GoofSpielVariant::IncompleteObservations;
 using GoofSpielVariant::CompleteObservations;
-using algorithms::createRootEFGNodes;
 
 bool isDomainZeroSum(const Domain &domain) {
     int num_violations = 0;
     auto countViolations = [&num_violations](shared_ptr<EFGNode> node) {
-      if (node->rewards_[0] != -node->rewards_[1]) num_violations++;
+        if (node->type_ != TerminalNode) return;
+        if (node->getUtilities()[0] != -node->getUtilities()[1]) num_violations++;
     };
 
-    treeWalkEFG(domain, countViolations, domain.getMaxDepth());
+    treeWalkEFG(domain, countViolations, domain.getMaxStateDepth());
     return num_violations == 0;
 }
 
-bool isEFGNodeAndStateConsistent(const Domain &domain) {
-    int num_violations = 0;
-    EFGCache cache(domain);
-    cache.buildForest(domain.getMaxDepth());
-    auto nodes = cache.getNodes();
-    for (const auto &n1: nodes) {
-        for (const auto &n2: nodes) {
-            if (n1 == n2 && (n1->getHash() != n2->getHash() || n1->getState() != n2->getState())) {
-                num_violations++;
-            }
-        }
-    }
-    return num_violations == 0;
-}
+// todo: needs friend
+//bool isEFGNodeAndStateConsistent(const Domain &domain) {
+//    int num_violations = 0;
+//    EFGCache cache(domain);
+//    cache.buildForest(domain.getMaxStateDepth());
+//    auto nodes = cache.getNodes();
+//    for (const auto &n1: nodes) {
+//        for (const auto &n2: nodes) {
+//            if (n1 == n2 && (n1->getHash() != n2->getHash() || n1->outcomeDist_->state_ != n2->outcomeDist_->state_)) {
+//                num_violations++;
+//            }
+//        }
+//    }
+//    return num_violations == 0;
+//}
 
 bool areAvailableActionsSorted(const Domain &domain) {
     int num_violations = 0;
     auto countViolations = [&num_violations](shared_ptr<EFGNode> node) {
+        if(node->type_ == TerminalNode) return;
         auto actions = node->availableActions();
         for (int j = 0; j < actions.size(); ++j) {
             if (actions[j]->getId() != j) num_violations++;
         }
     };
 
-    treeWalkEFG(domain, countViolations, domain.getMaxDepth());
+    treeWalkEFG(domain, countViolations, domain.getMaxStateDepth());
     return num_violations == 0;
 }
 
-bool isDomainMaxUtilityCorrect(const Domain &domain, bool strict) {
+double domainFindMaxUtility(const Domain &domain) {
     double maxLeafUtility = 0;
-    auto countViolations = [&maxLeafUtility](shared_ptr<EFGNode> node) {
-        maxLeafUtility = max({node->rewards_[0], node->rewards_[1], maxLeafUtility});
+    auto traverse = [&maxLeafUtility](shared_ptr<EFGNode> node) {
+        if(node->type_ != TerminalNode) return;
+        maxLeafUtility = max({node->getUtilities()[0], node->getUtilities()[1], maxLeafUtility});
     };
 
-    treeWalkEFG(domain, countViolations, domain.getMaxDepth());
-    if (strict) {
-        return maxLeafUtility == domain.getMaxUtility();
-    }
-    return maxLeafUtility <= domain.getMaxUtility();
+    treeWalkEFG(domain, traverse, domain.getMaxStateDepth());
+    return maxLeafUtility;
 }
 
-bool isDomainMaxDepthCorrect(const Domain &domain) {
+double domainFindMaxDepth(const Domain &domain) {
     int maxDepth = 0;
     auto countViolations = [&maxDepth](shared_ptr<EFGNode> node) {
-        maxDepth = max(node->getStateDepth(), maxDepth);
+        maxDepth = max(node->stateDepth_, maxDepth);
     };
 
-    treeWalkEFG(domain, countViolations, domain.getMaxDepth());
-    return maxDepth == domain.getMaxDepth();
-}
-
-bool doesCreateRootNodes(const Domain &domain) {
-    return !createRootEFGNodes(domain).empty();
+    treeWalkEFG(domain, countViolations, domain.getMaxStateDepth());
+    return maxDepth;
 }
 
 bool isActionGenerationAndAOHConsistent(const Domain &domain) {
@@ -140,6 +137,35 @@ bool isActionGenerationAndAOHConsistent(const Domain &domain) {
 }
 
 BOOST_AUTO_TEST_SUITE(DomainsTests)
+// todo: needs friend
+//bool isNumPlayersCountActionsConsistentInState(const Domain &domain) {
+//    int num_violations = 0;
+//    auto domainPlayers = vector<Player>(domain.getPlayers());
+//    std::sort(domainPlayers.begin(), domainPlayers.end());
+//
+//    auto countViolations = [&](shared_ptr<EFGNode> node) {
+//        auto statePlayers = vector<Player>(node->outcomeDist_->state_->getPlayers());
+//        std::sort(statePlayers.begin(), statePlayers.end());
+//
+//        // players that should play must have non-zero number of actions
+//        for (const auto &player: statePlayers) {
+//            if (node->outcomeDist_->state_->countAvailableActionsFor(player) == 0) num_violations++;
+//        }
+//
+//        // players that are not playing should have zero number of actions
+//        auto playerDiff = vector<Player>();
+//        std::set_difference(domainPlayers.begin(), domainPlayers.end(),
+//                            statePlayers.begin(), statePlayers.end(),
+//                            playerDiff.begin());
+//
+//        for (const auto &player: playerDiff) {
+//            if (node->outcomeDist_->state_->countAvailableActionsFor(player) > 0) num_violations++;
+//        }
+//    };
+//
+//    treeWalkEFG(domain, countViolations, domain.getMaxStateDepth());
+//    return num_violations == 0;
+//}
 
 
 // @formatter:off
@@ -204,51 +230,52 @@ Domain *testDomains[] = { // NOLINT(cert-err58-cpp)
     &rg1, &rg2, &rg3, &rg4, &rg5, &rg6, &rg7, &rg8, &rg9,
 };
 
-BOOST_AUTO_TEST_CASE(zeroSumGame) {
+TEST(Domain, ZeroSumGame) {
     for (auto domain : testDomains) {
-        cout << "checking " << domain->getInfo() << endl;
-        BOOST_CHECK(isDomainZeroSum(*domain));
+        cout << "\nchecking " << domain->getInfo() << "\n";
+        EXPECT_TRUE(isDomainZeroSum(*domain));
     }
 }
 
-BOOST_AUTO_TEST_CASE(checkEFGNodeStateEqualityConsistency) {
+//TEST(Domain, CheckEFGNodeStateEqualityConsistency) {
+//    for (auto domain : testDomains) {
+//        cout << "\nchecking " << domain->getInfo() << "\n";
+//        EXPECT_TRUE(isEFGNodeAndStateConsistent(*domain));
+//    }
+//}
+
+TEST(Domain, CheckAvailableActionsAreSorted) {
     for (auto domain : testDomains) {
-        cout << "checking " << domain->getInfo() << endl;
-        BOOST_CHECK(isEFGNodeAndStateConsistent(*domain));
+        cout << "\nchecking " << domain->getInfo() << "\n";
+        EXPECT_TRUE(areAvailableActionsSorted(*domain));
     }
 }
 
-BOOST_AUTO_TEST_CASE(checkAvailableActionsAreSorted) {
+TEST(Domain, MaxUtility) {
     for (auto domain : testDomains) {
-        cout << "checking " << domain->getInfo() << endl;
-        BOOST_CHECK(areAvailableActionsSorted(*domain));
+        cout << "\nchecking " << domain->getInfo() << "\n";
+        EXPECT_EQ(domainFindMaxUtility(*domain), domain->getMaxUtility());
     }
 }
 
-BOOST_AUTO_TEST_CASE(maxUtility) {
+TEST(Domain, MaxDepth) {
     for (auto domain : testDomains) {
-        cout << "checking " << domain->getInfo() << endl;
-        if (typeid(*domain) == typeid(RandomGameDomain)) {
-            BOOST_CHECK(isDomainMaxUtilityCorrect(*domain, false));
-        } else {
-            BOOST_CHECK(isDomainMaxUtilityCorrect(*domain, true));
-        }
+        cout << "\nchecking " << domain->getInfo() << "\n";
+        EXPECT_EQ(domainFindMaxDepth(*domain), domain->getMaxStateDepth());
     }
 }
 
-BOOST_AUTO_TEST_CASE(maxDepth) {
+TEST(Domain, CreatesRootNode) {
     for (auto domain : testDomains) {
-        cout << "checking " << domain->getInfo() << endl;
-        BOOST_CHECK(isDomainMaxDepthCorrect(*domain));
+        EXPECT_NE(createRootEFGNode(*domain), nullptr);
     }
 }
 
-BOOST_AUTO_TEST_CASE(createsRootNodes) {
-    for (auto domain : testDomains) {
-        cout << "checking " << domain->getInfo() << endl;
-        BOOST_CHECK(doesCreateRootNodes(*domain));
-    }
-}
+//BOOST_AUTO_TEST_CASE(checkNumPlayersCountActionsConsistentInState) {
+//    for (auto domain : testDomains) {
+//        BOOST_CHECK(isNumPlayersCountActionsConsistentInState(*domain));
+//    }
+//}
 
 BOOST_AUTO_TEST_CASE(AOHconsistency) {
     for (auto &domain : testDomains) {

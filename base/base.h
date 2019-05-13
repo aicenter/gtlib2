@@ -59,19 +59,16 @@ typedef uint32_t ObservationId;
 /**
  * Specify action that given player played.
  */
-// todo: refactor pair into a more readable struct (avoid using .first/.second)
-typedef pair<Player, shared_ptr<Action>> PlayerAction;
+struct PlayerAction {
+    const Player player;
+    const shared_ptr<Action> action;
+};
 
 /**
- * The probability of given outcome.
+ * Specify weight d[i] for each event i in vector, such that p[i] := d[i] / sum_j d[j]
+ * I.e. it is "probability" distribution that does not sum up to 1.
  */
-// todo: refactor pair into a more readable struct (avoid using .first/.second)
-typedef pair<Outcome, double> distributionEntry;
-
-/**
- * Probabilities of outcomes.
- */
-typedef vector<distributionEntry> OutcomeDistribution;
+typedef vector<double> Distribution;
 
 /**
  * Specify probability for each event in vector.
@@ -99,25 +96,6 @@ typedef unordered_map<shared_ptr<InformationSet>, ActionProbDistribution> Behavi
 typedef vector<BehavioralStrategy> StrategyProfile;
 
 /**
- * List of actions that had to be taken at information sets to get to current EFG node.
- */
-// todo: refactor pair into a more readable struct (avoid using .first/.second)
-typedef vector<pair<shared_ptr<InformationSet>, shared_ptr<Action>>> ActionSequence;
-
-/**
- * Realization plan is a probability distribution over action sequences.
- */
-typedef unordered_map<shared_ptr<ActionSequence>, double> RealizationPlan;
-
-/**
- * Action observation puts together what observation was made with an action.
- */
-// todo: refactor pair into a more readable struct (avoid using .first/.second)
-typedef pair<ActionId, ObservationId> ActionObservation;
-
-
-
-/**
  * Special value of action id, indicating no action has been taken.
  *
  * It is useful for example in phantom games.
@@ -134,21 +112,21 @@ constexpr ActionId NO_ACTION = 0xFFFFFFFF;
  */
 class Action {
  public:
-    explicit Action(ActionId id);
+    inline explicit Action(ActionId id) : id_(id) {}
     explicit Action() : Action(NO_ACTION) {};
-
     virtual ~Action() = default;
 
-    virtual string toString() const;
+    inline virtual string toString() const {
+        if (id_ == NO_ACTION) return "NoA";
+        return to_string(id_);
+    }
 
-    ActionId getId() const;
-
-    virtual bool operator==(const Action &that) const;
-
-    virtual size_t getHash() const;
+    inline ActionId getId() const { return id_; };
+    inline virtual HashType getHash() const { return id_; };
+    inline virtual bool operator==(const Action &that) const { return id_ == that.id_; };
 
  protected:
-    ActionId id_;
+    const ActionId id_ = NO_ACTION;
 };
 
 
@@ -164,23 +142,48 @@ constexpr ObservationId NO_OBSERVATION = 0xFFFFFFFF;
  *
  * It's up to each domain to guarantee consistency of observation ids.
  */
+
+
 class Observation {
  public:
-    explicit Observation(ObservationId id);
+    inline explicit Observation(ObservationId id) : id_(id) {}
     explicit Observation() : Observation(NO_OBSERVATION) {};
-
     virtual ~Observation() = default;
 
-    virtual string toString() const;
+    inline virtual string toString() const {
+        if (id_ == NO_OBSERVATION) return "NoOb";
+        return to_string(id_);
+    }
 
-    ObservationId getId() const;
-
-    virtual bool operator==(const Observation &rhs) const;
-
-    virtual size_t getHash() const;
+    inline ObservationId getId() const { return id_; };
+    inline virtual const HashType getHash() const { return id_; };
+    inline virtual bool operator==(const Observation &that) const { return id_ == that.id_; };
 
  protected:
-    ObservationId id_;
+    // we do not set it const, as computation of it can be non-trivial
+    // todo: maybe we should and provide helper function for computation?
+    ObservationId id_ = NO_OBSERVATION;
+};
+
+
+/**
+ * Action observation puts together what observation was made with an action.
+ */
+struct ActionObservationIds {
+    ActionId action;
+    ObservationId observation;
+
+    bool operator==(const ActionObservationIds &rhs) const;
+    bool operator!=(const ActionObservationIds &rhs) const;
+    const HashType getHash() const { return hashCombine(132456456, action, observation); }
+};
+
+static_assert(sizeof(ActionObservationIds) == 8, "Should fit within size_t (64 bit)");
+static_assert(sizeof(ActionObservationIds) == sizeof(HashType), "Should have the same size");
+
+const ActionObservationIds NO_ACTION_OBSERVATION{
+    .action = NO_ACTION,
+    .observation = NO_OBSERVATION
 };
 
 
@@ -193,22 +196,41 @@ class Observation {
  * - public observation for all players,
  * - rewards for each player.
 */
-class Outcome {
+struct Outcome {
  public:
-    Outcome(shared_ptr<State> s,
-            vector<shared_ptr<Observation>> observations,
+    Outcome(shared_ptr<State> _state,
+            vector<shared_ptr<Observation>> privateObservations,
             shared_ptr<Observation> publicObservation,
             vector<double> rewards);
 
-    shared_ptr<State> state_;
-    vector<shared_ptr<Observation>> privateObservations_;
-    shared_ptr<Observation> publicObservation_;
-    vector<double> rewards_;
+    const shared_ptr<State> state;
+    const vector<shared_ptr<Observation>> privateObservations;
+    const shared_ptr<Observation> publicObservation;
+    const vector<double> rewards;
+    const HashType hash;
 
-    size_t getHash() const;
-
+    HashType getHash() const { return hash; };
     bool operator==(const Outcome &rhs) const;
 };
+
+/**
+ * The probability of given outcome.
+ */
+struct OutcomeEntry {
+    Outcome outcome;
+    double prob;
+
+    inline OutcomeEntry(Outcome outcome_) : outcome(move(outcome_)), prob(1.0) {}
+    inline OutcomeEntry(Outcome outcome_, double prob_) : outcome(move(outcome_)), prob(prob_) {
+        assert(prob > 0); // domain should not produce outcomes that have zero probability!
+    }
+};
+
+/**
+ * Probabilities of outcomes.
+ */
+typedef vector<OutcomeEntry> OutcomeDistribution;
+
 
 /**
  * Abstract class that represents information sets.
@@ -218,11 +240,9 @@ class Outcome {
 class InformationSet {
  public:
     InformationSet() = default;
-
     virtual bool operator==(const InformationSet &rhs) const = 0;
-
-    virtual size_t getHash() const = 0;
-
+    inline bool operator!=(const InformationSet &rhs) const { return !(rhs == *this); };
+    virtual HashType getHash() const = 0;
     virtual string toString() const = 0;
 };
 
@@ -239,49 +259,60 @@ class InformationSet {
  */
 class AOH: public InformationSet {
  public:
-    AOH(Player player, const vector<ActionObservation> &aoHistory);
+    AOH(Player player, const vector<ActionObservationIds> &aoHistory);
 
-    inline unsigned long getSize() const {
-        return aoh_.size();
-    }
-
-    inline size_t getHash() const final {
-        return hashValue_;
-    }
-
-    // Overloaded for comparing two AOHs
+    inline unsigned long getSize() const { return aoh_.size(); }
+    inline HashType getHash() const final { return hash_; }
     bool operator==(const InformationSet &rhs) const override;
 
-    inline Player getPlayer() const {
-        return player_;
-    }
-    inline ObservationId getInitialObservationId() const {
-        return aoh_.front().second;
-    }
-    inline vector<ActionObservation> getAOHistory() const {
-        return aoh_;
-    }
-
+    inline Player getPlayer() const { return player_; }
+    inline ObservationId getInitialObservationId() const { return aoh_.front().observation; }
+    inline vector<ActionObservationIds> getAOHistory() const { return aoh_; }
     string toString() const override;
 
  private:
-    size_t computeHash() const;
-    vector<ActionObservation> aoh_;
-    size_t hashValue_;
-    Player player_;
+    const Player player_;
+    const vector<ActionObservationIds> aoh_;
+    const HashType hash_;
 };
+
+struct InfosetAction {
+    const shared_ptr<InformationSet> infoset;
+    const shared_ptr<Action> action;
+    InfosetAction(shared_ptr<InformationSet> infoset, shared_ptr<Action> action)
+        : infoset(move(infoset)), action(move(action)) {}
+    inline HashType getHash() const { return infoset->getHash() + action->getHash(); }
+    inline bool operator==(const InfosetAction &rhs) const {
+        return getHash() == rhs.getHash() && *infoset == *rhs.infoset && *action == *rhs.action;
+    };
+};
+
+/**
+ * List of actions that had to be taken at information sets to get to current EFG node.
+ */
+class ActionSequence {
+ public:
+    explicit ActionSequence(vector<InfosetAction> sequence)
+        : sequence_(move(sequence)), hash_(hashCombine(2315468453135153, sequence_)) {}
+    bool operator==(const ActionSequence &rhs) const;
+    inline HashType getHash() const { return hash_; };
+    const vector<InfosetAction> sequence_;
+    const HashType hash_;
+};
+
+/**
+ * Realization plan is a probability distribution over action sequences.
+ */
+typedef unordered_map<shared_ptr<ActionSequence>, double> RealizationPlan;
 
 /**
  * State is an abstract class that represents domain states.
  *
  * Domain is modeled using a (possibly cyclic) graph whose nodes represent state of the domain.
- *
- *
- *
  */
 class State {
  public:
-    explicit State(Domain *domain);
+    explicit State(const Domain *domain, HashType hash);
 
     virtual ~State() = default;
 
@@ -296,9 +327,16 @@ class State {
     virtual vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const = 0;
 
     /**
-     * Performs actions given by player->action map
+     * Performs actions given by vector of  <player, action>. If actions for some players
+     * are missing, they will be padded by NO_ACTION.
      */
-    virtual OutcomeDistribution performActions(const vector<PlayerAction> &actions) const = 0;
+    OutcomeDistribution performPartialActions(const vector<PlayerAction> &plActions) const;
+
+    /**
+     * Performs actions by all the players, indexed from 0.
+     * Players that do not have an action will receive special NO_ACTION.
+     */
+    virtual OutcomeDistribution performActions(const vector<shared_ptr<Action>> &actions) const = 0;
 
     /**
      * Returns players that can play in this state
@@ -306,25 +344,28 @@ class State {
     virtual vector<Player> getPlayers() const = 0;
 
     /**
-     * Returns number of players who can play in this state.
+     * Check if given player is making a move in this state
      */
-    virtual int getNumberOfPlayers() const;
+    bool isPlayerMakingMove(Player pl) const;
+
+    /**
+     * Returns whether there is no more transition to any other state
+     */
+    virtual bool isTerminal() const = 0;
+
 
     /**
      * Returns state description
      */
     virtual string toString() const;
 
+    HashType getHash() const { return hash_; };
     virtual bool operator==(const State &rhs) const = 0;
-
-    virtual size_t getHash() const = 0;
-
-    inline Domain *getDomain() const {
-        return domain_;
-    }
+    inline const Domain *getDomain() const { return domain_; }
 
  protected:
-    Domain *domain_;
+    const Domain *domain_;
+    const HashType hash_;
 };
 
 /**
@@ -342,7 +383,8 @@ class State {
  */
 class Domain {
  public:
-    Domain(unsigned int maxDepth, unsigned int numberOfPlayers);
+    Domain(unsigned int maxStateDepth, unsigned int numberOfPlayers,
+           shared_ptr<Action> noAction, shared_ptr<Observation> noObservation);
 
     virtual ~Domain() = default;
 
@@ -352,220 +394,60 @@ class Domain {
      */
     const OutcomeDistribution &getRootStatesDistribution() const;
 
-    virtual vector<Player> getPlayers() const = 0;
-
     /**
      * Returns number of players in the game.
      */
-    inline unsigned int getNumberOfPlayers() const {
-        return numberOfPlayers_;
-    }
+    inline unsigned int getNumberOfPlayers() const { return numberOfPlayers_; }
 
     /**
      * Returns default maximal depth used in algorithms.
      */
-    inline unsigned int getMaxDepth() const {
-        return maxDepth_;
-    }
-
-    inline double getMaxUtility() const {
-        return maxUtility_;
-    }
-
-    inline double getMinUtility() const {
-        return -maxUtility_;
-    }
+    inline unsigned int getMaxStateDepth() const { return maxStateDepth_; }
+    inline double getMaxUtility() const { return maxUtility_; }
+    inline double getMinUtility() const { return -maxUtility_; }
 
     /**
      * Returns string containing detailed domain information.
      */
     virtual string getInfo() const = 0;
 
+    inline const shared_ptr<Action> &getNoAction() const { return noAction_; }
+    inline const shared_ptr<Observation> &getNoObservation() const { return noObservation_; }
+
  protected:
     OutcomeDistribution rootStatesDistribution_;
-    unsigned int maxDepth_;
+    unsigned int maxStateDepth_;
     unsigned int numberOfPlayers_;
     double maxUtility_;
+
+    const shared_ptr<Action> noAction_;
+    const shared_ptr<Observation> noObservation_;
 };
 }  // namespace GTLib2
 
+MAKE_EQ(GTLib2::InformationSet)
+MAKE_EQ(GTLib2::AOH)
+MAKE_EQ(GTLib2::Action)
+MAKE_EQ(GTLib2::Observation)
+MAKE_EQ(GTLib2::State)
+MAKE_EQ(GTLib2::Outcome)
+MAKE_EQ(GTLib2::ActionSequence)
+
+MAKE_HASHABLE(GTLib2::InformationSet)
+MAKE_HASHABLE(GTLib2::AOH)
+MAKE_HASHABLE(GTLib2::Action)
+MAKE_HASHABLE(GTLib2::Observation)
+MAKE_HASHABLE(GTLib2::State)
+MAKE_HASHABLE(GTLib2::Outcome)
+MAKE_HASHABLE(GTLib2::ActionSequence)
+
 namespace std { // NOLINT(cert-dcl58-cpp)
 
-template<>
-struct hash<shared_ptr<GTLib2::InformationSet>> {
-    size_t operator()(shared_ptr<GTLib2::InformationSet> const &p) const {
-        return p->getHash();
-    }
-};
-
-template<>
-struct equal_to<shared_ptr<GTLib2::InformationSet>> {
-    bool operator()(shared_ptr<GTLib2::InformationSet> const &a,
-                    shared_ptr<GTLib2::InformationSet> const &b) const {
-        return *a == *b;
-    }
-};
-
-template<>
-struct hash<GTLib2::InformationSet *> {
-    size_t operator()(GTLib2::InformationSet const *p) const {
-        return p->getHash();
-    }
-};
-
-template<>
-struct equal_to<GTLib2::InformationSet *> {
-    bool operator()(GTLib2::InformationSet *a,
-                    GTLib2::InformationSet *b) const {
-        return *a == *b;
-    }
-};
-
-template<>
-struct hash<shared_ptr<GTLib2::AOH>> {
-    size_t operator()(shared_ptr<GTLib2::AOH> const &p) const {
-        return p->getHash();
-    }
-};
-
-template<>
-struct equal_to<shared_ptr<GTLib2::AOH>> {
-    bool operator()(shared_ptr<GTLib2::AOH> const &a,
-                    shared_ptr<GTLib2::AOH> const &b) const {
-        return *a == *b;
-    }
-};
-
-template<>
-struct hash<shared_ptr<GTLib2::Action>> {
-    size_t operator()(const shared_ptr<GTLib2::Action> &p) const {
-        return p->getHash();
-    }
-};
-
-template<>
-struct equal_to<shared_ptr<GTLib2::Action>> {
-    bool operator()(const shared_ptr<GTLib2::Action> &a,
-                    const shared_ptr<GTLib2::Action> &b) const {
-        return *a == *b;
-    }
-};
-
-template<>
-struct hash<shared_ptr<GTLib2::ActionSequence>> {
-    size_t operator()(const shared_ptr<GTLib2::ActionSequence> &seq) const {
-        size_t seed = 0;
-        for (const auto &action : (*seq)) {
-            boost::hash_combine(seed, action.first);
-            boost::hash_combine(seed, action.second);
-        }
-        return seed;
-    }
-};
-
-template<>
-struct equal_to<shared_ptr<GTLib2::ActionSequence>> {
-    bool operator()(const shared_ptr<GTLib2::ActionSequence> &a,
-                    const shared_ptr<GTLib2::ActionSequence> &b) const {
-        hash<shared_ptr<GTLib2::ActionSequence>> hasher;
-        if (hasher(a) != hasher(b) || a->size() != b->size()) {
-            return false;
-        }
-        for (int i = 0; i <= a->size(); i++) {
-            if ((*a)[i] != (*b)[i]) {
-                return false;
-            }
-        }
-        return true;
-    }
-};
-
-template<>
-struct hash<GTLib2::ActionSequence> {
-    size_t operator()(const GTLib2::ActionSequence &seq) const {
-        size_t seed = 0;
-        hash<shared_ptr<GTLib2::InformationSet>> hasher;
-        hash<shared_ptr<GTLib2::Action>> hasher2;
-        for (const auto &action : seq) {
-            boost::hash_combine(seed, hasher(action.first));
-            boost::hash_combine(seed, hasher2(action.second));
-        }
-        return seed;
-    }
-};
-
-template<>
-struct equal_to<GTLib2::ActionSequence> {
-    bool operator()(const GTLib2::ActionSequence &a,
-                    const GTLib2::ActionSequence &b) const {
-        hash<GTLib2::ActionSequence> hasher;
-        if (hasher(a) != hasher(b) || a.size() != b.size()) {
-            return false;
-        }
-        for (int i = 0; i < a.size(); i++) {
-            if (!a[i].first->operator==(*b[i].first.get()) ||
-                !a[i].second->operator==(*b[i].second.get())) {
-                return false;
-            }
-        }
-        return true;
-    }
-};
-
-template<>
-struct hash<shared_ptr<GTLib2::Observation>> {
-    size_t operator()(const shared_ptr<GTLib2::Observation> &p) const {
-        return p->getHash();
-    }
-};
-
-template<>
-struct equal_to<shared_ptr<GTLib2::Observation>> {
-    bool operator()(const shared_ptr<GTLib2::Observation> &a,
-                    const shared_ptr<GTLib2::Observation> &b) const {
-        return *a == *b;
-    }
-};
-
-template<>
-struct hash<shared_ptr<GTLib2::State>> {
-    size_t operator()(const shared_ptr<GTLib2::State> &p) const {
-        return p->getHash();
-    }
-};
-
-template<>
-struct equal_to<shared_ptr<GTLib2::State>> {
-    bool operator()(const shared_ptr<GTLib2::State> &a,
-                    const shared_ptr<GTLib2::State> &b) const {
-        return *a == *b;
-    }
-};
-
-template<>
-struct hash<GTLib2::Outcome> {
-    size_t operator()(const GTLib2::Outcome &p) const {
-        return p.getHash();
-    }
-};
-
-template<>
-struct equal_to<GTLib2::Outcome> {
-    bool operator()(const GTLib2::Outcome &a,
-                    const GTLib2::Outcome &b) const {
-        return a == b;
-    }
-};
-
-template<
-    typename T,
-    typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type
->
-std::ostream &
-operator<<(std::ostream &ss, vector<T> arr) {
+template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
+std::ostream &operator<<(std::ostream &ss, vector<T> arr) {
     ss << "[";
     for (int i = 0; i < arr.size(); ++i) {
-        if(i == 0) ss << arr[i];
+        if (i == 0) ss << arr[i];
         else ss << ", " << arr[i];
     }
     ss << "]";

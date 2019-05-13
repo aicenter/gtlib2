@@ -28,9 +28,12 @@
 
 namespace GTLib2::domains {
 MatchingPenniesDomain::MatchingPenniesDomain(MatchingPenniesVariant variant)
-    : Domain(variant == AlternatingMoves ? 2 : 1, 2), variant_(variant) {
+    : Domain((variant == AlternatingMoves ? 2 : 1) + 1, 2,
+             make_shared<MatchingPenniesAction>(),
+             make_shared<MatchingPenniesObservation>()), variant_(variant) {
     maxUtility_ = 1.0;
-    auto rootState = make_shared<MatchingPenniesState>(this, array<Move, 2>{NO_ACTION, NO_ACTION});
+    auto rootState =
+        make_shared<MatchingPenniesState>(this, array<ActionId, 2>{NO_ACTION, NO_ACTION});
 
     auto obs0 = make_shared<MatchingPenniesObservation>(NO_OBSERVATION);
     auto obs1 = make_shared<MatchingPenniesObservation>(NO_OBSERVATION);
@@ -38,32 +41,22 @@ MatchingPenniesDomain::MatchingPenniesDomain(MatchingPenniesVariant variant)
     vector<double> rewards(2, 0.);
 
     Outcome outcome(rootState, {obs0, obs1}, pubObs, rewards);
-    rootStatesDistribution_.push_back(pair<Outcome, double>(outcome, 1.0));
+    rootStatesDistribution_.push_back(OutcomeEntry(outcome));
 }
 
-MatchingPenniesState::MatchingPenniesState(Domain *domain, array<Move, 2> moves)
-    : State(domain), moves_(moves) {
-    const auto mpDomain = static_cast<MatchingPenniesDomain *>(domain_);
-    variant_ = mpDomain->variant_;
-
-
-    if (variant_ == SimultaneousMoves) {
-        assert((moves_[0] != NO_ACTION && moves_[1] != NO_ACTION)
-                   || (moves_[0] == NO_ACTION && moves_[1] == NO_ACTION));
-        if (moves_[0] == NO_ACTION) {
-            players_.push_back(Player(0));
-        }
-        if (moves_[1] == NO_ACTION) {
-            players_.push_back(Player(1));
-        }
+const vector<Player> MatchingPenniesState::makePlayers(array<ActionId, 2> moves,
+                                                       MatchingPenniesVariant variant) {
+    vector<Player> players;
+    if (variant == SimultaneousMoves) {
+        assert((moves[0] != NO_ACTION && moves[1] != NO_ACTION)
+                   || (moves[0] == NO_ACTION && moves[1] == NO_ACTION));
+        if (moves[0] == NO_ACTION) players.push_back(Player(0));
+        if (moves[1] == NO_ACTION) players.push_back(Player(1));
     } else {
-        if (moves_[0] == NO_ACTION && moves_[1] == NO_ACTION) {
-            players_.push_back(Player(0));
-        }
-        if (moves_[1] == NO_ACTION && moves_[0] != NO_ACTION) {
-            players_.push_back(Player(1));
-        }
+        if (moves[0] == NO_ACTION && moves[1] == NO_ACTION) players.push_back(Player(0));
+        if (moves[1] == NO_ACTION && moves[0] != NO_ACTION) players.push_back(Player(1));
     }
+    return players;
 }
 
 unsigned long MatchingPenniesState::countAvailableActionsFor(Player pl) const {
@@ -81,36 +74,41 @@ vector<shared_ptr<Action>> MatchingPenniesState::getAvailableActionsFor(Player p
     if ((variant_ == SimultaneousMoves && moves_[0] == NO_ACTION && moves_[1] == NO_ACTION)
      || (variant_ == AlternatingMoves && pl == 0 && moves_[0] == NO_ACTION && moves_[1] == NO_ACTION)
      || (variant_ == AlternatingMoves && pl == 1 && moves_[0] != NO_ACTION && moves_[1] == NO_ACTION)) {
-        actions.push_back(make_shared<MatchingPenniesAction>(Heads));
-        actions.push_back(make_shared<MatchingPenniesAction>(Tails));
+        actions.push_back(make_shared<MatchingPenniesAction>(ActionHeads));
+        actions.push_back(make_shared<MatchingPenniesAction>(ActionTails));
     }
     return actions;
     //@formatter:on
 }
 
 OutcomeDistribution
-MatchingPenniesState::performActions(const vector<PlayerAction> &actions) const {
-    auto p0Action = dynamic_cast<MatchingPenniesAction *>(actions[0].second.get());
-    auto p1Action = dynamic_cast<MatchingPenniesAction *>(actions[1].second.get());
+MatchingPenniesState::performActions(const vector <shared_ptr<Action>> &actions) const {
+    auto p0Action = dynamic_cast<MatchingPenniesAction *>(actions[0].get());
+    auto p1Action = dynamic_cast<MatchingPenniesAction *>(actions[1].get());
 
     if (variant_ == SimultaneousMoves) {
-        assert(p0Action != nullptr || p1Action != nullptr); // Both actions must be performed
+        // Both actions must be performed
+        assert(p0Action->getId() != NO_ACTION && p1Action->getId() != NO_ACTION);
     } else {
-        assert(p0Action == nullptr || p1Action == nullptr); // Only one action can be performed
-        assert(moves_[0] == NO_ACTION || p1Action != nullptr); // pl0 played -> pl1 has to play.
+        // Only one action can be performed
+        assert(p0Action->getId() == NO_ACTION || p1Action->getId() == NO_ACTION);
+        // pl0 played -> pl1 has to play.
+        assert(moves_[0] == NO_ACTION || p1Action->getId() != NO_ACTION);
     }
 
     auto newState = make_shared<MatchingPenniesState>(
-        domain_, array<Move, 2>{
-            p0Action == nullptr ? moves_[0] : p0Action->move_,
-            p1Action == nullptr ? NO_ACTION : p1Action->move_
+        domain_, array<ActionId, 2>{
+            p0Action->getId() == NO_ACTION ? moves_[0] : p0Action->getId(),
+            p1Action->getId()
         });
 
     const bool finalState = newState->moves_[0] != NO_ACTION && newState->moves_[1] != NO_ACTION;
     auto obs0 = make_shared<MatchingPenniesObservation>(
-        finalState ? (newState->moves_[1] == Heads ? OtherHeads : OtherTails) : NO_OBSERVATION);
+        finalState ? (newState->moves_[1] == ActionHeads ? OtherHeads : OtherTails)
+                   : NO_OBSERVATION);
     auto obs1 = make_shared<MatchingPenniesObservation>(
-        finalState ? (newState->moves_[0] == Heads ? OtherHeads : OtherTails) : NO_OBSERVATION);
+        finalState ? (newState->moves_[0] == ActionHeads ? OtherHeads : OtherTails)
+                   : NO_OBSERVATION);
 
     shared_ptr<MatchingPenniesObservation> pubObs;
     vector<double> rewards(2, 0.);
@@ -128,7 +126,7 @@ MatchingPenniesState::performActions(const vector<PlayerAction> &actions) const 
 
     Outcome outcome(newState, {obs0, obs1}, pubObs, rewards);
     OutcomeDistribution distr;
-    distr.push_back(pair<Outcome, double>(outcome, 1.0));
+    distr.push_back(OutcomeEntry(outcome));
     return distr;
 }
 
@@ -137,49 +135,22 @@ string MatchingPenniesState::toString() const {
         + " Player 2: " + to_string(moves_[1]);
 }
 
-size_t MatchingPenniesState::getHash() const {
-    size_t seed = 0;
-    boost::hash_combine(seed, moves_);
-    boost::hash_combine(seed, players_);
-    return seed;
-}
-
 bool MatchingPenniesState::operator==(const State &rhs) const {
     auto mpState = dynamic_cast<const MatchingPenniesState &>(rhs);
-    return moves_ == mpState.moves_
+    return hash_ == mpState.hash_
+        && moves_ == mpState.moves_
         && players_ == mpState.players_;
 }
 
-MatchingPenniesObservation::MatchingPenniesObservation(ObservationId otherMoveParm) :
-    Observation(otherMoveParm) {}
-
-MatchingPenniesAction::MatchingPenniesAction(Move moveParm) :
-    Action(static_cast<int>(moveParm)) {
-    move_ = moveParm;
-}
-
 string MatchingPenniesAction::toString() const {
-    switch (move_) {
-        case Heads:
+    switch (id_) {
+        case ActionHeads:
             return "Heads";
-        case Tails:
+        case ActionTails:
             return "Tails";
         default:
             return "Nothing";
     }
-}
-
-bool MatchingPenniesAction::operator==(const Action &that) const {
-    if (typeid(*this) == typeid(that)) {
-        const auto rhsAction = static_cast<const MatchingPenniesAction *>(&that);
-        return move_ == rhsAction->move_;
-    }
-    return false;
-}
-
-size_t MatchingPenniesAction::getHash() const {
-    std::hash<int> h;
-    return h(move_);
 }
 
 }  // namespace GTLib2

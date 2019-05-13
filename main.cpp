@@ -37,9 +37,15 @@ using utils::exportGambit;
 void exampleBenchmarkCFR() {
     auto start = std::chrono::high_resolution_clock::now();
 
-    domains::GoofSpielDomain domain
-        ({variant:  IncompleteObservations, numCards: 5, fixChanceCards: true, chanceCards: {}});
-    algorithms::CFRAlgorithm cfr(domain, Player(0), algorithms::CFRSettings());
+    domains::GoofSpielDomain domain({
+                                        variant:  IncompleteObservations,
+                                        numCards: 5,
+                                        fixChanceCards: true,
+                                        chanceCards: {}
+                                    });
+    auto settings = algorithms::CFRSettings();
+    auto cache = algorithms::CFRData(domain, settings.cfrUpdating);
+    algorithms::CFRAlgorithm cfr(domain, cache, Player(0), settings);
     cfr.runIterations(100);
 
     auto end = std::chrono::high_resolution_clock::now();
@@ -70,7 +76,7 @@ void exampleExportDomain() {
 }
 
 int main(int argc, char *argv[]) {
-//    exampleBenchmarkCFR();
-    exampleExportDomain();
+    exampleBenchmarkCFR();
+//    exampleExportDomain();
     return 0;
 }

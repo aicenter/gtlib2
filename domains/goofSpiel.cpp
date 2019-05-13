@@ -28,18 +28,6 @@
 
 namespace GTLib2::domains {
 
-GoofSpielAction::GoofSpielAction(ActionId id, int card) : Action(id) {
-    cardNumber_ = card;
-}
-
-string GoofSpielAction::toString() const {
-    return "Card: " + to_string(cardNumber_);
-}
-
-size_t GoofSpielAction::getHash() const {
-    return cardNumber_;
-}
-
 bool GoofSpielAction::operator==(const Action &that) const {
     if (typeid(that) == typeid(*this)) {
         const auto rhsAction = static_cast<const GoofSpielAction *>(&that);
@@ -49,7 +37,7 @@ bool GoofSpielAction::operator==(const Action &that) const {
 }
 
 GoofSpielObservation::GoofSpielObservation(int initialNumOfCards,
-                                           const std::array<int, 3> &chosenCards,
+                                           const array<int, 3> &chosenCards,
                                            GoofspielRoundOutcome roundResult)
     : Observation(),
       player0LastCard_(chosenCards[0]),
@@ -60,7 +48,7 @@ GoofSpielObservation::GoofSpielObservation(int initialNumOfCards,
     assert(initialNumOfCards < 20);
     int n = initialNumOfCards + 1;
 
-    id_ = (roundResult_+1) // round outcome is 0..2, i.e. 2 bits to shift
+    id_ = (roundResult_ + 1) // round outcome is 0..2, i.e. 2 bits to shift
         | ((natureCard_ + player0LastCard_ * n + player1LastCard_ * n * n) << 2);
 }
 
@@ -87,7 +75,9 @@ vector<int> GoofSpielSettings::getNatureCards() {
 }
 
 GoofSpielDomain::GoofSpielDomain(GoofSpielSettings settings) :
-    Domain(settings.numCards, 2),
+    Domain(settings.numCards+1, 2,
+           make_shared<GoofSpielAction>(),
+           make_shared<GoofSpielObservation>()),
     numberOfCards_(settings.numCards),
     fixChanceCards_(settings.fixChanceCards),
     binaryTerminalRewards_(settings.binaryTerminalRewards),
@@ -100,8 +90,8 @@ GoofSpielDomain::GoofSpielDomain(GoofSpielSettings settings) :
     else if (binaryTerminalRewards_) {
         maxUtility_ = 1.0;
     } else {
-        // can't win the smallest card or will even lose to smallest card of value 1
-        maxUtility_ = fixChanceCards_ ? -2.0 : -1.0;
+        // can't win the smallest card
+        maxUtility_ = -2 * (*std::min_element(natureCards_.begin(), natureCards_.end()));
         for (auto natureCard: natureCards_) maxUtility_ += natureCard;
     }
 
@@ -114,27 +104,25 @@ void GoofSpielDomain::initFixedCards(const vector<int> &natureCards) {
     auto deck = vector<int>(numberOfCards_);
     std::iota(deck.begin(), deck.end(), 1);
 
-    std::array<vector<int>, 3> playerDecks = {deck, deck, natureCards};
+    array<vector<int>, 3> playerDecks = {deck, deck, natureCards};
     int natureFirstCard = playerDecks[2][0];
     playerDecks[2].erase(playerDecks[2].begin());
-    vector<double> cumulativeRewards = {0.0, 0.0};
-    std::array<vector<int>, 3> playedCards;
+    array<vector<int>, 3> playedCards;
     playedCards[0] = {};
     playedCards[1] = {};
     playedCards[2] = {natureFirstCard};
 
-    auto newState = make_shared<GoofSpielState>(this, playerDecks, natureFirstCard,
-                                                cumulativeRewards, playedCards);
+    auto newState = make_shared<GoofSpielState>(this, playerDecks, natureFirstCard, playedCards);
 
     auto publicObs = make_shared<GoofSpielObservation>(
-        numberOfCards_, std::array<int, 3>{
+        numberOfCards_, array<int, 3>{
             NO_CARD_OBSERVATION, NO_CARD_OBSERVATION, natureFirstCard
         }, PL0_DRAW);
     auto player0Obs = make_shared<GoofSpielObservation>(*publicObs);
     auto player1Obs = make_shared<GoofSpielObservation>(*publicObs);
 
-    Outcome outcome(newState, {player0Obs, player1Obs}, publicObs, cumulativeRewards);
-    rootStatesDistribution_.emplace_back(outcome, 1.0);
+    Outcome outcome(newState, {player0Obs, player1Obs}, publicObs, {0.0, 0.0});
+    rootStatesDistribution_.emplace_back(OutcomeEntry(outcome));
 }
 
 void GoofSpielDomain::initRandomCards(const vector<int> &natureCards) {
@@ -142,29 +130,27 @@ void GoofSpielDomain::initRandomCards(const vector<int> &natureCards) {
     std::iota(deck.begin(), deck.end(), 1);
 
     for (auto const natureFirstCard : natureCards) {
-        std::array<vector<int>, 3> playerDecks = {deck, deck, natureCards};
+        array<vector<int>, 3> playerDecks = {deck, deck, natureCards};
         auto &natureDeck = playerDecks[2];
         natureDeck.erase(std::remove(natureDeck.begin(), natureDeck.end(), natureFirstCard),
                          natureDeck.end());
-//        playerDecks[2].erase(playerDecks[2].begin() + i - 1);
-        vector<double> cumulativeRewards = {0.0, 0.0};
-        std::array<vector<int>, 3> playedCards;
+        array<vector<int>, 3> playedCards;
         playedCards[0] = {};
         playedCards[1] = {};
         playedCards[2] = {natureFirstCard};
 
-        auto newState = make_shared<GoofSpielState>(this, playerDecks, natureFirstCard,
-                                                    cumulativeRewards, playedCards);
+        auto newState = make_shared<GoofSpielState>(
+            this, playerDecks, natureFirstCard, playedCards);
 
         auto publicObs = make_shared<GoofSpielObservation>(
-            numberOfCards_, std::array<int, 3>{
+            numberOfCards_, array<int, 3>{
                 NO_CARD_OBSERVATION, NO_CARD_OBSERVATION, natureFirstCard
             }, PL0_DRAW);
         auto player0Obs = make_shared<GoofSpielObservation>(*publicObs);
         auto player1Obs = make_shared<GoofSpielObservation>(*publicObs);
 
-        Outcome outcome(newState, {player0Obs, player1Obs}, publicObs, cumulativeRewards);
-        rootStatesDistribution_.emplace_back(outcome, 1.0 / deck.size());
+        Outcome outcome(newState, {player0Obs, player1Obs}, publicObs, {0.0, 0.0});
+        rootStatesDistribution_.emplace_back(OutcomeEntry(outcome, 1.0 / deck.size()));
     }
 }
 
@@ -181,41 +167,6 @@ string GoofSpielDomain::getInfo() const {
     return ss.str();
 }
 
-vector<Player> GoofSpielDomain::getPlayers() const {
-    return {0, 1};
-}
-
-GoofSpielState::GoofSpielState(Domain *domain,
-                               std::array<vector<int>, 3> playerDecks,
-                               int natureSelectedCard,
-                               vector<double> cumulativeRewards,
-                               std::array<vector<int>, 3> playedCards) : State(domain) {
-    playerDecks_ = move(playerDecks);
-    natureSelectedCard_ = natureSelectedCard;
-    cumulativeRewards_ = move(cumulativeRewards);
-    playedCards_ = move(playedCards);
-}
-
-GoofSpielState::GoofSpielState(Domain *domain,
-                               const GoofSpielState &previousState,
-                               std::array<int, 3> roundPlayedCards,
-                               vector<double> cumulativeRewards) : State(domain) {
-    playerDecks_ = previousState.playerDecks_;
-    playedCards_ = previousState.playedCards_;
-
-    for (int j = 0; j < 3; ++j) {
-        playerDecks_[j].erase(
-            std::remove(playerDecks_[j].begin(), playerDecks_[j].end(), roundPlayedCards[j]),
-            playerDecks_[j].end());
-
-        playedCards_[j].push_back(roundPlayedCards[j]);
-        if (j == 2) {
-            natureSelectedCard_ = roundPlayedCards[2];
-        }
-    }
-    cumulativeRewards_ = move(cumulativeRewards);
-}
-
 unsigned long GoofSpielState::countAvailableActionsFor(Player player) const {
     return playerDecks_[player].size();
 }
@@ -230,34 +181,39 @@ vector<shared_ptr<Action>> GoofSpielState::getAvailableActionsFor(const Player p
 }
 
 OutcomeDistribution
-GoofSpielState::performActions(const vector<PlayerAction> &actions) const {
-    const auto goofdomain = static_cast<GoofSpielDomain *>(domain_);
-    const std::array<int, 3> chosenCards = {
-        dynamic_cast<GoofSpielAction *>(actions[0].second.get())->cardNumber_,
-        dynamic_cast<GoofSpielAction *>(actions[1].second.get())->cardNumber_,
+GoofSpielState::performActions(const vector<shared_ptr<Action>> &actions) const {
+    const auto goofdomain = static_cast<const GoofSpielDomain *>(domain_);
+    const array<int, 3> chosenCards = {
+        dynamic_cast<GoofSpielAction &>(*actions[0]).cardNumber_,
+        dynamic_cast<GoofSpielAction &>(*actions[1]).cardNumber_,
         natureSelectedCard_
     };
     const auto &natureDeck = playerDecks_[2];
 
-    GoofspielRoundOutcome roundResult = chosenCards[0] == chosenCards[1]
+    const GoofspielRoundOutcome roundResult = chosenCards[0] == chosenCards[1]
                                         ? PL0_DRAW : chosenCards[0] > chosenCards[1] ? PL0_WIN
                                                                                      : PL0_LOSE;
-    double roundReward = int(roundResult) * natureSelectedCard_;
-
-    vector<double> newRewards = {
-        cumulativeRewards_[0] + roundReward,
-        cumulativeRewards_[1] - roundReward
-    };
-    if (goofdomain->binaryTerminalRewards_ && natureDeck.empty()) {
-        newRewards[0] = newRewards[0] > 1.0 ? 1.0 : (newRewards[0] < -1.0 ? -1.0 : 0.0);
-        newRewards[1] = -newRewards[0];
-    }
+    const double roundReward = goofdomain->binaryTerminalRewards_
+        ? roundResult / goofdomain->numberOfCards_
+        : int(roundResult) * natureSelectedCard_;
+    const vector<double> newRewards = {roundReward, -roundReward};
 
     OutcomeDistribution newOutcomes;
 
-    auto addOutcome = [&](std::array<int, 3> chosenCards, double chanceProb) {
+    auto addOutcome = [&](array<int, 3> chosenCards, double chanceProb) {
+        auto nextPlayerDecks = playerDecks_;
+        auto nextPlayedCards = playedCards_;
+        const int nextNatureSelectedCard = chosenCards[2];
+
+        for (int j = 0; j < 3; ++j) {
+            nextPlayerDecks[j].erase(
+                std::remove(nextPlayerDecks[j].begin(), nextPlayerDecks[j].end(), chosenCards[j]),
+                nextPlayerDecks[j].end());
+
+            nextPlayedCards[j].push_back(chosenCards[j]);
+        }
         const auto newState = make_shared<GoofSpielState>(
-            goofdomain, *this, chosenCards, newRewards);
+            goofdomain, nextPlayerDecks, nextNatureSelectedCard, nextPlayedCards);
 
         shared_ptr<GoofSpielObservation> publicObs;
         shared_ptr<GoofSpielObservation> obs0;
@@ -265,15 +221,15 @@ GoofSpielState::performActions(const vector<PlayerAction> &actions) const {
 
         if (goofdomain->variant_ == IncompleteObservations) {
             publicObs = make_shared<GoofSpielObservation>(
-                goofdomain->numberOfCards_, std::array<int, 3>{
+                goofdomain->numberOfCards_, array<int, 3>{
                     NO_CARD_OBSERVATION, NO_CARD_OBSERVATION, chosenCards[2]
                 }, roundResult);
             obs0 = make_shared<GoofSpielObservation>(
-                goofdomain->numberOfCards_, std::array<int, 3>{
+                goofdomain->numberOfCards_, array<int, 3>{
                     chosenCards[0], NO_CARD_OBSERVATION, chosenCards[2]
                 }, roundResult);
             obs1 = make_shared<GoofSpielObservation>(
-                goofdomain->numberOfCards_, std::array<int, 3>{
+                goofdomain->numberOfCards_, array<int, 3>{
                     NO_CARD_OBSERVATION, chosenCards[1], chosenCards[2]
                 }, roundResult);
         } else {
@@ -284,11 +240,11 @@ GoofSpielState::performActions(const vector<PlayerAction> &actions) const {
         }
 
         const auto newOutcome = Outcome(newState, {obs0, obs1}, publicObs, newRewards);
-        newOutcomes.emplace_back(newOutcome, chanceProb);
+        newOutcomes.emplace_back(OutcomeEntry(newOutcome, chanceProb));
     };
 
     if (goofdomain->fixChanceCards_) {
-        auto natureCard = natureDeck.empty() ? NO_NATURE_CARD : natureDeck[0];
+        const auto natureCard = natureDeck.empty() ? NO_NATURE_CARD : natureDeck[0];
         addOutcome({chosenCards[0], chosenCards[1], natureCard}, 1.0);
     } else {
         if (natureDeck.empty()) {
@@ -327,17 +283,14 @@ string GoofSpielState::toString() const {
 bool GoofSpielState::operator==(const State &rhs) const {
     auto gsState = dynamic_cast<const GoofSpielState &>(rhs);
 
-    return natureSelectedCard_ == gsState.natureSelectedCard_
+    return hash_ == gsState.hash_
+        && natureSelectedCard_ == gsState.natureSelectedCard_
         && playedCards_ == gsState.playedCards_
         && playerDecks_ == gsState.playerDecks_;
 }
 
-size_t GoofSpielState::getHash() const {
-    size_t seed = 0;
-    boost::hash_combine(seed, playerDecks_);
-    boost::hash_combine(seed, playedCards_);
-    boost::hash_combine(seed, natureSelectedCard_);
-    return seed;
+bool GoofSpielState::isTerminal() const {
+    return playerDecks_[0].empty() && playerDecks_[1].empty();
 }
 
 }  // namespace GTLib2

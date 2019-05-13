@@ -31,19 +31,16 @@
 
 namespace GTLib2::algorithms {
 
-EFGNodesDistribution createRootEFGNodes(const OutcomeDistribution &probDist);
-
-inline EFGNodesDistribution createRootEFGNodes(const Domain &domain) {
-    return createRootEFGNodes(domain.getRootStatesDistribution());
-}
-
 BehavioralStrategy mixedToBehavioralStrategy(const Domain &domain,
                                              const vector<BehavioralStrategy> &pureStrats,
                                              const ProbDistribution &distribution,
                                              Player player);
 
-EFGNodesDistribution getAllNodesInTheInformationSetWithNatureProbability(
-    const shared_ptr<AOH> &infSet, const Domain &domain);
+bool isAOCompatible(const vector<ActionObservationIds> &aoTarget,
+                    const vector<ActionObservationIds> &aoCmp);
+
+vector<shared_ptr<EFGNode>> getAllNodesInInfoset(const shared_ptr<AOH> &infoset,
+                                                 const Domain &domain);
 
 }  // namespace GTLib2
 

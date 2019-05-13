@@ -26,9 +26,6 @@
 #define DOMAINS_MATCHING_PENNIES_H_
 
 #include "base/base.h"
-#include <utility>
-#include <vector>
-#include <string>
 
 namespace GTLib2::domains {
 
@@ -40,8 +37,7 @@ enum MatchingPenniesVariant { SimultaneousMoves, AlternatingMoves };
 
 class MatchingPenniesDomain: public Domain {
  public:
-    MatchingPenniesDomain(MatchingPenniesVariant variant);
-    vector <Player> getPlayers() const override { return {0, 1}; };
+    explicit MatchingPenniesDomain(MatchingPenniesVariant variant);
     string getInfo() const override {
         return variant_ == SimultaneousMoves
                ? "Simultaneous matching pennies"
@@ -51,10 +47,9 @@ class MatchingPenniesDomain: public Domain {
 
 };
 
-typedef ActionId Move;
 // actions
-constexpr Move Heads = 0;
-constexpr Move Tails = 1;
+constexpr ActionId ActionHeads = 0;
+constexpr ActionId ActionTails = 1;
 // priv obs
 constexpr ObservationId OtherHeads = 0;
 constexpr ObservationId OtherTails = 1;
@@ -64,37 +59,40 @@ constexpr ObservationId Pl1Wins = 0;
 
 class MatchingPenniesAction: public Action {
  public:
-    explicit MatchingPenniesAction(Move moveParm);
+    inline MatchingPenniesAction() : Action() {}
+    inline MatchingPenniesAction(ActionId move) : Action(move) {}
     string toString() const override;
-    bool operator==(const Action &that) const override;
-    size_t getHash() const override;
-    Move move_;
 };
 
 class MatchingPenniesObservation: public Observation {
  public:
-    explicit MatchingPenniesObservation(ObservationId id);
+    inline MatchingPenniesObservation() : Observation() {}
+    inline MatchingPenniesObservation(ObservationId otherMove) : Observation(otherMove) {}
 };
 
 class MatchingPenniesState: public State {
  public:
-    MatchingPenniesState(Domain *domain, array<Move, 2> moves);
+    inline MatchingPenniesState(const Domain *domain, array<ActionId, 2> moves)
+        : State(domain, hashCombine(5645642168421, moves)),
+          moves_(moves), variant_(static_cast<const MatchingPenniesDomain *>(domain)->variant_),
+          players_(makePlayers(moves_, variant_)) {}
 
     unsigned long countAvailableActionsFor(Player player) const override;
     vector <shared_ptr<Action>> getAvailableActionsFor(Player pl) const override;
+    OutcomeDistribution performActions(const vector <shared_ptr<Action>> &actions) const override;
 
-    OutcomeDistribution performActions(const vector <PlayerAction> &actions) const override;
-
-    inline int getNumberOfPlayers() const override { return int(players_.size()); }
     inline vector <Player> getPlayers() const override { return players_; };
+    inline bool isTerminal() const override { return players_.empty(); };
     bool operator==(const State &rhs) const override;
-    size_t getHash() const override;
-
-    vector <Player> players_;
-    array<Move, 2> moves_;
-    MatchingPenniesVariant variant_;
 
     string toString() const override;
+
+ private:
+    const array<ActionId, 2> moves_;
+    const MatchingPenniesVariant variant_;
+    const vector <Player> players_;
+
+    const vector <Player> makePlayers(array<ActionId, 2> moves, MatchingPenniesVariant variant);
 };
 
 }  // namespace GTLib2

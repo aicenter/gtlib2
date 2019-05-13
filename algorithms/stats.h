@@ -39,28 +39,27 @@ struct DomainStatistics {
     uint64_t num_terminals = 0;
     uint64_t num_states = 0;
 
-    uint64_t num_histories[GAME_MAX_PLAYERS] = {0};
-    uint64_t num_infosets[GAME_MAX_PLAYERS] = {0};
-    uint64_t num_sequences[GAME_MAX_PLAYERS] = {0};
+    vector<uint64_t> num_histories;
+    vector<uint64_t> num_infosets;
+    vector<uint64_t> num_sequences;
 
     friend std::ostream &
     operator<<(std::ostream &ss, DomainStatistics const &stats) {
         ss << endl;
+        ss << "Depth of EFG:        \t" << stats.max_EFGDepth << endl;
+        ss << "Depth of game state: \t" << stats.max_StateDepth << endl;
+        ss << "EFG nodes:           \t" << stats.num_nodes << endl;
+        ss << "Terminals:           \t" << stats.num_terminals << endl;
         ss << "States:              \t" << stats.num_states << endl;
         ss << "Histories:           \t" << stats.num_histories << endl;
-        ss << "Terminals:           \t" << stats.num_terminals << endl;
-        ss << "EFG nodes:           \t" << stats.num_nodes << endl;
         ss << "Infosets:            \t" << stats.num_infosets << endl;
         ss << "Sequences:           \t" << stats.num_sequences << endl;
-        ss << "Depth of game state: \t" << stats.max_StateDepth << endl;
-        ss << "Depth of EFG:        \t" << stats.max_EFGDepth << endl;
         ss << endl;
 
         return ss;
     }
 
-    friend bool
-    operator==(const DomainStatistics &some, const DomainStatistics &other) {
+    friend bool operator==(const DomainStatistics &some, const DomainStatistics &other) {
         if (!(some.max_EFGDepth == other.max_EFGDepth &&
             some.max_StateDepth == other.max_StateDepth &&
             some.num_nodes == other.num_nodes &&
@@ -85,7 +84,8 @@ struct DomainStatistics {
     }
 };
 
-/** Count the number of nodes, infosets, public states
+/**
+ * Count the number of nodes, infosets, public states
  * and other statistics defined in DomainStatistics
  * @see DomainStatistics
  */
@@ -99,9 +99,7 @@ void printDomainStatistics(const Domain &domain, std::ostream &ostr);
 /**
  * Print basic statistics about supplied domain
  */
-inline void printDomainStatistics(const Domain &domain) {
-    printDomainStatistics(domain, cout);
-}
+inline void printDomainStatistics(const Domain &domain) { printDomainStatistics(domain, cout); }
 
 }  // namespace GTLib2
 

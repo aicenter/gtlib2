@@ -35,20 +35,20 @@ typedef function<void(shared_ptr<EFGNode>)> EFGNodeCallback;
  * Call supplied function at each EFGNode of the EFG tree, including leaves.
  * The tree is walked as DFS up to maximum specified depth.
  */
-void treeWalkEFG(const Domain &domain, EFGNodeCallback function, int maxDepth);
+void treeWalkEFG(const Domain &domain, EFGNodeCallback function, int maxStateDepth);
 
 /**
  * Call supplied function at each EFGNode of the EFG tree supplied by cache, including leaves.
  * The tree is walked as DFS up to maximum specified depth.
  */
-void treeWalkEFG(EFGCache &cache, EFGNodeCallback function, int maxDepth);
+void treeWalkEFG(EFGCache &cache, EFGNodeCallback function, int maxStateDepth);
 
 /**
  * Call supplied function at each EFGNode of the EFG tree supplied by cache, including leaves.
  * The tree is walked as DFS up to maximum depth as the max of int values.
  */
 inline void treeWalkEFG(EFGCache &cache, EFGNodeCallback function) {
-    treeWalkEFG(cache, move(function), INT_MAX);
+    treeWalkEFG(cache, move(function), cache.getDomainMaxStateDepth());
 }
 
 /**
@@ -56,7 +56,7 @@ inline void treeWalkEFG(EFGCache &cache, EFGNodeCallback function) {
  * The tree is walked as DFS up to maximum depth allowed by the domain.
  */
 inline void treeWalkEFG(const Domain &domain, EFGNodeCallback function) {
-    treeWalkEFG(domain, move(function), domain.getMaxDepth());
+    treeWalkEFG(domain, move(function), domain.getMaxStateDepth());
 }
 
 }  // namespace GTLib2

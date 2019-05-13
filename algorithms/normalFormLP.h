@@ -37,64 +37,48 @@
 
 
 namespace GTLib2::algorithms {
+
 /**
  * This class represents the algorithm for solving two-player zero-sum game
  * using a linear program (LP) and normal form.
- * The class requires number of actions for both players
- * and a reference to the utility matrix.
- * The class does not hold the copy of the utility matrix
- * and directly builds the LP.
+ * The class requires number of actions for both players  and a reference to the utility matrix.
+ * The class does not hold the copy of the utility matrix and directly builds the LP.
  * The class also rebuilds the LP whenever there is a change to the utility matrix.
  */
 class NormalFormLP {
  public:
-  explicit NormalFormLP(const Domain &_game, unique_ptr<AbstractLPSolver> _lp_solver);
+    explicit NormalFormLP(const Domain &domain, unique_ptr<AbstractLPSolver> _lp_solver);
+    explicit NormalFormLP(const unsigned int p1_actions, const unsigned int p2_actions,
+                          const vector<double> &utilities, unique_ptr<AbstractLPSolver> lp_solver);
+    explicit NormalFormLP(const unsigned int p1_actions, const unsigned int p2_actions,
+                          const vector<vector<double>> &utilities,
+                          unique_ptr<AbstractLPSolver> lp_solver);
+    ~NormalFormLP();
 
-  explicit NormalFormLP(const unsigned int _p1_actions, const unsigned int _p2_actions,
-                        const vector<double> &_utilities,
-                        unique_ptr<AbstractLPSolver> _lp_solver);
+    double SolveGame();
+    void AddActions(const int player, const vector<vector<double>> &utility_for_opponent);
+    void ChangeOutcome(const int action_for_p1, const int action_for_p2, double new_utility);
+    vector<double> GetStrategy(int player);
 
-  explicit NormalFormLP(const unsigned int _p1_actions, const unsigned int _p2_actions,
-                        const vector<vector<double>> &_utilities,
-                        unique_ptr<AbstractLPSolver> _lp_solver);
+    void UpdateUtilityMatrix(const vector<double> &utilities);
+    void UpdateUtilityMatrix(const vector<vector<double>> &utilities);
 
-  ~NormalFormLP();
-
-  double SolveGame();
-
-  void AddActions(const int _player,
-                  const vector<vector<double>> &_utility_for_opponent);
-
-  void ChangeOutcome(const int _action_for_p1, const int _action_for_p2,
-                     double _new_utility);
-
-  vector<double> GetStrategy(int _player);
-
-  void UpdateUtilityMatrix(const vector<double> &_utilities);
-
-  void UpdateUtilityMatrix(const vector<vector<double>> &_utilities);
-
-  void SaveLP(const char *_file);
+    void SaveLP(const char *_file);
 
  protected:
-  unique_ptr<AbstractLPSolver> lp_solver_;
-  double value_of_the_game_ = NAN;
-  unsigned int rows_;
-  unsigned int cols_;
-  const bool OUTPUT = true;
-  bool model_ready_ = false;
-  bool model_solved_ = false;
+    unique_ptr<AbstractLPSolver> lp_solver_;
+    double value_of_the_game_ = NAN;
+    unsigned int rows_;
+    unsigned int cols_;
+    const bool OUTPUT = true;
+    bool model_ready_ = false;
+    bool model_solved_ = false;
 
-  void CleanModel();
-
-  void BuildModel(const vector<double> *_utility_matrix);
-
-  bool ValidateInput(const int _p1_actions, const int _p2_actions,
-                     const vector<double> &_utilities);
-
-  void AddRows(const vector<vector<double>> &_utility_for_cols);
-
-  void AddCols(const vector<vector<double>> &_utility_for_rows);
+    void CleanModel();
+    void BuildModel(const vector<double> *_utility_matrix);
+    bool ValidateInput(const int p1_actions, const int p2_actions, const vector<double> &utilities);
+    void AddRows(const vector<vector<double>> &_utility_for_cols);
+    void AddCols(const vector<vector<double>> &_utility_for_rows);
 };
 }  // namespace GTLib2
 

@@ -24,8 +24,8 @@
 #include "base/cache.h"
 #include "base/algorithm.h"
 
-#include <boost/test/unit_test.hpp>
-#include <domains/goofSpiel.h>
+#include "gtest/gtest.h"
+#include "domains/goofSpiel.h"
 
 namespace GTLib2 {
 
@@ -33,10 +33,7 @@ using domains::GoofSpielDomain;
 using domains::GoofSpielSettings;
 using domains::GoofSpielVariant::IncompleteObservations;
 
-BOOST_AUTO_TEST_SUITE(BaseTests)
-BOOST_AUTO_TEST_SUITE(Algorithm)
-
-BOOST_AUTO_TEST_CASE(PlayMatchSmallGame) {
+TEST(PlayMatch, PlaySmallGame) {
     PreparedAlgorithm firstAction = createInitializer<FixedActionPlayer>(0);
     PreparedAlgorithm lastAction = createInitializer<FixedActionPlayer>(-1);
 
@@ -48,10 +45,7 @@ BOOST_AUTO_TEST_CASE(PlayMatchSmallGame) {
     vector<double> actualUtilities = playMatch(
         domain, vector<PreparedAlgorithm>{firstAction, lastAction},
         vector<int>{1000, 1000}, vector<int>{10, 10}, 0);
-    BOOST_CHECK_EQUAL(actualUtilities, expectedUtilities);
+    EXPECT_EQ(actualUtilities, expectedUtilities);
 }
-
-BOOST_AUTO_TEST_SUITE_END()
-BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace GTLib2

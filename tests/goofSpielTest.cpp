@@ -30,14 +30,9 @@
 #include "algorithms/utility.h"
 #include "algorithms/strategy.h"
 #include "domains/goofSpiel.h"
-#include "utils/functools.h"
 #include "tests/domainsTest.h"
 
-// This must be defined in exacly one test file.
-#define BOOST_TEST_MODULE GTLib2 test
-// todo: move this out somehow
-#include <boost/range/combine.hpp>
-#include <boost/test/unit_test.hpp>
+#include "gtest/gtest.h"
 
 namespace GTLib2::domains {
 
@@ -46,8 +41,6 @@ using algorithms::treeWalkEFG;
 using algorithms::getUniformStrategy;
 using algorithms::playOnlyAction;
 
-BOOST_AUTO_TEST_SUITE(DomainsTests)
-BOOST_AUTO_TEST_SUITE(GoofSpiel)
 
 // @formatter:off
 GoofSpielDomain testDomainsGoofSpiel[] = { // NOLINT(cert-err58-cpp)
@@ -67,11 +60,11 @@ GoofSpielDomain testDomainsGoofSpiel[] = { // NOLINT(cert-err58-cpp)
 // @formatter:on
 
 
-BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
-    DomainStatistics expectedStats[] = {
+TEST(Goofspiel, BuildGameTreeAndCheckSizes) {
+    vector<DomainStatistics> expectedStats = {
         {
             .max_EFGDepth   = 2,
-            .max_StateDepth = 1,
+            .max_StateDepth = 2,
             .num_nodes      = 3,
             .num_terminals  = 1,
             .num_states     = 2,
@@ -79,35 +72,36 @@ BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
             .num_infosets   = {1, 1},
             .num_sequences  = {2, 2},
         }, {
-            .max_EFGDepth   = 4,
-            .max_StateDepth = 2,
-            .num_nodes      = 30,
+            .max_EFGDepth   = 5,
+            .max_StateDepth = 3,
+            .num_nodes      = 31,
             .num_terminals  = 8,
-            .num_states     = 18,
+            .num_states     = 19,
             .num_histories  = {10, 12},
             .num_infosets   = {10, 10},
             .num_sequences  = {13, 13},
         }, {
-            .max_EFGDepth   = 6,
-            .max_StateDepth = 3,
-            .num_nodes      = 822,
+            .max_EFGDepth   = 8,
+            .max_StateDepth = 4,
+            .num_nodes      = 850,
             .num_terminals  = 216,
-            .num_states     = 489,
+            .num_states     = 490,
             .num_histories  = {273, 333},
             .num_infosets   = {273, 273},
             .num_sequences  = {334, 334},
         }, {
             .max_EFGDepth   = 2,
-            .max_StateDepth = 1,
+            .max_StateDepth = 2,
             .num_nodes      = 3,
             .num_terminals  = 1,
             .num_states     = 2,
             .num_histories  = {1, 1},
             .num_infosets   = {1, 1},
             .num_sequences  = {2, 2},
-        }, {
+        },
+        {
             .max_EFGDepth   = 4,
-            .max_StateDepth = 2,
+            .max_StateDepth = 3,
             .num_nodes      = 15,
             .num_terminals  = 4,
             .num_states     = 9,
@@ -116,7 +110,7 @@ BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
             .num_sequences  = {7, 7},
         }, {
             .max_EFGDepth   = 6,
-            .max_StateDepth = 3,
+            .max_StateDepth = 4,
             .num_nodes      = 139,
             .num_terminals  = 36,
             .num_states     = 82,
@@ -125,7 +119,7 @@ BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
             .num_sequences  = {58, 58},
         }, {
             .max_EFGDepth   = 2,
-            .max_StateDepth = 1,
+            .max_StateDepth = 2,
             .num_nodes      = 3,
             .num_terminals  = 1,
             .num_states     = 2,
@@ -133,26 +127,26 @@ BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
             .num_infosets   = {1, 1},
             .num_sequences  = {2, 2},
         }, {
-            .max_EFGDepth   = 4,
-            .max_StateDepth = 2,
-            .num_nodes      = 30,
+            .max_EFGDepth   = 5,
+            .max_StateDepth = 3,
+            .num_nodes      = 31,
             .num_terminals  = 8,
-            .num_states     = 18,
+            .num_states     = 19,
             .num_histories  = {10, 12},
             .num_infosets   = {10, 10},
             .num_sequences  = {13, 13},
         }, {
-            .max_EFGDepth   = 6,
-            .max_StateDepth = 3,
-            .num_nodes      = 822,
+            .max_EFGDepth   = 8,
+            .max_StateDepth = 4,
+            .num_nodes      = 850,
             .num_terminals  = 216,
-            .num_states     = 489,
+            .num_states     = 490,
             .num_histories  = {273, 333},
             .num_infosets   = {213, 213},
             .num_sequences  = {262, 262},
         }, {
             .max_EFGDepth   = 2,
-            .max_StateDepth = 1,
+            .max_StateDepth = 2,
             .num_nodes      = 3,
             .num_terminals  = 1,
             .num_states     = 2,
@@ -161,7 +155,7 @@ BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
             .num_sequences  = {2, 2},
         }, {
             .max_EFGDepth   = 4,
-            .max_StateDepth = 2,
+            .max_StateDepth = 3,
             .num_nodes      = 15,
             .num_terminals  = 4,
             .num_states     = 9,
@@ -170,7 +164,7 @@ BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
             .num_sequences  = {7, 7},
         }, {
             .max_EFGDepth   = 6,
-            .max_StateDepth = 3,
+            .max_StateDepth = 4,
             .num_nodes      = 139,
             .num_terminals  = 36,
             .num_states     = 82,
@@ -180,16 +174,15 @@ BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizes) {
         }
     };
 
-    for (auto tuple : zip(testDomainsGoofSpiel, expectedStats)) {
-        unzip(tuple, testDomain, expectedStat);
-        DomainStatistics actualStat;
-        calculateDomainStatistics(testDomain, &actualStat);
-
-        BOOST_CHECK_EQUAL(actualStat, expectedStat);
+    for (int i = 0; i < expectedStats.size(); ++i) {
+        cout << ">> checking domain [" << i << "] " << testDomainsGoofSpiel[i].getInfo() << endl;
+        DomainStatistics actualStats;
+        calculateDomainStatistics(testDomainsGoofSpiel[i], &actualStats);
+        EXPECT_EQ(actualStats, expectedStats[i]);
     }
 }
 
-BOOST_AUTO_TEST_CASE(checkBinaryUtilities) {
+TEST(Goofspiel, checkBinaryUtilities) {
     auto binary = GoofSpielDomain({
                                       variant:  CompleteObservations,
                                       numCards: 3,
@@ -207,20 +200,19 @@ BOOST_AUTO_TEST_CASE(checkBinaryUtilities) {
 
     int numViolations;
     auto binaryChecker = [&numViolations](shared_ptr<EFGNode> node) {
-        if (!node->isTerminal()) return;
-        if (node->rewards_[0] != 1.0
-            && node->rewards_[0] != -1.0
-            && node->rewards_[0] != 0.0)
+        if (node->type_ != TerminalNode) return;
+        if (abs(node->getUtilities()[0]) - 1.0 > 1e-5
+            && node->getUtilities()[0] > 1e-5)
             numViolations++;
     };
 
     numViolations = 0;
     treeWalkEFG(binary, binaryChecker);
-    BOOST_CHECK(numViolations == 0);
+    EXPECT_EQ(numViolations, 0);
 
     numViolations = 0;
     treeWalkEFG(nonBinary, binaryChecker);
-    BOOST_CHECK(numViolations == 84);
+    EXPECT_EQ(numViolations, 42);
 }
 
 // todo: create an actual domain test!
@@ -228,7 +220,7 @@ BOOST_AUTO_TEST_CASE(checkBinaryUtilities) {
 //  for inspiration look at kriegspieltest!
 
 
-BOOST_AUTO_TEST_SUITE_END()
-BOOST_AUTO_TEST_SUITE_END()
+
+
 
 }  // namespace GTLib2

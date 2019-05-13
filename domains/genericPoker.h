@@ -24,152 +24,58 @@
 #define DOMAINS_GENERICPOKER_H_
 
 #include "base/base.h"
-#include <utility>
-#include <string>
-#include <vector>
-
 
 namespace GTLib2::domains {
-enum MOVES {
-  Check, Call, Fold, Bet, Raise, PlayCard
-};
+
+enum MOVES { Check, Call, Fold, Bet, Raise, PlayCard };
 
 /**
  * GenericPokerAction is a class that represents Generic Poker actions,
  * which are identified by their id and contain card number or move.
  */
-class GenericPokerAction : public Action {
+class GenericPokerAction: public Action {
  public:
-  // constructor
-  GenericPokerAction(ActionId id, int type, int value);
-  bool operator==(const Action &that) const override;
-  size_t getHash() const override;
+    inline GenericPokerAction() : Action(), type_(0), value_(0), hash_(0) {}
+    inline GenericPokerAction(ActionId id, int type, int value)
+        : Action(id), type_(type), value_(value),
+          hash_(hashCombine(698645853454825462, type_, value_)) {}
+    bool operator==(const Action &that) const override;
+    inline HashType getHash() const override { return hash_; };
+    inline string toString() const final;
 
-  // Returns move description.
-  inline string toString() const final {
-    if (id_ == NO_ACTION)
-      return "NoA";
-    switch (type_) {
-      case Check: return "Check";
-      case Bet: return "Bet: " + to_string(value_);
-      case Call: return "Call";
-      case Raise: return "Raise: " + to_string(value_);
-      case Fold: return "Fold";
-      default: return "ERROR";
-    }
-  }
-
-  inline int GetValue() const {
-    return value_;
-  }
-
-  inline int GetType() const {
-    return type_;
-  }
+    inline int GetValue() const { return value_; }
+    inline int GetType() const { return type_; }
 
  private:
-  int value_;
-  int type_;
+    const int value_;
+    const int type_;
+    const HashType hash_;
 };
 
 /**
  * GenericPokerObservation is a class that represents Generic Poker observations,
  * which are identified by their id and contain a move type with value.
  */
-class GenericPokerObservation : public Observation {
+class GenericPokerObservation: public Observation {
  public:
-  // constructor
-  explicit GenericPokerObservation(int id, int type, int value);
-  /**
-   * id: 0 - check; 1 - call; 2 - fold; from 3 to 3+maxCardTypes - played cards;
-   * then next BetsFirstRound.size() numbers - bets in first round
-   * then next BetsSecondRound.size() numbers - bets in second round
-   * then next RaisesFirstRound.size() numbers - raises in first round
-   * then next RaisesSecondRound.size() numbers - raises in second round
-   */
+    inline GenericPokerObservation() : Observation(), value_(0), type_(0) {}
+    inline GenericPokerObservation(int id, int type, int value) :
+        Observation(id), type_(type), value_(value) {}
+    /**
+     * id: 0 - check; 1 - call; 2 - fold; from 3 to 3+maxCardTypes - played cards;
+     * then next BetsFirstRound.size() numbers - bets in first round
+     * then next BetsSecondRound.size() numbers - bets in second round
+     * then next RaisesFirstRound.size() numbers - raises in first round
+     * then next RaisesSecondRound.size() numbers - raises in second round
+     */
 
-  // Returns description.
-  inline string toString() const final {
-    if (id_ == NO_OBSERVATION)
-      return "NoOb";
-    switch (type_) {
-      case PlayCard: return "Card number is " + to_string(value_);
-      case Check: return "Check";
-      case Bet: return "Bet:" + to_string(value_);
-      case Call: return "Call";
-      case Raise: return "Raise:" + to_string(value_);
-      case Fold: return "Fold";
-      default: return "ERROR";
-    }
-  }
-  inline int GetValue() const {
-    return value_;
-  }
-
-  inline int GetType() const {
-    return type_;
-  }
+    string toString() const final;
+    inline int GetValue() const { return value_; }
+    inline int GetType() const { return type_; }
 
  private:
-  int value_;
-  int type_;
-};
-
-/**
- * GenericPokerState is a class that represents Generic Poker states,
- * which contains nature cards, pot, round etc. and who can play in the turn.
- */
-class GenericPokerState : public State {
- public:
-  // Constructor
-  GenericPokerState(Domain *domain, int p1card, int p2card, optional<int> natureCard,
-                    double firstPlayerReward, double pot, vector<Player> players, int round,
-                    shared_ptr<GenericPokerAction> lastAction, int continuousRaiseCount);
-
-  GenericPokerState(Domain *domain, int p1card, int p2card, optional<int> natureCard,
-                    unsigned int ante, vector<Player> players);
-
-  // Destructor
-  ~GenericPokerState() override = default;
-
-  unsigned long countAvailableActionsFor(Player player) const override;
-
-  // GetActions returns possible actions for a player in the state.
-  vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
-
-  OutcomeDistribution
-  performActions(const vector<PlayerAction> &actions) const override;
-
-  inline vector<Player> getPlayers() const final {
-    return players_;
-  }
-
-  int hasPlayerOneWon(const shared_ptr<GenericPokerAction> &lastAction, Player player) const;
-
-  bool operator==(const State &rhs) const override;
-
-  size_t getHash() const override;
-
-  inline string toString() const override {
-    return "Player 0 card: " + to_string(player1Card_) + "\nPlayer 1 card: " +
-        to_string(player2Card_) + "\nNature card: " + to_string(natureCard_.value_or(-1)) +
-        "\nPlayer on move: " + to_string(players_[0]) + "\nPot: " + to_string(pot_) +
-        "\nReward for first player: " + to_string(firstPlayerReward_) +
-        "\nLast action: " + (lastAction_ ? lastAction_->toString() : "Nothing") +
-        "\nRound: " + to_string(round_) + "\nContinuous raise count: " +
-        to_string(continuousRaiseCount_) + "\n";
-  }
-
- protected:
-  vector<Player> players_;
-  shared_ptr<GenericPokerAction> lastAction_;
-  optional<int> natureCard_;
-  double pot_;
-  double firstPlayerReward_;
-  int player1Card_;
-  int player2Card_;
-  int round_;
-  int continuousRaiseCount_;
+    const int value_;
+    const int type_;
 };
 
 /**
@@ -177,43 +83,81 @@ class GenericPokerState : public State {
  * which contain possible bets and raises, max card types, max cards of each type, max different
  * bets and raises and Max utility.
  */
-class GenericPokerDomain : public Domain {
+class GenericPokerDomain: public Domain {
  public:
-  // constructor
-  GenericPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes,
-                     unsigned int maxRaisesInRow, unsigned int maxDifferentBets,
-                     unsigned int maxDifferentRaises, unsigned int ante);
-
-  GenericPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes,
-                     unsigned int maxRaisesInRow, unsigned int maxDifferentBets,
-                     unsigned int maxDifferentRaises);
-
-  GenericPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes);
-
-  GenericPokerDomain();
-
-  // destructor
-  ~GenericPokerDomain() override = default;
-
-  // GetInfo returns string containing domain information.
-  string getInfo() const final;
-
-  inline vector<Player> getPlayers() const final {
-    return {0, 1};
-  }
-
-  vector<int> betsFirstRound_;
-  vector<int> raisesFirstRound_;
-  vector<int> betsSecondRound_;
-  vector<int> raisesSecondRound_;
-  const unsigned int maxCardTypes_;   // numbers
-  const unsigned int maxCardsOfEachType_;  // colors
-  const unsigned int maxRaisesInRow_;
-  const unsigned int maxDifferentBets_;
-  const unsigned int maxDifferentRaises_;
-  const unsigned int ante_;
-  const int TERMINAL_ROUND = 4;
+    GenericPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes,
+                       unsigned int maxRaisesInRow, unsigned int maxDifferentBets,
+                       unsigned int maxDifferentRaises, unsigned int ante);
+    GenericPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes,
+                       unsigned int maxRaisesInRow, unsigned int maxDifferentBets,
+                       unsigned int maxDifferentRaises);
+    GenericPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes);
+    GenericPokerDomain();
+    ~GenericPokerDomain() override = default;
+    string getInfo() const final;
+    vector<int> betsFirstRound_;
+    vector<int> raisesFirstRound_;
+    vector<int> betsSecondRound_;
+    vector<int> raisesSecondRound_;
+    const unsigned int maxCardTypes_;   // numbers
+    const unsigned int maxCardsOfEachType_;  // colors
+    const unsigned int maxRaisesInRow_;
+    const unsigned int maxDifferentBets_;
+    const unsigned int maxDifferentRaises_;
+    const unsigned int ante_;
+    const static int TERMINAL_ROUND = 4;
 };
+
+/**
+ * GenericPokerState is a class that represents Generic Poker states,
+ * which contains nature cards, pot, round etc. and who can play in the turn.
+ */
+class GenericPokerState: public State {
+ public:
+    inline GenericPokerState(const Domain *domain, int player1Card, int player2Card,
+                             optional<int> natureCard, double firstPlayerReward, double pot,
+                             vector <Player> players, int round,
+                             shared_ptr <GenericPokerAction> lastAction,
+                             int continuousRaiseCount) :
+        State(domain, hashCombine(23184231156465, players, player1Card, player2Card,
+                                  natureCard.value_or(-1), round, continuousRaiseCount, pot,
+                                  firstPlayerReward)),
+        player1Card_(player1Card), player2Card_(player2Card), natureCard_(move(natureCard)),
+        pot_(pot), firstPlayerReward_(firstPlayerReward), players_(move(players)), round_(round),
+        continuousRaiseCount_(continuousRaiseCount), lastAction_(move(lastAction)) {}
+
+    inline GenericPokerState(const Domain *domain, int p1card, int p2card, optional<int> natureCard,
+                             unsigned int ante, vector <Player> players)
+        : GenericPokerState(domain, p1card, p2card, move(natureCard), ante, 2 * ante,
+                            move(players), 1, nullptr, 0) {}
+
+    ~GenericPokerState() override = default;
+
+    unsigned long countAvailableActionsFor(Player player) const override;
+    vector <shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
+    OutcomeDistribution performActions(const vector <shared_ptr<Action>> &actions) const override;
+
+    inline vector <Player> getPlayers() const final { return players_; }
+    int hasPlayerOneWon(const shared_ptr <GenericPokerAction> &lastAction, Player player) const;
+    inline bool isTerminal() const override {
+        return round_ == GenericPokerDomain::TERMINAL_ROUND;
+    };
+
+    bool operator==(const State &rhs) const override;
+    inline string toString() const override;
+
+ protected:
+    const vector <Player> players_;
+    const shared_ptr <GenericPokerAction> lastAction_;
+    const optional<int> natureCard_;
+    const double pot_;
+    const double firstPlayerReward_;
+    const int player1Card_;
+    const int player2Card_;
+    const int round_;
+    const int continuousRaiseCount_;
+};
+
 }  // namespace GTLib2
 
 #endif  // DOMAINS_GENERICPOKER_H_

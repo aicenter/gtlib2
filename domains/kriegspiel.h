@@ -41,6 +41,7 @@ struct Square {
     inline bool operator==(const Square &that) const {
         return this->x == that.x && this->y == that.y;
     }
+    inline HashType getHash() const { return hashCombine(935453154564551, x, y); }
 };
 
 /**
@@ -288,6 +289,7 @@ class KriegspielAction: public Action {
      */
     KriegspielAction(ActionId id, pair<shared_ptr<AbstractPiece>, chess::Square>, chess::Square);
     explicit KriegspielAction(ActionId id);
+    inline KriegspielAction() : KriegspielAction(NO_ACTION) {}
     inline string toString() const final {
         if (id_ == NO_ACTION)
             return "No action";
@@ -296,7 +298,7 @@ class KriegspielAction: public Action {
     bool operator==(const Action &that) const override;
     pair<shared_ptr<AbstractPiece>, chess::Square> getMove() const;
     chess::Square movingFrom() const;
-    size_t getHash() const override;
+    HashType getHash() const override;
     shared_ptr<KriegspielAction> clone() const;
  private:
     const pair<shared_ptr<AbstractPiece>, chess::Square> move_;
@@ -330,10 +332,6 @@ class KriegspielDomain: public Domain {
 
     // GetInfo returns string containing domain information.
     string getInfo() const final;
-
-    inline vector<Player> getPlayers() const final {
-        return {chess::player::WHITE, chess::player::BLACK};
-    }
 };
 
 /**
@@ -341,10 +339,9 @@ class KriegspielDomain: public Domain {
  */
 class KriegspielObservation: public Observation {
  public:
-    // constructor
+    inline KriegspielObservation() : Observation() {}
     explicit KriegspielObservation(int id);
 
-    // Returns description.
     inline string toString() const final {
         if (id_ == 1)
             return "Success";
@@ -364,14 +361,14 @@ class KriegspielState: public State {
      * @param int legalMaxDepth, the depth of game only when counting legal half-moves
      * @param chess::BOARD the board type of the game
      */
-    KriegspielState(Domain *domain, int, chess::BOARD);
+    KriegspielState(const Domain *domain, int, chess::BOARD);
 
     /**
      * @param Domain the Kriegspiel domain
      * @param int legalMaxDepth, the depth of game only when counting legal half-moves
      * @param stringthe string from which the board is constructed in FEN notation
      */
-    KriegspielState(Domain *domain, int, string);
+    KriegspielState(const Domain *domain, int, string);
 
     /**
      * @param Domain the Kriegspiel domain
@@ -385,16 +382,16 @@ class KriegspielState: public State {
      * @param bool castle, whether castling is possible on the current board
      * @param shared_ptr<vector<shared_ptr<KriegspielAction>>> attemptedMoves, a history of attempted moves (non-legal moves)
      */
-    KriegspielState(Domain *domain,
+    KriegspielState(const Domain *domain,
                     int,
                     int,
                     int,
-                    shared_ptr<vector<shared_ptr<AbstractPiece>>> pieces,
+                    shared_ptr<vector<shared_ptr<AbstractPiece>>>  pieces,
                     chess::Square enPassantSquare,
-                    shared_ptr<vector<shared_ptr<KriegspielAction>>>,
+                    const shared_ptr<vector<shared_ptr<KriegspielAction>>>&,
                     int,
                     bool,
-                    shared_ptr<vector<shared_ptr<KriegspielAction>>>);
+                    shared_ptr<vector<shared_ptr<KriegspielAction>>> );
 
     // Destructor
     ~KriegspielState() override = default;
@@ -409,8 +406,7 @@ class KriegspielState: public State {
      * @returns OutcomeDistribution containing the Outcome(a new state (should be a completely new object), observations for the players, rewards for the players)
      *                              and the NaturalProbability of the Outcome
      */
-    OutcomeDistribution
-    performActions(const vector<PlayerAction> &actions) const override;
+    OutcomeDistribution  performActions(const vector <shared_ptr<Action>> &actions) const override;
 
     /**
      * Gets the player(s) moving in the current game state
@@ -418,10 +414,12 @@ class KriegspielState: public State {
      */
     inline vector<Player> getPlayers() const final {
         vector<Player> v;
-        if (!this->gameHasEnded || this->moveHistory->size() == domain_->getMaxDepth())
+        if (!this->gameHasEnded || this->moveHistory->size() == domain_->getMaxStateDepth())
             v.emplace_back(playerOnTheMove);
         return v;
     }
+
+    inline bool isTerminal() const override { return gameHasEnded; };
 
     bool operator==(const State &rhs) const override;
 
@@ -445,10 +443,6 @@ class KriegspielState: public State {
     void insertPiece(shared_ptr<AbstractPiece>);
     void setPlayerOnMove(int);
 
-
-    size_t getHash() const override;
-
-    // ToString returns board description.
     string toString() const override;
 
     /**
@@ -551,7 +545,7 @@ class KriegspielState: public State {
      * @param KriegspielAction* the move to perform
      * @returns bool true if the move to be performed is valid, false otherwise
      */
-    bool move(KriegspielAction *);
+    bool makeMove(KriegspielAction *a);
 
     /**
      * Updates the state for a player
@@ -600,13 +594,13 @@ class KriegspielState: public State {
  protected:
     shared_ptr<vector<shared_ptr<AbstractPiece>>> pieces;  // players' board
     vector<shared_ptr<AbstractPiece>> checkingFigures;
-    shared_ptr<vector<shared_ptr<KriegspielAction>>> moveHistory;
-    shared_ptr<vector<shared_ptr<KriegspielAction>>> attemptedMoveHistory;
+    const shared_ptr<vector<shared_ptr<KriegspielAction>>> moveHistory;
+    const shared_ptr<vector<shared_ptr<KriegspielAction>>> attemptedMoveHistory;
     Player playerOnTheMove;
     int lastCut = 0;
     chess::Square enPassantSquare;
     Player playerInCheck = -1;
-    int legalMaxDepth;
+    const int legalMaxDepth;
     bool gameHasEnded = false;
  private:
     void initBoard(chess::BOARD);

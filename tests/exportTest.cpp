@@ -24,21 +24,17 @@
 #include "domains/genericPoker.h"
 #include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"
-#include "utils/functools.h"
-
 #include "utils/export.h"
-#include <boost/range/combine.hpp>
-#include <boost/test/unit_test.hpp>
+
+#include "gtest/gtest.h"
 
 namespace GTLib2::utils {
 
 using domains::MatchingPenniesDomain;
 using domains::MatchingPenniesVariant::AlternatingMoves;
 
-BOOST_AUTO_TEST_SUITE(UtilsTests)
-BOOST_AUTO_TEST_SUITE(Export)
 
-BOOST_AUTO_TEST_CASE(exportGambitSmallDomain) {
+TEST(Export, GambitSmallDomain) {
     auto mp = MatchingPenniesDomain(AlternatingMoves);
     std::ostringstream gambit_os;
     exportGambit(mp, gambit_os);
@@ -53,10 +49,10 @@ BOOST_AUTO_TEST_CASE(exportGambitSmallDomain) {
         R"( p "" 2 2 "" { "Heads" "Tails" } 0)" "\n"
         R"(  t "" 2 "" { -1, 1})" "\n"
         R"(  t "" 3 "" { 1, -1})" "\n";
-    BOOST_CHECK(expectedGambit == gambit_os.str());
+    EXPECT_EQ(expectedGambit, gambit_os.str());
 }
 
-BOOST_AUTO_TEST_CASE(exportGraphvizSmallDomain) {
+TEST(Export, GraphvizSmallDomain) {
     auto mp = MatchingPenniesDomain(AlternatingMoves);
     std::ostringstream graphviz_os;
     exportGraphViz(mp, graphviz_os);
@@ -67,29 +63,24 @@ BOOST_AUTO_TEST_CASE(exportGraphvizSmallDomain) {
         R"(	graph [fontname=courier])" "\n"
         R"(	node  [fontname=courier, shape=box, style="filled", fillcolor=white])" "\n"
         R"(	edge  [fontname=courier])" "\n"
-        R"(	"[4294967295, 4294967295, 0]" -> "[4294967295, 4294967295, 0, 0, 4294967295, 4294967295, 1]" [label="Heads, p=1"])" "\n"
-        R"(	"[4294967295, 4294967295, 0]" [fillcolor="#FF0000", label="", shape=triangle])" "\n"
-        R"(	"[4294967295, 4294967295, 0]" -> "[4294967295, 4294967295, 0, 1, 4294967295, 4294967295, 1]" [label="Tails, p=1"])" "\n"
-        R"(	"[4294967295, 4294967295, 0]" [fillcolor="#FF0000", label="", shape=triangle])" "\n"
-        R"(	"[4294967295, 4294967295, 0, 0, 4294967295, 4294967295, 1]" -> "[4294967295, 4294967295, 0, 0, 4294967295, 4294967295, 1, 0, 0, 0]" [label="Heads, p=1"])" "\n"
-        R"(	"[4294967295, 4294967295, 0, 0, 4294967295, 4294967295, 1]" [fillcolor="#00FF00", label="", shape=invtriangle])" "\n"
-        R"(	"[4294967295, 4294967295, 0, 0, 4294967295, 4294967295, 1]" -> "[4294967295, 4294967295, 0, 0, 4294967295, 4294967295, 1, 1, 1, 0]" [label="Tails, p=1"])" "\n"
-        R"(	"[4294967295, 4294967295, 0, 0, 4294967295, 4294967295, 1]" [fillcolor="#00FF00", label="", shape=invtriangle])" "\n"
-        R"(	"[4294967295, 4294967295, 0, 0, 4294967295, 4294967295, 1, 0, 0, 0]" [fillcolor="#FFFFFF", label="[1, -1]"])" "\n"
-        R"(	"[4294967295, 4294967295, 0, 0, 4294967295, 4294967295, 1, 1, 1, 0]" [fillcolor="#FFFFFF", label="[-1, 1]"])" "\n"
-        R"(	"[4294967295, 4294967295, 0, 1, 4294967295, 4294967295, 1]" -> "[4294967295, 4294967295, 0, 1, 4294967295, 4294967295, 1, 0, 0, 1]" [label="Heads, p=1"])" "\n"
-        R"(	"[4294967295, 4294967295, 0, 1, 4294967295, 4294967295, 1]" [fillcolor="#00FF00", label="", shape=invtriangle])" "\n"
-        R"(	"[4294967295, 4294967295, 0, 1, 4294967295, 4294967295, 1]" -> "[4294967295, 4294967295, 0, 1, 4294967295, 4294967295, 1, 1, 1, 1]" [label="Tails, p=1"])" "\n"
-        R"(	"[4294967295, 4294967295, 0, 1, 4294967295, 4294967295, 1]" [fillcolor="#00FF00", label="", shape=invtriangle])" "\n"
-        R"(	"[4294967295, 4294967295, 0, 1, 4294967295, 4294967295, 1, 0, 0, 1]" [fillcolor="#FFFFFF", label="[-1, 1]"])" "\n"
-        R"(	"[4294967295, 4294967295, 0, 1, 4294967295, 4294967295, 1, 1, 1, 1]" [fillcolor="#FFFFFF", label="[1, -1]"])" "\n"
+        R"(	"∅" [fillcolor="#FF0000",label="∅",shape="triangle"])" "\n"
+        R"(	"∅" -> "∅,0" [label="Heads"])" "\n"
+        R"(	"∅" -> "∅,1" [label="Tails"])" "\n"
+        R"(	"∅,0" [fillcolor="#00FF00",label="∅,0",shape="invtriangle"])" "\n"
+        R"(	"∅,0" -> "∅,0,0" [label="Heads"])" "\n"
+        R"(	"∅,0" -> "∅,0,1" [label="Tails"])" "\n"
+        R"(	"∅,0,0" [fillcolor="#888888",label="[1, -1]",shape="square"])" "\n"
+        R"(	"∅,0,1" [fillcolor="#888888",label="[-1, 1]",shape="square"])" "\n"
+        R"(	"∅,1" [fillcolor="#00FF00",label="∅,1",shape="invtriangle"])" "\n"
+        R"(	"∅,1" -> "∅,1,0" [label="Heads"])" "\n"
+        R"(	"∅,1" -> "∅,1,1" [label="Tails"])" "\n"
+        R"(	"∅,1,0" [fillcolor="#888888",label="[-1, 1]",shape="square"])" "\n"
+        R"(	"∅,1,1" [fillcolor="#888888",label="[1, -1]",shape="square"])" "\n"
         R"(})" "\n";
 
     cout << graphviz_os.str();
 
-    BOOST_CHECK(expectedGraphviz == graphviz_os.str());
+    EXPECT_EQ(expectedGraphviz, graphviz_os.str());
 }
-BOOST_AUTO_TEST_SUITE_END()
-BOOST_AUTO_TEST_SUITE_END()
 
 }
