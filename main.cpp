@@ -54,7 +54,7 @@ void exampleExportDomain() {
 //    auto ld2 =
 //        LiarsDiceDomain({1,1},2);
     auto ld3 =
-        LiarsDiceDomain({3,0},3);
+        LiarsDiceDomain({2,1},4);
 //    auto gs3 =
 //        GoofSpielDomain({variant:  CompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}, binaryTerminalRewards: true});
 //    auto gs3_seed =

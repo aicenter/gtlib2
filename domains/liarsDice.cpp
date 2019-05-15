@@ -55,9 +55,9 @@ size_t LiarsDiceAction::getHash() const {
 
 LiarsDiceDomain::LiarsDiceDomain(vector<int> playersDice, int faces) :
     playersDice_(playersDice),
-    Domain(static_cast<unsigned int>(((getSumDice()) * faces) + 1), 2),
+    Domain(static_cast<unsigned int>(((playersDice[PLAYER_1] + playersDice[PLAYER_2]) * faces) + 1), 2),
     faces_(faces),
-    maxBid_((getSumDice()) * faces + 1) {
+    maxBid_((playersDice[PLAYER_1] + playersDice[PLAYER_2]) * faces + 1) {
 
     assert(getSumDice() >= 1);
     assert(faces >= 2);
@@ -155,7 +155,6 @@ void LiarsDiceDomain::initRootStates() {
     };
 
     backtrack(0, faces_ - 1, {});
-
 }
 
 string LiarsDiceDomain::getInfo() const {
@@ -349,7 +348,8 @@ LiarsDiceObservation::LiarsDiceObservation(bool isRoll, vector<int> rolls, int b
         int shift = 1;
         int idTemp = 1;
         for (vector<int>::iterator it = rolls_.begin(); it != rolls_.end(); it++) {
-            idTemp += (*it << shift++);
+            idTemp += (*it << shift);
+            shift += 3;
         }
         id_ = idTemp;
     } else {

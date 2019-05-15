@@ -209,7 +209,7 @@ set(TEST_FILES
         tests/utilityTest.cpp
         tests/LPTest.cpp
         tests/exportTest.cpp
-        )
+        tests/liarsDiceTest.cpp)
 
 # -------------------- Executables, linking --------------------
 
