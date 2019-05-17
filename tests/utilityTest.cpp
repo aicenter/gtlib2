@@ -31,9 +31,8 @@
 #include "algorithms/utility.h"
 #include "domains/goofSpiel.h"
 #include "tests/domainsTest.h"
-#include "utils/functools.h"
 
-#include <boost/test/unit_test.hpp>
+#include "gtest/gtest.h"
 
 namespace GTLib2::algorithms {
 
@@ -41,10 +40,8 @@ using domains::GoofSpielDomain;
 using domains::GoofSpielAction;
 using domains::GoofSpielVariant::CompleteObservations;
 
-BOOST_AUTO_TEST_SUITE(AlgorithmsTests)
-BOOST_AUTO_TEST_SUITE(Utility)
 
-BOOST_AUTO_TEST_CASE(computeUtilityFullDepthCard4) {
+TEST(Utility, ComputeUtilityFullDepthCard4) {
     GoofSpielDomain domain
         ({variant: CompleteObservations, numCards: 4, fixChanceCards: false, chanceCards: {}});
 
@@ -60,35 +57,32 @@ BOOST_AUTO_TEST_CASE(computeUtilityFullDepthCard4) {
     auto fourthLowestCardAction = make_shared<GoofSpielAction>(0, 4);
 
     auto setAction = [&](shared_ptr<EFGNode> node) {
+        if(node->type_ != PlayerNode) return;
+
         auto infoset = node->getAOHInfSet();
-        if (node->getEFGDepth() == 0) {
+        if (node->efgDepth_ == 0) {
             playOnlyAction(profile[opponent][infoset], lowestCardAction);
-        } else if (node->getEFGDepth() == 2) {
+        } else if (node->efgDepth_ == 2) {
             playOnlyAction(profile[opponent][infoset], secondLowestCardAction);
-        } else if (node->getEFGDepth() == 4) {
+        } else if (node->efgDepth_ == 4) {
             playOnlyAction(profile[opponent][infoset], thirdLowestCardAction);
-        } else if (node->getEFGDepth() == 6) {
+        } else if (node->efgDepth_ == 6) {
             playOnlyAction(profile[opponent][infoset], fourthLowestCardAction);
-        } else if (node->getEFGDepth() == 1) {
+        } else if (node->efgDepth_ == 1) {
             playOnlyAction(profile[player][infoset], lowestCardAction);
-        } else if (node->getEFGDepth() == 3) {
+        } else if (node->efgDepth_ == 3) {
             playOnlyAction(profile[player][infoset], secondLowestCardAction);
-        } else if (node->getEFGDepth() == 5) {
+        } else if (node->efgDepth_ == 5) {
             playOnlyAction(profile[player][infoset], thirdLowestCardAction);
-        } else if (node->getEFGDepth() == 7) {
+        } else if (node->efgDepth_ == 7) {
             playOnlyAction(profile[player][infoset], fourthLowestCardAction);
         }
 
     };
     algorithms::treeWalkEFG(domain, setAction);
 
-    auto utility = algorithms::computeUtilityTwoPlayersGame(domain, profile[0], profile[1],
-                                                            Player(0), Player(1));
-
-    BOOST_CHECK(std::abs(utility.second - 0) <= 0.001);
+    auto utility = algorithms::computeUtilitiesTwoPlayerGame(domain, profile)[1];
+    EXPECT_LE(std::abs(utility - 0), 0.001);
 }
-
-BOOST_AUTO_TEST_SUITE_END()
-BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace GTLib2

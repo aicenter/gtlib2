@@ -22,8 +22,6 @@
 #include "base/base.h"
 #include "chessboard_factory.h"
 
-#include <boost/algorithm/string.hpp>
-
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
@@ -224,15 +222,31 @@ boardInfo BoardFactory::createDemichess(
     return binfo;
 }
 
+std::vector<std::string> split(std::string stringToBeSplitted, std::string delimeter) {
+    std::vector<std::string> splittedString;
+    int startIndex = 0;
+    int  endIndex = 0;
+    while( (endIndex = stringToBeSplitted.find(delimeter, startIndex)) < stringToBeSplitted.size() )
+    {
+        std::string val = stringToBeSplitted.substr(startIndex, endIndex - startIndex);
+        splittedString.push_back(val);
+        startIndex = endIndex + delimeter.size();
+    }
+    if(startIndex < stringToBeSplitted.size())
+    {
+        std::string val = stringToBeSplitted.substr(startIndex);
+        splittedString.push_back(val);
+    }
+    return splittedString;
+}
+
 boardInfo FenBoardFactory::create(string s, GTLib2::domains::KriegspielState *b) {
     boardInfo binfo;
     binfo.pieces = make_shared<vector<shared_ptr<AbstractPiece>>>();
-    vector<string> strs;
-    boost::split(strs, s, boost::is_any_of("\t "));
+    vector<string> strs = split(s, "\t ");
 
     string pieceString = strs[0];
-    vector<string> rows;
-    boost::split(rows, pieceString, boost::is_any_of("/"));
+    vector<string> rows = split(pieceString, "/");
 
     int ySize = rows.size();
     int xSize = 0;

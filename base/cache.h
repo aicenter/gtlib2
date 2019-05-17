@@ -25,9 +25,7 @@
 
 #include "base/base.h"
 #include "base/efg.h"
-#include "algorithms/common.h"
 
-using GTLib2::algorithms::createRootEFGNodes;
 
 namespace GTLib2 {
 
@@ -42,11 +40,8 @@ namespace GTLib2 {
  * You can extend this cache to save more information needed by your algorithm.
  */
 class EFGCache {
-
-    /**
-     * Root distribution of the nodes
-     */
-    EFGNodesDistribution rootNodes_;
+ private:
+    const shared_ptr<EFGNode> rootNode_;
 
     /**
      * Specify that in a given node, with which action new distribution of nodes can be obtained.
@@ -54,15 +49,23 @@ class EFGCache {
      * Note that if you need to access parent nodes, they are saved in each respective node:
      * EFGNode::getParent
      */
-    unordered_map<shared_ptr<EFGNode>, EFGActionNodesDistribution> nodesChildren_;
+    unordered_map<shared_ptr<EFGNode>, EFGChildNodes> nodesChildren_;
 
  public:
-    inline explicit EFGCache(const Domain &domain) : domain_(domain) {}
+    inline explicit EFGCache(const Domain &domain)
+        : rootNode_(createRootEFGNode(domain)), domain_(domain) {
+        addCallback([&](const shared_ptr<EFGNode> &n) { this->createNode(n); });
+    }
 
     /**
      * Check if cache contains all the children for given node (after following any action).
      */
-    bool hasChildren(const shared_ptr<EFGNode> &node) const;
+    bool hasAllChildren(const shared_ptr<EFGNode> &node) const;
+
+    /**
+     * Check if cache contains at least one child for given node (after following any action).
+     */
+    bool hasAnyChildren(const shared_ptr<EFGNode> &node) const;
 
     /**
      * Check if cache contains children of for a given (node, action)
@@ -81,28 +84,20 @@ class EFGCache {
      *
      * The nodes are saved in the cache along their augmented infoset identification.
      */
-    const EFGNodesDistribution &getChildrenFor(const shared_ptr<EFGNode> &node,
-                                               const shared_ptr<Action> &action);
+    const shared_ptr<EFGNode> &getChildFor(const shared_ptr<EFGNode> &node,
+                                           const shared_ptr<Action> &action);
 
     /**
      * Retrieve children for the node after following any action.
      *
      * The nodes are saved in the cache along their augmented infoset identification.
      */
-    const EFGActionNodesDistribution &getChildrenFor(const shared_ptr<EFGNode> &node);
+    const EFGChildNodes &getChildrenFor(const shared_ptr<EFGNode> &node);
 
     /**
      * Get cached root nodes for the domain
      */
-    inline const EFGNodesDistribution &getRootNodes() {
-        // rootNodes cannot be initialized in constructor,
-        // because createNode is a virtual function that can be overriden in child classes
-        // https://www.artima.com/cppsource/nevercall.html
-        if (rootNodes_.empty()) {
-            rootNodes_ = createRootEFGNodes(domain_);
-        }
-        return rootNodes_;
-    }
+    inline const shared_ptr<EFGNode> &getRootNode() { return rootNode_; }
 
     /**
      * Get copy of all the nodes that are present in the cache.
@@ -112,15 +107,14 @@ class EFGCache {
     /**
      * Get a reference to the (parent -> children) map.
      */
-    inline const unordered_map<shared_ptr<EFGNode>, EFGActionNodesDistribution> &getNodesChildren()
-    const {
+    inline const unordered_map<shared_ptr<EFGNode>, EFGChildNodes> &getNodesChildren() const {
         return nodesChildren_;
     }
 
     /**
      * Create complete cache up to specified depth
      */
-    void buildForest(int maxDepth);
+    void buildForest(int maxStateDepth);
 
     /**
      * Create complete cache up to the depth specified by the domain.
@@ -134,27 +128,40 @@ class EFGCache {
         return builtForest_;
     }
 
+    inline unsigned int getDomainMaxStateDepth() const {
+        return domain_.getMaxStateDepth();
+    }
+
  protected:
+    typedef function<void(const shared_ptr<EFGNode> &)> ProcessingCallback;
 
-    /**
-     * To be overridden in child classes:
-     * each class should state the set of operations that should be done with specified (new) node.
-     */
-    virtual void processNode(const shared_ptr<EFGNode> &node);
-
-    void createNode(const shared_ptr<EFGNode> &node);
-
-    EFGActionNodesDistribution &getCachedNode(const shared_ptr<EFGNode> &shared_ptr);
-    const Domain &domain_;
+    inline void addCallback(const ProcessingCallback &cb) {
+        callbacks_.emplace_back(cb);
+    }
 
  private:
+    void createNode(const shared_ptr<EFGNode> &node);
+
+    EFGChildNodes &getCachedNode(const shared_ptr<EFGNode> &shared_ptr);
+    const Domain &domain_;
+
     bool builtForest_ = false;
+    /**
+     * Each class should state the set of operations that should be done with specified (new) node.
+     */
+    vector<ProcessingCallback> callbacks_;
+
+    inline void processNode(const shared_ptr<EFGNode> &node) {
+        for (const auto &callback: callbacks_) {
+            callback(node);
+        }
+    }
 };
 
 /**
  * Add caching of (augmented) information sets and the nodes within them.
  */
-class InfosetCache: public EFGCache {
+class InfosetCache: public virtual EFGCache {
 
     /**
      * Many EFGNodes can belong to many (augmented) infosets.
@@ -165,7 +172,9 @@ class InfosetCache: public EFGCache {
     unordered_map<shared_ptr<AOH>, vector<shared_ptr<EFGNode>>> infoset2nodes_;
 
  public:
-    inline explicit InfosetCache(const Domain &domain) : EFGCache(domain) {}
+    inline explicit InfosetCache(const Domain &domain) : EFGCache(domain) {
+        addCallback([&](const shared_ptr<EFGNode> &n) { this->createAugInfosets(n); });
+    }
 
     inline bool hasInfoset(const shared_ptr<AOH> &augInfoset) {
         return infoset2nodes_.find(augInfoset) != infoset2nodes_.end();
@@ -193,7 +202,7 @@ class InfosetCache: public EFGCache {
      * It also crashes if you ask for infoset for a node which is not saved in this cache.
      */
     inline const shared_ptr<AOH> &getInfosetFor(const shared_ptr<EFGNode> &node) {
-        return node2infosets_[node][*node->getCurrentPlayer()];
+        return node2infosets_[node][node->getPlayer()];
     }
 
     /**
@@ -207,8 +216,12 @@ class InfosetCache: public EFGCache {
         return node2infosets_[node][player];
     }
 
- protected:
-    void processNode(const shared_ptr<EFGNode> &node) override;
+    const unordered_map<shared_ptr<AOH>, vector<shared_ptr<EFGNode>>> &getInfoset2NodeMapping()
+    const {
+        return infoset2nodes_;
+    }
+
+ private:
     void createAugInfosets(const shared_ptr<EFGNode> &node);
 };
 
@@ -216,22 +229,31 @@ class InfosetCache: public EFGCache {
 /**
  * Add caching of public states and their respective augmented information sets and nodes.
  */
-class PublicStateCache: public EFGCache {
+class PublicStateCache: public virtual EFGCache {
 
     /**
       * Many EFGNodes can belong to one public state.
       * Many infosets can belong to one public state.
       */
     unordered_map<shared_ptr<EFGNode>, shared_ptr<EFGPublicState>> node2publicState_;
-    unordered_map<shared_ptr<EFGPublicState>, unordered_set<shared_ptr<EFGNode>>> publicState2nodes_;
+    unordered_map<shared_ptr<EFGPublicState>, unordered_set<shared_ptr<EFGNode>>>
+        publicState2nodes_;
     unordered_map<shared_ptr<AOH>, shared_ptr<EFGPublicState>> infoset2publicState_;
     unordered_map<shared_ptr<EFGPublicState>, unordered_set<shared_ptr<AOH>>> publicState2infosets_;
 
  public:
-    inline explicit PublicStateCache(const Domain &domain) : EFGCache(domain) {}
+    inline explicit PublicStateCache(const Domain &domain) : EFGCache(domain) {
+        addCallback([&](const shared_ptr<EFGNode> &n) { this->createPublicState(n); });
+    }
 
     inline bool hasPublicState(const shared_ptr<EFGPublicState> &pubState) {
         return publicState2nodes_.find(pubState) != publicState2nodes_.end();
+    }
+    inline bool hasPublicState(const shared_ptr<EFGNode> &node) {
+        return node2publicState_.find(node) != node2publicState_.end();
+    }
+    inline bool hasPublicState(const shared_ptr<AOH> &infoset) {
+        return infoset2publicState_.find(infoset) != infoset2publicState_.end();
     }
 
     inline const shared_ptr<EFGPublicState> &getPublicStateFor(const shared_ptr<EFGNode> &node) {
@@ -243,7 +265,8 @@ class PublicStateCache: public EFGCache {
     }
 
 
-    inline const unordered_set<shared_ptr<EFGNode>> &getNodesFor(const shared_ptr<EFGPublicState> &state) {
+    inline const unordered_set<shared_ptr<EFGNode>> &
+    getNodesFor(const shared_ptr<EFGPublicState> &state) {
         return publicState2nodes_[state];
     }
 
@@ -268,8 +291,7 @@ class PublicStateCache: public EFGCache {
         return publicState2nodes_.size();
     }
 
- protected:
-    void processNode(const shared_ptr<EFGNode> &node) override;
+ private:
     void createPublicState(const shared_ptr<EFGNode> &node);
 };
 

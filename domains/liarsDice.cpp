@@ -53,14 +53,17 @@ size_t LiarsDiceAction::getHash() const {
     return h(id_);
 }
 
-LiarsDiceDomain::LiarsDiceDomain(vector<int> playersDice, int faces) :
-    playersDice_(playersDice),
-    Domain(static_cast<unsigned int>(((playersDice[PLAYER_1] + playersDice[PLAYER_2]) * faces) + 1), 2),
-    faces_(faces),
-    maxBid_((playersDice[PLAYER_1] + playersDice[PLAYER_2]) * faces + 1) {
+LiarsDiceDomain::LiarsDiceDomain(LiarsDiceSettings settings) :
+    playersDice_(settings.playersDice),
+    Domain(static_cast<unsigned int>(((settings.playersDice[PLAYER_1] + settings.playersDice[PLAYER_2]) * settings.faces) + 2),
+           2,
+           make_shared<LiarsDiceAction>(),
+           make_shared<LiarsDiceObservation>()),
+    faces_(settings.faces),
+    maxBid_((settings.playersDice[PLAYER_1] + settings.playersDice[PLAYER_2]) * settings.faces + 1) {
 
     assert(getSumDice() >= 1);
-    assert(faces >= 2);
+    assert(faces_ >= 2);
     maxUtility_ = 1.0;
 
     maxUtility_ = 1.0;
@@ -71,17 +74,18 @@ LiarsDiceDomain::LiarsDiceDomain(vector<int> playersDice, int faces) :
 int LiarsDiceDomain::comb(int n, int m) const {
     int res = 1;
 
-    for(int i = n; i > m; i--){
+    for (int i = n; i > m; i--) {
         res *= i;
     }
 
-    for(int i = 2; i <= n - m; i++){
+    for (int i = 2; i <= n - m; i++) {
         res /= i;
     }
     return res;
 }
 
-double LiarsDiceDomain::calculateProbabilityForRolls(double baseProbability, std::vector<std::vector<int>> rolls) const {
+double LiarsDiceDomain::calculateProbabilityForRolls(double baseProbability,
+                                                     std::vector<std::vector<int>> rolls) const {
     double result = baseProbability;
 
     sort(rolls[0].begin(), rolls[0].end());
@@ -93,7 +97,7 @@ double LiarsDiceDomain::calculateProbabilityForRolls(double baseProbability, std
     int streak;
     int remaining;
 
-    for(int i = 0; i < 2; i++) {
+    for (int i = 0; i < 2; i++) {
         if (getPlayerNDice(i) == 0) {
             combinations[i] = 1;
         } else {
@@ -114,7 +118,7 @@ double LiarsDiceDomain::calculateProbabilityForRolls(double baseProbability, std
     }
 
     result *= combinations[0] * combinations[1];
-    return  result;
+    return result;
 }
 
 void LiarsDiceDomain::addToRootStates(std::vector<int> rolls, double baseProbability) {
@@ -131,7 +135,7 @@ void LiarsDiceDomain::addToRootStates(std::vector<int> rolls, double baseProbabi
 
     auto newState = make_shared<LiarsDiceState>(this, 0, 0, 0, PLAYER_1, rolls);
     Outcome outcome(newState, observations, shared_ptr<Observation>(), {0.0, 0.0});
-    rootStatesDistribution_.emplace_back(outcome, calculateProbabilityForRolls(baseProbability, playerRolls));
+    rootStatesDistribution_.emplace_back(OutcomeEntry(outcome, calculateProbabilityForRolls(baseProbability, playerRolls)));
 }
 
 void LiarsDiceDomain::initRootStates() {
@@ -144,10 +148,9 @@ void LiarsDiceDomain::initRootStates() {
             for (int i = 0; i <= limit; i++) {
                 vector<int> appendedRolls(rolls);
                 appendedRolls.push_back(i);
-                if(depth + 1 == getPlayerNDice(0)){
+                if (depth + 1 == getPlayerNDice(0)) {
                     backtrack(depth + 1, faces_ - 1, appendedRolls);
-                }
-                else{
+                } else {
                     backtrack(depth + 1, i, appendedRolls);
                 }
             }
@@ -162,24 +165,11 @@ string LiarsDiceDomain::getInfo() const {
            "\nPlayer 1 Dice: " + std::to_string(playersDice_[PLAYER_1]) +
         "\nPlayer 2 Dice: " + std::to_string(playersDice_[PLAYER_2]) +
         "\nDice faces: " + std::to_string(faces_) +
-        "\nMax depth: " + std::to_string(maxDepth_) + '\n';
+        "\nMax depth: " + std::to_string(maxStateDepth_) + '\n';
 }
 
 vector<Player> LiarsDiceDomain::getPlayers() const {
     return {PLAYER_1, PLAYER_2};
-}
-
-LiarsDiceState::LiarsDiceState(Domain *domain, Player player) :
-    LiarsDiceState(domain, 0, 0, 0, player, {}) {}
-
-LiarsDiceState::LiarsDiceState(Domain *domain, int currentBid, int previousBid, int round,
-                               int currentPlayerIndex, vector<int> rolls) :
-    State(domain),
-    currentBid_(currentBid),
-    previousBid_(previousBid),
-    round_(round),
-    currentPlayerIndex_(currentPlayerIndex) {
-    this->rolls_ = move(rolls);
 }
 
 vector<shared_ptr<Action>> LiarsDiceState::getAvailableActionsFor(Player player) const {
@@ -187,7 +177,7 @@ vector<shared_ptr<Action>> LiarsDiceState::getAvailableActionsFor(Player player)
 
     unsigned int id = 0;
 
-    const auto LDdomain = static_cast<LiarsDiceDomain *>(domain_);
+    const auto LDdomain = static_cast<const LiarsDiceDomain *>(domain_);
 
     if (player == this->currentPlayerIndex_) {
         if (this->currentBid_ == 0) {
@@ -206,7 +196,7 @@ vector<shared_ptr<Action>> LiarsDiceState::getAvailableActionsFor(Player player)
 }
 
 unsigned long LiarsDiceState::countAvailableActionsFor(Player player) const {
-    const auto LDdomain = static_cast<LiarsDiceDomain *>(domain_);
+    const auto LDdomain = static_cast<const LiarsDiceDomain *>(domain_);
     if (!(player == currentPlayerIndex_)) {
         return 0;
     }
@@ -218,37 +208,37 @@ unsigned long LiarsDiceState::countAvailableActionsFor(Player player) const {
     }
 }
 
-OutcomeDistribution LiarsDiceState::performActions(const std::vector<GTLib2::PlayerAction> &actions) const {
-    auto p1Action = dynamic_cast<LiarsDiceAction *>(actions[0].second.get());
-    auto p2Action = dynamic_cast<LiarsDiceAction *>(actions[1].second.get());
+OutcomeDistribution LiarsDiceState::performActions(const vector<shared_ptr<Action>> &actions) const {
+    auto p1Action = dynamic_cast<LiarsDiceAction &>(*actions[0]);
+    auto p2Action = dynamic_cast<LiarsDiceAction &>(*actions[1]);
 
-    const auto LDdomain = static_cast<LiarsDiceDomain *>(domain_);
+    const auto LDdomain = static_cast<const LiarsDiceDomain *>(domain_);
 
     OutcomeDistribution newOutcome;
 
-    assert(p1Action == nullptr | p2Action == nullptr);
-    assert(p1Action != nullptr
-               | p2Action != nullptr); //exactly one player performs action each move
+//    assert(p1Action == nullptr | p2Action == nullptr);
+//    assert(p1Action != nullptr
+//               | p2Action != nullptr); //exactly one player performs action each move
 
     auto currentPlayerAction =
-        dynamic_cast<LiarsDiceAction *>(actions[currentPlayerIndex_].second.get());
+        dynamic_cast<LiarsDiceAction &>(*actions[currentPlayerIndex_]);
 
     int newPlayer = currentPlayerIndex_ == PLAYER_1 ? PLAYER_2 : PLAYER_1;
 
-    int newBid = currentPlayerAction->getValue();
+    int newBid = currentPlayerAction.getValue();
 
     const auto newState = make_shared<LiarsDiceState>(LDdomain,
                                                       newBid,
                                                       currentBid_,
                                                       round_ + 1,
                                                       newPlayer,
-                                                      rolls_); // TODO: ask if appropriate to pass vector object from other State object
+                                                      rolls_);
 
     const auto publicObs = make_shared<LiarsDiceObservation>(false, vector<int>(), newBid);
 
     vector<double> rewards;
 
-    if (newState->isGameOver()) {
+    if (newState->isTerminal()) {
         if (isBluffCallSuccessful()) {
             if (currentPlayerIndex_ == PLAYER_1) {
                 rewards = {1.0, -1.0};
@@ -268,14 +258,14 @@ OutcomeDistribution LiarsDiceState::performActions(const std::vector<GTLib2::Pla
 
     const auto
         outcome = Outcome(newState, {publicObs, publicObs}, publicObs, rewards);
-    newOutcome.emplace_back(outcome, 1.0);
+    newOutcome.emplace_back(OutcomeEntry(outcome));
 
     return newOutcome;
 
 }
 
 bool LiarsDiceState::isBluffCallSuccessful() const {
-    const auto LDdomain = static_cast<LiarsDiceDomain *>(domain_);
+    const auto LDdomain = static_cast<const LiarsDiceDomain *>(domain_);
 
     int desiredDiceValue = (currentBid_ - 1) % LDdomain->getFaces();
     int desiredDiceAmount = 1 + ((currentBid_ - 1) / LDdomain->getFaces());
@@ -292,7 +282,7 @@ bool LiarsDiceState::isBluffCallSuccessful() const {
 }
 
 vector<Player> LiarsDiceState::getPlayers() const {
-    if (isGameOver()) {
+    if (isTerminal()) {
         return {};
     }
     vector<Player> player;
@@ -300,8 +290,8 @@ vector<Player> LiarsDiceState::getPlayers() const {
     return player;
 }
 
-bool LiarsDiceState::isGameOver() const {
-    const auto LDdomain = static_cast<LiarsDiceDomain *>(domain_);
+bool LiarsDiceState::isTerminal() const {
+    const auto LDdomain = static_cast<const LiarsDiceDomain *>(domain_);
     return (currentBid_ == LDdomain->getMaxBid());
 }
 
@@ -326,16 +316,6 @@ bool LiarsDiceState::operator==(const GTLib2::State &rhs) const {
         & round_ == otherState->round_
         & currentPlayerIndex_ == otherState->currentPlayerIndex_
         & rolls_ == otherState->rolls_);
-}
-
-size_t LiarsDiceState::getHash() const {
-    size_t seed = 0;
-    boost::hash_combine(seed, currentBid_);
-    boost::hash_combine(seed, previousBid_);
-    boost::hash_combine(seed, round_);
-    boost::hash_combine(seed, currentPlayerIndex_);
-    boost::hash_combine(seed, rolls_);
-    return seed;
 }
 
 LiarsDiceObservation::LiarsDiceObservation(bool isRoll, vector<int> rolls, int bid) :

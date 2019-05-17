@@ -31,46 +31,38 @@
 
 namespace GTLib2::algorithms {
 
-void treeWalkEFG(EFGCache &cache, EFGNodeCallback function, int maxDepth) {
-    auto traverse = [&function, &cache, maxDepth]
+void treeWalkEFG(EFGCache &cache, EFGNodeCallback function, int maxStateDepth) {
+    auto traverse = [&function, &cache, maxStateDepth]
         (const shared_ptr<EFGNode> &node, const auto &traverse) {
 
         // Call the provided function on the current node.
         function(node);
 
-        if (node->getStateDepth() >= maxDepth) return;
+        if (node->stateDepth_ >= maxStateDepth || node->type_ == TerminalNode) return;
 
         for (const auto &action : node->availableActions()) {
-            for (auto const &[nextNode, chanceProb] : cache.getChildrenFor(node, action)) {
-                traverse(nextNode, traverse);
-            }
+            traverse(cache.getChildFor(node, action), traverse);
         }
     };
 
-    for (const auto &[rootNode, chanceProb] : cache.getRootNodes()) {
-        traverse(rootNode, traverse);
-    }
+    traverse(cache.getRootNode(), traverse);
 }
 
-void treeWalkEFG(const Domain &domain, EFGNodeCallback function, int maxDepth) {
-    auto traverse = [&function, &domain, maxDepth]
+void treeWalkEFG(const Domain &domain, EFGNodeCallback function, int maxStateDepth) {
+    auto traverse = [&function, &domain, maxStateDepth]
         (const shared_ptr<EFGNode> &node, const auto &traverse) {
 
         // Call the provided function on the current node.
         function(node);
 
-        if (node->getStateDepth() >= maxDepth) return;
+        if (node->stateDepth_ >= maxStateDepth || node->type_ == TerminalNode) return;
 
         for (const auto &action : node->availableActions()) {
-            for (auto const &[nextNode, chanceProb] : node->performAction(action)) {
-                traverse(nextNode, traverse);
-            }
+            traverse(node->performAction(action), traverse);
         }
     };
 
-    for (const auto &[rootNode, chanceProb] : createRootEFGNodes(domain.getRootStatesDistribution())) {
-        traverse(rootNode, traverse);
-    }
+    traverse(createRootEFGNode(domain), traverse);
 }
 
 }  // namespace GTLib2

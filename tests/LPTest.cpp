@@ -30,12 +30,12 @@
 #include "algorithms/tree.h"
 #include "algorithms/utility.h"
 #include "algorithms/stats.h"
+#include "algorithms/strategy.h"
 #include "domains/goofSpiel.h"
-#include "domains/matching_pennies.h"
 
+#include "domains/matching_pennies.h"
 #include "tests/domainsTest.h"
-#include <boost/test/unit_test.hpp>
-#include <algorithms/strategy.h>
+#include "gtest/gtest.h"
 
 
 namespace GTLib2::algorithms {
@@ -44,37 +44,29 @@ using domains::MatchingPenniesDomain;
 using domains::MatchingPenniesAction;
 using domains::MatchingPenniesVariant::SimultaneousMoves;
 using domains::MatchingPenniesVariant::AlternatingMoves;
-using domains::Heads;
-using domains::Tails;
+using domains::ActionHeads;
+using domains::ActionTails;
 
 
-BOOST_AUTO_TEST_SUITE(AlgorithmsTests)
-BOOST_AUTO_TEST_SUITE(LinearProgramming)
-
-BOOST_AUTO_TEST_CASE(best_response_to_equilibrium) {
-    MatchingPenniesDomain d(AlternatingMoves);
-    auto v = algorithms::findEquilibriumTwoPlayersZeroSum(d);
-    auto strat = std::get<1>(v);
-    auto brsVal = algorithms::bestResponseTo(strat, 0, 1, d, 5);
-    double val = std::get<1>(brsVal);
-    BOOST_CHECK(val == 0.0);
+TEST(LPSolver, BestResponseToEquilibrium) {
+    MatchingPenniesDomain domain(AlternatingMoves);
+    auto stratValue = algorithms::findEquilibriumTwoPlayersZeroSum(domain);
+    auto brsVal = algorithms::bestResponseTo(stratValue.strategy, 0, 1, domain);
+    EXPECT_EQ(stratValue.value, 0.0);
 }
 
-BOOST_AUTO_TEST_CASE(equilibrium_normal_form_lp_test) {
-    MatchingPenniesDomain d(AlternatingMoves);
-    auto v = algorithms::findEquilibriumTwoPlayersZeroSum(d);
-    auto strat = std::get<1>(v);
-    auto actionHeads = make_shared<MatchingPenniesAction>(Heads);
-    auto actionTails = make_shared<MatchingPenniesAction>(Tails);
-    double headsProb = (*strat.begin()).second[actionHeads];
-    double tailsProb = (*strat.begin()).second[actionTails];
+TEST(LPSolver, EquilibriumNormalFormLP) {
+    MatchingPenniesDomain domain(AlternatingMoves);
+    auto stratValue = algorithms::findEquilibriumTwoPlayersZeroSum(domain);
+    auto actionHeads = make_shared<MatchingPenniesAction>(ActionHeads);
+    auto actionTails = make_shared<MatchingPenniesAction>(ActionTails);
+    double headsProb = (*stratValue.strategy.begin()).second[actionHeads];
+    double tailsProb = (*stratValue.strategy.begin()).second[actionTails];
 
-    BOOST_CHECK(std::get<0>(v) == 0);
-    BOOST_CHECK(headsProb == 0.5 && tailsProb == 0.5);
+    EXPECT_EQ(stratValue.value, 0);
+    EXPECT_EQ(headsProb, 0.5);
+    EXPECT_EQ(tailsProb, 0.5);
 }
-
-BOOST_AUTO_TEST_SUITE_END()
-BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace GTLib2
 

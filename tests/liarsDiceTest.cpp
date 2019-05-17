@@ -30,11 +30,9 @@
 #include "algorithms/utility.h"
 #include "algorithms/strategy.h"
 #include "domains/liarsDice.h"
-#include "utils/functools.h"
 #include "tests/domainsTest.h"
 
-#include <boost/range/combine.hpp>
-#include <boost/test/unit_test.hpp>
+#include "gtest/gtest.h"
 
 namespace GTLib2::domains {
 
@@ -43,91 +41,111 @@ using algorithms::treeWalkEFG;
 using algorithms::getUniformStrategy;
 using algorithms::playOnlyAction;
 
-BOOST_AUTO_TEST_SUITE(DomainsTests)
-BOOST_AUTO_TEST_SUITE(LiarsDice)
 
 // @formatter:off
 LiarsDiceDomain testDomainsLiarsDice[] = { // NOLINT(cert-err58-cpp)
-    LiarsDiceDomain({2, 2}, 2),
-    LiarsDiceDomain({3, 0}, 3),
-    LiarsDiceDomain({1, 0}, 2),
-    LiarsDiceDomain({1, 0}, 3),
-    LiarsDiceDomain({2, 1}, 4),
-    LiarsDiceDomain({1, 1}, 6),
+    LiarsDiceDomain({{1, 1}, 2}),
+    LiarsDiceDomain({{0, 2}, 2})
+//    LiarsDiceDomain({2, 2}, 2),
+//    LiarsDiceDomain({3, 0}, 3),
+//    LiarsDiceDomain({1, 0}, 2),
+//    LiarsDiceDomain({1, 0}, 3),
+//    LiarsDiceDomain({2, 1}, 4),
+//    LiarsDiceDomain({1, 1}, 6),
 };
 // @formatter:on
 
 
-BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizesLD) {
-    DomainStatistics expected[] = {
+TEST(LiarsDice, BuildGameTreeAndCheckSizes) {
+    vector<DomainStatistics> expectedStats = {
         {
-            .max_EFGDepth   = 9,
-            .max_StateDepth = 9,
-            .num_nodes      = 4599,
-            .num_terminals  = 2295,
-            .num_states     = 4599,
-            .num_histories  = {1152, 1152},
-            .num_infosets   = {384, 384},
-            .num_sequences  = {766, 766},
+            .max_EFGDepth   = 6,
+            .max_StateDepth = 6,
+            .num_nodes      = 125,
+            .num_terminals  = 60,
+            .num_states     = 125,
+            .num_histories  = {32, 32},
+            .num_infosets   = {16, 16},
+            .num_sequences  = {31, 31},
         },
         {
-            .max_EFGDepth   = 10,
-            .max_StateDepth = 10,
-            .num_nodes      = 10230,
-            .num_terminals  = 5110,
-            .num_states     = 10230,
-            .num_histories  = {2560, 2560},
-            .num_infosets   = {2560, 256},
-            .num_sequences  = {5111, 512},
-        },
-        {
-            .max_EFGDepth   = 3,
-            .max_StateDepth = 3,
-            .num_nodes      = 14,
-            .num_terminals  = 6,
-            .num_states     = 14,
-            .num_histories  = {4, 4},
-            .num_infosets   = {4, 2},
-            .num_sequences  = {7, 4},
-        },
-        {
-            .max_EFGDepth   = 4,
-            .max_StateDepth = 4,
-            .num_nodes      = 45,
-            .num_terminals  = 21,
-            .num_states     = 45,
-            .num_histories  = {12, 12},
-            .num_infosets   = {12, 4},
-            .num_sequences  = {22, 8},
-        },
-        {
-            .max_EFGDepth   = 5,
-            .max_StateDepth = 5,
-            .num_nodes      = 93,
+            .max_EFGDepth   = 6,
+            .max_StateDepth = 6,
+            .num_nodes      = 94,
             .num_terminals  = 45,
-            .num_states     = 93,
+            .num_states     = 94,
             .num_histories  = {24, 24},
-            .num_infosets   = {24, 8},
-            .num_sequences  = {46, 16},
-        },
-        {
-            .max_EFGDepth   = 13,
-            .max_StateDepth = 13,
-            .num_nodes      = 294876,
-            .num_terminals  = 147420,
-            .num_states     = 294876,
-            .num_histories  = {73728, 73728},
-            .num_infosets   = {12288, 12288},
-            .num_sequences  = {24571, 24571},
+            .num_infosets   = {8, 24},
+            .num_sequences  = {16, 46},
         }
+
+//        {
+//            .max_EFGDepth   = 10,
+//            .max_StateDepth = 10,
+//            .num_nodes      = 4600,
+//            .num_terminals  = 2295,
+//            .num_states     = 4600,
+//            .num_histories  = {1152, 1152},
+//            .num_infosets   = {384, 384},
+//            .num_sequences  = {766, 766},
+//        },
+//        {
+//            .max_EFGDepth   = 11,
+//            .max_StateDepth = 11,
+//            .num_nodes      = 10231,
+//            .num_terminals  = 5110,
+//            .num_states     = 10231,
+//            .num_histories  = {2560, 2560},
+//            .num_infosets   = {2560, 256},
+//            .num_sequences  = {5111, 512},
+//        },
+//        {
+//            .max_EFGDepth   = 4,
+//            .max_StateDepth = 4,
+//            .num_nodes      = 15,
+//            .num_terminals  = 6,
+//            .num_states     = 15,
+//            .num_histories  = {4, 4},
+//            .num_infosets   = {4, 2},
+//            .num_sequences  = {7, 4},
+//        },
+//        {
+//            .max_EFGDepth   = 5,
+//            .max_StateDepth = 5,
+//            .num_nodes      = 46,
+//            .num_terminals  = 21,
+//            .num_states     = 46,
+//            .num_histories  = {12, 12},
+//            .num_infosets   = {12, 4},
+//            .num_sequences  = {22, 8},
+//        },
+//        {
+//            .max_EFGDepth   = 6,
+//            .max_StateDepth = 6,
+//            .num_nodes      = 94,
+//            .num_terminals  = 45,
+//            .num_states     = 94,
+//            .num_histories  = {24, 24},
+//            .num_infosets   = {24, 8},
+//            .num_sequences  = {46, 16},
+//        },
+//        {
+//            .max_EFGDepth   = 14,
+//            .max_StateDepth = 14,
+//            .num_nodes      = 294877,
+//            .num_terminals  = 147420,
+//            .num_states     = 294877,
+//            .num_histories  = {73728, 73728},
+//            .num_infosets   = {12288, 12288},
+//            .num_sequences  = {24571, 24571},
+//        }
     };
 
-    for (auto tuple : zip(testDomainsLiarsDice, expected)) {
-        unzip(tuple, testDomain, expected);
-        DomainStatistics actualStat;
-        calculateDomainStatistics(testDomain, &actualStat);
-
-        BOOST_CHECK_EQUAL(actualStat, expected);
+    for (int i = 0; i < expectedStats.size(); ++i) {
+        cout << ">> checking domain [" << i << "] " << testDomainsLiarsDice[i].getInfo() << endl;
+        DomainStatistics actualStats;
+        calculateDomainStatistics(testDomainsLiarsDice[i], &actualStats);
+        EXPECT_EQ(actualStats, expectedStats[i]);
     }
 }
 
@@ -135,8 +153,5 @@ BOOST_AUTO_TEST_CASE(buildGameTreeAndCheckSizesLD) {
 //  i.e. given some game position, these are the action available etc.
 //  for inspiration look at kriegspieltest!
 
-
-BOOST_AUTO_TEST_SUITE_END()
-BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace GTLib2

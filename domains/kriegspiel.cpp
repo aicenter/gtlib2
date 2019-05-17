@@ -35,7 +35,7 @@ int queenKingMoves[8][2] = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}, {-1, 1}, {-1, -1},
 int knightMoves[8][2] = {{1, 2}, {-1, 2}, {-1, -2}, {1, -2}, {2, 1}, {-2, 1}, {-2, -1}, {2, -1}};
 
 const string coordToString(const Square c) {
-    return coords[c.x - 1] + to_string (c.y);
+    return coords[c.x - 1] + to_string(c.y);
 }
 
 const Square stringToCoord(string s) {
@@ -753,7 +753,10 @@ Square KriegspielAction::movingFrom() const {
 
 KriegspielDomain::KriegspielDomain(unsigned int maxDepth,
                                    unsigned int legalMaxDepth,
-                                   chess::BOARD b) : Domain(maxDepth, 2) {
+                                   chess::BOARD b)
+    : Domain(maxDepth, 2,
+             make_shared<KriegspielAction>(),
+             make_shared<KriegspielObservation>()) {
     vector<double> rewards(2);
     vector<shared_ptr<Observation>>
         Obs{make_shared<Observation>(NO_OBSERVATION), make_shared<Observation>(NO_OBSERVATION)};
@@ -761,54 +764,46 @@ KriegspielDomain::KriegspielDomain(unsigned int maxDepth,
               Obs,
               shared_ptr<Observation>(),
               rewards);
-    rootStatesDistribution_.push_back(pair<Outcome, double>(move(o), 1.0));
+    rootStatesDistribution_.push_back(OutcomeEntry(o));
     maxUtility_ = 1;
 }
 KriegspielObservation::KriegspielObservation(int id) : Observation(id) {}
-KriegspielState::KriegspielState(Domain *domain, int legalMaxDepth, chess::BOARD b) :
-    State(domain), enPassantSquare(-1, -1) {
-    this->moveHistory = make_shared<vector<shared_ptr<KriegspielAction>>>();
-    this->attemptedMoveHistory = make_shared<vector<shared_ptr<KriegspielAction>>>();
-    this->playerOnTheMove = chess::WHITE;
-    this->legalMaxDepth = legalMaxDepth;
+KriegspielState::KriegspielState(const Domain *domain, int legalMaxDepth, chess::BOARD b) :
+    State(domain, hashCombine(56456654521424531, legalMaxDepth, int(b))), enPassantSquare(-1, -1),
+    moveHistory(make_shared<vector<shared_ptr<KriegspielAction>>>()),
+    attemptedMoveHistory(make_shared<vector<shared_ptr<KriegspielAction>>>()),
+    playerOnTheMove(chess::WHITE),
+    legalMaxDepth(legalMaxDepth) {
     this->initBoard(b);
     this->updateState(chess::WHITE);
 }
 
-KriegspielState::KriegspielState(Domain *domain, int legalMaxDepth, string s)
-    : State(domain), enPassantSquare(-1, -1) {
-    this->moveHistory = make_shared<vector<shared_ptr<KriegspielAction>>>();
-    this->attemptedMoveHistory = make_shared<vector<shared_ptr<KriegspielAction>>>();
-    this->playerOnTheMove = chess::WHITE;
-    this->legalMaxDepth = legalMaxDepth;
+KriegspielState::KriegspielState(const Domain *domain, int legalMaxDepth, string s)
+    : State(domain, hashCombine(6545315341531531, legalMaxDepth, s)), enPassantSquare(-1, -1),
+      moveHistory(make_shared<vector<shared_ptr<KriegspielAction>>>()),
+      attemptedMoveHistory(make_shared<vector<shared_ptr<KriegspielAction>>>()),
+      playerOnTheMove(chess::WHITE),
+      legalMaxDepth(legalMaxDepth) {
     this->initBoard(std::move(s));
     this->updateAllPieces();
 }
 
-KriegspielState::KriegspielState(GTLib2::Domain *domain,
-                                 int legalMaxDepth,
-                                 int x,
-                                 int y,
+KriegspielState::KriegspielState(const Domain *domain, int legalMaxDepth, int x, int y,
                                  shared_ptr<vector<shared_ptr<chess::AbstractPiece>>> pieces,
                                  Square enPassantSquare,
-                                 shared_ptr<vector<shared_ptr<KriegspielAction>>> moves,
-                                 int p,
-                                 bool castle,
+                                 const shared_ptr<vector<shared_ptr<KriegspielAction>>> &moves,
+                                 int p, bool castle,
                                  shared_ptr<vector<shared_ptr<KriegspielAction>>> attemptedMoves)
-    : State(domain), enPassantSquare(enPassantSquare) {
-    this->xSize = x;
-    this->ySize = y;
-    this->pieces = std::move(pieces);
-    this->moveHistory = std::move(moves);
-    this->legalMaxDepth = legalMaxDepth;
-    this->attemptedMoveHistory = std::move(attemptedMoves);
-    this->canPlayerCastle = castle;
+// todo: hash is not computed from shared_ptr<vec<shared_ptr>> as there is not support for that atm
+    : State(domain, hashCombine(3156841351231, enPassantSquare, x, y, legalMaxDepth, p, castle)),
+      enPassantSquare(enPassantSquare), xSize(x), ySize(y),
+      pieces(std::move(pieces)), moveHistory(move(moves)), legalMaxDepth(legalMaxDepth),
+      attemptedMoveHistory(std::move(attemptedMoves)), canPlayerCastle(castle), playerOnTheMove(p) {
 
     //rebind to new board state
     for (shared_ptr<AbstractPiece> &piece: *this->pieces) {
         piece->setBoard(this);
     }
-    this->playerOnTheMove = p;
 }
 
 pair<shared_ptr<AbstractPiece>, Square> KriegspielAction::getMove() const {
@@ -822,11 +817,10 @@ bool KriegspielAction::operator==(const GTLib2::Action &that) const {
         && this->movingFrom() == rhsAction->movingFrom();
 }
 
-size_t KriegspielAction::getHash() const {
-    std::hash<string> h;
+HashType KriegspielAction::getHash() const {
     string s = this->move_.first->toString() + chess::coordToString(this->move_.second)
         + chess::coordToString(this->movingFrom());
-    return h(s);
+    return hashWithSeed(s.data(), s.size() * sizeof(uint32_t), 16484135155);
 }
 
 shared_ptr<KriegspielAction> KriegspielAction::clone() const {
@@ -840,11 +834,11 @@ shared_ptr<KriegspielAction> KriegspielAction::clone() const {
 
 string KriegspielDomain::getInfo() const {
     return "************ Kriegspiel *************\n" +
-        rootStatesDistribution_[0].first.state_->toString() + "\n";
+        rootStatesDistribution_[0].outcome.state->toString() + "\n";
 }
 
 KriegspielDomain::KriegspielDomain(unsigned int maxDepth, unsigned int legalMaxDepth, string s)
-    : Domain(maxDepth, 2) {
+    : Domain(maxDepth, 2, make_shared<KriegspielAction>(), make_shared<KriegspielObservation>()) {
     vector<double> rewards(2);
     vector<shared_ptr<Observation>>
         Obs{make_shared<Observation>(NO_OBSERVATION), make_shared<Observation>(-1)};
@@ -852,7 +846,7 @@ KriegspielDomain::KriegspielDomain(unsigned int maxDepth, unsigned int legalMaxD
               Obs,
               shared_ptr<Observation>(),
               rewards);
-    rootStatesDistribution_.push_back(pair<Outcome, double>(move(o), 1.0));
+    rootStatesDistribution_.push_back(OutcomeEntry(o));
 }
 
 // todo: this is only hotfix
@@ -964,7 +958,7 @@ void KriegspielState::castle(KriegspielAction *a) const {
     rook->move(newRookPos);
 }
 
-bool KriegspielState::move(KriegspielAction *a) {
+bool KriegspielState::makeMove(KriegspielAction *a) {
     pair<shared_ptr<AbstractPiece>, Square> move = a->getMove();
     shared_ptr<AbstractPiece> p = this->getPieceOnCoords(move.first->getPosition());
     Square pos = move.second;
@@ -1055,7 +1049,7 @@ vector<double> KriegspielState::checkGameOver() const {
             rewards[chess::WHITE] = 0.5;
             rewards[chess::BLACK] = 0.5;
         } else if (this->moveHistory->size() + this->attemptedMoveHistory->size()
-            == domain_->getMaxDepth()) {
+            == domain_->getMaxStateDepth()) {
             rewards[chess::WHITE] = 0.5;
             rewards[chess::BLACK] = 0.5;
         }
@@ -1076,9 +1070,9 @@ Square KriegspielState::getEnPassantSquare() const {
 
 
 OutcomeDistribution KriegspielState::performActions(
-    const vector<pair<Player, shared_ptr<GTLib2::Action>>> &actions) const {
-    auto a1 = dynamic_cast<KriegspielAction *>(actions[0].second.get());
-    auto a2 = dynamic_cast<KriegspielAction *>(actions[1].second.get());
+    const vector <shared_ptr<Action>> &actions) const {
+    auto a1 = dynamic_cast<KriegspielAction *>(actions[0].get());
+    auto a2 = dynamic_cast<KriegspielAction *>(actions[1].get());
     vector<shared_ptr<Observation>> observations(2);
     vector<double> rewards(2);
     shared_ptr<KriegspielState> s;
@@ -1100,7 +1094,7 @@ OutcomeDistribution KriegspielState::performActions(
                                      attemptedmoves);
     s->updateState(this->playerOnTheMove);
     shared_ptr<KriegspielAction> ac = a->clone();
-    if (s->move(a)) {
+    if (s->makeMove(a)) {
         s->addToHistory(ac);
         enPassSquare = this->checkEnPassant(a);
         nextMove = chess::invertColor(this->playerOnTheMove);
@@ -1125,9 +1119,9 @@ OutcomeDistribution KriegspielState::performActions(
     if (rewards[0] != 0 || rewards[1] != 0) {
         s->setGameHasEnded(true);
     }
-    Outcome o(std::move(s), observations, shared_ptr<Observation>(), rewards);
+    Outcome o(s, observations, shared_ptr<Observation>(), rewards);
     OutcomeDistribution prob;
-    prob.push_back(std::pair<Outcome, double>(std::move(o), 1.0));
+    prob.push_back(OutcomeEntry(o));
     return prob;
 }
 
@@ -1166,11 +1160,6 @@ bool KriegspielState::operator==(const GTLib2::State &rhs) const {
         }
     }
     return true;
-}
-
-size_t KriegspielState::getHash() const {
-    std::hash<string> h;
-    return h(this->toString());
 }
 
 string KriegspielState::toString() const {

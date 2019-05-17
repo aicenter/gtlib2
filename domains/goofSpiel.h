@@ -53,11 +53,22 @@ struct GoofSpielSettings {
     vector<int> getNatureCards();
 };
 
+class GoofSpielAction: public Action {
+ public:
+    inline GoofSpielAction() : Action(), cardNumber_(0) {}
+    inline GoofSpielAction(ActionId id, int card) : Action(id), cardNumber_(card) {}
+    inline string toString() const override { return "Card: " + to_string(cardNumber_); };
+    bool operator==(const Action &that) const override;
+    inline HashType getHash() const override { return cardNumber_; };
+    const int cardNumber_;
+};
+
+
 class GoofSpielDomain: public Domain {
  public:
     explicit GoofSpielDomain(GoofSpielSettings settings);
     string getInfo() const override;
-    vector<Player> getPlayers() const override;
+    vector <Player> getPlayers() const { return {0, 1}; }
     const int numberOfCards_;
     const bool fixChanceCards_;
     const bool binaryTerminalRewards_;
@@ -67,16 +78,6 @@ class GoofSpielDomain: public Domain {
  private:
     void initRandomCards(const vector<int> &natureCards);
     void initFixedCards(const vector<int> &natureCards);
-};
-
-
-class GoofSpielAction: public Action {
- public:
-    GoofSpielAction(ActionId id, int card);
-    string toString() const override;
-    bool operator==(const Action &that) const override;
-    size_t getHash() const override;
-    int cardNumber_;
 };
 
 constexpr int NO_NATURE_CARD = 0;
@@ -90,8 +91,11 @@ enum GoofspielRoundOutcome {
 
 class GoofSpielObservation: public Observation {
  public:
+    inline GoofSpielObservation() :
+        Observation(),
+        natureCard_(0), player0LastCard_(0), player1LastCard_(0), roundResult_(PL0_DRAW) {}
     GoofSpielObservation(int initialNumOfCards,
-                         const std::array<int, 3> &chosenCards,
+                         const array<int, 3> &chosenCards,
                          GoofspielRoundOutcome roundResult);
     const int natureCard_; // the bidding card
     const int player0LastCard_;
@@ -102,28 +106,24 @@ class GoofSpielObservation: public Observation {
 
 class GoofSpielState: public State {
  public:
-    GoofSpielState(Domain *domain,
-                   std::array<vector<int>, 3> playerDecks,
-                   int natureSelectedCard,
-                   vector<double> cumulativeRewards,
-                   std::array<vector<int>, 3> playedCards);
-    GoofSpielState(Domain *domain,
-                   const GoofSpielState &previousState,
-                   std::array<int, 3> roundPlayedCards,
-                   vector<double> cumulativeRewards);
+    inline GoofSpielState(const Domain *domain, array<vector<int>, 3> playerDecks,
+                          int natureSelectedCard, array<vector<int>, 3> playedCards) :
+        State(domain, hashCombine(98612345434231, playerDecks, playedCards, natureSelectedCard)),
+        playerDecks_(move(playerDecks)),
+        natureSelectedCard_(natureSelectedCard),
+        playedCards_(move(playedCards)) {}
 
     unsigned long countAvailableActionsFor(Player player) const override;
-    vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
-    OutcomeDistribution performActions(const vector<PlayerAction> &actions) const override;
-    vector<Player> getPlayers() const override;
+    vector <shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
+    OutcomeDistribution performActions(const vector <shared_ptr<Action>> &actions) const override;
+    vector <Player> getPlayers() const override;
+    bool isTerminal() const override;
     string toString() const override;
     bool operator==(const State &rhs) const override;
-    size_t getHash() const override;
 
-    std::array<vector<int>, 3> playerDecks_;
-    std::array<vector<int>, 3> playedCards_;
-    int natureSelectedCard_;  // Not in the deck. For the last round it will be NO_NATURE_CARD
-    vector<double> cumulativeRewards_;
+    const array<vector<int>, 3> playerDecks_;
+    const array<vector<int>, 3> playedCards_;
+    const int natureSelectedCard_;  // Not in the deck. For the last round it will be NO_NATURE_CARD
 };
 
 }  // namespace GTLib2

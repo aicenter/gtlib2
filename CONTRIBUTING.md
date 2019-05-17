@@ -2,7 +2,7 @@
 
 This file describes setup necessary to contribute to the `master` branch of the library.
 
-Please submit pull requests to gitlab/github.
+Please submit merge requests to gitlab.
 
 <!--
 todo:
@@ -139,3 +139,41 @@ You may want to profile your code. You can use valgrind:
     valgrind --tool=callgrind ./main [arguments]
 
 It will produce files `callgrind.out.#` which can be opened and analyzed in `KCacheGrind` utility. 
+
+## Implementing domains
+
+For a reference example how to implement a domain please take a look at `domains/goofSpiel.h`, `domains/goofSpiel.cpp`
+
+Each domain must pass automatic test evaluation -- please write several instances of your domains and add them to `tests/domainsTest.cpp`.
+You should also implement tests of your specific domains, testing if it behaves correctly under small set of different parameterizations.
+
+You should understand the basic model of how domains work, see "High-level overview" in `README.md`.
+
+Each domain must implement:
+
+- Domain class, for example `GoofSpielDomain` deriving from `Domain`:
+    - In constructor, you have to call the parent.
+    - You need to specify maximum state depth `maxDepth_`, number of players `numberOfPlayers_`, maximum achievable utility in any leaf `maxUtility_`, root outcomes via `rootStatesDistribution_`.
+    
+- State class, for example `GoofSpielState` deriving from `State`:
+    - State must be able to initialize as root state, or continuation of previous state.
+    - Implement all pure virtual functions.
+    
+- Action class, for example `GoofSpielAction` deriving from `Action`:
+    - Action ids must be unsigned integers that are in range `0..N-1`
+      and must be consistenly the same within the same infoset, 
+      i.e. action with for example `id=0` in history `h` must be the same 
+      action also in `h'` if `h,h' \in I` 
+    - The function returning list of available actions must return 
+      them in a vector `v` where `v[i] == ActionId(i)` i.e. action at 
+      index `i` of the returned vector must have the action id of 
+      value `i`.
+
+- Observation class, for example `GoofSpielObservation` deriving from `Observation`:
+    - Observation id must be unique within the subsequence 
+      `(h -> chance outcomes -> h')` if player has received different observations.  
+
+When writing, please use arrays for saving player-related information, instead of variables like `p1Action, p2Action` -- use `playerActions[]` even if it is 2-element array.
+
+There is no such thing as a chance player in the domain: there are stochastic transitions between each state. Good rule of thumb is that you should have players `{Player(0), Player(1)}`.
+
