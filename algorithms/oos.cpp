@@ -129,9 +129,14 @@ optional<ProbDistribution> OOSAlgorithm::getPlayDistribution(const shared_ptr<AO
     if (infosetLoc == cache_.infosetData.end()) return nullopt;
     const auto strategyData = infosetLoc->second;
 
-    return cfg_.playStrategy == OOSSettings::PlayUsingAvgStrategy
-           ? calcAvgProbs(strategyData.avgStratAccumulator)
-           : calcRMProbs(strategyData.regrets);
+    switch(cfg_.playStrategy) {
+        case OOSSettings::PlayUsingAvgStrategy:
+            return calcAvgProbs(strategyData.avgStratAccumulator);
+        case OOSSettings::PlayUsingRMStrategy:
+            return calcRMProbs(strategyData.regrets);
+        default:
+            assert(false); // unrecognized option!
+    }
 }
 
 double OOSAlgorithm::iteration(const shared_ptr<EFGNode> &h,
@@ -435,8 +440,12 @@ void OOSAlgorithm::updateHistoryExpectedValue(Player exploringPl, const shared_p
             a = u_h;
             b = 1.0;
             break;
-        default:
+        case OOSSettings::NoBaseline: // nothing to do
             break;
+        case OOSSettings::OracleBaseline:
+            assert(false); // todo:
+        default:
+            assert(false); // unrecognized option!
     }
 
     data.nominator += a;
@@ -454,22 +463,26 @@ void OOSAlgorithm::updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exp
         // todo: gadget infoset
         double w = rm_h_opp * rm_h_cn / s_h_all;
 
-        if (cfg_.regretMatching == OOSSettings::RegretMatchingPlus) {
-            for (int i = 0; i < reg.size(); i++) {
-                if (i == ai) reg[i] = fmax(0, reg[i] + (u_x - u_h) * w);
-                else {
-                    // todo: check player!
-                    reg[i] = fmax(0, reg[i] + (baseline(h,i) - u_h) * w);
+        switch(cfg_.regretMatching) {
+            case OOSSettings::RegretMatchingPlus:
+                for (int i = 0; i < reg.size(); i++) {
+                    if (i == ai) reg[i] = fmax(0, reg[i] + (u_x - u_h) * w);
+                    else {
+                        // todo: check player!
+                        reg[i] = fmax(0, reg[i] + (baseline(h,i) - u_h) * w);
+                    }
                 }
-            }
-        } else {
-            for (int i = 0; i < reg.size(); i++) {
-                if (i == ai) reg[i] += (u_x - u_h) * w;
-                else {
-                    // todo: check player!
-                    reg[i] += (baseline(h,i) - u_h) * w;
+                break;
+            case OOSSettings::RegretMatchingNormal:
+                for (int i = 0; i < reg.size(); i++) {
+                    if (i == ai) reg[i] += (u_x - u_h) * w;
+                    else {
+                        // todo: check player!
+                        reg[i] += (baseline(h,i) - u_h) * w;
+                    }
                 }
-            }
+            default:
+                assert(false); // unrecognized option!
         }
     } else {
         // we use stochastically weighted averaging
@@ -486,6 +499,8 @@ void OOSAlgorithm::updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exp
             case OOSSettings::XLogXAccWeighting:
                 w = (stats_.terminalsVisits + 1) * log10(stats_.terminalsVisits + 1);
                 break;
+            default:
+                assert(false); // unrecognized option!
         }
 
         for (int i = 0; i < reg.size(); i++) {
