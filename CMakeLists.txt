@@ -158,6 +158,7 @@ set(SOURCE_FILES
         algorithms/common.h algorithms/common.cpp
         algorithms/equilibrium.h algorithms/equilibrium.cpp
         algorithms/normalFormLP.h algorithms/normalFormLP.cpp
+        algorithms/oos.h algorithms/oos.cpp
         algorithms/stats.h algorithms/stats.cpp
         algorithms/strategy.cpp algorithms/strategy.h
         algorithms/tree.h algorithms/tree.cpp
@@ -207,6 +208,7 @@ set(TEST_FILES
         tests/matchingPenniesTest.cpp
         tests/oshiZumoTest.cpp
         tests/utilityTest.cpp
+        tests/oosTest.cpp
         tests/randomGameTest.cpp
         )
 
