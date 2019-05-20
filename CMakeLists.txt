@@ -207,6 +207,7 @@ set(TEST_FILES
         tests/matchingPenniesTest.cpp
         tests/oshiZumoTest.cpp
         tests/utilityTest.cpp
+        tests/randomGameTest.cpp
         )
 
 # -------------------- Executables, linking --------------------

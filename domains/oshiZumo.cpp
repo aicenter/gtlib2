@@ -82,25 +82,6 @@ string OshiZumoDomain::getInfo() const {
         "\nMax depth: " + to_string(maxStateDepth_) + '\n';
 }
 
-const int OshiZumoDomain::getStartingLocation() const {
-    return startingLocation_;
-}
-
-const int OshiZumoDomain::getMinBid() const {
-    return minBid_;
-}
-
-const bool OshiZumoDomain::isOptimalEndGame() const {
-    return optimalEndGame_;
-}
-
-const OshiZumoVariant OshiZumoDomain::getVariant() const {
-    return variant_;
-}
-const int OshiZumoDomain::getStartingCoins() const {
-    return startingCoins_;
-}
-
 OshiZumoState::OshiZumoState(const Domain *domain, int wrestlerLocation, int startingCoins) :
     OshiZumoState(domain, wrestlerLocation, {startingCoins, startingCoins}) {}
 

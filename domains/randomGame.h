@@ -35,9 +35,21 @@
  */
 namespace GTLib2::domains {
 
+/**
+ * Settings for random game
+ * @var seed
+ * @var maxDepth                depth of the game
+ * @var maxBranchingFactor      max possible actions in each state for player, min 2
+ * @var maxDifferentObservation max observation for player in each state, if == maxBranching factor, it is perfect observation game
+ * @var maxRewardModification   max reward to gain in each state
+ * @var maxUtility              max possible utility, only used, if binary utility and utility correlation are false
+ * @var binaryUtility           if true, utility only -1, 0, 1
+ * @var utilityCorrelation      if true, rewards are gained in each state, otherwise there are randomly generated in terminal nodes
+ * @var fixedBranchingFactor    if true, there is exactly maxBranchingFactor actions in each state
+ */
 struct RandomGameSettings {
   long seed = 0;
-  uint32_t maximalDepth = 2;
+  uint32_t maxDepth = 2;
   uint32_t maxBranchingFactor = 2;
   uint32_t maxDifferentObservations = 2;
   int maxRewardModification = 2;
@@ -49,79 +61,65 @@ struct RandomGameSettings {
 
 class RandomGameAction : public Action {
  public:
-  explicit RandomGameAction(ActionId id);
+  inline RandomGameAction() : Action() {};
+  inline explicit RandomGameAction(ActionId id) : Action(id) {};
   bool operator==(const Action &other) const override;
-  size_t getHash() const override;
-  string toString() const override;
+  inline size_t getHash() const override { return id_; }
+  inline string toString() const override { return "Action ID " + to_string(id_); }
 };
 
 class RandomGameDomain : public Domain {
  public:
   explicit RandomGameDomain(RandomGameSettings settings);
-
   string getInfo() const override;
-  inline vector<Player> getPlayers() const final {
-      return {0, 1};
-  }
-
-  inline uint32_t getMaxBranchingFactor() const {
-      return maxBranchingFactor_;
-  }
-
-  inline uint32_t getMaxDifferentObservations() const {
-      return maxDifferentObservations_;
-  }
-
-  bool isBinaryUtility() const {
-      return binaryUtility_;
-  }
-
-  inline bool isFixedBranchingFactor() const {
-      return fixedBranchingFactor_;
-  }
-  inline int getMaxRewardModification() const {
-      return maxRewardModification_;
-  }
-
-  inline bool isUtilityCorrelation() const {
-      return utilityCorrelation_;
-  }
+  inline vector<Player> getPlayers() const { return {0, 1}; }
+  inline uint32_t getMaxBranchingFactor() const { return maxBranchingFactor_; }
+  inline uint32_t getMaxDifferentObservations() const { return maxDifferentObservations_; }
+  inline bool isBinaryUtility() const { return binaryUtility_; }
+  inline bool isFixedBranchingFactor() const { return fixedBranchingFactor_; }
+  inline int getMaxRewardModification() const { return maxRewardModification_; }
+  inline bool isUtilityCorrelation() const { return utilityCorrelation_; }
 
  private:
-  long seed_;
-  uint32_t maxBranchingFactor_;
-  uint32_t maxDifferentObservations_;
-  int maxRewardModification_;
-  bool binaryUtility_;
-  bool fixedBranchingFactor_;
-  bool utilityCorrelation_;
+  const long seed_;
+  const uint32_t maxBranchingFactor_;
+  const uint32_t maxDifferentObservations_;
+  const int maxRewardModification_;
+  const bool binaryUtility_;
+  const bool fixedBranchingFactor_;
+  const bool utilityCorrelation_;
 };
 
 class RandomGameState : public State {
  public:
-  RandomGameState(Domain *domain,
-                  int stateSeed,
-                  vector<long> histories,
-                  double cumulativeReward,
-                  unsigned int depth);
+  RandomGameState(const Domain *domain, int stateSeed, vector<long> histories,
+                  double cumulativeReward, unsigned int depth) :
+      State(domain, hashCombine(75623196115, stateSeed, histories, cumulativeReward, depth)),
+      stateSeed_(stateSeed),
+      cumulativeReward_(cumulativeReward),
+      depth_(depth),
+      playerHistories_(move(histories)) {}
   unsigned long countAvailableActionsFor(Player player) const override;
   vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
-  OutcomeDistribution performActions(const vector<PlayerAction> &actions) const override;
-  vector<Player> getPlayers() const override;
+  OutcomeDistribution performActions(const vector<shared_ptr<Action>> &actions) const override;
   string toString() const override;
   bool operator==(const State &other) const override;
-  size_t getHash() const override;
-
+  bool isTerminal() const override;
+  inline vector<Player> getPlayers() const override {
+      if (isTerminal()) return {};
+      return {0, 1};
+  }
  private:
   vector<long> playerHistories_;
-  long stateSeed_;
-  double cumulativeReward_;
-  unsigned int depth_;
+  const long stateSeed_;
+  const double cumulativeReward_;
+  const unsigned int depth_;
 };
 
 class RandomGameObservation : public Observation {
  public:
-  explicit RandomGameObservation(ObservationId id);
+  inline RandomGameObservation() : Observation() {};
+  inline explicit RandomGameObservation(ObservationId id) : Observation(id) {};
 };
-}
+} // GTLib2::domains
 #endif //GTLIB2_RANDOMGAME_H

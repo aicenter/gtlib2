@@ -23,8 +23,6 @@
 
 namespace GTLib2::domains {
 
-RandomGameAction::RandomGameAction(ActionId id) : Action(id) {}
-
 bool RandomGameAction::operator==(const Action &other) const {
     if (typeid(*this) != typeid(other)) {
         return false;
@@ -33,16 +31,11 @@ bool RandomGameAction::operator==(const Action &other) const {
     return this->id_ == otherAction.id_;
 }
 
-size_t RandomGameAction::getHash() const {
-    return id_;
-}
-
-string RandomGameAction::toString() const {
-    return "Action ID " + to_string(id_);
-}
-
 RandomGameDomain::RandomGameDomain(RandomGameSettings settings) :
-    Domain(settings.maximalDepth, 2),
+    Domain(settings.maxDepth,
+           2,
+           make_shared<RandomGameAction>(),
+           make_shared<RandomGameObservation>()),
     seed_(settings.seed),
     maxBranchingFactor_(settings.maxBranchingFactor),
     maxDifferentObservations_(settings.maxDifferentObservations),
@@ -51,20 +44,13 @@ RandomGameDomain::RandomGameDomain(RandomGameSettings settings) :
     maxRewardModification_(settings.maxRewardModification),
     utilityCorrelation_(settings.utilityCorrelation) {
 
-    assert(maxDepth > 0);
     assert(maxBranchingFactor > 1);
     assert(maxDifferentObservations > 0);
     assert(maxCenterModification > 0);
 
-    if (settings.utilityCorrelation) {
-        if (binaryUtility_) {
-            maxUtility_ = 1.0;
-        } else {
-            maxUtility_ = maxRewardModification_ * maxDepth_;
-        }
-    } else {
-        maxUtility_ = settings.maxUtility;
-    }
+    maxUtility_ =
+        settings.utilityCorrelation ? binaryUtility_ ? 1.0 : maxRewardModification_ * maxStateDepth_
+                                    : settings.maxUtility;
 
     std::mt19937 generator(seed_);
     long initValue = generator();
@@ -81,7 +67,7 @@ RandomGameDomain::RandomGameDomain(RandomGameSettings settings) :
 
 string RandomGameDomain::getInfo() const {
     return "Random Game"
-           "\nMax depth: " + to_string(maxDepth_) +
+           "\nMax depth: " + to_string(maxStateDepth_) +
         "\nSeed: " + to_string(seed_) +
         "\nMax branching factor: " + to_string(maxBranchingFactor_) +
         "\nMax different observations: " + to_string(maxDifferentObservations_) +
@@ -90,16 +76,6 @@ string RandomGameDomain::getInfo() const {
         "\nUtility correlation: " + (utilityCorrelation_ ? "True" : "False") +
         "\nFixed branching factor: " + (fixedBranchingFactor_ ? "True" : "False") +
         "\nBinary utility: " + (binaryUtility_ ? "True" : "False") + "\n";
-}
-
-RandomGameState::RandomGameState(Domain *domain,
-                                 int stateSeed,
-                                 vector<long> histories,
-                                 double cumulativeReward,
-                                 unsigned int depth) :
-    State(domain), stateSeed_(stateSeed), cumulativeReward_(cumulativeReward), depth_(depth) {
-
-    playerHistories_ = move(histories);
 }
 
 vector<shared_ptr<Action>> RandomGameState::getAvailableActionsFor(Player player) const {
@@ -112,7 +88,7 @@ vector<shared_ptr<Action>> RandomGameState::getAvailableActionsFor(Player player
 }
 
 unsigned long RandomGameState::countAvailableActionsFor(Player player) const {
-    auto RGdomain = dynamic_cast<RandomGameDomain *>(domain_);
+    auto RGdomain = dynamic_cast<const RandomGameDomain *>(domain_);
     unsigned long possibleMoves = RGdomain->getMaxBranchingFactor();
     if (!RGdomain->isFixedBranchingFactor()) {
         std::uniform_int_distribution<long> distribution(2, RGdomain->getMaxBranchingFactor());
@@ -122,38 +98,37 @@ unsigned long RandomGameState::countAvailableActionsFor(Player player) const {
     return possibleMoves;
 }
 
-OutcomeDistribution RandomGameState::performActions(const vector<PlayerAction> &actions) const {
-    auto RGdomain = dynamic_cast<RandomGameDomain *>(domain_);
-    auto p0Action = dynamic_cast<RandomGameAction *>(actions[0].second.get());
-    auto p1Action = dynamic_cast<RandomGameAction *>(actions[1].second.get());
+OutcomeDistribution RandomGameState::performActions(const vector<shared_ptr<Action>> &actions) const {
+    auto RGdomain = dynamic_cast<const RandomGameDomain *>(domain_);
+    auto p0Action = dynamic_cast<RandomGameAction &>(*actions[0]);
+    auto p1Action = dynamic_cast<RandomGameAction &>(*actions[1]);
 
     auto pubObs = make_shared<RandomGameObservation>(NO_OBSERVATION);
-    auto player0Obs = p1Action->getId() % RGdomain->getMaxDifferentObservations();
-    auto player1Obs = p0Action->getId() % RGdomain->getMaxDifferentObservations();
+    auto player0Obs = p1Action.getId() % RGdomain->getMaxDifferentObservations();
+    auto player1Obs = p0Action.getId() % RGdomain->getMaxDifferentObservations();
+    assert(player0Obs > 0);
+    assert(player1Obs > 0);
     vector<shared_ptr<Observation>> observations{make_shared<RandomGameObservation>(player0Obs),
                                                  make_shared<RandomGameObservation>(player1Obs)};
     vector<long> newHistories{
-        playerHistories_[0] + (p0Action->getId() + 1) * 31 + (player0Obs + 1) * 17,
-        playerHistories_[1] + (p1Action->getId() + 1) * 31 + (player1Obs + 1) * 17
+        playerHistories_[0] + (p0Action.getId() + 1) * 31 + (player0Obs + 1) * 17,
+        playerHistories_[1] + (p1Action.getId() + 1) * 31 + (player1Obs + 1) * 17
     };
 
-    long newStateSeed = (stateSeed_ + p0Action->getId() + p1Action->getId()) * 31 + 17;
+    long newStateSeed = (stateSeed_ + p0Action.getId() + p1Action.getId()) * 31 + 17;
     std::mt19937 generator(newStateSeed);
     std::uniform_real_distribution<double> cumulativeRewardDistribution
         (-RGdomain->getMaxRewardModification(), RGdomain->getMaxRewardModification());
     double newCumulativeReward = cumulativeReward_ + cumulativeRewardDistribution(generator);
 
-    auto newState =
-        make_shared<RandomGameState>(domain_,
-                                     newStateSeed,
-                                     newHistories,
-                                     newCumulativeReward,
-                                     depth_ + 1);
+    // TODO redo reward distribution so the test passes
+    // efg.cpp line 61 - reward se scita od rodice -> jak udelat binarni utilities???
 
     if (RGdomain->isUtilityCorrelation()) {
         if (RGdomain->isBinaryUtility()) {
             // signum(newCumulativeReward)
-            newCumulativeReward = (double) (0 < newCumulativeReward) - (newCumulativeReward < 0);
+            newCumulativeReward = ((double) (0 < newCumulativeReward) - (newCumulativeReward < 0))
+                / RGdomain->getMaxStateDepth();
         }
     } else {
         std::uniform_real_distribution<double>
@@ -161,29 +136,27 @@ OutcomeDistribution RandomGameState::performActions(const vector<PlayerAction> &
         newCumulativeReward = rewardDistribution(generator);
         if (RGdomain->isBinaryUtility()) {
             // signum(newCumulativeReward)
-            newCumulativeReward = (double) (0 < newCumulativeReward) - (newCumulativeReward < 0);
+            newCumulativeReward = ((double) (0 < newCumulativeReward) - (newCumulativeReward < 0))
+                / RGdomain->getMaxStateDepth();
         }
+    }
+//    std::cout << "Reward " << newCumulativeReward << std::endl;
+    auto newState = make_shared<RandomGameState>(domain_,
+                                                 newStateSeed,
+                                                 newHistories,
+                                                 newCumulativeReward,
+                                                 depth_ + 1);
+
+    if (RGdomain->isBinaryUtility() && !newState->isTerminal()) {
+        newCumulativeReward = 0.0;
     }
     vector<double> rewards{newCumulativeReward, -newCumulativeReward};
 
     Outcome outcome(newState, observations, pubObs, rewards);
     OutcomeDistribution dist;
-    dist.emplace_back(outcome, 1.0);
+    dist.emplace_back(outcome);
 
     return dist;
-}
-
-size_t RandomGameState::getHash() const {
-    size_t seed = 0;
-    boost::hash_combine(seed, stateSeed_);
-    boost::hash_combine(seed, cumulativeReward_);
-    return seed;
-}
-
-vector<Player> RandomGameState::getPlayers() const {
-    auto RGdomain = dynamic_cast<RandomGameDomain *>(domain_);
-    if (this->depth_ == RGdomain->getMaxDepth()) return {};
-    return {0, 1};
 }
 
 string RandomGameState::toString() const {
@@ -201,6 +174,8 @@ bool RandomGameState::operator==(const State &other) const {
         cumulativeReward_ == otherState.cumulativeReward_ &&
         depth_ == otherState.depth_;
 }
-
-RandomGameObservation::RandomGameObservation(ObservationId id) : Observation(id) {}
+bool RandomGameState::isTerminal() const {
+    auto RGdomain = dynamic_cast<const RandomGameDomain *>(domain_);
+    return this->depth_ == RGdomain->getMaxStateDepth();
+}
 }
