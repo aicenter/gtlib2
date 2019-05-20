@@ -23,10 +23,7 @@
 #include <chrono>
 #include "algorithms/cfr.h"
 #include "domains/goofSpiel.h"
-#include "domains/randomGame.h"
 #include "utils/export.h"
-#include "base/base.h"
-#include "algorithms/tree.h"
 
 
 using namespace GTLib2;
@@ -34,13 +31,12 @@ using namespace GTLib2;
 using domains::GoofSpielDomain;
 using domains::GoofSpielVariant::CompleteObservations;
 using domains::GoofSpielVariant::IncompleteObservations;
-using domains::RandomGameDomain;
-using algorithms::treeWalkEFG;
 using utils::exportGraphViz;
 using utils::exportGambit;
 
 void exampleBenchmarkCFR() {
-    auto start = std::chrono::high_resolution_clock::now();
+    using ms = std::chrono::duration<int, std::milli>;
+    auto startTotal = std::chrono::high_resolution_clock::now();
 
     domains::GoofSpielDomain domain({
                                         variant:  IncompleteObservations,
@@ -51,28 +47,36 @@ void exampleBenchmarkCFR() {
     auto settings = algorithms::CFRSettings();
     auto cache = algorithms::CFRData(domain, settings.cfrUpdating);
     algorithms::CFRAlgorithm cfr(domain, cache, Player(0), settings);
-    cfr.runIterations(100);
 
+    auto start = std::chrono::high_resolution_clock::now();
+    cfr.getCache().buildForest();
     auto end = std::chrono::high_resolution_clock::now();
-    using ms = std::chrono::duration<int, std::milli>;
-    cout << "Time " << std::chrono::duration_cast<ms>(end - start).count() << " ms" << '\n';
+    cout << "Build time " << std::chrono::duration_cast<ms>(end - start).count() << " ms" << '\n';
+
+    start = std::chrono::high_resolution_clock::now();
+    cfr.runIterations(100);
+    end = std::chrono::high_resolution_clock::now();
+    cout << "Iters Time " << std::chrono::duration_cast<ms>(end - start).count() << " ms" << '\n';
+    cout << "Total Time " << std::chrono::duration_cast<ms>(end - startTotal).count() << " ms"
+         << '\n';
 }
 
 void exampleExportDomain() {
-    auto gs2 =
-        GoofSpielDomain({variant:  CompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}});
-    auto gs3 =
-        GoofSpielDomain({variant:  CompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}, binaryTerminalRewards: true});
-    auto gs3_seed =
-        GoofSpielDomain({variant:  CompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
-    auto iigs3 =
-        GoofSpielDomain({variant:  IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
-    auto iigs3_seed =
-        GoofSpielDomain({variant:  IncompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
+    //@formatter:off
+    auto gs2 =        GoofSpielDomain({variant:  CompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}});
+    auto gs3 =        GoofSpielDomain({variant:  CompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}, binaryTerminalRewards: true});
+    auto gs3_seed =   GoofSpielDomain({variant:  CompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
+    auto iigs3 =      GoofSpielDomain({variant:  IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
+    auto iigs1_seed = GoofSpielDomain({variant:  IncompleteObservations, numCards: 1, fixChanceCards: true, chanceCards: {}});
+    auto iigs2_seed = GoofSpielDomain({variant:  IncompleteObservations, numCards: 2, fixChanceCards: true, chanceCards: {}});
+    auto iigs3_seed = GoofSpielDomain({variant:  IncompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
+    //@formatter:on
     exportGambit(gs2, "./gs2.gbt");
     exportGambit(gs3, "./gs3.gbt");
     exportGambit(gs3_seed, "./gs3_seed.gbt");
     exportGambit(iigs3, "./iigs3.gbt");
+    exportGambit(iigs1_seed, "./iigs1_seed.gbt");
+    exportGambit(iigs2_seed, "./iigs2_seed.gbt");
     exportGambit(iigs3_seed, "./iigs3_seed.gbt");
 
     // you can run this for visualization
@@ -82,13 +86,6 @@ void exampleExportDomain() {
 
 int main(int argc, char *argv[]) {
     exampleBenchmarkCFR();
-//    assert(false);
-    GoofSpielDomain
-        iigs3
-        ({variant:  IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}, binaryTerminalRewards: true});
-
-    RandomGameDomain rg5
-        ({.seed = 9, .maxDepth = 3, .maxBranchingFactor = 6, .maxDifferentObservations = 3, .maxRewardModification = 20, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = true, .fixedBranchingFactor = false});
-    //    exampleExportDomain();
+    exampleExportDomain();
     return 0;
 }
