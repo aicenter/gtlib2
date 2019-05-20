@@ -110,7 +110,7 @@ bool isActionGenerationAndAOHConsistent(const Domain &domain) {
          std::unordered_map<size_t, std::vector<shared_ptr<Action>>>());
 
     auto countViolations = [&num_violation, &maps](shared_ptr<EFGNode> node) {
-
+      if (node->type_ != PlayerNode) return;
       auto aoh = node->getAOHInfSet();
       if (aoh) {
           size_t hashAOH = aoh->getHash();
@@ -122,7 +122,7 @@ bool isActionGenerationAndAOHConsistent(const Domain &domain) {
 
               if (actionsNode.size() == actionsMappedAOH.size()) {
                   for (int j = 0; j < actionsNode.size(); ++j) {
-                      if (!(actionsNode[j] == actionsMappedAOH[j])) {
+                      if (!(*actionsNode[j] == *actionsMappedAOH[j])) {
                           num_violation++;
                       }
                   }
@@ -134,7 +134,7 @@ bool isActionGenerationAndAOHConsistent(const Domain &domain) {
           }
       }
     };
-//    treeWalkEFG(domain, countViolations, domain.getMaxStateDepth());
+    treeWalkEFG(domain, countViolations, domain.getMaxStateDepth());
 
     return num_violation == 0;
 }

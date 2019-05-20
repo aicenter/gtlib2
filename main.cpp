@@ -23,7 +23,10 @@
 #include <chrono>
 #include "algorithms/cfr.h"
 #include "domains/goofSpiel.h"
+#include "domains/randomGame.h"
 #include "utils/export.h"
+#include "base/base.h"
+#include "algorithms/tree.h"
 
 
 using namespace GTLib2;
@@ -31,6 +34,8 @@ using namespace GTLib2;
 using domains::GoofSpielDomain;
 using domains::GoofSpielVariant::CompleteObservations;
 using domains::GoofSpielVariant::IncompleteObservations;
+using domains::RandomGameDomain;
+using algorithms::treeWalkEFG;
 using utils::exportGraphViz;
 using utils::exportGambit;
 
@@ -77,6 +82,13 @@ void exampleExportDomain() {
 
 int main(int argc, char *argv[]) {
     exampleBenchmarkCFR();
-//    exampleExportDomain();
+//    assert(false);
+    GoofSpielDomain
+        iigs3
+        ({variant:  IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}, binaryTerminalRewards: true});
+
+    RandomGameDomain rg5
+        ({.seed = 9, .maxDepth = 3, .maxBranchingFactor = 6, .maxDifferentObservations = 3, .maxRewardModification = 20, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = true, .fixedBranchingFactor = false});
+    //    exampleExportDomain();
     return 0;
 }

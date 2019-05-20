@@ -241,8 +241,9 @@ shared_ptr<EFGPublicState> EFGNode::getPublicState() const {
 
 vector<ActionObservationIds> EFGNode::getAOids(Player player) const {
     if (!parent_) return vector<ActionObservationIds>{NO_ACTION_OBSERVATION};
+    ObservationId
+        lastObservation = lastOutcome_->privateObservations[player]->getId(); // TODO SegFault
 
-    ObservationId lastObservation = lastOutcome_->privateObservations[player]->getId();
     auto aoh = parent_->getAOids(player);
 
     switch (parent_->type_) {

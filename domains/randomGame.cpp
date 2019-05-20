@@ -44,9 +44,9 @@ RandomGameDomain::RandomGameDomain(RandomGameSettings settings) :
     maxRewardModification_(settings.maxRewardModification),
     utilityCorrelation_(settings.utilityCorrelation) {
 
-    assert(maxBranchingFactor > 1);
-    assert(maxDifferentObservations > 0);
-    assert(maxCenterModification > 0);
+    assert(maxBranchingFactor_ > 1);
+    assert(maxDifferentObservations_ > 0);
+    assert(maxRewardModification_ > 0);
 
     maxUtility_ =
         settings.utilityCorrelation ? binaryUtility_ ? 1.0 : maxRewardModification_ * maxStateDepth_
@@ -102,12 +102,11 @@ OutcomeDistribution RandomGameState::performActions(const vector<shared_ptr<Acti
     auto RGdomain = dynamic_cast<const RandomGameDomain *>(domain_);
     auto p0Action = dynamic_cast<RandomGameAction &>(*actions[0]);
     auto p1Action = dynamic_cast<RandomGameAction &>(*actions[1]);
-
+    assert(p1Action.getId() >= 0);
+    assert(p0Action.getId() >= 0);
     auto pubObs = make_shared<RandomGameObservation>(NO_OBSERVATION);
     auto player0Obs = p1Action.getId() % RGdomain->getMaxDifferentObservations();
     auto player1Obs = p0Action.getId() % RGdomain->getMaxDifferentObservations();
-    assert(player0Obs > 0);
-    assert(player1Obs > 0);
     vector<shared_ptr<Observation>> observations{make_shared<RandomGameObservation>(player0Obs),
                                                  make_shared<RandomGameObservation>(player1Obs)};
     vector<long> newHistories{
@@ -119,7 +118,7 @@ OutcomeDistribution RandomGameState::performActions(const vector<shared_ptr<Acti
     std::mt19937 generator(newStateSeed);
     std::uniform_real_distribution<double> cumulativeRewardDistribution
         (-RGdomain->getMaxRewardModification(), RGdomain->getMaxRewardModification());
-    double newCumulativeReward = cumulativeReward_ + cumulativeRewardDistribution(generator);
+    double newCumulativeReward = cumulativeRewardDistribution(generator);
 
     // TODO redo reward distribution so the test passes
     // efg.cpp line 61 - reward se scita od rodice -> jak udelat binarni utilities???
@@ -132,7 +131,8 @@ OutcomeDistribution RandomGameState::performActions(const vector<shared_ptr<Acti
         }
     } else {
         std::uniform_real_distribution<double>
-            rewardDistribution(RGdomain->getMinUtility(), RGdomain->getMaxUtility());
+            rewardDistribution(RGdomain->getMinUtility() / RGdomain->getMaxStateDepth(),
+                               RGdomain->getMaxUtility() / RGdomain->getMaxStateDepth());
         newCumulativeReward = rewardDistribution(generator);
         if (RGdomain->isBinaryUtility()) {
             // signum(newCumulativeReward)
@@ -144,7 +144,7 @@ OutcomeDistribution RandomGameState::performActions(const vector<shared_ptr<Acti
     auto newState = make_shared<RandomGameState>(domain_,
                                                  newStateSeed,
                                                  newHistories,
-                                                 newCumulativeReward,
+                                                 newCumulativeReward + cumulativeReward_,
                                                  depth_ + 1);
 
     if (RGdomain->isBinaryUtility() && !newState->isTerminal()) {

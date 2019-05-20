@@ -141,22 +141,18 @@ void EFGCache::buildForest(int maxStateDepth) {
         && nodesChildren_.find(rootNode_) == nodesChildren_.end()) {
         processNode(rootNode_);
     }
+}
 
-void EFGCache::buildForest(int maxDepth) {
-    algorithms::treeWalkEFG(*this, [](shared_ptr<EFGNode> _) {}, maxDepth);
-    if (domain_.getMaxDepth() <= maxDepth) {
-        builtForest_ = true;
-    }}
 
 void EFGCache::buildForest() {
-    buildForest(domain_.getMaxDepth());
+    buildForest(domain_.getMaxStateDepth());
     builtForest_ = true;
 }
 
-void InfosetCache::processNode(const shared_ptr<GTLib2::EFGNode> &node) {
-    EFGCache::createNode(node);
-    createAugInfosets(node);
-}
+//void InfosetCache::processNode(const shared_ptr<GTLib2::EFGNode> &node) {
+//    EFGCache::createNode(node);
+//    createAugInfosets(node);
+//}
 
 void InfosetCache::createAugInfosets(const shared_ptr<EFGNode> &node) {
     vector<shared_ptr<AOH>> infosets;

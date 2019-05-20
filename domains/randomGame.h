@@ -24,8 +24,6 @@
 #ifndef GTLIB2_RANDOMGAME_H
 #define GTLIB2_RANDOMGAME_H
 
-#include <random>
-
 #include "base/base.h"
 #include "utils/utils.h"
 
