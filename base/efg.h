@@ -123,7 +123,7 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
      */
     shared_ptr <EFGNode> performAction(const shared_ptr <Action> &action) const;
 
-
+    double chanceProbForAction(const ActionId &action) const;
     double chanceProbForAction(const shared_ptr <Action> &action) const;
     ProbDistribution chanceProbs() const;
 

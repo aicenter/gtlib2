@@ -272,7 +272,7 @@ class AOH: public InformationSet {
 
     inline Player getPlayer() const { return player_; }
     inline ObservationId getInitialObservationId() const { return aoh_.front().observation; }
-    inline vector<ActionObservationIds> getAOHistory() const { return aoh_; }
+    inline vector<ActionObservationIds> getAOids() const { return aoh_; }
     string toString() const override;
 
  private:

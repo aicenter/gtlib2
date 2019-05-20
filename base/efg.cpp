@@ -210,6 +210,10 @@ vector<shared_ptr<Action>> EFGNode::createChanceActions() const {
     return actions;
 }
 
+double EFGNode::chanceProbForAction(const ActionId &action) const {
+    return outcomeDist_[action].prob;
+}
+
 double EFGNode::chanceProbForAction(const shared_ptr<Action> &action) const {
     assert(type_ == ChanceNode);
     assert(typeid(*action) == typeid(EFGChanceAction));

@@ -54,7 +54,7 @@ bool EFGCache::hasChildren(const shared_ptr<EFGNode> &node,
     if (it == nodesChildren_.end()) return false;
     const EFGChildNodes &actionNodes = it->second;
     auto id = action->getId();
-    return actionNodes.size() >= id && actionNodes[id];
+    return actionNodes.size() >= id && actionNodes[id] != nullptr;
 }
 
 EFGChildNodes &EFGCache::getCachedNode(const shared_ptr<EFGNode> &node) {

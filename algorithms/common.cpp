@@ -89,7 +89,7 @@ vector<shared_ptr<EFGNode>> getAllNodesInInfoset(const shared_ptr<AOH> &infoset,
                                                  const Domain &domain) {
 
     vector<shared_ptr<EFGNode>> nodes;
-    const auto aoTarget = infoset->getAOHistory();
+    const auto aoTarget = infoset->getAOids();
     const Player player = infoset->getPlayer();
 
     function<void(shared_ptr<EFGNode>)> traverse = [&](shared_ptr<EFGNode> node) {
