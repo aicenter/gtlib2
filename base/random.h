@@ -44,7 +44,7 @@ int pickRandom(const Distribution &probs, double probSum, std::mt19937 &generato
 
 int pickRandom(const EFGNode &node, std::mt19937 &generator);
 
-int pickUniform(unsigned int numOutcomes, std::mt19937 &generator);
+int pickUniform(unsigned long numOutcomes, std::mt19937 &generator);
 
 
 struct RandomLeafOutcome {
