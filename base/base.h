@@ -388,7 +388,7 @@ class State {
  */
 class Domain {
  public:
-    Domain(unsigned int maxStateDepth, unsigned int numberOfPlayers,
+    Domain(unsigned int maxStateDepth, unsigned int numberOfPlayers, bool isZeroSum_,
            shared_ptr<Action> noAction, shared_ptr<Observation> noObservation);
 
     virtual ~Domain() = default;
@@ -408,6 +408,12 @@ class Domain {
      * Returns default maximal depth used in algorithms.
      */
     inline unsigned int getMaxStateDepth() const { return maxStateDepth_; }
+
+    /**
+     * Are all the rewards in outcomes zero-sum?
+     */
+    inline bool isZeroSum() const { return isZeroSum_; };
+
     inline double getMaxUtility() const { return maxUtility_; }
     inline double getMinUtility() const { return -maxUtility_; }
 
@@ -422,7 +428,8 @@ class Domain {
  protected:
     OutcomeDistribution rootStatesDistribution_;
     unsigned int maxStateDepth_;
-    unsigned int numberOfPlayers_;
+    const unsigned int numberOfPlayers_;
+    const bool isZeroSum_;
     double maxUtility_;
 
     const shared_ptr<Action> noAction_;

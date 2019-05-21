@@ -83,7 +83,7 @@ RhodeIslandPokerDomain::RhodeIslandPokerDomain(unsigned int maxCardTypes,
                                                unsigned int maxDifferentBets,
                                                unsigned int maxDifferentRaises,
                                                unsigned int ante) :
-    Domain(10 + 2 * maxRaisesInRow, 2,
+    Domain(10 + 2 * maxRaisesInRow, 2, true,
            make_shared<RhodeIslandPokerAction>(),
            make_shared<RhodeIslandPokerObservation>()),
     maxCardTypes_(maxCardTypes),

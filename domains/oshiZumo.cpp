@@ -47,7 +47,7 @@ OshiZumoDomain::OshiZumoDomain(OshiZumoSettings settings) :
            (settings.minBid == 0
             ? settings.startingCoins * 2
             : settings.startingCoins / settings.minBid) + 1,
-           2,
+           2, true,
            make_shared<OshiZumoAction>(),
            make_shared<OshiZumoObservation>()
     ),

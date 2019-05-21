@@ -117,10 +117,10 @@ OutcomeDistribution State::performPartialActions(const vector<PlayerAction> & pl
 }
 
 // todo: explicit max utility!!!!
-Domain::Domain(unsigned int maxStateDepth, unsigned int numberOfPlayers,
+Domain::Domain(unsigned int maxStateDepth, unsigned int numberOfPlayers, bool isZeroSum,
                shared_ptr<Action> noAction, shared_ptr<Observation> noObservation) :
-    maxStateDepth_(maxStateDepth), numberOfPlayers_(numberOfPlayers), maxUtility_(0),
-    noAction_(move(noAction)), noObservation_(move(noObservation)) {
+    maxStateDepth_(maxStateDepth), numberOfPlayers_(numberOfPlayers), isZeroSum_(isZeroSum),
+    maxUtility_(0), noAction_(move(noAction)), noObservation_(move(noObservation)) {
     assert(noAction_->getId() == NO_ACTION);
     assert(noObservation_->getId() == NO_OBSERVATION);
 }

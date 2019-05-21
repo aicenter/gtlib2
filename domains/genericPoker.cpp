@@ -78,7 +78,7 @@ string GenericPokerObservation::toString() const {
 GenericPokerDomain::GenericPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes,
                                        unsigned int maxRaisesInRow, unsigned int maxDifferentBets,
                                        unsigned int maxDifferentRaises, unsigned int ante) :
-    Domain(7 + 2 * maxRaisesInRow, 2,
+    Domain(7 + 2 * maxRaisesInRow, 2, true,
            make_shared<GenericPokerAction>(),
            make_shared<GenericPokerObservation>()), maxCardTypes_(maxCardTypes),
     maxCardsOfEachType_(maxCardsOfTypes), maxRaisesInRow_(maxRaisesInRow), ante_(ante),

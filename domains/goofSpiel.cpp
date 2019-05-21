@@ -75,7 +75,7 @@ vector<int> GoofSpielSettings::getNatureCards() {
 }
 
 GoofSpielDomain::GoofSpielDomain(GoofSpielSettings settings) :
-    Domain(settings.numCards+1, 2,
+    Domain(settings.numCards+1, 2, true,
            make_shared<GoofSpielAction>(),
            make_shared<GoofSpielObservation>()),
     numberOfCards_(settings.numCards),
