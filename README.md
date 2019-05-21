@@ -94,7 +94,3 @@ Extensive form game is built on top of this graph. There are some major differen
 # Contributing
 
 Please check the [CONTRIBUTING.md](CONTRIBUTING.md) file to understand how to contribute code to this repository. 
-
-todo: write about release / debug, asserts are turned of in debug
-use arrays for players
-there should be no chance player in domain

@@ -663,6 +663,9 @@ DocProject/Help/*.hhp
 DocProject/Help/Html2
 DocProject/Help/html
 
+# Doxygen generated documentation
+doxygen/
+
 # Click-Once directory
 publish/
 

@@ -39,7 +39,7 @@ double calcExploitability(Domain &domain, const StrategyProfile &profile);
  * This can be hard to calculate in general, but for some specific games can be easy
  * (for example for II-GoofSpiel it's zero).
  *
- * @image doc/expl_player.png
+ * @image html expl_player.png
  */
 double calcExploitability(Domain &domain, const BehavioralStrategy &strat,
                           Player pl, double gameValue);
