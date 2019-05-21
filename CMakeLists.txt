@@ -137,6 +137,20 @@ if(NOT USE_CPLEX AND NOT USE_GUROBI AND NOT USE_GLPK)
     message("No LP solver is used")
 endif()
 
+# ------------ automatic documentation ----------------
+
+find_package(Doxygen)
+if (NOT DOXYGEN_FOUND)
+    message(WARNING "doxygen not found - target 'doc' will be unavailable.")
+else ()
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+    add_custom_target(doc
+            ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMENT "Generating API documentation with Doxygen" VERBATIM)
+endif ()
+
+
 # -------------------- Source files --------------------
 
 # Individually list all source files.
