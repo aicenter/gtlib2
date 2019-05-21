@@ -24,12 +24,7 @@
 #define GTLIB2_RANDOM_H
 
 
-#include "base/base.h"
 #include "base/efg.h"
-#include "base/cache.h"
-#include "algorithms/cfr.h"
-#include "algorithms/tree.h"
-#include "algorithms/common.h"
 
 namespace GTLib2 {
 

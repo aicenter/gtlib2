@@ -23,13 +23,8 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
-#include "base/base.h"
 #include "algorithms/equilibrium.h"
 
-#include <vector>
-
-#include "algorithms/utility.h"
-#include "algorithms/common.h"
 #include "LPsolvers/LPSolver.h"
 
 

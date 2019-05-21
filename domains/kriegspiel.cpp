@@ -20,7 +20,6 @@
 */
 
 
-#include "base/base.h"
 #include "domains/kriegspiel.h"
 
 #pragma clang diagnostic push

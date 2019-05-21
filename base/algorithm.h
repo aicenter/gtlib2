@@ -23,8 +23,6 @@
 #ifndef GTLIB2_GAMEPLAYINGALGORITHM_H
 #define GTLIB2_GAMEPLAYINGALGORITHM_H
 
-#include "base/base.h"
-#include "base/efg.h"
 #include "base/cache.h"
 
 namespace GTLib2 {

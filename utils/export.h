@@ -24,7 +24,6 @@
 #define GTLIB2_EXPORT_H
 
 #include "base/base.h"
-#include <iostream>
 #include <fstream>
 
 namespace GTLib2::utils {

@@ -20,7 +20,6 @@
 */
 
 
-#include "base/base.h"
 #include "domains/matching_pennies.h"
 
 #pragma clang diagnostic push

@@ -19,8 +19,7 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "base/base.h"
-#include "cache.h"
+#include "base/cache.h"
 
 #include "algorithms/tree.h"
 

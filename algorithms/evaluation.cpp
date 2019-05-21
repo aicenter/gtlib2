@@ -21,9 +21,6 @@
 
 #include "evaluation.h"
 
-#include "algorithms/strategy.h"
-#include "algorithms/bestResponse.h"
-
 namespace GTLib2::algorithms {
 
 double calcExploitability(Domain &domain, const StrategyProfile &profile) {

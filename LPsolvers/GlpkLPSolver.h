@@ -23,10 +23,8 @@
 #ifndef LPSOLVERS_GLPKLPSOLVER_H_
 #define LPSOLVERS_GLPKLPSOLVER_H_
 
-#include "base/base.h"
 #include "LPsolvers/AbstractLPSolver.h"
 #include <glpk.h>
-#include <cmath>
 
 namespace GTLib2::algorithms {
 

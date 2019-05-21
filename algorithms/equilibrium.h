@@ -23,7 +23,6 @@
 #ifndef ALGORITHMS_EQUILIBRIUM_H_
 #define ALGORITHMS_EQUILIBRIUM_H_
 
-#include "base/base.h"
 #include "algorithms/bestResponse.h"
 
 namespace GTLib2::algorithms {

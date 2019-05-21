@@ -20,7 +20,8 @@
 */
 
 #include "base/random.h"
-#include "math.h"
+
+#include <math.h>
 
 namespace GTLib2 {
 

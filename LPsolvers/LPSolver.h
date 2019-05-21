@@ -24,8 +24,6 @@
 #define GTLIB2_LPSOLVER_H
 
 #include "base/base.h"
-#include <iostream>
-#include <cassert>
 #include <cmath>
 
 #define NO_LP_SOLVER 0

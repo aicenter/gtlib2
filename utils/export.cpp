@@ -19,13 +19,10 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "base/base.h"
-#include "export.h"
+#include "utils/export.h"
 
 #include <iomanip>
 
-#include "base/efg.h"
-#include "base/hashing.h"
 #include "algorithms/tree.h"
 #include "algorithms/common.h"
 

@@ -23,11 +23,6 @@
 #ifndef ALGORITHMS_OOS_H_
 #define ALGORITHMS_OOS_H_
 
-
-#include "base/base.h"
-
-#include "base/efg.h"
-#include "base/cache.h"
 #include "base/random.h"
 #include "algorithms/cfr.h"
 #include "algorithms/tree.h"

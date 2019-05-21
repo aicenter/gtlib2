@@ -19,7 +19,6 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "base/base.h"
 #include "strategy.h"
 
 namespace GTLib2::algorithms {

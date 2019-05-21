@@ -20,15 +20,9 @@
 */
 
 
-#include "base/base.h"
 #include "algorithms/bestResponse.h"
 
-#include <limits>
 #include <algorithm>
-
-#include "base/efg.h"
-#include "algorithms/common.h"
-#include "algorithms/tree.h"
 
 namespace GTLib2::algorithms {
 

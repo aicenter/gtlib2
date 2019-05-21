@@ -26,7 +26,6 @@
 #define BASE_EFG_H_
 
 #include "base/base.h"
-#include "base/hashing.h"
 
 
 namespace GTLib2 {

@@ -26,10 +26,6 @@
 #define DOMAINS_GOOFSPIEL_H_
 
 #include "base/base.h"
-#include <vector>
-#include <string>
-#include <utility>
-
 
 namespace GTLib2::domains {
 

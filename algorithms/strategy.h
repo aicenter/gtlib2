@@ -23,7 +23,6 @@
 #ifndef GTLIB2_STRATEGY_H
 #define GTLIB2_STRATEGY_H
 
-#include "base/base.h"
 #include "algorithms/cfr.h"
 #include "algorithms/tree.h"
 #include "algorithms/common.h"

@@ -19,7 +19,6 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "base/base.h"
 #include "domains/pursuit.h"
 
 #pragma clang diagnostic push

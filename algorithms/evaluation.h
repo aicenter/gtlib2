@@ -23,7 +23,7 @@
 #ifndef GTLIB2_EVALUATION_H
 #define GTLIB2_EVALUATION_H
 
-#include "base/base.h"
+#include "algorithms/bestResponse.h"
 
 namespace GTLib2::algorithms {
 

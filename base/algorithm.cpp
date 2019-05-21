@@ -19,13 +19,12 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "base/base.h"
-#include "algorithm.h"
+#include "base/algorithm.h"
 
 #include <chrono>
 
-#include "algorithms/common.h"
 #include "base/random.h"
+#include "algorithms/common.h"
 
 namespace GTLib2 {
 
