@@ -61,12 +61,24 @@ EFGNode::EFGNode(EFGNodeType type, shared_ptr<EFGNode const> parent,
     assert(history_.size() == efgDepth_);
     // state terminal implies EFGNode terminal
     assert(!parent_ || (!lastOutcome_->state->isTerminal() || type_ == TerminalNode));
+#ifndef NDEBUG // equivalent to assert
+    if(!outcomeDist_.empty()) {
+        double sum = 0.;
+        for (const auto&[_, prob] : outcomeDist_) {
+            sum += prob;
+        }
+        assert(sum > (1 - 1e-6));
+        assert(sum < (1 + 1e-6));
+    }
+#endif
 }
 
 shared_ptr<EFGNode> EFGNode::performAction(const shared_ptr<Action> &action) const {
     switch (type_) { // dispatch
-        case ChanceNode:
-            return performChanceAction(action);
+        case ChanceNode: {
+            auto newnode = performChanceAction(action);
+            return newnode;
+        }
         case PlayerNode: {
             auto newnode = performPlayerAction(action);
             return newnode;
@@ -116,6 +128,7 @@ shared_ptr<EFGNode> EFGNode::performPlayerAction(const shared_ptr<Action> &actio
     // Now we have all the actions of round players that are needed to go to next state.
     const auto &currentState = lastOutcome_->state;
     auto outcomeDistribution = currentState->performPartialActions(updatedActions);
+    assert(outcomeDistribution.size() >= 1);
 
     // Should we create a chance node?
     if (outcomeDistribution.size() > 1) {

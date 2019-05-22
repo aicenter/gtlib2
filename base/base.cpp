@@ -126,6 +126,14 @@ Domain::Domain(unsigned int maxStateDepth, unsigned int numberOfPlayers, bool is
 }
 
 const OutcomeDistribution &Domain::getRootStatesDistribution() const {
+#ifndef NDEBUG // equivalent to assert
+    double sum = 0.;
+    for(const auto&[_, prob] : rootStatesDistribution_) {
+        sum += prob;
+    }
+    assert(sum > (1-1e-6));
+    assert(sum < (1+1e-6));
+#endif
     return rootStatesDistribution_;
 }
 

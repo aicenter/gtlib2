@@ -44,6 +44,8 @@ class AOH;
 class Domain;
 
 typedef uint8_t Player;
+constexpr Player NO_PLAYER = 0xff;
+inline Player opponent(Player pl) { return Player(1-pl); }
 
 /**
  * For a given State/EFGNode/InformationSet, IDs should be indexed
