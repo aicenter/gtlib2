@@ -120,6 +120,15 @@ inline std::array<unsigned int, 2> elegantUnpair(unsigned int z) {
     return {z - sqSqrtZ, sqrtZ};
 }
 
+/**
+ * Returns signum of given number, e.g. -1 if number < 0, 0 if number == 0, 1 if number > 0.
+ * @param number
+ * @return
+ */
+inline double signum(double number) {
+    return (double) ((0 < number) - (0 > number));
+}
+
 
 namespace std {
 

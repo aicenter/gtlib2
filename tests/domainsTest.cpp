@@ -173,31 +173,31 @@ bool isActionGenerationAndAOHConsistent(const Domain &domain) {
 // @formatter:off
 GoofSpielDomain
     gs1
-    ({variant:  CompleteObservations, numCards: 1, fixChanceCards: false, chanceCards: {}, binaryTerminalRewards: true});
+    ({variant:  CompleteObservations, numCards: 1, fixChanceCards: false, chanceCards: {}});
 GoofSpielDomain
     gs2
-    ({variant:  CompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}, binaryTerminalRewards: true});
+    ({variant:  CompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}});
 GoofSpielDomain
     gs3
-    ({variant:  CompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}, binaryTerminalRewards: true});
+    ({variant:  CompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
 GoofSpielDomain
     gs1_fix
-    ({variant:  CompleteObservations, numCards: 1, fixChanceCards: true, chanceCards: {}, binaryTerminalRewards: true});
+    ({variant:  CompleteObservations, numCards: 1, fixChanceCards: true, chanceCards: {}});
 GoofSpielDomain
     gs2_fix
-    ({variant:  CompleteObservations, numCards: 2, fixChanceCards: true, chanceCards: {}, binaryTerminalRewards: true});
+    ({variant:  CompleteObservations, numCards: 2, fixChanceCards: true, chanceCards: {}});
 GoofSpielDomain
     gs3_fix
-    ({variant:  CompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}, binaryTerminalRewards: true});
+    ({variant:  CompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
 GoofSpielDomain
     iigs1
-    ({variant:  IncompleteObservations, numCards: 1, fixChanceCards: false, chanceCards: {}, binaryTerminalRewards: true});
+    ({variant:  IncompleteObservations, numCards: 1, fixChanceCards: false, chanceCards: {}});
 GoofSpielDomain
     iigs2
-    ({variant:  IncompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}, binaryTerminalRewards: true});
+    ({variant:  IncompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}});
 GoofSpielDomain
     iigs3
-    ({variant:  IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}, binaryTerminalRewards: true});
+    ({variant:  IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
 GoofSpielDomain iigs1_fix
     ({variant:  IncompleteObservations, numCards: 1, fixChanceCards: true, chanceCards: {}});
 GoofSpielDomain iigs2_fix

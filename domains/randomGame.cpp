@@ -116,41 +116,36 @@ OutcomeDistribution RandomGameState::performActions(const vector<shared_ptr<Acti
 
     long newStateSeed = (stateSeed_ + p0Action.getId() + p1Action.getId()) * 31 + 17;
     std::mt19937 generator(newStateSeed);
-    std::uniform_real_distribution<double> cumulativeRewardDistribution
-        (-RGdomain->getMaxRewardModification(), RGdomain->getMaxRewardModification());
-    double newCumulativeReward = cumulativeRewardDistribution(generator);
+
 
     // TODO redo reward distribution so the test passes
     // efg.cpp line 61 - reward se scita od rodice -> jak udelat binarni utilities???
 
+    double newReward;
     if (RGdomain->isUtilityCorrelation()) {
-        if (RGdomain->isBinaryUtility()) {
-            // signum(newCumulativeReward)
-            newCumulativeReward = ((double) (0 < newCumulativeReward) - (newCumulativeReward < 0))
-                / RGdomain->getMaxStateDepth();
-        }
+        std::uniform_real_distribution<double> cumulativeRewardDistribution
+            (-RGdomain->getMaxRewardModification(), RGdomain->getMaxRewardModification());
+        newReward = cumulativeRewardDistribution(generator);
     } else {
         std::uniform_real_distribution<double>
             rewardDistribution(RGdomain->getMinUtility() / RGdomain->getMaxStateDepth(),
                                RGdomain->getMaxUtility() / RGdomain->getMaxStateDepth());
-        newCumulativeReward = rewardDistribution(generator);
-        if (RGdomain->isBinaryUtility()) {
-            // signum(newCumulativeReward)
-            newCumulativeReward = ((double) (0 < newCumulativeReward) - (newCumulativeReward < 0))
-                / RGdomain->getMaxStateDepth();
-        }
+        newReward = rewardDistribution(generator);
     }
-//    std::cout << "Reward " << newCumulativeReward << std::endl;
     auto newState = make_shared<RandomGameState>(domain_,
                                                  newStateSeed,
                                                  newHistories,
-                                                 newCumulativeReward + cumulativeReward_,
+                                                 newReward + cumulativeReward_,
                                                  depth_ + 1);
 
-    if (RGdomain->isBinaryUtility() && !newState->isTerminal()) {
-        newCumulativeReward = 0.0;
+    if (RGdomain->isBinaryUtility()) {
+        if (newState->isTerminal()) {
+            newReward = signum(newState->cumulativeReward_);
+        } else {
+            newReward = 0.0;
+        }
     }
-    vector<double> rewards{newCumulativeReward, -newCumulativeReward};
+    vector<double> rewards{newReward, -newReward};
 
     Outcome outcome(newState, observations, pubObs, rewards);
     OutcomeDistribution dist;
