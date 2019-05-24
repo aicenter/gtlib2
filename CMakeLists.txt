@@ -186,7 +186,7 @@ set(SOURCE_FILES
         # utils
         utils/utils.h
         utils/export.cpp utils/export.h
-        )
+        domains/normal_form_game.cpp domains/normal_form_game.h)
 
 set(TEST_FILES
         tests/domainsTest.h tests/domainsTest.cpp
