@@ -248,7 +248,7 @@ vector<ActionObservationIds> EFGNode::getAOids(Player player) const {
     switch (parent_->type_) {
 
         case ChanceNode: // after chance, we always append private observation
-            if (lastOutcome_->state->isPlayerMakingMove(player)) {
+            if (!parent_->parent_ || parent_->lastOutcome_->state->isPlayerMakingMove(player)) {
                 aoh[aoh.size() - 1].observation = lastObservation;
             } else {
                 aoh.emplace_back(ActionObservationIds{NO_ACTION, lastObservation});
@@ -263,6 +263,8 @@ vector<ActionObservationIds> EFGNode::getAOids(Player player) const {
 
             if (parent_->getPlayer() == player) {
                 aoh.emplace_back(ActionObservationIds{incomingAction_->getId(), NO_OBSERVATION});
+            } else {
+                aoh.emplace_back(NO_ACTION_OBSERVATION);
             }
             if (parent_->stateDepth_ != stateDepth_) {
                 aoh[aoh.size() - 1].observation = lastObservation;
@@ -282,9 +284,7 @@ vector<ActionObservationIds> EFGNode::getAOids(Player player) const {
     //   In this case no one will gain information by "no information",
     //   because it's prefix of every history.
     //   We do this to ensure that [aoh.size()-1] is always defined.
-    if (aoh.size() > 1 && aoh[aoh.size() - 1] == NO_ACTION_OBSERVATION) {
-        aoh.erase(aoh.end());
-    }
+    if (aoh.size() > 1 && aoh[aoh.size() - 1] == NO_ACTION_OBSERVATION) aoh.pop_back();
 
     return aoh;
 }
