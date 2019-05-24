@@ -73,9 +73,9 @@ string RandomGameDomain::getInfo() const {
         "\nMax different observations: " + to_string(maxDifferentObservations_) +
         "\nMax reward modification: " + to_string(maxRewardModification_) +
         "\nMax utility: " + to_string(maxUtility_) +
-        "\nUtility correlation: " + (utilityCorrelation_ ? "True" : "False") +
-        "\nFixed branching factor: " + (fixedBranchingFactor_ ? "True" : "False") +
-        "\nBinary utility: " + (binaryUtility_ ? "True" : "False") + "\n";
+        "\nUtility correlation: " + boolToString(utilityCorrelation_) +
+        "\nFixed branching factor: " + boolToString(fixedBranchingFactor_) +
+        "\nBinary utility: " + boolToString(binaryUtility_) + "\n";
 }
 
 vector<shared_ptr<Action>> RandomGameState::getAvailableActionsFor(Player player) const {
@@ -109,6 +109,7 @@ OutcomeDistribution RandomGameState::performActions(const vector<shared_ptr<Acti
     auto player1Obs = p0Action.getId() % RGdomain->getMaxDifferentObservations();
     vector<shared_ptr<Observation>> observations{make_shared<RandomGameObservation>(player0Obs),
                                                  make_shared<RandomGameObservation>(player1Obs)};
+    // simple hashed AOH history
     vector<long> newHistories{
         playerHistories_[0] + (p0Action.getId() + 1) * 31 + (player0Obs + 1) * 17,
         playerHistories_[1] + (p1Action.getId() + 1) * 31 + (player1Obs + 1) * 17
@@ -116,10 +117,6 @@ OutcomeDistribution RandomGameState::performActions(const vector<shared_ptr<Acti
 
     long newStateSeed = (stateSeed_ + p0Action.getId() + p1Action.getId()) * 31 + 17;
     std::mt19937 generator(newStateSeed);
-
-
-    // TODO redo reward distribution so the test passes
-    // efg.cpp line 61 - reward se scita od rodice -> jak udelat binarni utilities???
 
     double newReward;
     if (RGdomain->isUtilityCorrelation()) {
@@ -137,20 +134,15 @@ OutcomeDistribution RandomGameState::performActions(const vector<shared_ptr<Acti
                                                  newHistories,
                                                  newReward + cumulativeReward_,
                                                  depth_ + 1);
-
+    // if binary utility, give reward only in leaf node
     if (RGdomain->isBinaryUtility()) {
-        if (newState->isTerminal()) {
-            newReward = signum(newState->cumulativeReward_);
-        } else {
-            newReward = 0.0;
-        }
+        newReward = newState->isTerminal() ? signum(newState->cumulativeReward_) : 0.0;
     }
     vector<double> rewards{newReward, -newReward};
 
     Outcome outcome(newState, observations, pubObs, rewards);
     OutcomeDistribution dist;
     dist.emplace_back(outcome);
-
     return dist;
 }
 

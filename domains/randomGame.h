@@ -108,8 +108,8 @@ class RandomGameState : public State {
       return {0, 1};
   }
  private:
-  vector<long> playerHistories_;
-  const long stateSeed_;
+  vector<long> playerHistories_; // simple AOH history for each player
+  const long stateSeed_; // seed used for reward generating
   const double cumulativeReward_;
   const unsigned int depth_;
 };

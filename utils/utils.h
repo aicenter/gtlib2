@@ -129,6 +129,15 @@ inline double signum(double number) {
     return (double) ((0 < number) - (0 > number));
 }
 
+/**
+ * Returns given boolean as string.
+ * @param expr
+ * @return
+ */
+inline std::string boolToString(bool expr) {
+    return expr ? "True" : "False";
+}
+
 
 namespace std {
 

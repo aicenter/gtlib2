@@ -172,32 +172,23 @@ bool isActionGenerationAndAOHConsistent(const Domain &domain) {
 
 // @formatter:off
 GoofSpielDomain
-    gs1
-    ({variant:  CompleteObservations, numCards: 1, fixChanceCards: false, chanceCards: {}});
+    gs1({variant:  CompleteObservations, numCards: 1, fixChanceCards: false, chanceCards: {}});
 GoofSpielDomain
-    gs2
-    ({variant:  CompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}});
+    gs2({variant:  CompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}});
 GoofSpielDomain
-    gs3
-    ({variant:  CompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
+    gs3({variant:  CompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
 GoofSpielDomain
-    gs1_fix
-    ({variant:  CompleteObservations, numCards: 1, fixChanceCards: true, chanceCards: {}});
+    gs1_fix({variant:  CompleteObservations, numCards: 1, fixChanceCards: true, chanceCards: {}});
 GoofSpielDomain
-    gs2_fix
-    ({variant:  CompleteObservations, numCards: 2, fixChanceCards: true, chanceCards: {}});
+    gs2_fix({variant:  CompleteObservations, numCards: 2, fixChanceCards: true, chanceCards: {}});
 GoofSpielDomain
-    gs3_fix
-    ({variant:  CompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
+    gs3_fix({variant:  CompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
 GoofSpielDomain
-    iigs1
-    ({variant:  IncompleteObservations, numCards: 1, fixChanceCards: false, chanceCards: {}});
+    iigs1({variant:  IncompleteObservations, numCards: 1, fixChanceCards: false, chanceCards: {}});
 GoofSpielDomain
-    iigs2
-    ({variant:  IncompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}});
+    iigs2({variant:  IncompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}});
 GoofSpielDomain
-    iigs3
-    ({variant:  IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
+    iigs3({variant:  IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
 GoofSpielDomain iigs1_fix
     ({variant:  IncompleteObservations, numCards: 1, fixChanceCards: true, chanceCards: {}});
 GoofSpielDomain iigs2_fix
@@ -243,8 +234,8 @@ RandomGameDomain rg8
     ({.seed = 3, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 20, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = true, .fixedBranchingFactor = false});
 RandomGameDomain rg9
     ({.seed = 13, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = false, .fixedBranchingFactor = false});
-
 // @formatter:on
+
 GenericPokerDomain gp1(2, 2, 2, 2, 2);
 GenericPokerDomain gp2(3, 3, 1, 2, 3);
 
