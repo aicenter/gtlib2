@@ -98,6 +98,7 @@ void CFRAlgorithm::runIterations(int numIterations) {
     if (!cache_.isCompletelyBuilt()) {
         cache_.buildForest();
     }
+
     for (int i = 0; i < numIterations; ++i) {
         runIteration(cache_.getRootNode(), array<double, 3>{1., 1., 1.}, Player(0));
         delayedApplyRegretUpdates();

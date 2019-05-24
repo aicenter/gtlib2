@@ -141,7 +141,7 @@ class EFGNode final: public std::enable_shared_from_this<EFGNode const> {
      * Gets the information set of the node represented as ActionObservationHistory set.
      */
     inline shared_ptr <AOH> getAOHInfSet() const {
-        assert(type_ == PlayerNode); // TODO not working assert ???
+        assert(type_ == PlayerNode);
         return getAOHAugInfSet(currentPlayer_);
     }
 
