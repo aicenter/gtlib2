@@ -130,11 +130,14 @@ void LiarsDiceDomain::addToRootStates(std::vector<int> rolls, double baseProbabi
     for (int j = getPlayerNDice(PLAYER_1); j < getSumDice(); j++) {
         playerRolls[PLAYER_2].push_back(rolls[j]);
     }
-    vector<shared_ptr<Observation>> observations{make_shared<LiarsDiceObservation>(true, playerRolls[PLAYER_1], -1),
-                                                 make_shared<LiarsDiceObservation>(true, playerRolls[PLAYER_2], -1)};
+
+    auto obsPl1 = playerRolls[PLAYER_1].empty()
+        ? noObservation_ : make_shared<LiarsDiceObservation>(true, playerRolls[PLAYER_1], -1);
+    auto obsPl2 = playerRolls[PLAYER_2].empty()
+        ? noObservation_ : make_shared<LiarsDiceObservation>(true, playerRolls[PLAYER_2], -1);
 
     auto newState = make_shared<LiarsDiceState>(this, 0, 0, 0, PLAYER_1, rolls);
-    Outcome outcome(newState, observations, shared_ptr<Observation>(), {0.0, 0.0});
+    Outcome outcome(newState, {obsPl1, obsPl2}, noObservation_, {0.0, 0.0});
     rootStatesDistribution_.emplace_back(OutcomeEntry(outcome, calculateProbabilityForRolls(baseProbability, playerRolls)));
 }
 
