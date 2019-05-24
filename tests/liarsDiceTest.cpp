@@ -44,7 +44,7 @@ using algorithms::playOnlyAction;
 
 // @formatter:off
 LiarsDiceDomain testDomainsLiarsDice[] = { // NOLINT(cert-err58-cpp)
-    LiarsDiceDomain({{1, 1}, 2}),
+    LiarsDiceDomain({{2, 0}, 2}),
     LiarsDiceDomain({{0, 2}, 2})
 //    LiarsDiceDomain({2, 2}, 2),
 //    LiarsDiceDomain({3, 0}, 3),
@@ -61,12 +61,12 @@ TEST(LiarsDice, BuildGameTreeAndCheckSizes) {
         {
             .max_EFGDepth   = 6,
             .max_StateDepth = 6,
-            .num_nodes      = 125,
-            .num_terminals  = 60,
-            .num_states     = 125,
-            .num_histories  = {32, 32},
-            .num_infosets   = {16, 16},
-            .num_sequences  = {31, 31},
+            .num_nodes      = 94,
+            .num_terminals  = 45,
+            .num_states     = 94,
+            .num_histories  = {24, 24},
+            .num_infosets   = {24, 8},
+            .num_sequences  = {46, 16},
         },
         {
             .max_EFGDepth   = 6,
