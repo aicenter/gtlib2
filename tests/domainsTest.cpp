@@ -171,69 +171,39 @@ bool isActionGenerationAndAOHConsistent(const Domain &domain) {
 
 
 // @formatter:off
-GoofSpielDomain
-    gs1({variant:  CompleteObservations, numCards: 1, fixChanceCards: false, chanceCards: {}});
-GoofSpielDomain
-    gs2({variant:  CompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}});
-GoofSpielDomain
-    gs3({variant:  CompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
-GoofSpielDomain
-    gs1_fix({variant:  CompleteObservations, numCards: 1, fixChanceCards: true, chanceCards: {}});
-GoofSpielDomain
-    gs2_fix({variant:  CompleteObservations, numCards: 2, fixChanceCards: true, chanceCards: {}});
-GoofSpielDomain
-    gs3_fix({variant:  CompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
-GoofSpielDomain
-    iigs1({variant:  IncompleteObservations, numCards: 1, fixChanceCards: false, chanceCards: {}});
-GoofSpielDomain
-    iigs2({variant:  IncompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}});
-GoofSpielDomain
-    iigs3({variant:  IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
-GoofSpielDomain iigs1_fix
-    ({variant:  IncompleteObservations, numCards: 1, fixChanceCards: true, chanceCards: {}});
-GoofSpielDomain iigs2_fix
-    ({variant:  IncompleteObservations, numCards: 2, fixChanceCards: true, chanceCards: {}});
-GoofSpielDomain iigs3_fix
-    ({variant:  IncompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
+GoofSpielDomain gs1({variant:  CompleteObservations, numCards: 1, fixChanceCards: false, chanceCards: {}});
+GoofSpielDomain gs2({variant:  CompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}});
+GoofSpielDomain gs3({variant:  CompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
+GoofSpielDomain gs1_fix({variant:  CompleteObservations, numCards: 1, fixChanceCards: true, chanceCards: {}});
+GoofSpielDomain gs2_fix({variant:  CompleteObservations, numCards: 2, fixChanceCards: true, chanceCards: {}});
+GoofSpielDomain gs3_fix({variant:  CompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
+GoofSpielDomain iigs1({variant:  IncompleteObservations, numCards: 1, fixChanceCards: false, chanceCards: {}});
+GoofSpielDomain iigs2({variant:  IncompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}});
+GoofSpielDomain iigs3({variant:  IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
+GoofSpielDomain iigs1_fix({variant:  IncompleteObservations, numCards: 1, fixChanceCards: true, chanceCards: {}});
+GoofSpielDomain iigs2_fix({variant:  IncompleteObservations, numCards: 2, fixChanceCards: true, chanceCards: {}});
+GoofSpielDomain iigs3_fix({variant:  IncompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
 
-OshiZumoDomain oz1
-    ({.variant =  CompleteObservation, .startingCoins = 3, .startingLocation = 3, .minBid = 1, .optimalEndGame = true});
-OshiZumoDomain oz2
-    ({.variant =  CompleteObservation, .startingCoins = 3, .startingLocation = 0, .minBid = 1, .optimalEndGame = true});
-OshiZumoDomain oz3
-    ({.variant =  CompleteObservation, .startingCoins = 1, .startingLocation = 3, .minBid = 0, .optimalEndGame = true});
-OshiZumoDomain oz4
-    ({.variant =  CompleteObservation, .startingCoins = 3, .startingLocation = 3, .minBid = 1, .optimalEndGame = false});
-OshiZumoDomain oz5
-    ({.variant =  CompleteObservation, .startingCoins = 5, .startingLocation = 3, .minBid = 1, .optimalEndGame = false});
-OshiZumoDomain iioz1
-    ({.variant =  IncompleteObservation, .startingCoins = 3, .startingLocation = 3, .minBid = 1, .optimalEndGame = true});
-OshiZumoDomain iioz2
-    ({.variant =  IncompleteObservation, .startingCoins = 3, .startingLocation = 0, .minBid = 1, .optimalEndGame = true});
-OshiZumoDomain iioz3
-    ({.variant =  IncompleteObservation, .startingCoins = 1, .startingLocation = 3, .minBid = 0, .optimalEndGame = true});
-OshiZumoDomain iioz4
-    ({.variant =  IncompleteObservation, .startingCoins = 3, .startingLocation = 3, .minBid = 1, .optimalEndGame = false});
-OshiZumoDomain iioz5
-    ({.variant =  IncompleteObservation, .startingCoins = 5, .startingLocation = 3, .minBid = 1, .optimalEndGame = false});
+OshiZumoDomain oz1({.variant =  CompleteObservation, .startingCoins = 3, .startingLocation = 3, .minBid = 1, .optimalEndGame = true});
+OshiZumoDomain oz2({.variant =  CompleteObservation, .startingCoins = 3, .startingLocation = 0, .minBid = 1, .optimalEndGame = true});
+OshiZumoDomain oz3({.variant =  CompleteObservation, .startingCoins = 1, .startingLocation = 3, .minBid = 0, .optimalEndGame = true});
+OshiZumoDomain oz4({.variant =  CompleteObservation, .startingCoins = 3, .startingLocation = 3, .minBid = 1, .optimalEndGame = false});
+OshiZumoDomain oz5({.variant =  CompleteObservation, .startingCoins = 5, .startingLocation = 3, .minBid = 1, .optimalEndGame = false});
+OshiZumoDomain iioz1({.variant =  IncompleteObservation, .startingCoins = 3, .startingLocation = 3, .minBid = 1, .optimalEndGame = true});
+OshiZumoDomain iioz2({.variant =  IncompleteObservation, .startingCoins = 3, .startingLocation = 0, .minBid = 1, .optimalEndGame = true});
+OshiZumoDomain iioz3({.variant =  IncompleteObservation, .startingCoins = 1, .startingLocation = 3, .minBid = 0, .optimalEndGame = true});
+OshiZumoDomain iioz4({.variant =  IncompleteObservation, .startingCoins = 3, .startingLocation = 3, .minBid = 1, .optimalEndGame = false});
+OshiZumoDomain iioz5({.variant =  IncompleteObservation, .startingCoins = 5, .startingLocation = 3, .minBid = 1, .optimalEndGame = false});
 
 RandomGameDomain rg1({});
-RandomGameDomain rg2
-    ({.seed = 13, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 4, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = true, .fixedBranchingFactor = true});
-RandomGameDomain rg3
-    ({.seed = 7, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = true, .fixedBranchingFactor = true});
-RandomGameDomain rg4
-    ({.seed = 5, .maxDepth = 2, .maxBranchingFactor = 6, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = true, .fixedBranchingFactor = false});
-RandomGameDomain rg5
-    ({.seed = 9, .maxDepth = 3, .maxBranchingFactor = 6, .maxDifferentObservations = 3, .maxRewardModification = 20, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = true, .fixedBranchingFactor = false});
-RandomGameDomain rg6
-    ({.seed = 17, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 20, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = true, .fixedBranchingFactor = false});
-RandomGameDomain rg7
-    ({.seed = 1, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = false, .fixedBranchingFactor = false});
-RandomGameDomain rg8
-    ({.seed = 3, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 20, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = true, .fixedBranchingFactor = false});
-RandomGameDomain rg9
-    ({.seed = 13, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = false, .fixedBranchingFactor = false});
+RandomGameDomain rg2({.seed = 13, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 4, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = true, .fixedBranchingFactor = true});
+RandomGameDomain rg3({.seed = 7, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = true, .fixedBranchingFactor = true});
+RandomGameDomain rg4({.seed = 5, .maxDepth = 2, .maxBranchingFactor = 6, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = true, .fixedBranchingFactor = false});
+RandomGameDomain rg5({.seed = 9, .maxDepth = 3, .maxBranchingFactor = 6, .maxDifferentObservations = 3, .maxRewardModification = 20, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = true, .fixedBranchingFactor = false});
+RandomGameDomain rg6({.seed = 17, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 20, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = true, .fixedBranchingFactor = false});
+RandomGameDomain rg7({.seed = 1, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = false, .fixedBranchingFactor = false});
+RandomGameDomain rg8({.seed = 3, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 20, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = true, .fixedBranchingFactor = false});
+RandomGameDomain rg9({.seed = 13, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = false, .fixedBranchingFactor = false});
 // @formatter:on
 
 GenericPokerDomain gp1(2, 2, 2, 2, 2);
