@@ -185,7 +185,14 @@ void exportGambit(const Domain &domain, std::ostream &fs) {
     unordered_map<shared_ptr<AOH>, int> infoset2id;
 
     auto walkPrint = [&](shared_ptr<EFGNode> node) {
-        auto nodeLabel = ""; //node->toString();
+// Useful for debugging, but in normal view it clutters the graph a lot:
+//        std::stringstream ss;
+//        ss << "Pl0: " << node->getAOids(Player(0)) << " - ";
+//        ss << "Pl1: " << node->getAOids(Player(1));
+//        string nodeLabel = ss.str();
+
+//        string nodeLabel = node->toString();
+        string nodeLabel = "";
         for (int j = 0; j < node->efgDepth_; ++j) fs << " ";
 
         switch (node->type_) {
