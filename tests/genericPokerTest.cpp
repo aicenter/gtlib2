@@ -45,7 +45,7 @@ GenericPokerDomain testDomainsPoker[] = { // NOLINT(cert-err58-cpp)
 };
 
 TEST(Poker, BuildGameTreeAndCheckSizes) {
-    vector<DomainStatistics> expectedResults = {
+    vector<DomainStatistics> expectedStats = {
         {
             .max_EFGDepth   = 9,
             .max_StateDepth = 9,
@@ -53,8 +53,8 @@ TEST(Poker, BuildGameTreeAndCheckSizes) {
             .num_terminals  = 294,
             .num_states     = 511,
             .num_histories  = {108, 108},
-            .num_infosets   = {99, 18},
-            .num_sequences  = {232, 43},
+            .num_infosets   = {99, 99},
+            .num_sequences  = {232, 232},
         },{
             .max_EFGDepth   = 8,
             .max_StateDepth = 9,
@@ -71,8 +71,8 @@ TEST(Poker, BuildGameTreeAndCheckSizes) {
             .num_terminals  = 10030,
             .num_states     = 15371,
             .num_histories  = {2670, 2670},
-            .num_infosets   = {1770, 885},
-            .num_sequences  = {5075, 2538},
+            .num_infosets   = {1770, 1770},
+            .num_sequences  = {5075, 5075},
         }, {
             .max_EFGDepth   = 10,
             .max_StateDepth = 9,
@@ -80,15 +80,16 @@ TEST(Poker, BuildGameTreeAndCheckSizes) {
             .num_terminals  = 15291,
             .num_states     = 23716,
             .num_histories  = {4212, 4212},
-            .num_infosets   = {1404, 162},
-            .num_sequences  = {3901, 451},
+            .num_infosets   = {1404, 1404},
+            .num_sequences  = {3901, 3901},
         }
     };
 
-    for (int i = 0; i < expectedResults.size(); ++i) {
-        DomainStatistics stats;
-        calculateDomainStatistics(testDomainsPoker[i], &stats);
-        EXPECT_EQ(stats, expectedResults[i]);
+    for (int i = 0; i < expectedStats.size(); ++i) {
+        cout << ">> checking domain [" << i << "] " << testDomainsPoker[i].getInfo() << endl;
+        DomainStatistics actualStats;
+        calculateDomainStatistics(testDomainsPoker[i], &actualStats);
+        EXPECT_EQ(actualStats, expectedStats[i]);
     }
 }
 
