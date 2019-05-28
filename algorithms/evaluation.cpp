@@ -27,10 +27,13 @@ double calcExploitability(Domain &domain, const StrategyProfile &profile) {
     assert(domain.getNumberOfPlayers() == 2);
     assert(domain.isZeroSum());
 
-    auto bestResp0 = bestResponseTo(profile[0], Player(0), Player(1), domain).value;
-    auto bestResp1 = bestResponseTo(profile[1], Player(1), Player(0), domain).value;
+    const auto bestResp0 = bestResponseTo(profile[0], Player(0), Player(1), domain).value;
+    const auto bestResp1 = bestResponseTo(profile[1], Player(1), Player(0), domain).value;
+    const double expl = (bestResp0 + bestResp1) / (2 * domain.getMaxUtility());
 
-    return (bestResp0 + bestResp1) / (2 * domain.getMaxUtility());
+    assert(expl <= 1.0);
+    assert(expl >= 0.0);
+    return expl;
 }
 
 double calcExploitability(Domain &domain, const BehavioralStrategy &strat,
@@ -39,9 +42,12 @@ double calcExploitability(Domain &domain, const BehavioralStrategy &strat,
     assert(domain.isZeroSum());
     assert(pl == Player(0) || pl == Player(1));
 
-    auto bestRespValue = bestResponseTo(strat, pl, 1-pl, domain).value;
+    const auto bestRespValue = bestResponseTo(strat, pl, 1-pl, domain).value;
+    const double expl = (gameValue + bestRespValue) / domain.getMaxUtility();
 
-    return (gameValue + bestRespValue) / domain.getMaxUtility();
+    assert(expl <= 1.0);
+    assert(expl >= 0.0);
+    return expl;
 }
 
 }
