@@ -59,7 +59,22 @@ class GoofSpielAction: public Action {
     const int cardNumber_;
 };
 
-
+/**
+ * In Goofspiel (GS), each player is given a private hand of bid cards with values 1 to N.
+ *
+ * A different deck of N point cards is placed face up in a stack (nature deck).
+ * This deck can be randomly shuffled, or can have a fixed known sequence in advance.
+ *
+ * On their turn, each player bids for the top point card by secretly choosing a single
+ * card in their hand. The highest bidder gets the point card and adds the point total
+ * to their score, discarding the points in the case of a tie.
+ *
+ * This is repeated N times and the player with the highest score wins.
+ *
+ * In Imperfect Information Goofspiel (IIGS), the players only discover
+ * who won or lost a bid, but not the bid cards played. This way all actions are private
+ * and information sets have various sizes.
+ */
 class GoofSpielDomain: public Domain {
  public:
     explicit GoofSpielDomain(GoofSpielSettings settings);
@@ -70,6 +85,13 @@ class GoofSpielDomain: public Domain {
     const bool binaryTerminalRewards_;
     const GoofSpielVariant variant_;
     const vector<int> natureCards_;
+
+    // Factories for common instances of IIGS
+    static GoofSpielDomain IIGS_2();
+    static GoofSpielDomain IIGS_3();
+    static GoofSpielDomain IIGS_4();
+    static GoofSpielDomain IIGS_5();
+    static GoofSpielDomain IIGS_6();
 
  private:
     void initRandomCards(const vector<int> &natureCards);
