@@ -29,8 +29,9 @@
 namespace GTLib2::algorithms {
 
 
-StrategyValue bestResponseTo(const BehavioralStrategy &opoStrat, Player responder,
-                             const Domain &domain);
+const StrategyValue bestResponseTo(const BehavioralStrategy &opoStrat,
+                                   const Player responder,
+                                   const Domain &domain);
 
 // todo:
 //StrategyValue bestResponseToPrunning(const BehavioralStrategy &opoStrat, Player opponent,

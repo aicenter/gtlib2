@@ -373,4 +373,15 @@ TEST(CFR, CheckConvergenceInSmallDomain) {
     }
 }
 
+TEST(CFR, CheckExploitabilityInSmallDomain) {
+    auto domain = GoofSpielDomain::IIGS_5();
+    auto settings = CFRSettings();
+    auto data = CFRData(domain, settings.cfrUpdating);
+    CFRAlgorithm cfr(domain, data, Player(0), settings);
+
+    cfr.runIterations(2);
+    auto profile = getAverageStrategy(data);
+    EXPECT_LE(std::fabs(0.159173 - calcExploitability(domain, getAverageStrategy(data))), 0.0001);
+}
+
 }  // namespace GTLib2
