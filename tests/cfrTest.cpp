@@ -25,6 +25,7 @@
 #include "algorithms/strategy.h"
 #include "algorithms/tree.h"
 #include "algorithms/utility.h"
+#include "algorithms/evaluation.h"
 #include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"
 
@@ -279,13 +280,7 @@ TEST(CFR, CalcUtilities) {
 }
 
 TEST(CFR, CheckRegretsAndAccInGS2) {
-    GoofSpielDomain domain({
-                               variant:  IncompleteObservations,
-                               numCards: 2,
-                               fixChanceCards: true,
-                               chanceCards: {2, 1},
-                               binaryTerminalRewards: false
-                           });
+    auto domain = GoofSpielDomain::IIGS_2();
     auto settings = CFRSettings();
     settings.cfrUpdating = InfosetsUpdating;
     settings.accumulatorWeighting = UniformAccWeighting;
@@ -316,12 +311,8 @@ TEST(CFR, CheckRegretsAndAccInGS2) {
 }
 
 TEST(CFR, CheckRegretsAndAccInGS3) {
-    GoofSpielDomain domain({
-                               variant:  IncompleteObservations,
-                               numCards: 3,
-                               fixChanceCards: true,
-                               chanceCards: {3, 2, 1}
-                           });
+    auto domain = GoofSpielDomain::IIGS_3();
+
     auto settings = CFRSettings();
     settings.cfrUpdating = InfosetsUpdating;
     auto data = CFRData(domain, settings.cfrUpdating);
