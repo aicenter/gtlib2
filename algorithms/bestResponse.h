@@ -29,7 +29,7 @@
 namespace GTLib2::algorithms {
 
 
-StrategyValue bestResponseTo(const BehavioralStrategy &opoStrat, Player opponent, Player player,
+StrategyValue bestResponseTo(const BehavioralStrategy &opoStrat, Player responder,
                              const Domain &domain);
 
 // todo:

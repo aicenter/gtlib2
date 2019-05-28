@@ -295,8 +295,8 @@ TEST(CFR, CheckRegretsAndAccInGS2) {
     cfr.runIterations(1000);
 
     auto profile = getAverageStrategy(cfr.getCache());
-    auto bestResp0 = bestResponseTo(profile[0], Player(0), Player(1), domain).value;
-    auto bestResp1 = bestResponseTo(profile[1], Player(1), Player(0), domain).value;
+    auto bestResp0 = bestResponseTo(profile[0], Player(1), domain).value;
+    auto bestResp1 = bestResponseTo(profile[1], Player(0), domain).value;
     double utility = computeUtilitiesTwoPlayerGame(domain, profile)[0];
 
     auto rootNode = data.getRootNode();
@@ -329,8 +329,8 @@ TEST(CFR, CheckRegretsAndAccInGS3) {
     cfr.runIterations(1000);
 
     auto profile = getAverageStrategy(data);
-    auto bestResp0 = bestResponseTo(profile[0], Player(0), Player(1), domain).value;
-    auto bestResp1 = bestResponseTo(profile[1], Player(1), Player(0), domain).value;
+    auto bestResp0 = bestResponseTo(profile[0], Player(1), domain).value;
+    auto bestResp1 = bestResponseTo(profile[1], Player(0), domain).value;
     double utility = computeUtilitiesTwoPlayerGame(domain, profile)[0];
 
     auto rootNode = data.getRootNode();
@@ -372,8 +372,8 @@ TEST(CFR, CheckConvergenceInSmallDomain) {
     for (int i = 0; i < 10; ++i) {
         cfr.runIterations(50);
         auto profile = getAverageStrategy(data);
-        auto bestResp0 = bestResponseTo(profile[0], Player(0), Player(1), domain).value;
-        auto bestResp1 = bestResponseTo(profile[1], Player(1), Player(0), domain).value;
+        auto bestResp0 = bestResponseTo(profile[0], Player(1), domain).value;
+        auto bestResp1 = bestResponseTo(profile[1], Player(0), domain).value;
         double utility = computeUtilitiesTwoPlayerGame(domain, profile)[0];
 
         EXPECT_LE(std::fabs(utility - expectedUtilities[i]), 0.0001);
