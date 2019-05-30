@@ -335,6 +335,8 @@ double EFGNode::getProbabilityOfActionSeq(Player player, const BehavioralStrateg
         auto &actionsProbs = strat.at(parentInfSet);
         double actionProb = (actionsProbs.find(incomingAction_) != actionsProbs.end())
                             ? actionsProbs.at(incomingAction_) : 0.0;
+        assert(actionProb <= 1.0);
+        assert(actionProb >= 0.0);
         return prob * actionProb;
     } else {
         return prob;

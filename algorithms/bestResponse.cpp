@@ -45,6 +45,8 @@ const StrategyValue &_bestResponse(const BehavioralStrategy &opoStrat,
         const double reachOpponent = node->getProbabilityOfActionSeq(opponent(responder), opoStrat);
         const double nodeValue = node->getUtilities()[responder]
             * reachOpponent * node->chanceReachProb_;
+        assert(nodeValue <= domain.getMaxUtility());
+        assert(nodeValue >= domain.getMinUtility());
         auto[it, result] = cache.emplace(node, StrategyValue(BehavioralStrategy(), nodeValue));
         return it->second;
     }
@@ -56,9 +58,13 @@ const StrategyValue &_bestResponse(const BehavioralStrategy &opoStrat,
             const auto response = _bestResponse(opoStrat, responder, domain, cache,
                                                 allNodesInInfosets, node->performAction(action));
             nodeValue += response.value;
+            assert(nodeValue <= domain.getMaxUtility());
+            assert(nodeValue >= domain.getMinUtility());
             brs.insert(response.strategy.begin(), response.strategy.end());
         }
 
+        assert(nodeValue <= domain.getMaxUtility());
+        assert(nodeValue >= domain.getMinUtility());
         auto[it, result] = cache.emplace(node, StrategyValue(brs, nodeValue));
         return it->second;
     }
@@ -79,8 +85,13 @@ const StrategyValue &_bestResponse(const BehavioralStrategy &opoStrat,
             const auto &response = _bestResponse(opoStrat, responder, domain, cache,
                                                  allNodesInInfosets, childNode);
             nodeValue += response.value;
+            assert(nodeValue <= domain.getMaxUtility());
+            assert(nodeValue >= domain.getMinUtility());
+
             brs.insert(response.strategy.begin(), response.strategy.end());
         }
+        assert(nodeValue <= domain.getMaxUtility());
+        assert(nodeValue >= domain.getMinUtility());
 
         auto[it, result] = cache.emplace(node, StrategyValue(brs, nodeValue));
         return it->second;
@@ -140,10 +151,15 @@ const StrategyValue &_bestResponse(const BehavioralStrategy &opoStrat,
         const auto &siblingNode = nodesInInfoset[j];
         auto bestActionVal = actionVals[bestAction][j];
 
+        assert(bestActionVal >= domain.getMinUtility());
+        assert(bestActionVal <= domain.getMaxUtility());
         cache.emplace(siblingNode, StrategyValue(brs, bestActionVal));
     }
 
-    return cache.at(node);
+    const StrategyValue &returnValue = cache.at(node);
+    assert(returnValue.value <= domain.getMaxUtility());
+    assert(returnValue.value >= domain.getMinUtility());
+    return returnValue;
 }
 
 
@@ -154,10 +170,11 @@ const StrategyValue bestResponseTo(const BehavioralStrategy &opoStrat,
     unordered_map<shared_ptr<EFGNode>, StrategyValue> cache;
     NodesInInfosets nodesInInfosets; // empty -- we will need to generate them on the fly
 
-    const auto &returnValue = _bestResponse(opoStrat, responder, domain,
-                                            cache, nodesInInfosets, createRootEFGNode(domain));
+    const auto returnValue = _bestResponse(opoStrat, responder, domain,
+                                           cache, nodesInInfosets, createRootEFGNode(domain));
     assert(returnValue.value <= domain.getMaxUtility());
     assert(returnValue.value >= domain.getMinUtility());
+
     return returnValue;
 }
 
