@@ -43,9 +43,15 @@ int pickUniform(unsigned long numOutcomes, std::mt19937 &generator);
 
 
 struct RandomLeafOutcome {
-    vector<double> utilities; // for player 0
+    vector<double> utilities;
     vector<double> playerReachProbs;
     double chanceReachProb;
+
+    inline double reachProb() const { return chanceReachProb * playersReachProb(); }
+    inline double playersReachProb() const {
+        return std::accumulate(playerReachProbs.begin(), playerReachProbs.begin(),
+                               1, std::multiplies<>());
+    }
 };
 
 RandomLeafOutcome pickRandomLeaf(const std::shared_ptr<EFGNode> &start, std::mt19937 &generator);
