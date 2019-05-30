@@ -122,7 +122,7 @@ class Targetor {
 
     void updateCurrentPosition(const optional<shared_ptr<AOH>> &infoset,
                                const optional<shared_ptr<EFGPublicState>> &pubState);
-    bool isAllowedAction(const shared_ptr<EFGNode> h, const shared_ptr<Action> action);
+    bool isAllowedAction(const shared_ptr<EFGNode> &h, const shared_ptr<Action> &action);
 
     /**
      * Retrieve the value of weighting factor according to equation (3) in [1]:
@@ -234,25 +234,21 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
 
     pair<int, double> calcBiasing(const shared_ptr<EFGNode> &h, const shared_ptr<AOH> &infoset,
                                   double bs_h_all, int numActions);
-
     pair<int, double> updateBiasing(const shared_ptr<EFGNode> &h);
 
     pair<int, double> selectChanceAction(const shared_ptr<EFGNode> &h);
-
-    pair<int, double> selectExploringPlayerAction(int numActions, int biasApplicableActions,
-                                                  double bsum);
-
+    pair<int, double> selectExploringPlayerAction(const shared_ptr <EFGNode> &h,
+                                                  int biasApplicableActions, double bsum);
     pair<int, double> selectNonExploringPlayerAction(const shared_ptr<EFGNode> &h, double bsum);
 
-    void updateHistoryExpectedValue(Player exploringPl, const shared_ptr<EFGNode> &h,
+    void updateEFGNodeExpectedValue(Player exploringPl, const shared_ptr<EFGNode> &h,
                                     double u_h,
                                     double rm_h_pl, double rm_h_opp, double rm_h_cn,
                                     double s_h_all);
     void updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exploringPl,
-                              CFRData::InfosetData &data,
-                              int ai, double pai,
-                              double u_z, double u_x, double u_h,
-                              double rm_h_cn, double rm_h_opp, double rm_zha_all, double s_h_all);
+                              CFRData::InfosetData &data, int ai,
+                              double u_x, double u_h, double w);
+    void updateInfosetAcc(const shared_ptr<EFGNode> &h, CFRData::InfosetData &data, double s);
 
     inline double bias(double biased, double nonBiased) const {
         return cfg_.targetBiasing * biased + (1 - cfg_.targetBiasing) * nonBiased;
@@ -261,7 +257,7 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
         return cfg_.exploration * exploring + (1 - cfg_.exploration) * nonExploring;
     }
 
-    OOSData cache_;
+    OOSData &cache_;
     OOSSettings cfg_;
     std::mt19937 generator_;
     std::uniform_real_distribution<double> dist_;
@@ -273,8 +269,10 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
     double s_z_all_ = -1;
     double u_z_;
 
-    #define OOS_MAX_ACTIONS 1000
+#define OOS_MAX_ACTIONS 1000
 
+    // Careful! Mutable data structures
+    // (values will change throughout the traversal of the tree) based on current state!!!
     ProbDistribution rmProbs_ = ProbDistribution(OOS_MAX_ACTIONS);
     // Array of actual biased probabilities, but pBiasedProbs_ can point to rmProbs_
     // to prevent unnecessary copying of arrays
@@ -290,8 +288,6 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
 
     optional<shared_ptr<AOH>> playInfoset_ = nullopt;
     optional<shared_ptr<EFGPublicState>> playPublicState_ = nullopt;
-
-    double normalizingUtils = 1.; // todo: remove
 };
 
 }  // namespace GTLib2
