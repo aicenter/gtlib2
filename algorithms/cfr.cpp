@@ -179,7 +179,7 @@ double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
 void calcRMProbs(const vector<double> &regrets, ProbDistribution *pProbs, double epsilonUniform) {
     assert(regrets.size() <= pProbs->size());
     assert(regrets.size() > 0);
-    assert(pProbs.size() > 0);
+    assert(pProbs->size() > 0);
     assert(epsilonUniform >= 0.);
     assert(epsilonUniform <= 1.);
 
@@ -200,9 +200,9 @@ void calcRMProbs(const vector<double> &regrets, ProbDistribution *pProbs, double
 }
 
 void calcAvgProbs(const vector<double> &acc, ProbDistribution *pProbs) {
-    assert(acc.size() <= pProbs.size());
+    assert(acc.size() <= pProbs->size());
     assert(acc.size() > 0);
-    assert(pProbs.size() > 0);
+    assert(pProbs->size() > 0);
 #ifndef NDEBUG
     for(auto prob: acc) assert(prob >= 0.0);
 #endif

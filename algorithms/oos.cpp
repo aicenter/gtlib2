@@ -114,9 +114,9 @@ PlayControl OOSAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &curr
             isBiasedIteration_ = dist_(generator_) <= cfg_.targetBiasing;
             isBelowTargetIS_ = currentInfoset == nullopt || (*currentInfoset)->getSize() == 0;
 
-            iteration(cache_.getRootNode(), 1.0, 1.0, 1.0,
-                      1 / targetor_.compensateTargetting(),
-                      1 / targetor_.compensateTargetting(),
+            iteration(cache_.getRootNode(), 1.0, 1.0,
+                      1 / targetor_.compensateTargeting(),
+                      1 / targetor_.compensateTargeting(),
                       Player(exploringPl));
         }
     }
@@ -141,143 +141,153 @@ OOSAlgorithm::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
 }
 
 double OOSAlgorithm::iteration(const shared_ptr<EFGNode> &h,
-                               double rm_h_pl, double rm_h_opp, double rm_h_cn,
+                               double rm_h_pl, double rm_h_opp,
                                double bs_h_all, double us_h_all,
                                Player exploringPl) {
 
     stats_.nodesVisits++;
-    double s_h_all = bias(bs_h_all, us_h_all);
 
-    if (h->type_ == TerminalNode) {
-        s_z_all_ = s_h_all;
-        u_z_ = h->getUtilities()[exploringPl];
-        stats_.terminalsVisits++;
-        return u_z_;
+    switch (h->type_) {
+        case TerminalNode:
+            stats_.terminalsVisits++;
+            return handleTerminalNode(h, bs_h_all, us_h_all, exploringPl);
+        case ChanceNode:
+            return handleChanceNode(h, rm_h_pl, rm_h_opp, bs_h_all, us_h_all, exploringPl);
+        case PlayerNode:
+            if (h->getAOHInfSet() == playInfoset_) stats_.infosetVisits++;
+            if (h->getPublicState() == playPublicState_) stats_.pubStateVisits++;
+            return handlePlayerNode(h, rm_h_pl, rm_h_opp, bs_h_all, us_h_all, exploringPl);
+        default:
+            assert(false); // unrecognized type!
     }
+}
 
+double OOSAlgorithm::handleTerminalNode(const shared_ptr<EFGNode> &h,
+                                        double bs_h_all, double us_h_all,
+                                        Player exploringPl) {
+    s_z_all_ = bias(bs_h_all, us_h_all);
+    u_z_ = h->getUtilities()[exploringPl];
+    return u_z_;
+}
+
+double OOSAlgorithm::handleChanceNode(const shared_ptr<EFGNode> &h,
+                                      double rm_h_pl, double rm_h_opp,
+                                      double bs_h_all, double us_h_all,
+                                      Player exploringPl) {
     const auto &actions = h->availableActions();
-    const auto numActions = actions.size();
-    unsigned int ai;  // action index
-    double bs_ha_all, us_ha_all, s_ha_all;
+    const auto probs = h->chanceProbs();
 
-    if (h->type_ == ChanceNode) {
-        // todo: add rmProbs_ optimization
-        // todo: merge case with playernode as much as possible?
-        const auto probs = h->chanceProbs();
+    const auto[ai, bs_ha_all] = selectChanceAction(h);
+    const double us_ha_all = probs[ai];
 
-        tie(ai, bs_ha_all) = selectChanceAction(h);
-        us_ha_all = probs[ai];
+    const auto &nextNode = cache_.getChildFor(h, actions[ai]);
+    const double u_ha = iteration(nextNode,
+                                  rm_h_pl, rm_h_opp,
+                                  bs_h_all * bs_ha_all, us_h_all * us_ha_all,
+                                  exploringPl);
+    rm_zh_all_ *= probs[ai];
 
-        const auto &nextNode = cache_.getChildFor(h, actions[ai]);
-        double u_ha = iteration(nextNode,
-                                rm_h_pl, rm_h_opp, rm_h_cn * probs[ai],
-                                bs_h_all * bs_ha_all, us_h_all * us_ha_all,
-                                exploringPl);
-        rm_zh_all_ *= probs[ai];
-
-        // compute baseline-augmented utilities
-        s_ha_all = bias(bs_ha_all, us_ha_all);
-        double u_h = (u_ha - baseline(h, ai) * probs[ai]) / s_ha_all;
-        for (const auto &action : actions) {
-            u_h += probs[action->getId()] * baseline(h, action->getId());
-        }
-
-        return u_h;
+    // compute baseline-augmented utilities
+    double s_ha_all = bias(bs_ha_all, us_ha_all);
+    double u_h = (u_ha - baseline(h, ai) * probs[ai]) / s_ha_all;
+    for (const auto &action : actions) {
+        u_h += probs[action->getId()] * baseline(h, action->getId());
     }
 
-    assert(h->type_ == PlayerNode);
+    return u_h;
+}
 
+double OOSAlgorithm::handlePlayerNode(const shared_ptr<EFGNode> &h,
+                                      double rm_h_pl, double rm_h_opp,
+                                      double bs_h_all, double us_h_all,
+                                      Player exploringPl) {
+    const auto &actions = h->availableActions();
     const auto &infoset = cache_.getInfosetFor(h);
+    const double s_h_all = bias(bs_h_all, us_h_all);
     CFRData::InfosetData &data = cache_.infosetData.at(infoset);
 
     // @formatter:off
-    double u_h;       // baseline-augmented estimate of expected utility for current history
-    double u_ha;      // baseline-augmented estimate of expected utility for next history
-    double u_x;       // baseline-augmented estimate of expected utility for next history,
-                      //   if we go there with 100% probability from current history
-    double rm_ha_all; // probability of taking this action (according to RM)
+    const auto[ai, rm_ha_all, u_h, u_x] = (cache_.hasAnyChildren(h))
+        ? sampleExistingTree(h, actions, rm_h_pl, rm_h_opp, bs_h_all, us_h_all,
+                             data, infoset, exploringPl)
+        : incrementallyBuildTree(h, actions, bias(bs_h_all, us_h_all), exploringPl);
     // @formatter:on
 
-    if (h->getAOHInfSet() == playInfoset_) stats_.infosetVisits++;
-    if (h->getPublicState() == playPublicState_) stats_.pubStateVisits++;
-
-    if (!cache_.hasAnyChildren(h)) { // new node - incrementally build tree
-        ai = pickUniform(numActions, generator_);
-        rm_ha_all = 1.0 / numActions;
-        const auto leaf = pickRandomLeaf(h, actions[ai], generator_);
-        u_z_ = leaf.utilities[exploringPl];
-        rm_zh_all_ = leaf.reachProb(); // "* rm_ha_all" will be added at the bottom
-        s_z_all_ = bias(bs_h_all, us_h_all) * leaf.reachProb() * rm_ha_all;
-
-        // compute replacement for baseline-augmented utilities
-        u_ha = u_z_;
-        u_x = u_ha;
-        u_h = u_x;
-    } else {
-        calcRMProbs(data.regrets, &rmProbs_, cfg_.approxRegretMatching);
-        const auto&[biasApplicableActions, bsum] = calcBiasing(h, infoset, bs_h_all, numActions);
-        u_h = 0.;
-
-        bool exploringInNode = h->getPlayer() == exploringPl;
-        if (exploringInNode) { // exploring move
-            tie(ai, us_ha_all) = selectExploringPlayerAction(h, biasApplicableActions, bsum);
-            rm_ha_all = rmProbs_[ai];
-
-            // the following is zero for banned actions and the correct probability for allowed
-            bs_ha_all = 0.;
-            if ((*pBiasedProbs_)[ai] > 0.0) {
-                bs_ha_all = explore(1.0 / biasApplicableActions, (*pBiasedProbs_)[ai] / bsum);
-            }
-
-            // precompute baseline components now, because after child iteration RM probs will change
-            for (int i = 0; i < numActions; ++i) {
-                if (i == ai) continue;
-                u_h += rmProbs_[i] * baseline(h, i);
-            }
-        } else {
-            tie(ai, us_ha_all) = selectNonExploringPlayerAction(h, bsum);
-            bs_ha_all = (*pBiasedProbs_)[ai] / bsum;
-            rm_ha_all = rmProbs_[ai];
-
-            // precompute baseline components now, because after child iteration RM probs will change
-            for (int i = 0; i < numActions; ++i) {
-                if (i == ai) continue;
-                u_h += rmProbs_[i] * baseline(h, i);
-            }
-        }
-
-        const auto &nextNode = cache_.getChildFor(h, actions[ai]);
-        u_ha = iteration(nextNode,
-                         (exploringInNode) ? rm_h_pl * rm_ha_all : rm_h_pl,
-                         (exploringInNode) ? rm_h_opp : rm_h_opp * rm_ha_all,
-                         rm_h_cn,
-                         bs_h_all * bs_ha_all, us_h_all * us_ha_all,
-                         exploringPl);
-
-        // finish computing baseline-augmented utilities
-        s_ha_all = bias(bs_ha_all, us_ha_all);
-        u_x = (u_ha - baseline(h, ai)) / s_ha_all + baseline(h, ai);
-        u_h += u_x * rm_ha_all;
-    }
-
-    // regret/mean strategy update
     double rm_zha_all = rm_zh_all_;
     rm_zh_all_ *= rm_ha_all;
 
-    updateEFGNodeExpectedValue(exploringPl, h, u_h, rm_h_pl, rm_h_opp, rm_h_cn, s_h_all);
+    updateEFGNodeExpectedValue(exploringPl, h, u_h, rm_h_pl, rm_h_opp, s_h_all);
 
-    (h->getPlayer() == exploringPl)
-    ? updateInfosetRegrets(h, exploringPl, data, ai, u_x, u_h, rm_h_opp * rm_h_cn / s_h_all)
-    : updateInfosetAcc(h, data, rm_h_opp * rm_h_cn / s_h_all);
+    if (h->getPlayer() == exploringPl)
+        updateInfosetRegrets(h, exploringPl, data, ai, u_x, u_h,
+                             rm_h_opp * h->chanceReachProb_ / s_h_all);
+    else
+        updateInfosetAcc(h, data, rm_h_opp * h->chanceReachProb_ / s_h_all);
 
     return u_h;
+}
+
+PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
+                                                   const vector<shared_ptr<Action>> &actions,
+                                                   double rm_h_pl, double rm_h_opp,
+                                                   double bs_h_all, double us_h_all,
+                                                   CFRData::InfosetData &data,
+                                                   const shared_ptr<AOH> &infoset,
+                                                   Player exploringPl) {
+    const bool exploringMoveInNode = h->getPlayer() == exploringPl;
+    calcRMProbs(data.regrets, &rmProbs_, cfg_.approxRegretMatching);
+
+    const auto&[biasApplicableActions, bsum] = calcBiasing(h, infoset, bs_h_all, actions.size());
+    const auto[ai, us_ha_all] = exploringMoveInNode
+                                ? selectExploringPlayerAction(h, biasApplicableActions, bsum)
+                                : selectNonExploringPlayerAction(h, bsum);
+
+    const double rm_ha_all = rmProbs_[ai];
+    const double bs_ha_prob = (*pBiasedProbs_)[ai];
+    const double bs_ha_all = !exploringMoveInNode
+                             ? bs_ha_prob / bsum
+                             : (bs_ha_prob > 0.0)
+                               ? explore(1.0 / biasApplicableActions, bs_ha_prob / bsum)
+                               : 0.0;
+
+    // precompute baseline components now, because after child iteration RM probs will change
+    double u_h = 0.;
+    for (int i = 0; i < actions.size(); ++i) {
+        if (i == ai) continue;
+        u_h += rmProbs_[i] * baseline(h, i);
+    }
+
+    const auto &nextNode = cache_.getChildFor(h, actions[ai]);
+    const double u_ha = iteration(nextNode,
+                                  (exploringMoveInNode) ? rm_h_pl * rm_ha_all : rm_h_pl,
+                                  (exploringMoveInNode) ? rm_h_opp : rm_h_opp * rm_ha_all,
+                                  bs_h_all * bs_ha_all, us_h_all * us_ha_all, exploringPl);
+
+    // finish computing baseline-augmented utilities
+    const double s_ha_all = bias(bs_ha_all, us_ha_all);
+    const double u_x = (u_ha - baseline(h, ai)) / s_ha_all + baseline(h, ai);
+    u_h += u_x * rm_ha_all;
+
+    return PlayerNodeOutcome(ai, rm_ha_all, u_h, u_x);
+}
+
+PlayerNodeOutcome OOSAlgorithm::incrementallyBuildTree(const shared_ptr<EFGNode> &h,
+                                                       const vector<shared_ptr<Action>> &actions,
+                                                       double s_h_all, Player exploringPl) {
+    const unsigned int ai = pickUniform(actions.size(), generator_);
+    const double rm_ha_all = 1.0 / actions.size();
+    const auto leaf = pickRandomLeaf(h, actions[ai], generator_);
+    u_z_ = leaf.utilities[exploringPl];
+    rm_zh_all_ = leaf.reachProb(); // "* rm_ha_all" will be added at the bottom
+    s_z_all_ = s_h_all * leaf.reachProb() * rm_ha_all;
+
+    return PlayerNodeOutcome(ai, rm_ha_all, u_z_, u_z_);
 }
 
 
 pair<int, double> OOSAlgorithm::calcBiasing(const shared_ptr<EFGNode> &h,
                                             const shared_ptr<AOH> &infoset,
-                                            double bs_h_all,
-                                            int numActions) {
+                                            double bs_h_all, int numActions) {
     double bsum = 0.0;
     int biasApplicableActions = 0;
     pBiasedProbs_ = &tmpProbs_;
@@ -392,8 +402,7 @@ pair<int, double> OOSAlgorithm::selectNonExploringPlayerAction(const shared_ptr<
 }
 
 void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_ptr<EFGNode> &h,
-                                              double u_h,
-                                              double rm_h_pl, double rm_h_opp, double rm_h_cn,
+                                              double u_h, double rm_h_pl, double rm_h_opp,
                                               double s_h_all) {
 
     // let's make sure that the utility is always for player 0
@@ -413,7 +422,7 @@ void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
             b = reach / s_h_all;
             break;
         case OOSSettings::WeightedAllPlayerBaseline:
-            reach = rm_h_pl * rm_h_opp * rm_h_cn;
+            reach = rm_h_pl * rm_h_opp * h->chanceReachProb_;
             a = reach * u_h;
             b = reach / s_h_all;
             break;
@@ -491,6 +500,7 @@ void OOSAlgorithm::updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exp
             assert(false); // unrecognized option!
     }
 }
+
 
 #undef baseline
 

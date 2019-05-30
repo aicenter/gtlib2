@@ -134,9 +134,7 @@ class Targetor {
      *
      * @return the value w
      */
-    inline double compensateTargetting() {
-        return weightingFactor_;
-    }
+    inline double compensateTargeting() const { return weightingFactor_; }
 
  private:
     double weightingFactor_ = 1.0;
@@ -152,6 +150,15 @@ class Targetor {
 
     void updateWeighting(const shared_ptr<EFGNode> &dist, double bs_h_all, double us_h_all);
 };
+
+/**
+ * unsigned int ai    action index
+ * double rm_ha_all   probability of taking this action (according to RM)
+ * double u_h         baseline-augmented estimate of expected utility for current history
+ * double u_x         baseline-augmented estimate of expected utility for next history,
+ *                       if we go there with 100% probability from current history
+ */
+typedef tuple<unsigned int, double, double, double> PlayerNodeOutcome;
 
 /**
  * Online Outcome Sampling algorithm
@@ -214,7 +221,7 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
     optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override;
 
- private:
+ protected:
     /**
      * The main function for OOS iteration.
      *
@@ -223,27 +230,52 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
      * @param n         current node
      * @param rm_h_pl   reach prob of the searching player to the current node using RM strategy
      * @param rm_h_opp  reach prob of the opponent  to the current node using RM strategy
-     * @param rm_h_cn   reach prob of chance player to the current node using RM strategy
      * @param bs_h_all  reach prob of all players to the current node using biased sampling strategy
      * @param us_h_all  reach prob of all players to the current node using unbiased sampling strategy
      * @param exploringPl the exploring player for this iteration
      * @return expected baseline-augmented utility of current node for the exploring player
      */
-    double iteration(const shared_ptr<EFGNode> &h, double rm_h_pl, double rm_h_opp,
-                     double rm_h_cn, double bs_h_all, double us_h_all, Player exploringPl);
+    double iteration(const shared_ptr<EFGNode> &h,
+                     double rm_h_pl, double rm_h_opp,
+                     double bs_h_all, double us_h_all,
+                     Player exploringPl);
+    double handleTerminalNode(const shared_ptr<EFGNode> &h,
+                              double bs_h_all, double us_h_all,
+                              Player exploringPl);
+    double handleChanceNode(const shared_ptr<EFGNode> &h,
+                            double rm_h_pl, double rm_h_opp,
+                            double bs_h_all, double us_h_all,
+                            Player exploringPl);
+    double handlePlayerNode(const shared_ptr<EFGNode> &h,
+                            double rm_h_pl, double rm_h_opp,
+                            double bs_h_all, double us_h_all,
+                            Player exploringPl);
+
+    PlayerNodeOutcome incrementallyBuildTree(const shared_ptr<EFGNode> &h,
+                                             const vector<shared_ptr<Action>> &actions,
+                                             double s_h_all,
+                                             Player exploringPl);
+    PlayerNodeOutcome sampleExistingTree(const shared_ptr<EFGNode> &h,
+                                         const vector<shared_ptr<Action>> &actions,
+                                         double rm_h_pl, double rm_h_opp,
+                                         double bs_h_all, double us_h_all,
+                                         CFRData::InfosetData &data, const shared_ptr<AOH> &infoset,
+                                         Player exploringPl);
 
     pair<int, double> calcBiasing(const shared_ptr<EFGNode> &h, const shared_ptr<AOH> &infoset,
                                   double bs_h_all, int numActions);
     pair<int, double> updateBiasing(const shared_ptr<EFGNode> &h);
 
     pair<int, double> selectChanceAction(const shared_ptr<EFGNode> &h);
-    pair<int, double> selectExploringPlayerAction(const shared_ptr <EFGNode> &h,
+    pair<int, double> selectExploringPlayerAction(const shared_ptr<EFGNode> &h,
                                                   int biasApplicableActions, double bsum);
     pair<int, double> selectNonExploringPlayerAction(const shared_ptr<EFGNode> &h, double bsum);
 
-    void updateEFGNodeExpectedValue(Player exploringPl, const shared_ptr<EFGNode> &h,
+    void updateEFGNodeExpectedValue(Player exploringPl,
+                                    const shared_ptr<EFGNode> &h,
                                     double u_h,
-                                    double rm_h_pl, double rm_h_opp, double rm_h_cn,
+                                    double rm_h_pl,
+                                    double rm_h_opp,
                                     double s_h_all);
     void updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exploringPl,
                               CFRData::InfosetData &data, int ai,
