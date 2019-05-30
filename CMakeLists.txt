@@ -226,7 +226,7 @@ set(TEST_FILES
         tests/oshiZumoTest.cpp
         tests/utilityTest.cpp
         tests/rangeTest.cpp
-        tests/oosTest.cpp
+        tests/oosTest.h tests/oosTest.cpp
         tests/randomGameTest.cpp
         )
 

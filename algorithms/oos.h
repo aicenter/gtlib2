@@ -101,12 +101,14 @@ struct OOSSettings {
  * Runtime statistics for online algorithms
  */
 struct OnlineStats {
+    int rootVisits = 0;
     int nodesVisits = 0;
     int terminalsVisits = 0;
     int infosetVisits = 0;
     int pubStateVisits = 0;
 
     void reset() {
+        rootVisits = 0;
         nodesVisits = 0;
         terminalsVisits = 0;
         infosetVisits = 0;
@@ -222,6 +224,8 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
     optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override;
 
  protected:
+    virtual void rootIteration(double compensation, Player exploringPl);
+
     /**
      * The main function for OOS iteration.
      *
@@ -239,9 +243,9 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
                      double rm_h_pl, double rm_h_opp,
                      double bs_h_all, double us_h_all,
                      Player exploringPl);
-    double handleTerminalNode(const shared_ptr<EFGNode> &h,
-                              double bs_h_all, double us_h_all,
-                              Player exploringPl);
+    virtual double handleTerminalNode(const shared_ptr<EFGNode> &h,
+                                      double bs_h_all, double us_h_all,
+                                      Player exploringPl);
     double handleChanceNode(const shared_ptr<EFGNode> &h,
                             double rm_h_pl, double rm_h_opp,
                             double bs_h_all, double us_h_all,
@@ -266,10 +270,12 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
                                   double bs_h_all, int numActions);
     pair<int, double> updateBiasing(const shared_ptr<EFGNode> &h);
 
-    pair<int, double> selectChanceAction(const shared_ptr<EFGNode> &h);
-    pair<int, double> selectExploringPlayerAction(const shared_ptr<EFGNode> &h,
-                                                  int biasApplicableActions, double bsum);
-    pair<int, double> selectNonExploringPlayerAction(const shared_ptr<EFGNode> &h, double bsum);
+    virtual pair<int, RandomLeafOutcome> selectLeaf(const shared_ptr<EFGNode> &h,
+                                                    const vector<shared_ptr<Action>> &actions);
+    virtual int selectChanceAction(const shared_ptr<EFGNode> &h, double bsum);
+    virtual int selectExploringPlayerAction(const shared_ptr<EFGNode> &h,
+                                            int biasApplicableActions, double bsum);
+    virtual int selectNonExploringPlayerAction(const shared_ptr<EFGNode> &h, double bsum);
 
     void updateEFGNodeExpectedValue(Player exploringPl,
                                     const shared_ptr<EFGNode> &h,
