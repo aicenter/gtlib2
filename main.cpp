@@ -24,6 +24,7 @@
 #include "algorithms/cfr.h"
 #include "domains/goofSpiel.h"
 #include "utils/export.h"
+#include "utils/benchmark.h"
 
 
 using namespace GTLib2;
@@ -33,32 +34,19 @@ using domains::GoofSpielVariant::CompleteObservations;
 using domains::GoofSpielVariant::IncompleteObservations;
 using utils::exportGraphViz;
 using utils::exportGambit;
+using utils::benchmark;
 
 void exampleBenchmarkCFR() {
-    using ms = std::chrono::duration<int, std::milli>;
-    auto startTotal = std::chrono::high_resolution_clock::now();
-
-    domains::GoofSpielDomain domain({
-                                        variant:  IncompleteObservations,
-                                        numCards: 5,
-                                        fixChanceCards: true,
-                                        chanceCards: {}
-                                    });
+    const auto domain = GoofSpielDomain::IIGS_5();
     auto settings = algorithms::CFRSettings();
     auto cache = algorithms::CFRData(domain, settings.cfrUpdating);
     algorithms::CFRAlgorithm cfr(domain, cache, Player(0), settings);
 
-    auto start = std::chrono::high_resolution_clock::now();
-    cfr.getCache().buildForest();
-    auto end = std::chrono::high_resolution_clock::now();
-    cout << "Build time " << std::chrono::duration_cast<ms>(end - start).count() << " ms" << '\n';
-
-    start = std::chrono::high_resolution_clock::now();
-    cfr.runIterations(100);
-    end = std::chrono::high_resolution_clock::now();
-    cout << "Iters Time " << std::chrono::duration_cast<ms>(end - start).count() << " ms" << '\n';
-    cout << "Total Time " << std::chrono::duration_cast<ms>(end - startTotal).count() << " ms"
-         << '\n';
+    auto totalTime = benchmark([&]() {
+        cout << "Build time: " << benchmark([&]() { cfr.getCache().buildForest(); }) << " ms" << endl;
+        cout << "Iters Time: " << benchmark([&]() { cfr.runIterations(100); }) << " ms" << endl;
+    });
+    cout << "Total Time: " << totalTime << " ms" << endl;
 }
 
 void exampleExportDomain() {

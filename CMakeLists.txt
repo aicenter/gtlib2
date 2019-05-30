@@ -201,8 +201,10 @@ set(SOURCE_FILES
         LPsolvers/AbstractLPSolver.h
         LPsolvers/LPSolver.h
         # utils
-        utils/utils.h
+        utils/benchmark.h
         utils/export.cpp utils/export.h
+        utils/range.h
+        utils/utils.h
         )
 
 set(TEST_FILES
@@ -223,6 +225,7 @@ set(TEST_FILES
         tests/matchingPenniesTest.cpp
         tests/oshiZumoTest.cpp
         tests/utilityTest.cpp
+        tests/rangeTest.cpp
         tests/oosTest.cpp
         tests/randomGameTest.cpp
         )
