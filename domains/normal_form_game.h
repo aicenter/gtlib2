@@ -29,19 +29,20 @@
 
 namespace GTLib2::domains {
 
-enum NFGInputVariant { TwoPlayerSymmetricMatrix, Vector};
+enum NFGInputVariant { TwoPlayerSymmetricMatrix, VectorOFUtilities};
 
 struct NFGSettings {
     NFGInputVariant inputVariant = TwoPlayerSymmetricMatrix;
 
-    vector<double> utilities = {};
+    vector<vector<double>> utilities = {};
     vector<vector<double>> utilityMatrix = {};
 
 
     uint32 numPlayers = 2;
     vector<uint32> dimensions;
 
-    vector<double> getUtilities();
+    vector<vector<double>> getUtilities();
+    vector<unsigned int> getIndexingOffsets();
 };
 
 class NFGAction : public Action {
@@ -59,10 +60,11 @@ class NFGDomain : public Domain {
  public:
     explicit NFGDomain(NFGSettings settings);
     string getInfo() const override;
-    vector<Player> getPlayers();
+    vector<Player> getPlayers() const;
     const vector<uint32> dimensions_;
     const uint32 numPlayers_;
-    const vector<double> utilities_;
+    const vector<vector<double>> utilities_;
+    const vector<unsigned int> indexingOffsets_;
 
 };
 

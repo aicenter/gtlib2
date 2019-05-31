@@ -21,6 +21,7 @@
 
 
 #include <chrono>
+#include <domains/normal_form_game.h>
 #include "algorithms/cfr.h"
 #include "domains/goofSpiel.h"
 #include "utils/export.h"
@@ -28,24 +29,27 @@
 
 using namespace GTLib2;
 
-using domains::GoofSpielDomain;
-using domains::GoofSpielVariant::CompleteObservations;
-using domains::GoofSpielVariant::IncompleteObservations;
+using domains::NFGDomain;
+using domains::NFGSettings;
+using domains::NFGInputVariant;
+using domains::TwoPlayerSymmetricMatrix;
+using domains::VectorOFUtilities;
 using utils::exportGraphViz;
 using utils::exportGambit;
 
 void exampleBenchmarkCFR() {
     auto start = std::chrono::high_resolution_clock::now();
 
-    domains::GoofSpielDomain domain({
-                                        variant:  IncompleteObservations,
-                                        numCards: 5,
-                                        fixChanceCards: true,
-                                        chanceCards: {}
-                                    });
+    auto nfgSettings = NFGSettings();
+    nfgSettings.utilityMatrix = {{-1, -3}, {0, -2}};
+    nfgSettings.dimensions = {2, 2};
+    auto nfg =
+        NFGDomain(nfgSettings);
+    exportGambit(nfg, "./nfg.gbt");
+
     auto settings = algorithms::CFRSettings();
-    auto cache = algorithms::CFRData(domain, settings.cfrUpdating);
-    algorithms::CFRAlgorithm cfr(domain, cache, Player(0), settings);
+    auto cache = algorithms::CFRData(nfg, settings.cfrUpdating);
+    algorithms::CFRAlgorithm cfr(nfg, cache, Player(0), settings);
     cfr.runIterations(100);
 
     auto end = std::chrono::high_resolution_clock::now();
@@ -54,29 +58,41 @@ void exampleBenchmarkCFR() {
 }
 
 void exampleExportDomain() {
-    auto gs2 =
-        GoofSpielDomain({variant:  CompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}});
-    auto gs3 =
-        GoofSpielDomain({variant:  CompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}, binaryTerminalRewards: true});
-    auto gs3_seed =
-        GoofSpielDomain({variant:  CompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
-    auto iigs3 =
-        GoofSpielDomain({variant:  IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
-    auto iigs3_seed =
-        GoofSpielDomain({variant:  IncompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
-    exportGambit(gs2, "./gs2.gbt");
-    exportGambit(gs3, "./gs3.gbt");
-    exportGambit(gs3_seed, "./gs3_seed.gbt");
-    exportGambit(iigs3, "./iigs3.gbt");
-    exportGambit(iigs3_seed, "./iigs3_seed.gbt");
+    auto nfgSettings1 = NFGSettings();
+    nfgSettings1.utilityMatrix = {{-1, -3}, {0, -2}};
+    nfgSettings1.dimensions = {2, 2};
+    auto nfg1 =
+        NFGDomain(nfgSettings1);
+
+    auto rpsSettings = NFGSettings();
+    rpsSettings.numPlayers = 2;
+    rpsSettings.inputVariant = VectorOFUtilities;
+    rpsSettings.dimensions = {3, 3};
+    rpsSettings.utilities = {{0,0},{-1,1},{1,-1},{1,-1},{0,0},{-1,1},{-1,1},{1,-1},{0,0}};
+
+    auto rps = NFGDomain(rpsSettings);
+
+//    auto nfgSettings2 = NFGSettings();
+//    nfgSettings2.dimensions = {2, 2, 2};
+//    nfgSettings2.inputVariant = VectorOFUtilities;
+//    nfgSettings2.numPlayers = 3;
+//    nfgSettings2.utilities = {{-50, -50, -50},{-50, 0, -50},{-50, -50, 0},{100, 0, 0},{0, -50, -50},{0, 0, 100},{0, 100, 0},{0, 0, 0}};
+
+//    auto nfg2 = NFGDomain(nfgSettings2);
+
+//    exportGambit(nfg1, "./nfg1.gbt");
+    exportGambit(rps, "./rps.gbt");
+//    exportGambit(nfg2, "./nfg2.gbt");
 
     // you can run this for visualization
     // $ dot -Tsvg iigs3_seed.dot -o iigs3_seed.svg
-    exportGraphViz(iigs3_seed, "./iigs3_seed.dot");
+//    exportGraphViz(nfg1, "./nfg1.dot");
+    exportGraphViz(rps, "./rps.dot");
+//    exportGraphViz(nfg2, "./nfg2.dot");
 }
 
 int main(int argc, char *argv[]) {
-    exampleBenchmarkCFR();
-//    exampleExportDomain();
+//    exampleBenchmarkCFR();
+    exampleExportDomain();
     return 0;
 }

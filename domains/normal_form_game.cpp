@@ -36,8 +36,8 @@ bool NFGAction::operator==(const Action &that) const {
     return false;
 }
 
-vector<double> NFGSettings::getUtilities() {
-    if(inputVariant == Vector){
+vector<vector<double>> NFGSettings::getUtilities() {
+    if (inputVariant == VectorOFUtilities) {
         return utilities;
     }
 
@@ -46,58 +46,66 @@ vector<double> NFGSettings::getUtilities() {
     assert(dimensions[0] == dimensions[1]);
 
     uint32 d = dimensions[0];
-    uint32 size  = numPlayers * d^2;
+    uint32 size = numPlayers * d ^2;
 
-    vector<double> ut(size);
+    vector<vector<double>> ut;
 
-    // player 1
     for (int i1 = 0; i1 < d; i1++) {
         for (int i2 = 0; i2 < d; i2++) {
-            ut.push_back(utilityMatrix[i1][i2]);
-        }
-    }
-
-    // player 2
-    for (int i1 = 0; i1 < d; i1++) {
-        for (int i2 = 0; i2 < d; i2++) {
-            ut.push_back(utilityMatrix[i2][i1]);
+            ut.push_back({utilityMatrix[i1][i2], utilityMatrix[i2][i1]});
         }
     }
 
     return ut;
 }
 
+vector<unsigned int> NFGSettings::getIndexingOffsets() {
+    vector<unsigned int> indexingOffsets(this->numPlayers);
+
+    std::fill(indexingOffsets.begin(), indexingOffsets.end(), 1);
+
+    for (int i = numPlayers - 1; i > 0; i--) {
+        for (int j = i - 1; j >= 0; j--) {
+            indexingOffsets[j] *= dimensions[i];
+        }
+    }
+
+    return indexingOffsets;
+}
 
 NFGDomain::NFGDomain(GTLib2::domains::NFGSettings settings) :
     Domain(2, settings.numPlayers, make_shared<NFGAction>(), make_shared<NFGObservation>()),
     dimensions_(settings.dimensions),
     numPlayers_(settings.numPlayers),
-    utilities_(settings.getUtilities()){
+    utilities_(settings.getUtilities()),
+    indexingOffsets_(settings.getIndexingOffsets()) {
 
-
-    auto newState = make_shared<NFGState>(this, false, {});
+    auto newState = make_shared<NFGState>(this, false, vector<uint32>());
 
     auto publicObs = make_shared<NFGObservation>();
 
-    Outcome outcome(newState, {publicObs, publicObs}, publicObs, {0.0, 0.0});
+    vector<double> rewards(numPlayers_);
+    std::fill(rewards.begin(), rewards.end(), 0.0);
+
+    vector<shared_ptr<Observation>> observations(numPlayers_);
+    std::fill(observations.begin(), observations.end(), publicObs);
+
+    Outcome outcome(newState, observations, publicObs, rewards);
     rootStatesDistribution_.emplace_back(OutcomeEntry(outcome));
 
 }
 
-
 string NFGDomain::getInfo() const {
     std::stringstream ss;
-    ss << ( to_string(numPlayers_) + " players normal form game");
+    ss << (to_string(numPlayers_) + " players normal form game");
     return ss.str();
 }
 
-vector<Player> NFGDomain::getPlayers() {
+vector<Player> NFGDomain::getPlayers() const {
     vector<Player> ps(numPlayers_);
     std::iota(ps.begin(), ps.end(), 0);
     return ps;
 }
-
-
 
 unsigned long NFGState::countAvailableActionsFor(Player player) const {
     const auto nfgDomain = static_cast<const NFGDomain *>(domain_);
@@ -118,7 +126,7 @@ OutcomeDistribution
 NFGState::performActions(const vector<shared_ptr<Action>> &actions) const {
     const auto nfgDomain = static_cast<const NFGDomain *>(domain_);
     vector<uint32> actionValues;
-    for(shared_ptr<Action> a : actions){
+    for (shared_ptr<Action> a : actions) {
         actionValues.push_back(dynamic_cast<NFGAction &>(*a).actionIndex_);
     }
 
@@ -126,22 +134,60 @@ NFGState::performActions(const vector<shared_ptr<Action>> &actions) const {
     const auto newState = make_shared<NFGState>(nfgDomain, true, actionValues);
     shared_ptr<NFGObservation> publicObs = make_shared<NFGObservation>();
 
-    auto get_reward_for_player = [&](unsigned i){
-
-    };
-
-    auto extractRewards = [&](){
-        vector<double> rewards;
-        for(unsigned i = 0; i < nfgDomain->numPlayers_; i++){
-            rewards.push_back(get_reward_for_player(i));
+    std::function<unsigned int(unsigned int)> foldIndexCalculation = [&](unsigned int player) ->
+        unsigned int {
+        if (player == 0) {
+            return actionValues[0] * nfgDomain->indexingOffsets_[0];
+        } else {
+            return actionValues[player] * nfgDomain->indexingOffsets_[player] + foldIndexCalculation(player - 1);
         }
     };
 
-    const auto newOutcome = Outcome(newState, {publicObs, publicObs}, publicObs, extractRewards());
+    auto extractRewards = [&]() {
+        return nfgDomain->utilities_[foldIndexCalculation(nfgDomain->numPlayers_ - 1)];
+    };
+
+    vector<shared_ptr<Observation>> observations(nfgDomain->numPlayers_);
+    std::fill(observations.begin(), observations.end(), publicObs);
+
+    const auto newOutcome = Outcome(newState, observations, publicObs, extractRewards());
     newOutcomes.emplace_back(OutcomeEntry(newOutcome, 1.0));
     return newOutcomes;
 }
 
+vector<Player> NFGState::getPlayers() const {
+    const auto nfgDomain = static_cast<const NFGDomain *>(domain_);
+    return nfgDomain->getPlayers();
+}
+
+bool NFGState::isTerminal() const {
+    return terminal_;
+}
+
+string NFGState::toString() const {
+    string ret;
+    if (terminal_) {
+        ret.append("Terminal state\n");
+        for (int i = 0; i < playerActions_.size(); i++) {
+            ret.append("Player ");
+            ret.append(std::to_string(i + 1));
+            ret.append(" played: ");
+            ret.append(std::to_string(playerActions_[i]));
+            ret.append("\n");
+        }
+    } else {
+        ret.append("Initial state\n");
+    }
+    return ret;
+}
+
+bool NFGState::operator==(const GTLib2::State &rhs) const {
+    auto nfgState = dynamic_cast<const NFGState &>(rhs);
+
+    return hash_ == nfgState.hash_
+        && terminal_ == nfgState.terminal_
+        && playerActions_ == nfgState.playerActions_;
+}
 
 }  // namespace GTLib2
 #pragma clang diagnostic pop
