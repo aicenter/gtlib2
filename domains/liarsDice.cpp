@@ -22,6 +22,7 @@
 
 
 #include "liarsDice.h"
+#include "utils/binomial.h"
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
@@ -53,14 +54,14 @@ size_t LiarsDiceAction::getHash() const {
     return h(id_);
 }
 
-LiarsDiceDomain::LiarsDiceDomain(LiarsDiceSettings settings) :
-    playersDice_(settings.playersDice),
-    Domain(static_cast<unsigned int>(((settings.playersDice[PLAYER_1] + settings.playersDice[PLAYER_2]) * settings.faces) + 2),
+LiarsDiceDomain::LiarsDiceDomain(vector<int> playersDice, int faces) :
+    playersDice_(playersDice),
+    Domain(static_cast<unsigned int>(((playersDice[0] + playersDice[1]) * faces) + 2),
            2,
            make_shared<LiarsDiceAction>(),
            make_shared<LiarsDiceObservation>()),
-    faces_(settings.faces),
-    maxBid_((settings.playersDice[PLAYER_1] + settings.playersDice[PLAYER_2]) * settings.faces + 1) {
+    faces_(faces),
+    maxBid_((playersDice[0] + playersDice[1]) * faces + 1) {
 
     assert(getSumDice() >= 1);
     assert(faces_ >= 2);
@@ -69,19 +70,6 @@ LiarsDiceDomain::LiarsDiceDomain(LiarsDiceSettings settings) :
     maxUtility_ = 1.0;
 
     initRootStates();
-}
-
-int LiarsDiceDomain::comb(int n, int m) const {
-    int res = 1;
-
-    for (int i = n; i > m; i--) {
-        res *= i;
-    }
-
-    for (int i = 2; i <= n - m; i++) {
-        res /= i;
-    }
-    return res;
 }
 
 double LiarsDiceDomain::calculateProbabilityForRolls(double baseProbability,
@@ -98,17 +86,17 @@ double LiarsDiceDomain::calculateProbabilityForRolls(double baseProbability,
     int remaining;
 
     for (int i = 0; i < 2; i++) {
-        if (getPlayerNDice(i) == 0) {
+        if (getPlayerDice(i) == 0) {
             combinations[i] = 1;
         } else {
             currentRoll = rolls[i][0];
             streak = 0;
-            remaining = getPlayerNDice(i);
+            remaining = getPlayerDice(i);
             for (int roll : rolls[i]) {
                 if (roll == currentRoll) {
                     streak++;
                 } else {
-                    combinations[i] *= comb(remaining, streak);
+                    combinations[i] *= utils::binomial_coefficient(remaining, streak);
                     remaining -= streak;
                     streak = 1;
                     currentRoll = roll;
@@ -124,21 +112,22 @@ double LiarsDiceDomain::calculateProbabilityForRolls(double baseProbability,
 void LiarsDiceDomain::addToRootStates(std::vector<int> rolls, double baseProbability) {
     vector<vector<int>> playerRolls(2);
 
-    for (int i = 0; i < getPlayerNDice(PLAYER_1); i++) {
-        playerRolls[PLAYER_1].push_back(rolls[i]);
+    for (int i = 0; i < getPlayerDice(0); i++) {
+        playerRolls[0].push_back(rolls[i]);
     }
-    for (int j = getPlayerNDice(PLAYER_1); j < getSumDice(); j++) {
-        playerRolls[PLAYER_2].push_back(rolls[j]);
+    for (int j = getPlayerDice(0); j < getSumDice(); j++) {
+        playerRolls[1].push_back(rolls[j]);
     }
 
-    auto obsPl1 = playerRolls[PLAYER_1].empty()
-        ? noObservation_ : make_shared<LiarsDiceObservation>(true, playerRolls[PLAYER_1], -1);
-    auto obsPl2 = playerRolls[PLAYER_2].empty()
-        ? noObservation_ : make_shared<LiarsDiceObservation>(true, playerRolls[PLAYER_2], -1);
+    auto obsPl1 = playerRolls[0].empty()
+                  ? noObservation_ : make_shared<LiarsDiceObservation>(true, playerRolls[0], -1);
+    auto obsPl2 = playerRolls[1].empty()
+                  ? noObservation_ : make_shared<LiarsDiceObservation>(true, playerRolls[1], -1);
 
-    auto newState = make_shared<LiarsDiceState>(this, 0, 0, 0, PLAYER_1, rolls);
+    auto newState = make_shared<LiarsDiceState>(this, 0, 0, 0, 0, rolls);
     Outcome outcome(newState, {obsPl1, obsPl2}, noObservation_, {0.0, 0.0});
-    rootStatesDistribution_.emplace_back(OutcomeEntry(outcome, calculateProbabilityForRolls(baseProbability, playerRolls)));
+    rootStatesDistribution_.emplace_back(OutcomeEntry(outcome,
+                                                      calculateProbabilityForRolls(baseProbability, playerRolls)));
 }
 
 void LiarsDiceDomain::initRootStates() {
@@ -151,7 +140,7 @@ void LiarsDiceDomain::initRootStates() {
             for (int i = 0; i <= limit; i++) {
                 vector<int> appendedRolls(rolls);
                 appendedRolls.push_back(i);
-                if (depth + 1 == getPlayerNDice(0)) {
+                if (depth + 1 == getPlayerDice(0)) {
                     backtrack(depth + 1, faces_ - 1, appendedRolls);
                 } else {
                     backtrack(depth + 1, i, appendedRolls);
@@ -165,14 +154,14 @@ void LiarsDiceDomain::initRootStates() {
 
 string LiarsDiceDomain::getInfo() const {
     return "Liars Dice"
-           "\nPlayer 1 Dice: " + std::to_string(playersDice_[PLAYER_1]) +
-        "\nPlayer 2 Dice: " + std::to_string(playersDice_[PLAYER_2]) +
+           "\nPlayer 1 Dice: " + std::to_string(playersDice_[0]) +
+        "\nPlayer 2 Dice: " + std::to_string(playersDice_[1]) +
         "\nDice faces: " + std::to_string(faces_) +
         "\nMax depth: " + std::to_string(maxStateDepth_) + '\n';
 }
 
 vector<Player> LiarsDiceDomain::getPlayers() const {
-    return {PLAYER_1, PLAYER_2};
+    return {0, 1};
 }
 
 vector<shared_ptr<Action>> LiarsDiceState::getAvailableActionsFor(Player player) const {
@@ -226,7 +215,7 @@ OutcomeDistribution LiarsDiceState::performActions(const vector<shared_ptr<Actio
     auto currentPlayerAction =
         dynamic_cast<LiarsDiceAction &>(*actions[currentPlayerIndex_]);
 
-    int newPlayer = currentPlayerIndex_ == PLAYER_1 ? PLAYER_2 : PLAYER_1;
+    int newPlayer = currentPlayerIndex_ == 0 ? 1 : 0;
 
     int newBid = currentPlayerAction.getValue();
 
@@ -243,13 +232,13 @@ OutcomeDistribution LiarsDiceState::performActions(const vector<shared_ptr<Actio
 
     if (newState->isTerminal()) {
         if (isBluffCallSuccessful()) {
-            if (currentPlayerIndex_ == PLAYER_1) {
+            if (currentPlayerIndex_ == 0) {
                 rewards = {1.0, -1.0};
             } else {
                 rewards = {-1.0, 1.0};
             }
         } else {
-            if (currentPlayerIndex_ == PLAYER_1) {
+            if (currentPlayerIndex_ == 0) {
                 rewards = {-1.0, 1.0};
             } else {
                 rewards = {1.0, -1.0};

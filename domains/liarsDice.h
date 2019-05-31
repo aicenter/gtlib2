@@ -27,30 +27,20 @@
 
 #include "base/base.h"
 
-constexpr int PLAYER_1 = 0;
-constexpr int PLAYER_2 = 1;
-
 namespace GTLib2::domains {
-
-struct LiarsDiceSettings {
-    vector<int> playersDice;
-    int faces;
-};
 
 class LiarsDiceDomain : public Domain {
  public:
-    LiarsDiceDomain(LiarsDiceSettings settings);
+    LiarsDiceDomain(vector<int> playersDice, int faces);
     string getInfo() const override;
     vector<Player> getPlayers() const;
-    void initRootStates();
-    void addToRootStates(vector<int> rolls, double baseProbability);
 
-    inline const int getPlayerNDice(int n) const {
-        return playersDice_[n];
+    inline const int getPlayerDice(Player pl) const {
+        return playersDice_[pl];
     }
 
     inline const int getSumDice() const {
-        return playersDice_[PLAYER_1] + playersDice_[PLAYER_2];
+        return playersDice_[0] + playersDice_[1];
     }
 
     inline const int getFaces() const {
@@ -62,11 +52,13 @@ class LiarsDiceDomain : public Domain {
     }
 
  private:
+    void initRootStates();
+    void addToRootStates(vector<int> rolls, double baseProbability);
+
     const vector<int> playersDice_;
     const int faces_;
     const int maxBid_;
 
-    int comb(int n, int m) const;
     double calculateProbabilityForRolls(double baseProbability, vector<vector<int>> rolls) const;
 };
 

@@ -44,13 +44,13 @@ using algorithms::playOnlyAction;
 
 // @formatter:off
 LiarsDiceDomain testDomainsLiarsDice[] = { // NOLINT(cert-err58-cpp)
-    LiarsDiceDomain({{2, 0}, 2}),
-    LiarsDiceDomain({{0, 2}, 2}),
-    LiarsDiceDomain({{2, 2}, 2}),
-    LiarsDiceDomain({{3, 0}, 3}),
-    LiarsDiceDomain({{1, 0}, 2}),
-    LiarsDiceDomain({{1, 0}, 3}),
-    LiarsDiceDomain({{2, 1}, 4}),
+    LiarsDiceDomain({2, 0}, 2),
+    LiarsDiceDomain({0, 2}, 2),
+    LiarsDiceDomain({2, 2}, 2),
+    LiarsDiceDomain({3, 0}, 3),
+    LiarsDiceDomain({1, 0}, 2),
+    LiarsDiceDomain({1, 0}, 3),
+    LiarsDiceDomain({2, 1}, 4),
 };
 // @formatter:on
 
