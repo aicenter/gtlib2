@@ -194,8 +194,8 @@ GoofSpielState::performActions(const vector<shared_ptr<Action>> &actions) const 
                                         ? PL0_DRAW : chosenCards[0] > chosenCards[1] ? PL0_WIN
                                                                                      : PL0_LOSE;
     const double roundReward = goofdomain->binaryTerminalRewards_
-        ? roundResult / goofdomain->numberOfCards_
-        : int(roundResult) * natureSelectedCard_;
+                               ? (double) roundResult / goofdomain->numberOfCards_
+                               : (double) roundResult * natureSelectedCard_;
     const vector<double> newRewards = {roundReward, -roundReward};
 
     OutcomeDistribution newOutcomes;

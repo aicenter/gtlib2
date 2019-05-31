@@ -82,25 +82,6 @@ string OshiZumoDomain::getInfo() const {
         "\nMax depth: " + to_string(maxStateDepth_) + '\n';
 }
 
-const int OshiZumoDomain::getStartingLocation() const {
-    return startingLocation_;
-}
-
-const int OshiZumoDomain::getMinBid() const {
-    return minBid_;
-}
-
-const bool OshiZumoDomain::isOptimalEndGame() const {
-    return optimalEndGame_;
-}
-
-const OshiZumoVariant OshiZumoDomain::getVariant() const {
-    return variant_;
-}
-const int OshiZumoDomain::getStartingCoins() const {
-    return startingCoins_;
-}
-
 OshiZumoState::OshiZumoState(const Domain *domain, int wrestlerLocation, int startingCoins) :
     OshiZumoState(domain, wrestlerLocation, {startingCoins, startingCoins}) {}
 
@@ -250,9 +231,9 @@ OshiZumoObservation::OshiZumoObservation(int player0Bid,
     roundResult_(roundResult) {
     //playerBid + 1 -> 0, 1, 2,...
     //using Szudzik pairing function to get unique IDs for different observations
-    int a = player0Bid_ + 1;
-    int b = player1Bid_ + 1;
-    int mapping = a >= b ? a * a + a + b : a + b * b;
+    unsigned int a = player0Bid_ + 1;
+    unsigned int b = player1Bid_ + 1;
+    unsigned int mapping = elegantPair(a, b);
     id_ = (roundResult_ + 1) | (mapping << 2);
 }
 
