@@ -30,6 +30,23 @@
 namespace GTLib2::domains {
 
 class LiarsDiceDomain : public Domain {
+    /*
+     * Liar’s Dice LD({D1,D2},F) is a dice-bidding game.
+     * Each die has faces 0 to F − 1.
+     * . Each player rolls Di of these dice
+     * without showing them to their opponent.
+     * Each round, players alternate by bidding on the outcome
+     * of all dice in play until one player "calls liar”,
+     * i.e. claims that their opponent’s latest bid does not hold.
+     * If the bid holds, the calling player loses; otherwise, she wins.
+     * A bid consists of a quantity of dice and a face value.
+     * To bid, the player must increase either
+     * the quantity or face value of the current bid (or both).
+     * All actions in this game are public. The only hidden
+     * information is caused by chance at the beginning of the game.
+     * Therefore, the size of all information sets is identical.
+     */
+
  public:
     LiarsDiceDomain(vector<int> playersDice, int faces);
     string getInfo() const override;
@@ -65,10 +82,11 @@ class LiarsDiceDomain : public Domain {
 class LiarsDiceAction : public Action {
  public:
     inline LiarsDiceAction() : Action(), roll_(false), value_(-1) {}
-    explicit LiarsDiceAction(ActionId id, bool roll, int value);
+    inline LiarsDiceAction(GTLib2::ActionId id, bool roll, int value) : Action(id),
+                                                                        roll_(roll),
+                                                                        value_(value) {}
     bool operator==(const Action &that) const override;
-    size_t getHash() const override;
-    string toString() const;
+    string toString() const override;
 
     inline int getValue() const {
         return value_;
@@ -79,21 +97,20 @@ class LiarsDiceAction : public Action {
     }
 
  private:
-    bool roll_;
-    int value_;
+    const bool roll_;
+    const int value_;
 };
 
 class LiarsDiceState : public State {
  public:
     inline LiarsDiceState(const Domain *domain, int currentBid, int previousBid, int round,
-                          int currentPlayerIndex, vector<int> rolls) :
-        State(domain, hashCombine(0, currentBid, previousBid, round, currentPlayerIndex, rolls)),
+                          Player currentPlayer, vector<int> rolls) :
+        State(domain, hashCombine(0, currentBid, previousBid, round, currentPlayer, rolls)),
         currentBid_(currentBid),
         previousBid_(previousBid),
         round_(round),
-        currentPlayerIndex_(currentPlayerIndex) {
-        this->rolls_ = move(rolls);
-    }
+        currentPlayer_(currentPlayer),
+        rolls_(move(rolls)) {}
 
     vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
     unsigned long countAvailableActionsFor(Player player) const override;
@@ -102,25 +119,43 @@ class LiarsDiceState : public State {
     bool isTerminal() const override;
     string toString() const override;
     bool operator==(const State &rhs) const override;
-    bool isBluffCallSuccessful() const;
 
  private:
-    int currentBid_;
-    int previousBid_;
-    int round_;
-    int currentPlayerIndex_;
-    vector<int> rolls_;
+    bool isBluffCallSuccessful() const;
+
+    const int currentBid_;
+    const int previousBid_;
+    const int round_;
+    const int currentPlayer_;
+    const vector<int> rolls_;
 };
 
 class LiarsDiceObservation : public Observation {
+    /*
+     * id_ supports domains that satisfy faces^rolls.size() < 2^31
+     */
  public:
-    inline LiarsDiceObservation() : Observation(), isRoll_(false), rolls_({}), bid_(-1) {}
-    explicit LiarsDiceObservation(bool isRoll, vector<int> rolls, int bid);
+    inline LiarsDiceObservation() : Observation(), rolls_({}), bid_(-1) {}
+    inline LiarsDiceObservation(vector<int> rolls, int faces, int bid) :
+        Observation(),
+        rolls_(move(rolls)),
+        bid_(bid) {
 
+        if (!rolls_.empty()) {
+            unsigned int idTemp = 0;
+            unsigned int jump = 1;
+            for (int i = 0; i < rolls_.size(); i++) {
+                idTemp += rolls_[i] * jump;
+                jump *= faces;
+            }
+            id_ = 1 + (idTemp << 1);
+        } else {
+            id_ = bid_ << 1;
+        }
+    }
  private:
-    bool isRoll_;
-    vector<int> rolls_;
-    int bid_;
+    const vector<int> rolls_;
+    const int bid_;
 };
 
 }

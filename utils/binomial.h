@@ -23,7 +23,7 @@
 #define GTLIB2_UTILS_BINOMIAL_H_
 
 namespace GTLib2::utils {
-    unsigned int binomial_coefficient(unsigned int n, unsigned int k);
+unsigned int binomial_coefficient(unsigned int n, unsigned int k);
 }
 
 #endif //GTLIB2_UTILS_BINOMIAL_H_

@@ -29,52 +29,42 @@
 
 namespace GTLib2::domains {
 
-LiarsDiceAction::LiarsDiceAction(GTLib2::ActionId id, bool roll, int value) : Action(id),
-                                                                              roll_(roll),
-                                                                              value_(value) {}
-
 bool LiarsDiceAction::operator==(const Action &that) const {
     if (typeid(*this) != typeid(that)) {
         return false;
     }
     const auto otherAction = static_cast<const LiarsDiceAction *>(&that);
 
-    return (this->getValue() == otherAction->getValue() && this->isRoll() == otherAction->isRoll()
-        && this->id_ == otherAction->id_);
+    if (getHash() != otherAction->getHash()) {
+        return false;
+    }
+
+    return (getValue() == otherAction->getValue() && isRoll() == otherAction->isRoll()
+        && id_ == otherAction->id_);
 }
 
 string LiarsDiceAction::toString() const {
-    return "id: " + std::to_string(id_) +
-        " roll?:" + std::to_string(roll_) +
+    return " roll?:" + std::to_string(roll_) +
         " value: " + std::to_string(value_);
 }
 
-size_t LiarsDiceAction::getHash() const {
-    std::hash<size_t> h;
-    return h(id_);
-}
-
 LiarsDiceDomain::LiarsDiceDomain(vector<int> playersDice, int faces) :
-    playersDice_(playersDice),
     Domain(static_cast<unsigned int>(((playersDice[0] + playersDice[1]) * faces) + 2),
            2,
            make_shared<LiarsDiceAction>(),
            make_shared<LiarsDiceObservation>()),
+    playersDice_(playersDice),
     faces_(faces),
     maxBid_((playersDice[0] + playersDice[1]) * faces + 1) {
 
     assert(getSumDice() >= 1);
     assert(faces_ >= 2);
     maxUtility_ = 1.0;
-
-    maxUtility_ = 1.0;
-
     initRootStates();
 }
 
 double LiarsDiceDomain::calculateProbabilityForRolls(double baseProbability,
                                                      std::vector<std::vector<int>> rolls) const {
-    double result = baseProbability;
 
     sort(rolls[0].begin(), rolls[0].end());
     sort(rolls[1].begin(), rolls[1].end());
@@ -105,8 +95,7 @@ double LiarsDiceDomain::calculateProbabilityForRolls(double baseProbability,
         }
     }
 
-    result *= combinations[0] * combinations[1];
-    return result;
+    return baseProbability * combinations[0] * combinations[1];
 }
 
 void LiarsDiceDomain::addToRootStates(std::vector<int> rolls, double baseProbability) {
@@ -120,9 +109,9 @@ void LiarsDiceDomain::addToRootStates(std::vector<int> rolls, double baseProbabi
     }
 
     auto obsPl1 = playerRolls[0].empty()
-                  ? noObservation_ : make_shared<LiarsDiceObservation>(true, playerRolls[0], -1);
+                  ? noObservation_ : make_shared<LiarsDiceObservation>(playerRolls[0], faces_ -1);
     auto obsPl2 = playerRolls[1].empty()
-                  ? noObservation_ : make_shared<LiarsDiceObservation>(true, playerRolls[1], -1);
+                  ? noObservation_ : make_shared<LiarsDiceObservation>(playerRolls[1], faces_ -1);
 
     auto newState = make_shared<LiarsDiceState>(this, 0, 0, 0, 0, rolls);
     Outcome outcome(newState, {obsPl1, obsPl2}, noObservation_, {0.0, 0.0});
@@ -171,15 +160,15 @@ vector<shared_ptr<Action>> LiarsDiceState::getAvailableActionsFor(Player player)
 
     const auto LDdomain = static_cast<const LiarsDiceDomain *>(domain_);
 
-    if (player == this->currentPlayerIndex_) {
-        if (this->currentBid_ == 0) {
+    if (player == currentPlayer_) {
+        if (currentBid_ == 0) {
             // if first move of first turn, don't allow calling bluff
             for (int i = 1; i <= (LDdomain->getMaxBid() - 1); i++) {
                 actions.push_back(make_shared<LiarsDiceAction>(id++, false, i));
             }
         } else {
             // otherwise start at next bid up to calling bluff
-            for (int i = this->currentBid_ + 1; i <= LDdomain->getMaxBid(); i++) {
+            for (int i = currentBid_ + 1; i <= LDdomain->getMaxBid(); i++) {
                 actions.push_back(make_shared<LiarsDiceAction>(id++, false, i));
             }
         }
@@ -189,7 +178,7 @@ vector<shared_ptr<Action>> LiarsDiceState::getAvailableActionsFor(Player player)
 
 unsigned long LiarsDiceState::countAvailableActionsFor(Player player) const {
     const auto LDdomain = static_cast<const LiarsDiceDomain *>(domain_);
-    if (!(player == currentPlayerIndex_)) {
+    if (!(player == currentPlayer_)) {
         return 0;
     }
 
@@ -201,24 +190,11 @@ unsigned long LiarsDiceState::countAvailableActionsFor(Player player) const {
 }
 
 OutcomeDistribution LiarsDiceState::performActions(const vector<shared_ptr<Action>> &actions) const {
-    auto p1Action = dynamic_cast<LiarsDiceAction &>(*actions[0]);
-    auto p2Action = dynamic_cast<LiarsDiceAction &>(*actions[1]);
-
     const auto LDdomain = static_cast<const LiarsDiceDomain *>(domain_);
-
-    OutcomeDistribution newOutcome;
-
-//    assert(p1Action == nullptr | p2Action == nullptr);
-//    assert(p1Action != nullptr
-//               | p2Action != nullptr); //exactly one player performs action each move
-
     auto currentPlayerAction =
-        dynamic_cast<LiarsDiceAction &>(*actions[currentPlayerIndex_]);
-
-    int newPlayer = currentPlayerIndex_ == 0 ? 1 : 0;
-
+        dynamic_cast<LiarsDiceAction &>(*actions[currentPlayer_]);
+    int newPlayer = currentPlayer_ == 0 ? 1 : 0;
     int newBid = currentPlayerAction.getValue();
-
     const auto newState = make_shared<LiarsDiceState>(LDdomain,
                                                       newBid,
                                                       currentBid_,
@@ -226,28 +202,26 @@ OutcomeDistribution LiarsDiceState::performActions(const vector<shared_ptr<Actio
                                                       newPlayer,
                                                       rolls_);
 
-    const auto publicObs = make_shared<LiarsDiceObservation>(false, vector<int>(), newBid);
-
-    vector<double> rewards;
+    const auto publicObs = make_shared<LiarsDiceObservation>(vector<int>(), -1, newBid);
+    vector<double> rewards(2);
 
     if (newState->isTerminal()) {
         if (isBluffCallSuccessful()) {
-            if (currentPlayerIndex_ == 0) {
+            if (currentPlayer_ == 0) {
                 rewards = {1.0, -1.0};
             } else {
                 rewards = {-1.0, 1.0};
             }
         } else {
-            if (currentPlayerIndex_ == 0) {
+            if (currentPlayer_ == 0) {
                 rewards = {-1.0, 1.0};
             } else {
                 rewards = {1.0, -1.0};
             }
         }
-    } else {
-        rewards = {0.0, 0.0};
     }
 
+    OutcomeDistribution newOutcome;
     const auto
         outcome = Outcome(newState, {publicObs, publicObs}, publicObs, rewards);
     newOutcome.emplace_back(OutcomeEntry(outcome));
@@ -278,7 +252,7 @@ vector<Player> LiarsDiceState::getPlayers() const {
         return {};
     }
     vector<Player> player;
-    player.push_back(currentPlayerIndex_);
+    player.push_back(currentPlayer_);
     return player;
 }
 
@@ -288,45 +262,25 @@ bool LiarsDiceState::isTerminal() const {
 }
 
 string LiarsDiceState::toString() const {
-    string ret;
-    ret.append("Current bid: " + to_string(currentBid_) + "\n");
-    ret.append("Previous bid: " + to_string(previousBid_) + "\n");
-    ret.append("Round: " + to_string(round_) + "\n");
-    ret.append("Current player : " + to_string(currentPlayerIndex_) + "\n");
-    ret.append("Rolls: ");
-    for (int i = 0; i < rolls_.size(); i++) {
-        ret.append("roll #" + to_string(i + 1) + " = " + to_string(rolls_[i]) + " ");
-    }
-    ret.append("\n");
-    return ret;
+    std::stringstream ret;
+    ret << ("Current bid: " + to_string(currentBid_) + "\n");
+    ret << ("Previous bid: " + to_string(previousBid_) + "\n");
+    ret << ("Round: " + to_string(round_) + "\n");
+    ret << ("Current player : " + to_string(currentPlayer_) + "\n");
+    ret << ("Rolls: ");
+        ret << rolls_;
+    ret << "\n";
+    return ret.str();
 }
 
 bool LiarsDiceState::operator==(const GTLib2::State &rhs) const {
     const auto otherState = static_cast<const LiarsDiceState *>(&rhs);
-    return (currentBid_ == otherState->currentBid_
+
+    return (getHash() == otherState->getHash()
+        & currentBid_ == otherState->currentBid_
         & previousBid_ == otherState->previousBid_
         & round_ == otherState->round_
-        & currentPlayerIndex_ == otherState->currentPlayerIndex_
+        & currentPlayer_ == otherState->currentPlayer_
         & rolls_ == otherState->rolls_);
 }
-
-LiarsDiceObservation::LiarsDiceObservation(bool isRoll, vector<int> rolls, int bid) :
-    Observation(),
-    isRoll_(isRoll),
-    rolls_(rolls),
-    bid_(bid) {
-
-    if (isRoll_) {
-        int shift = 1;
-        int idTemp = 1;
-        for (vector<int>::iterator it = rolls_.begin(); it != rolls_.end(); it++) {
-            idTemp += (*it << shift);
-            shift += 3;
-        }
-        id_ = idTemp;
-    } else {
-        id_ = bid << 1;
-    }
-}
-
 }

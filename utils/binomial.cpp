@@ -22,16 +22,14 @@
 #include "binomial.h"
 
 namespace GTLib2::utils {
-    unsigned  int binomial_coefficient(unsigned int n, unsigned int k){
-        int res = 1;
-
-        for (unsigned int i = n; i > k; i--) {
-            res *= i;
-        }
-
-        for (unsigned int i = 2; i <= n - k; i++) {
-            res /= i;
-        }
-        return res;
+unsigned int binomial_coefficient(unsigned int n, unsigned int k) {
+    int res = 1;
+    for (unsigned int i = n; i > k; i--) {
+        res *= i;
     }
+    for (unsigned int i = 2; i <= n - k; i++) {
+        res /= i;
+    }
+    return res;
+}
 }
