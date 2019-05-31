@@ -29,19 +29,18 @@
 
 namespace GTLib2::domains {
 
-enum NFGInputVariant { TwoPlayerSymmetricMatrix, VectorOFUtilities};
+enum NFGInputVariant { TwoPlayerSymmetricMatrix, VectorOFUtilities };
 
 struct NFGSettings {
     NFGInputVariant inputVariant = TwoPlayerSymmetricMatrix;
 
-    vector<vector<double>> utilities = {};
-    vector<vector<double>> utilityMatrix = {};
-
+    vector <vector<double>> utilities = {};
+    vector <vector<double>> utilityMatrix = {};
 
     uint32 numPlayers = 2;
-    vector<uint32> dimensions;
+    vector <uint32> dimensions;
 
-    vector<vector<double>> getUtilities();
+    vector <vector<double>> getUtilities();
     vector<unsigned int> getIndexingOffsets();
 };
 
@@ -60,10 +59,10 @@ class NFGDomain : public Domain {
  public:
     explicit NFGDomain(NFGSettings settings);
     string getInfo() const override;
-    vector<Player> getPlayers() const;
-    const vector<uint32> dimensions_;
+    vector <Player> getPlayers() const;
+    const vector <uint32> dimensions_;
     const uint32 numPlayers_;
-    const vector<vector<double>> utilities_;
+    const vector <vector<double>> utilities_;
     const vector<unsigned int> indexingOffsets_;
 
 };
@@ -76,21 +75,21 @@ class NFGObservation : public Observation {
 
 class NFGState : public State {
  public:
-    inline NFGState(const Domain *domain, bool terminal, vector<uint32> playerActions) :
+    inline NFGState(const Domain *domain, bool terminal, vector <uint32> playerActions) :
         State(domain, hashCombine(98612345434231, terminal, playerActions)),
         terminal_(terminal),
         playerActions_(playerActions) {}
 
     unsigned long countAvailableActionsFor(Player player) const override;
-    vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
-    OutcomeDistribution performActions(const vector<shared_ptr<Action>> &actions) const override;
-    vector<Player> getPlayers() const override;
+    vector <shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
+    OutcomeDistribution performActions(const vector <shared_ptr<Action>> &actions) const override;
+    vector <Player> getPlayers() const override;
     bool isTerminal() const override;
     string toString() const override;
     bool operator==(const State &rhs) const override;
 
     const bool terminal_;
-    vector<uint32> playerActions_;
+    vector <uint32> playerActions_;
 };
 
 } // namespace GTLib2
