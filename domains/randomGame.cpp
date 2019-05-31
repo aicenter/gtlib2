@@ -92,7 +92,7 @@ unsigned long RandomGameState::countAvailableActionsFor(Player player) const {
     unsigned long possibleMoves = RGdomain->getMaxBranchingFactor();
     if (!RGdomain->isFixedBranchingFactor()) {
         std::uniform_int_distribution<long> distribution(2, RGdomain->getMaxBranchingFactor());
-        std::mt19937 generator(playerHistories_[player]);
+        std::mt19937 generator(playerActionSeeds[player]);
         possibleMoves = distribution(generator);
     }
     return possibleMoves;
@@ -102,17 +102,18 @@ OutcomeDistribution RandomGameState::performActions(const vector<shared_ptr<Acti
     auto RGdomain = dynamic_cast<const RandomGameDomain *>(domain_);
     auto p0Action = dynamic_cast<RandomGameAction &>(*actions[0]);
     auto p1Action = dynamic_cast<RandomGameAction &>(*actions[1]);
-    assert(p1Action.getId() >= 0);
-    assert(p0Action.getId() >= 0);
+
     auto pubObs = make_shared<RandomGameObservation>(NO_OBSERVATION);
     auto player0Obs = p1Action.getId() % RGdomain->getMaxDifferentObservations();
     auto player1Obs = p0Action.getId() % RGdomain->getMaxDifferentObservations();
+    assert(player0Obs >= 0);
+    assert(player1Obs >= 0);
     vector<shared_ptr<Observation>> observations{make_shared<RandomGameObservation>(player0Obs),
                                                  make_shared<RandomGameObservation>(player1Obs)};
     // simple hashed AOH history
-    vector<long> newHistories{
-        playerHistories_[0] + (p0Action.getId() + 1) * 31 + (player0Obs + 1) * 17,
-        playerHistories_[1] + (p1Action.getId() + 1) * 31 + (player1Obs + 1) * 17
+    vector<long> newPlayerSeeds{
+        playerActionSeeds[0] + (p0Action.getId() + 1) * 31 + (player0Obs + 1) * 17,
+        playerActionSeeds[1] + (p1Action.getId() + 1) * 31 + (player1Obs + 1) * 17
     };
 
     long newStateSeed = (stateSeed_ + p0Action.getId() + p1Action.getId()) * 31 + 17;
@@ -131,7 +132,7 @@ OutcomeDistribution RandomGameState::performActions(const vector<shared_ptr<Acti
     }
     auto newState = make_shared<RandomGameState>(domain_,
                                                  newStateSeed,
-                                                 newHistories,
+                                                 newPlayerSeeds,
                                                  newReward + cumulativeReward_,
                                                  depth_ + 1);
     // if binary utility, give reward only in leaf node
@@ -153,7 +154,7 @@ string RandomGameState::toString() const {
 }
 
 bool RandomGameState::operator==(const State &other) const {
-    if (typeid(*this) != typeid(other)) {
+    if (hash_ != other.getHash() || typeid(*this) != typeid(other)) {
         return false;
     }
     auto otherState = dynamic_cast<const RandomGameState &>(other);

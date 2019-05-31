@@ -34,19 +34,43 @@ namespace GTLib2::domains {
 using algorithms::DomainStatistics;
 using algorithms::treeWalkEFG;
 
-RandomGameDomain testDomain[] = {
-RandomGameDomain({.seed = 13, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 4, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = true, .fixedBranchingFactor = true}),
-RandomGameDomain({.seed = 7, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = true, .fixedBranchingFactor = true}),
-RandomGameDomain({.seed = 5, .maxDepth = 2, .maxBranchingFactor = 6, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = true, .fixedBranchingFactor = false}),
-RandomGameDomain({.seed = 9, .maxDepth = 3, .maxBranchingFactor = 6, .maxDifferentObservations = 3, .maxRewardModification = 20, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = true, .fixedBranchingFactor = false}),
-RandomGameDomain({.seed = 17, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 20, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = true, .fixedBranchingFactor = false}),
-RandomGameDomain({.seed = 1, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = false, .fixedBranchingFactor = false}),
-RandomGameDomain({.seed = 3, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 20, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = true, .fixedBranchingFactor = false}),
-RandomGameDomain({.seed = 13, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = false, .fixedBranchingFactor = false}),
+bool gameConsistency(RandomGameDomain domain1, RandomGameDomain domain2) {
+    unsigned int violations = 0;
+    auto traverse = [&violations](const shared_ptr<EFGNode> &node1,
+                                  const shared_ptr<EFGNode> &node2,
+                                  const auto &traverse) {
+      if (!(*node1 == *node2)) {
+          violations++;
+          return;
+      }
+      if (node1->type_ == TerminalNode) return;
+      const auto actions1 = node1->availableActions();
+      const auto actions2 = node2->availableActions();
+      if (actions1.size() != actions2.size()) {
+          violations++;
+          return;
+      }
+      for (int i = 0; i < actions1.size(); ++i) {
+          traverse(node1->performAction(actions1[i]), node2->performAction(actions2[i]), traverse);
+      }
+    };
+    traverse(createRootEFGNode(domain1), createRootEFGNode(domain2), traverse);
+    return 0 == violations;
+}
+
+RandomGameSettings p_game_settings[] = {
+    {.seed = 13, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 4, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = true, .fixedBranchingFactor = true},
+    {.seed = 7, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = true, .fixedBranchingFactor = true},
+    {.seed = 5, .maxDepth = 2, .maxBranchingFactor = 6, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = true, .fixedBranchingFactor = false},
+    {.seed = 9, .maxDepth = 3, .maxBranchingFactor = 6, .maxDifferentObservations = 3, .maxRewardModification = 20, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = true, .fixedBranchingFactor = false},
+    {.seed = 17, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 20, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = true, .fixedBranchingFactor = false},
+    {.seed = 1, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = true, .utilityCorrelation = false, .fixedBranchingFactor = false},
+    {.seed = 3, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 20, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = true, .fixedBranchingFactor = false},
+    {.seed = 13, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = false, .fixedBranchingFactor = false},
 
 };
 
-TEST(RandomGame, checkDomainStats){
+TEST(RandomGame, checkDomainStats) {
 
     vector<DomainStatistics> expectedStats = {
         {
@@ -125,10 +149,20 @@ TEST(RandomGame, checkDomainStats){
     };
 
     for (int i = 0; i < expectedStats.size(); ++i) {
-        cout << ">> checking domain [" << i << "] " << testDomain[i].getInfo() << endl;
+        RandomGameDomain domain(p_game_settings[i]);
+        cout << ">> checking domain [" << i << "] " << domain.getInfo() << endl;
         DomainStatistics actualStats;
-        calculateDomainStatistics(testDomain[i], &actualStats);
+        calculateDomainStatistics(domain, &actualStats);
         EXPECT_EQ(actualStats, expectedStats[i]);
+    }
+}
+
+TEST(RandomGame, gameConsistency) {
+    for (auto &settings : p_game_settings) {
+        RandomGameDomain rg1(settings);
+        RandomGameDomain rg2(settings);
+        cout << ">> checking domain " << rg1.getInfo() << endl;
+        EXPECT_TRUE(gameConsistency(rg1, rg2));
     }
 }
 }

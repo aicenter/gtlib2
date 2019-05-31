@@ -62,8 +62,6 @@ class RandomGameAction : public Action {
   inline RandomGameAction() : Action() {};
   inline explicit RandomGameAction(ActionId id) : Action(id) {};
   bool operator==(const Action &other) const override;
-  inline size_t getHash() const override { return id_; }
-  inline string toString() const override { return "Action ID " + to_string(id_); }
 };
 
 class RandomGameDomain : public Domain {
@@ -90,13 +88,13 @@ class RandomGameDomain : public Domain {
 
 class RandomGameState : public State {
  public:
-  RandomGameState(const Domain *domain, int stateSeed, vector<long> histories,
+  RandomGameState(const Domain *domain, int stateSeed, vector<long> playerSeeds,
                   double cumulativeReward, unsigned int depth) :
-      State(domain, hashCombine(75623196115, stateSeed, histories, cumulativeReward, depth)),
+      State(domain, hashCombine(75623196115, stateSeed, playerSeeds, cumulativeReward, depth)),
       stateSeed_(stateSeed),
       cumulativeReward_(cumulativeReward),
       depth_(depth),
-      playerHistories_(move(histories)) {}
+      playerActionSeeds(move(playerSeeds)) {}
   unsigned long countAvailableActionsFor(Player player) const override;
   vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
   OutcomeDistribution performActions(const vector<shared_ptr<Action>> &actions) const override;
@@ -108,7 +106,8 @@ class RandomGameState : public State {
       return {0, 1};
   }
  private:
-  vector<long> playerHistories_; // simple AOH history for each player
+  const vector<long>
+      playerActionSeeds; // simple AOH history for each player, used as seed for move generating
   const long stateSeed_; // seed used for reward generating
   const double cumulativeReward_;
   const unsigned int depth_;
