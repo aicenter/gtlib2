@@ -208,10 +208,8 @@ typedef tuple<unsigned int, double, double, double> PlayerNodeOutcome;
 class OOSAlgorithm: public GamePlayingAlgorithm {
 
  public:
-    inline explicit OOSAlgorithm(const Domain &domain,
-                                 Player playingPlayer,
-                                 OOSData &cache,
-                                 OOSSettings cfg)
+    inline explicit OOSAlgorithm(const Domain &domain, Player playingPlayer,
+                                 OOSData &cache, OOSSettings cfg)
         : GamePlayingAlgorithm(domain, playingPlayer),
           cache_(cache),
           cfg_(cfg),
@@ -266,16 +264,16 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
                                          CFRData::InfosetData &data, const shared_ptr<AOH> &infoset,
                                          Player exploringPl);
 
-    pair<int, double> calcBiasing(const shared_ptr<EFGNode> &h, const shared_ptr<AOH> &infoset,
-                                  double bs_h_all, int numActions);
-    pair<int, double> updateBiasing(const shared_ptr<EFGNode> &h);
+    pair<int, double> calcBiasing(const shared_ptr <EFGNode> &h,
+                                  const vector <shared_ptr<Action>> &actions,
+                                  double bs_h_all);
 
-    virtual pair<int, RandomLeafOutcome> selectLeaf(const shared_ptr<EFGNode> &h,
-                                                    const vector<shared_ptr<Action>> &actions);
-    virtual int selectChanceAction(const shared_ptr<EFGNode> &h, double bsum);
-    virtual int selectExploringPlayerAction(const shared_ptr<EFGNode> &h,
-                                            int biasApplicableActions, double bsum);
-    virtual int selectNonExploringPlayerAction(const shared_ptr<EFGNode> &h, double bsum);
+    virtual pair <ActionId, RandomLeafOutcome> selectLeaf(const shared_ptr<EFGNode> &h,
+                                                          const vector<shared_ptr<Action>> &actions);
+    virtual ActionId selectChanceAction(const shared_ptr<EFGNode> &h, double bsum);
+    virtual ActionId selectExploringPlayerAction(const shared_ptr<EFGNode> &h,
+                                                 int biasApplicableActions, double bsum);
+    virtual ActionId selectNonExploringPlayerAction(const shared_ptr<EFGNode> &h, double bsum);
 
     void updateEFGNodeExpectedValue(Player exploringPl,
                                     const shared_ptr<EFGNode> &h,
@@ -296,7 +294,7 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
     }
 
     OOSData &cache_;
-    OOSSettings cfg_;
+    const OOSSettings cfg_;
     std::mt19937 generator_;
     std::uniform_real_distribution<double> dist_;
     Targetor targetor_;
@@ -305,7 +303,7 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
 
     double rm_zh_all_ = -1;
     double s_z_all_ = -1;
-    double u_z_;
+    double u_z_ = 0.0;
 
 #define OOS_MAX_ACTIONS 1000
 

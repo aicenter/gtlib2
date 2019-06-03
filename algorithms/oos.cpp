@@ -179,7 +179,7 @@ double OOSAlgorithm::handleChanceNode(const shared_ptr<EFGNode> &h,
     const auto &actions = h->availableActions();
     const auto probs = h->chanceProbs();
 
-    const auto[biasApplicableActions, bsum] = updateBiasing(h);
+    const auto[biasApplicableActions, bsum] = calcBiasing(h, actions, bs_h_all);
     const auto ai = selectChanceAction(h, bsum);
     double bs_ha_all = bsum > 0
                        ? (*pBiasedProbs_)[ai] / bsum
@@ -212,6 +212,10 @@ double OOSAlgorithm::handlePlayerNode(const shared_ptr<EFGNode> &h,
     const auto &infoset = cache_.getInfosetFor(h);
     const double s_h_all = bias(bs_h_all, us_h_all);
     CFRData::InfosetData &data = cache_.infosetData.at(infoset);
+    // todo: data access for incrementally built tree
+
+    if (playInfoset_ != nullopt && **playInfoset_ == *infoset)
+        isBelowTargetIS_ = true; // Change the state. All next histories will be under the target IS
 
     // @formatter:off
     const auto[ai, rm_ha_all, u_h, u_x] = (cache_.hasAnyChildren(h))
@@ -219,7 +223,6 @@ double OOSAlgorithm::handlePlayerNode(const shared_ptr<EFGNode> &h,
                              data, infoset, exploringPl)
         : incrementallyBuildTree(h, actions, bias(bs_h_all, us_h_all), exploringPl);
     // @formatter:on
-
     double rm_zha_all = rm_zh_all_;
     rm_zh_all_ *= rm_ha_all;
 
@@ -244,7 +247,7 @@ PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
     const bool exploringMoveInNode = h->getPlayer() == exploringPl;
     calcRMProbs(data.regrets, &rmProbs_, cfg_.approxRegretMatching);
 
-    const auto&[biasApplicableActions, bsum] = calcBiasing(h, infoset, bs_h_all, actions.size());
+    const auto&[biasApplicableActions, bsum] = calcBiasing(h, actions, bs_h_all);
     const auto ai = exploringMoveInNode
                     ? selectExploringPlayerAction(h, biasApplicableActions, bsum)
                     : selectNonExploringPlayerAction(h, bsum);
@@ -294,37 +297,20 @@ PlayerNodeOutcome OOSAlgorithm::incrementallyBuildTree(const shared_ptr<EFGNode>
     return PlayerNodeOutcome(ai, rm_ha_all, u_z_, u_z_);
 }
 
-pair<int, double> OOSAlgorithm::calcBiasing(const shared_ptr<EFGNode> &h,
-                                            const shared_ptr<AOH> &infoset,
-                                            double bs_h_all, int numActions) {
+pair<int, double> OOSAlgorithm::calcBiasing(const shared_ptr <EFGNode> &h,
+                                            const vector <shared_ptr<Action>> &actions,
+                                            double bs_h_all) {
+
+    if (cfg_.targetBiasing == 0.0 || bs_h_all == 0.0 || isBelowTargetIS_) { // no biasing case
+        pBiasedProbs_ = &rmProbs_; // do not compute RM probs again
+        return make_pair(actions.size(), 1.0);
+    }
+
+    pBiasedProbs_ = &tmpProbs_; // we will need to store biased probs somewhere
     double bsum = 0.0;
     int biasApplicableActions = 0;
-    pBiasedProbs_ = &tmpProbs_;
-
-    // targeting may still make a difference
-    if (cfg_.targetBiasing > 0 && bs_h_all > 0 && !isBelowTargetIS_) {
-        if (playInfoset_ == infoset) isBelowTargetIS_ = true;
-        else tie(biasApplicableActions, bsum) = updateBiasing(h);
-    }
-
-    // if all actions were not present for the opponent or it was below the current IS
-    if (bsum == 0) {
-        pBiasedProbs_ = &rmProbs_;
-        bsum = 1;
-        biasApplicableActions = numActions;
-    }
-
-    return make_pair(biasApplicableActions, bsum);
-}
-
-pair<int, double> OOSAlgorithm::updateBiasing(const shared_ptr<EFGNode> &h) {
-    const auto &actions = h->availableActions();
-    double bsum = 0.;
-    int biasApplicableActions = 0;
-    if (cfg_.targetBiasing == 0. || isBelowTargetIS_) return make_pair(biasApplicableActions, bsum);
 
     const auto probs = h->type_ == PlayerNode ? rmProbs_ : h->chanceProbs();
-
     for (int i = 0; i < actions.size(); ++i) {
         if (targetor_.isAllowedAction(h, actions[i])) {
             (*pBiasedProbs_)[i] = rmProbs_[i];
@@ -336,49 +322,42 @@ pair<int, double> OOSAlgorithm::updateBiasing(const shared_ptr<EFGNode> &h) {
     return make_pair(biasApplicableActions, bsum);
 }
 
-pair<int, RandomLeafOutcome>
+
+pair<ActionId, RandomLeafOutcome>
 OOSAlgorithm::selectLeaf(const shared_ptr<EFGNode> &h, const vector<shared_ptr<Action>> &actions) {
     const int ai = pickUniform(actions.size(), generator_);
     const auto leaf = pickRandomLeaf(h, actions[ai], generator_);
     return make_pair(ai, leaf);
 }
 
-int OOSAlgorithm::selectChanceAction(const shared_ptr<EFGNode> &h, double bsum) {
+ActionId OOSAlgorithm::selectChanceAction(const shared_ptr<EFGNode> &h, double bsum) {
     // avoid using random number generator when outcome is sure
     if (h->countAvailableActions() == 1) return 0;
     return isBiasedIteration_ && bsum > 0 ? pickRandom(*pBiasedProbs_, bsum, generator_)
                                           : pickRandom(*h, generator_);
 }
 
+ActionId OOSAlgorithm::selectExploringPlayerAction(const shared_ptr<EFGNode> &h,
+                                                   int biasApplicableActions, double bsum) {
 
-int OOSAlgorithm::selectExploringPlayerAction(const shared_ptr<EFGNode> &h,
-                                              int biasApplicableActions, double bsum) {
-    const auto numActions = h->countAvailableActions();
-    int ai;
+    const bool shouldExplore = dist_(generator_) <= cfg_.exploration;
+    const bool shouldBias = isBiasedIteration_;
 
-    if (!isBiasedIteration_) { // No biasing
-        ai = dist_(generator_) <= cfg_.exploration
-             ? pickUniform(numActions, generator_) // with exploration
-             : pickRandom(rmProbs_, generator_);   // no exploration
-    } else { // With biasing
-        if (dist_(generator_) <= cfg_.exploration) { // with exploration
-            ai = pickUniform(biasApplicableActions, generator_);
-            if (biasApplicableActions != numActions) {
-                int j = ai;
-                ai = 0;
-
-                // the following sets ai to the j-th allowed action
-                while (is_negative_zero((*pBiasedProbs_)[ai]) || j-- > 0) ai++;
-            }
-        } else {
-            ai = pickRandom(*pBiasedProbs_, bsum, generator_); // no exploration
-        }
+    if (!shouldBias) {
+        if(shouldExplore) return pickUniform(h->countAvailableActions(), generator_);
+        else pickRandom(rmProbs_, generator_);
+    } else {
+        if (shouldExplore) {
+            ActionId ai = 0;
+            int j = pickUniform(biasApplicableActions, generator_);
+            // the following sets ai to the j-th allowed action
+            while (is_negative_zero((*pBiasedProbs_)[ai]) || j-- > 0) ai++;
+            return ai;
+        } else return pickRandom(*pBiasedProbs_, bsum, generator_);
     }
-
-    return ai;
 }
 
-int OOSAlgorithm::selectNonExploringPlayerAction(const shared_ptr<EFGNode> &h, double bsum) {
+ActionId OOSAlgorithm::selectNonExploringPlayerAction(const shared_ptr<EFGNode> &h, double bsum) {
     // avoid using random number generator when outcome is sure
     if (h->countAvailableActions() == 1) return 0;
     return isBiasedIteration_ && bsum > 0 ? pickRandom(*pBiasedProbs_, bsum, generator_)
