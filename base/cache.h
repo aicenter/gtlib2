@@ -95,7 +95,12 @@ class EFGCache {
     /**
      * Get cached root nodes for the domain
      */
-    inline const shared_ptr<EFGNode> &getRootNode() { return rootNode_; }
+    inline const shared_ptr<EFGNode> &getRootNode() {
+        if (nodesChildren_.find(rootNode_) == nodesChildren_.end()) {
+            processNode(rootNode_);
+        }
+        return rootNode_;
+    }
 
     /**
      * Get copy of all the nodes that are present in the cache.
@@ -179,11 +184,11 @@ class InfosetCache: public virtual EFGCache {
     }
 
     inline const vector<shared_ptr<EFGNode>> &getNodesFor(const shared_ptr<AOH> &augInfoset) {
-        return infoset2nodes_[augInfoset];
+        return infoset2nodes_.at(augInfoset);
     }
 
     inline const vector<shared_ptr<AOH>> &getInfosetsFor(const shared_ptr<EFGNode> &node) {
-        return node2infosets_[node];
+        return node2infosets_.at(node);
     }
 
     inline long countAugInfosets() {
@@ -200,7 +205,7 @@ class InfosetCache: public virtual EFGCache {
      * It also crashes if you ask for infoset for a node which is not saved in this cache.
      */
     inline const shared_ptr<AOH> &getInfosetFor(const shared_ptr<EFGNode> &node) {
-        return node2infosets_[node][node->getPlayer()];
+        return node2infosets_.at(node).at(node->getPlayer());
     }
 
     /**
@@ -211,7 +216,7 @@ class InfosetCache: public virtual EFGCache {
      */
     inline const shared_ptr<AOH> &
     getAugInfosetFor(const shared_ptr<EFGNode> &node, Player player) {
-        return node2infosets_[node][player];
+        return node2infosets_.at(node).at(player);
     }
 
     const unordered_map<shared_ptr<AOH>, vector<shared_ptr<EFGNode>>> &getInfoset2NodeMapping()
@@ -255,27 +260,27 @@ class PublicStateCache: public virtual EFGCache {
     }
 
     inline const shared_ptr<EFGPublicState> &getPublicStateFor(const shared_ptr<EFGNode> &node) {
-        return node2publicState_[node];
+        return node2publicState_.at(node);
     }
 
     inline const shared_ptr<EFGPublicState> &getPublicStateFor(const shared_ptr<AOH> &infoset) {
-        return infoset2publicState_[infoset];
+        return infoset2publicState_.at(infoset);
     }
 
 
     inline const unordered_set<shared_ptr<EFGNode>> &
     getNodesFor(const shared_ptr<EFGPublicState> &state) {
-        return publicState2nodes_[state];
+        return publicState2nodes_.at(state);
     }
 
     inline const unordered_set<shared_ptr<AOH>> &getInfosetsFor(
         const shared_ptr<EFGPublicState> &pubState) {
-        return publicState2infosets_[pubState];
+        return publicState2infosets_.at(pubState);
     }
 
     inline unordered_set<shared_ptr<AOH>> getInfosetsFor(const shared_ptr<EFGPublicState> &pubState,
                                                          Player pl) {
-        const auto &infosets = publicState2infosets_[pubState];
+        const auto &infosets = publicState2infosets_.at(pubState);
         auto filteredSet = unordered_set<shared_ptr<AOH>>(infosets.size() / 2);
         for (const auto &infoset : infosets) {
             if (infoset->getPlayer() == pl) {

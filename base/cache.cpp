@@ -60,8 +60,8 @@ EFGChildNodes &EFGCache::getCachedNode(const shared_ptr<EFGNode> &node) {
     // Node not found -- maybe trying to get children
     // for a node gotten outside from cache?
     if (nodesChildren_.find(node) == nodesChildren_.end()) {
-        if (*getRootNode() == *node) {
-            processNode(getRootNode());
+        if (*rootNode_ == *node) {
+            processNode(rootNode_);
 
             // createNode must append to nodesChildren
             return nodesChildren_[node];
