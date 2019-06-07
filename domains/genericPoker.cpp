@@ -102,7 +102,7 @@ GenericPokerDomain::GenericPokerDomain(unsigned int maxCardTypes, unsigned int m
     maxUtility_ = ante_
         + betsFirstRound_.back()
         + maxRaisesInRow_ * raisesFirstRound_.back()
-        + betsSecondRound_.back()
+        + (maxCardTypes_ > 1 ? betsSecondRound_.back() : 0) // todo: not entirely sure this is correct
         + maxRaisesInRow_ * raisesSecondRound_.back();
 
     for (int p1card = 0; p1card < maxCardTypes_; ++p1card) {
@@ -143,8 +143,9 @@ string GenericPokerDomain::getInfo() const {
     ss << "Generic Poker:"
        << "\nMax card types: " << maxCardTypes_
        << "\nMax cards of each type: " << maxCardsOfEachType_
-       << "\nMax raises in row: " << maxRaisesInRow_
        << "\nMax utility: " << maxUtility_
+       << "\nAnte: " << ante_
+       << "\nMax raises in row: " << maxRaisesInRow_
        << "\nBets first round: " << betsFirstRound_
        << "\nBets second round: " << betsSecondRound_
        << "\nRaises first round: " << raisesFirstRound_
@@ -227,9 +228,10 @@ GenericPokerState::performActions(const vector<shared_ptr<Action>> &actions) con
     const Player currentPlayer = getPlayers()[0];
     const auto pokerAction = dynamic_pointer_cast<GenericPokerAction>(actions[currentPlayer]);
     assert(pokerAction->getId() != NO_ACTION);
+    assert(actions[opponent(currentPlayer)]->getId() == NO_ACTION);
 
     double currentBet = 0.;
-    double newFirstPlayerReward = firstPlayerReward_;
+    double newFirstPlayerReward = cumulativeFirstPlayerReward_;
     int newContinuousRaiseCount = continuousRaiseCount_;
     int newRound = round_;
     PokerObservationId obsId = 0;
@@ -287,7 +289,8 @@ GenericPokerState::performActions(const vector<shared_ptr<Action>> &actions) con
 
         case Fold:
             obsId = Fold;
-            if (currentPlayer == Player(0)) newFirstPlayerReward = pot_ - firstPlayerReward_;
+            if (currentPlayer == Player(0))
+                newFirstPlayerReward = pot_ - cumulativeFirstPlayerReward_;
             newRound = POKER_TERMINAL_ROUND;
             break;
 
@@ -375,14 +378,14 @@ bool GenericPokerState::operator==(const State &rhs) const {
         && player2Card_ == rhsState.player2Card_
         && round_ == rhsState.round_
         && pot_ == rhsState.pot_
-        && firstPlayerReward_ == rhsState.firstPlayerReward_
+        && cumulativeFirstPlayerReward_ == rhsState.cumulativeFirstPlayerReward_
         && natureCard_.value_or(-1) == rhsState.natureCard_.value_or(-1)
         && actingPlayer_ == rhsState.actingPlayer_;
 }
 
 int GenericPokerState::hasPlayerOneWon(const shared_ptr<GenericPokerAction> &lastAction,
-                                       Player player) const {
-    if (lastAction->getType() == Fold) return player;
+                                       int sign) const {
+    if (lastAction->getType() == Fold) return sign;
     if (player1Card_ == player2Card_) return 0;
     if (player1Card_ == natureCard_) return 1;
     if (player2Card_ == natureCard_) return -1;
@@ -396,7 +399,7 @@ string GenericPokerState::toString() const {
         "\nNature card: " + to_string(natureCard_.value_or(-1)) +
         "\nActing player: " + to_string(actingPlayer_) +
         "\nPot: " + to_string(pot_) +
-        "\nReward for first player: " + to_string(firstPlayerReward_) +
+        "\nReward for first player: " + to_string(cumulativeFirstPlayerReward_) +
         "\nLast action: " + (lastAction_ ? lastAction_->toString() : "Nothing") +
         "\nRound: " + to_string(round_) +
         "\nContinuous raise count: " + to_string(continuousRaiseCount_) + "\n";

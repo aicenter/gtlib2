@@ -206,8 +206,11 @@ RandomGameDomain rg8({.seed = 3, .maxDepth = 3, .maxBranchingFactor = 4, .maxDif
 RandomGameDomain rg9({.seed = 13, .maxDepth = 3, .maxBranchingFactor = 4, .maxDifferentObservations = 2, .maxRewardModification = 2, .maxUtility = 100, .binaryUtility = false, .utilityCorrelation = false, .fixedBranchingFactor = false});
 // @formatter:on
 
-GenericPokerDomain gp1(2, 2, 2, 2, 2);
-GenericPokerDomain gp2(3, 3, 1, 2, 3);
+GenericPokerDomain gp1(1, 3, 1, 1, 1);
+GenericPokerDomain gp2(3, 1, 1, 1, 1);
+GenericPokerDomain gp3(2, 2, 2, 2, 2);
+GenericPokerDomain gp4(3, 3, 1, 2, 3);
+GenericPokerDomain gp5(1, 3, 2, 2, 2);
 
 MatchingPenniesDomain mp1(AlternatingMoves);
 MatchingPenniesDomain mp2(SimultaneousMoves);
@@ -215,8 +218,7 @@ MatchingPenniesDomain mp2(SimultaneousMoves);
 Domain *testDomains[] = { // NOLINT(cert-err58-cpp)
     &gs1, &gs2, &gs3, &gs1_fix, &gs2_fix, &gs3_fix,
     &iigs1, &iigs2, &iigs3, &iigs1_fix, &iigs2_fix, &iigs3_fix,
-//    // todo: maxUtility and maxDepth do not work for poker!
-//    // &gp1, &gp2,
+    &gp1, &gp2, &gp3, &gp4, &gp5,
     &oz1, &oz2, &oz3, &oz4, &oz5, &iioz1, &iioz2, &iioz3, &iioz4, &iioz5,
     &mp1, &mp2,
     &rg1, &rg2, &rg3, &rg4, &rg5, &rg6, &rg7, &rg8, &rg9,

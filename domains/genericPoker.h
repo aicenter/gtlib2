@@ -164,7 +164,7 @@ class GenericPokerState: public State {
                                   natureCard.value_or(-1), round, continuousRaiseCount, pot,
                                   firstPlayerReward)),
         player1Card_(player1Card), player2Card_(player2Card), natureCard_(move(natureCard)),
-        pot_(pot), firstPlayerReward_(firstPlayerReward), actingPlayer_(move(actingPlayer)),
+        pot_(pot), cumulativeFirstPlayerReward_(firstPlayerReward), actingPlayer_(move(actingPlayer)),
         round_(round),
         continuousRaiseCount_(continuousRaiseCount), lastAction_(move(lastAction)) {}
 
@@ -180,7 +180,7 @@ class GenericPokerState: public State {
     OutcomeDistribution performActions(const vector<shared_ptr<Action>> &actions) const override;
 
     inline vector<Player> getPlayers() const final { return vector<Player>{actingPlayer_}; }
-    int hasPlayerOneWon(const shared_ptr<GenericPokerAction> &lastAction, Player player) const;
+    int hasPlayerOneWon(const shared_ptr<GenericPokerAction> &lastAction, int sign) const;
     inline bool isTerminal() const override { return round_ == POKER_TERMINAL_ROUND; };
 
     bool operator==(const State &rhs) const override;
@@ -191,7 +191,7 @@ class GenericPokerState: public State {
     const shared_ptr<GenericPokerAction> lastAction_;
     const optional<int> natureCard_;
     const double pot_;
-    const double firstPlayerReward_;
+    const double cumulativeFirstPlayerReward_;
     const int player1Card_;
     const int player2Card_;
     const int round_;
