@@ -37,6 +37,8 @@ boardInfo BoardFactory::create(BOARD b, GTLib2::domains::KriegspielState *s) {
             return createDemichess(s);
         case SILVERMAN4BY4:
             return createSilverman4x4(s);
+        default:
+            assert(false); // unrecognized option!
     }
 }
 
@@ -346,7 +348,7 @@ FenBoardFactory::createPiece(char &c, int x, int y, GTLib2::domains::KriegspielS
                                        isupper(c) ? chess::WHITE : chess::BLACK,
                                        s,
                                        b);
-        case 'p':
+        case 'p': {
             auto p = make_shared<Pawn>(static_cast<pieceName>(pieceChar),
                                        isupper(c) ? chess::WHITE : chess::BLACK,
                                        s,
@@ -354,6 +356,9 @@ FenBoardFactory::createPiece(char &c, int x, int y, GTLib2::domains::KriegspielS
                                        pawnid_);
             pawnid_ += 2;
             return p;
+        }
+        default:
+            assert(false); // unrecognized option!
     }
 }
 
