@@ -49,8 +49,8 @@ TEST(Cache, CacheHit) {
     InfosetCache cache(mp);
 
     auto actions = rootNode->availableActions();
-    EXPECT_TRUE(!cache.hasNode(rootNode));
-    EXPECT_TRUE(!cache.hasInfoset(rootNode->getAOHInfSet()));
+    EXPECT_TRUE(cache.hasNode(rootNode));
+    EXPECT_TRUE(cache.hasInfoset(rootNode->getAOHInfSet()));
     EXPECT_TRUE(!cache.hasAllChildren(rootNode));
     EXPECT_TRUE(!cache.hasChildren(rootNode, actions[0]));
 
@@ -78,16 +78,16 @@ TEST(Cache, BuildCacheMaxDepth) {
     InfosetCache cache(mp);
 
     auto actions = rootNode->availableActions();
-    EXPECT_TRUE(!cache.hasNode(rootNode));
-    EXPECT_TRUE(!cache.hasInfoset(rootNode->getAOHInfSet()));
+    EXPECT_TRUE(cache.hasNode(rootNode));
+    EXPECT_TRUE(cache.hasInfoset(rootNode->getAOHInfSet()));
     EXPECT_TRUE(!cache.hasAllChildren(rootNode));
     EXPECT_TRUE(!cache.hasChildren(rootNode, actions[0]));
     EXPECT_TRUE(!cache.hasChildren(rootNode, actions[1]));
 
     rootNode->performAction(actions[0]);
     rootNode->performAction(actions[1]);
-    EXPECT_TRUE(!cache.hasNode(rootNode));
-    EXPECT_TRUE(!cache.hasInfoset(rootNode->getAOHInfSet()));
+    EXPECT_TRUE(cache.hasNode(rootNode));
+    EXPECT_TRUE(cache.hasInfoset(rootNode->getAOHInfSet()));
     EXPECT_TRUE(!cache.hasAllChildren(rootNode));
     EXPECT_TRUE(!cache.hasChildren(rootNode, actions[0]));
     EXPECT_TRUE(!cache.hasChildren(rootNode, actions[1]));
@@ -108,23 +108,23 @@ TEST(Cache, BuildCacheLimitedDepth) {
     InfosetCache cache(mp);
 
     auto actions = rootNode->availableActions();
-    EXPECT_TRUE(!cache.hasNode(rootNode));
-    EXPECT_TRUE(!cache.hasInfoset(rootNode->getAOHInfSet()));
+    EXPECT_TRUE(cache.hasNode(rootNode));
+    EXPECT_TRUE(cache.hasInfoset(rootNode->getAOHInfSet()));
     EXPECT_TRUE(!cache.hasAllChildren(rootNode));
     EXPECT_TRUE(!cache.hasChildren(rootNode, actions[0]));
     EXPECT_TRUE(!cache.hasChildren(rootNode, actions[1]));
 
     auto node0 = rootNode->performAction(actions[0]);
     auto node1 = rootNode->performAction(actions[1]);
-    EXPECT_TRUE(!cache.hasNode(rootNode));
-    EXPECT_TRUE(!cache.hasInfoset(rootNode->getAOHInfSet()));
+    EXPECT_TRUE(cache.hasNode(rootNode));
+    EXPECT_TRUE(cache.hasInfoset(rootNode->getAOHInfSet()));
     EXPECT_TRUE(!cache.hasAllChildren(rootNode));
     EXPECT_TRUE(!cache.hasChildren(rootNode, actions[0]));
     EXPECT_TRUE(!cache.hasChildren(rootNode, actions[1]));
 
-    cache.buildForest(0);
-    EXPECT_TRUE(!cache.hasNode(rootNode));
-    EXPECT_TRUE(!cache.hasInfoset(rootNode->getAOHInfSet()));
+    cache.getRootNode();
+    EXPECT_TRUE(cache.hasNode(rootNode));
+    EXPECT_TRUE(cache.hasInfoset(rootNode->getAOHInfSet()));
     EXPECT_TRUE(!cache.hasAllChildren(rootNode));
     EXPECT_TRUE(!cache.hasChildren(rootNode, actions[0]));
     EXPECT_TRUE(!cache.hasChildren(rootNode, actions[1]));
@@ -167,13 +167,13 @@ TEST(Cache, BuildPublicStateCache) {
         PublicStateCache cache(mp);
 
         auto actions = rootNode->availableActions();
-        EXPECT_TRUE(!cache.hasNode(rootNode));
-        EXPECT_TRUE(!cache.hasPublicState(rootNode->getPublicState()));
+        EXPECT_TRUE(cache.hasNode(rootNode));
+        EXPECT_TRUE(cache.hasPublicState(rootNode->getPublicState()));
 
         rootNode->performAction(actions[0]);
         rootNode->performAction(actions[1]);
-        EXPECT_TRUE(!cache.hasNode(rootNode));
-        EXPECT_TRUE(!cache.hasPublicState(rootNode->getPublicState()));
+        EXPECT_TRUE(cache.hasNode(rootNode));
+        EXPECT_TRUE(cache.hasPublicState(rootNode->getPublicState()));
 
         cache.buildForest();
         EXPECT_TRUE(cache.hasNode(rootNode));
