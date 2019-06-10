@@ -32,6 +32,20 @@ using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::microseconds;
 
+bool playForBudget(unique_ptr<GamePlayingAlgorithm> &alg,
+                   const optional<shared_ptr<AOH>> &currentInfoset,
+                   long budgetValue, BudgetType type) {
+
+    switch (type) {
+        case BudgetTime:
+            return playForMicroseconds(alg, currentInfoset, budgetValue);
+        case BudgetIterations:
+            return playForIterations(alg, currentInfoset, budgetValue);
+        default:
+            assert(false); // unrecognized type!
+    }
+}
+
 bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
                          const optional<shared_ptr<AOH>> &currentInfoset,
                          long budgetUs) {
@@ -41,13 +55,27 @@ bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
     while (budgetUs > 0 && continueImproving) {
         high_resolution_clock::time_point t1 = high_resolution_clock::now();
         state = alg->runPlayIteration(currentInfoset);
-        if(state == StopImproving || state == GiveUp) continueImproving = false;
+        if (state == StopImproving || state == GiveUp) continueImproving = false;
         high_resolution_clock::time_point t2 = high_resolution_clock::now();
         auto duration = duration_cast<microseconds>(t2 - t1).count();
         budgetUs -= duration;
     }
     if (budgetUs < -100) cerr << "Budget missed by " << budgetUs << " us\n";
 
+    return state != GiveUp;
+}
+
+bool playForIterations(unique_ptr<GamePlayingAlgorithm> &alg,
+                       const optional<shared_ptr<AOH>> &currentInfoset,
+                       long budgetIters) {
+
+    PlayControl state = ContinueImproving;
+    bool continueImproving = true;
+    while (budgetIters > 0 && continueImproving) {
+        state = alg->runPlayIteration(currentInfoset);
+        if (state == StopImproving || state == GiveUp) continueImproving = false;
+        budgetIters--;
+    }
     return state != GiveUp;
 }
 
@@ -73,13 +101,14 @@ FixedActionPlayer::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
 }
 
 vector<double> playMatch(const Domain &domain,
-                         vector<PreparedAlgorithm> algorithmInitializers,
-                         vector<int> preplayBudgetMicrosec,
-                         vector<int> moveBudgetMicrosec,
+                         vector <PreparedAlgorithm> algorithmInitializers,
+                         vector<int> preplayBudget,
+                         vector<int> moveBudget,
+                         BudgetType simulationType,
                          unsigned long matchSeed) {
 
-    assert(algorithmInitializers.size() == preplayBudgetMicrosec.size() &&
-        preplayBudgetMicrosec.size() == moveBudgetMicrosec.size());
+    assert(algorithmInitializers.size() == preplayBudget.size() &&
+        preplayBudget.size() == moveBudget.size());
 
     unsigned long numAlgs = algorithmInitializers.size();
     auto algs = vector<unique_ptr<GamePlayingAlgorithm>>(numAlgs);
@@ -89,7 +118,7 @@ vector<double> playMatch(const Domain &domain,
         algs[i] = algorithmInitializers[i](domain, Player(i));
     }
     for (int i = 0; i < numAlgs; ++i) {
-        continuePlay[i] = playForMicroseconds(algs[i], nullopt, preplayBudgetMicrosec[i]);
+        continuePlay[i] = playForBudget(algs[i], nullopt, preplayBudget[i], simulationType);
     }
 
     auto generator = std::mt19937(matchSeed);
@@ -100,26 +129,27 @@ vector<double> playMatch(const Domain &domain,
         int playerAction;
         auto actions = node->availableActions();
 
-        switch(node->type_) {
+        switch (node->type_) {
             case ChanceNode:
                 playerAction = pickRandom(*node, generator);
                 break;
 
-            case PlayerNode:
-            {
+            case PlayerNode: {
                 auto infoset = node->getAOHInfSet();
                 Player pl = node->getPlayer();
 
                 if (continuePlay[pl])
-                    continuePlay[pl] = playForMicroseconds(algs[pl], infoset, moveBudgetMicrosec[pl]);
+                    continuePlay[pl] = playForBudget(algs[pl], infoset,
+                                                     moveBudget[pl], simulationType);
 
                 ProbDistribution probs;
-                if(continuePlay[pl]) {
+                if (continuePlay[pl]) {
                     auto maybeProbs = algs[pl]->getPlayDistribution(infoset);
                     if (maybeProbs == nullopt) continuePlay[pl] = false;
                     else probs = *maybeProbs;
                 }
-                if(!continuePlay[pl]) {
+                if (!continuePlay[pl]) {
+                    cerr << "Player " << int(pl) << " gave up!" << endl;
                     probs = ProbDistribution(actions.size(), 1. / actions.size());
                 }
 

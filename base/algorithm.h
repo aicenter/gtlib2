@@ -76,6 +76,27 @@ class GamePlayingAlgorithm {
     getPlayDistribution(const shared_ptr<AOH> &currentInfoset) = 0;
 };
 
+
+enum BudgetType { BudgetTime, BudgetIterations };
+
+/**
+ * Run iterations of given algorithm for a given budget value and type.
+ *
+ * See playForIterations / playForMicroseconds
+ *
+ * @return whether algorithm decided to continue (true) or give up (false)
+ */
+bool playForBudget(unique_ptr<GamePlayingAlgorithm> &alg,
+                   const optional<shared_ptr<AOH>> &currentInfoset,
+                   long budgetValue, BudgetType type);
+
+/**
+ * Run iterations of given algorithm for a given number of iterations.
+ * @return whether algorithm decided to continue (true) or give up (false)
+ */
+bool playForIterations(unique_ptr<GamePlayingAlgorithm> &alg,
+                       const optional<shared_ptr<AOH>> &currentInfoset,
+                       long budgetIters);
 /**
  * Run iterations of given algorithm for a given time budget in microseconds.
  * @return whether algorithm decided to continue (true) or give up (false)
@@ -94,7 +115,7 @@ class RandomPlayer: public GamePlayingAlgorithm {
     inline PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset)
     override { return StopImproving; };
     inline optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset)
-    override {};
+    override { return nullopt; };
 };
 
 /**
@@ -115,15 +136,15 @@ typedef function<unique_ptr<GamePlayingAlgorithm>(const Domain &, Player)>
     PreparedAlgorithm;
 
 template<typename T, typename... Args>
-PreparedAlgorithm createInitializer(Args... args) {
-    return [=](const Domain &domain, Player pl) -> unique_ptr<GamePlayingAlgorithm> {
-        return make_unique<T>(domain, pl, args ...);
+PreparedAlgorithm createInitializer(Args &... args) {
+    return [&](const Domain &domain, Player pl) mutable -> unique_ptr<GamePlayingAlgorithm> {
+        return make_unique<T>(domain, pl, args...);
     };
 }
 
 /**
- * Play match between given algorithms, for a given number of microseconds in the root (preplay)
- * and another time budget for each move. Return terminal utilities for each algorithm.
+ * Play match between given algorithms, for a given preplay budget and another budget for each move.
+ * Return terminal utilities for each algorithm.
  *
  * You can prepare the algorithm by calling
  * @code
@@ -131,10 +152,13 @@ PreparedAlgorithm createInitializer(Args... args) {
  * @endcode
  */
 vector<double> playMatch(const Domain &domain,
-                         vector<PreparedAlgorithm> algorithmInitializers,
-                         vector<int> preplayBudgetMicrosec,
-                         vector<int> moveBudgetMicrosec,
+                         vector <PreparedAlgorithm> algorithmInitializers,
+                         vector<int> preplayBudget,
+                         vector<int> moveBudget,
+                         BudgetType simulationType,
                          unsigned long matchSeed);
+
+
 }  // namespace GTLib2
 
 

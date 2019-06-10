@@ -34,8 +34,10 @@ using domains::GoofSpielSettings;
 using domains::GoofSpielVariant::IncompleteObservations;
 
 TEST(PlayMatch, PlaySmallGame) {
-    PreparedAlgorithm firstAction = createInitializer<FixedActionPlayer>(0);
-    PreparedAlgorithm lastAction = createInitializer<FixedActionPlayer>(-1);
+    int a = 0;
+    int b = -1;
+    PreparedAlgorithm firstAction = createInitializer<FixedActionPlayer>(a);
+    PreparedAlgorithm lastAction = createInitializer<FixedActionPlayer>(b);
 
     GoofSpielSettings settings
         ({variant:  IncompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
@@ -44,7 +46,7 @@ TEST(PlayMatch, PlaySmallGame) {
     vector<double> expectedUtilities = vector<double>{1., -1.};
     vector<double> actualUtilities = playMatch(
         domain, vector<PreparedAlgorithm>{firstAction, lastAction},
-        vector<int>{1000, 1000}, vector<int>{10, 10}, 0);
+        vector<int>{1000, 1000}, vector<int>{10, 10}, BudgetTime, 0);
     EXPECT_EQ(actualUtilities, expectedUtilities);
 }
 
