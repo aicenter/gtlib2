@@ -31,11 +31,11 @@ namespace GTLib2::algorithms {
 class FixedSamplingOOS: public OOSAlgorithm {
  public:
     FixedSamplingOOS(const Domain &domain, Player playingPlayer, OOSData &cache,
-                     const OOSSettings &cfg, vector<vector<ActionId>> samples)
+                     const OOSSettings cfg, vector<vector<ActionId>> samples)
         : OOSAlgorithm(domain, playingPlayer, cache, cfg), samples_(move(samples)) {};
 
  protected:
-    vector<vector<ActionId>> samples_;
+    const vector <vector<ActionId>> samples_;
     int moveIdx_ = 0;
 
     inline int nextAction() {
@@ -47,19 +47,27 @@ class FixedSamplingOOS: public OOSAlgorithm {
         moveIdx_ = 0;
         assert(stats_.rootVisits < samples_.size());
         OOSAlgorithm::rootIteration(compensation, exploringPl);
+//        cerr << endl;
     }
 
-    pair<int, RandomLeafOutcome> selectLeaf(const shared_ptr<EFGNode> &h,
-                                            const vector<shared_ptr<Action>> &actions) override;
-    inline int
-    selectChanceAction(const shared_ptr<EFGNode> &h, double bsum) override { return nextAction(); };
-    inline int selectExploringPlayerAction(const shared_ptr<EFGNode> &h,
-                                           int biasApplicableActions,
-                                           double bsum) override { return nextAction(); };
-    inline int selectNonExploringPlayerAction(const shared_ptr<EFGNode> &h,
-                                              double bsum) override { return nextAction(); };
+    pair <ActionId, RandomLeafOutcome> selectLeaf(const shared_ptr <EFGNode> &start,
+                                                  const vector <shared_ptr<Action>> &actions) override;
+    inline ActionId selectChanceAction(const shared_ptr <EFGNode> &h,
+                                       double bsum) override {
+        return nextAction();
+    };
+    inline ActionId selectExploringPlayerAction(const shared_ptr <EFGNode> &h,
+                                                int biasApplicableActions,
+                                                double bsum) override {
+        return nextAction();
+    };
+    inline ActionId selectNonExploringPlayerAction(const shared_ptr <EFGNode> &h,
+                                                   double bsum) override {
 
-    inline double handleTerminalNode(const shared_ptr<EFGNode> &h,
+        return nextAction();
+    };
+
+    inline double handleTerminalNode(const shared_ptr <EFGNode> &h,
                                      double bs_h_all, double us_h_all,
                                      Player exploringPl) override {
         assert(samples_.at(stats_.rootVisits).size() == moveIdx_);
