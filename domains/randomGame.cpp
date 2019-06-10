@@ -33,7 +33,7 @@ bool RandomGameAction::operator==(const Action &other) const {
 
 RandomGameDomain::RandomGameDomain(RandomGameSettings settings) :
     Domain(settings.maxDepth,
-           2,
+           2, true,
            make_shared<RandomGameAction>(),
            make_shared<RandomGameObservation>()),
     seed_(settings.seed),
