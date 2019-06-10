@@ -27,30 +27,33 @@ namespace GTLib2::algorithms {
 #define baseline(node, actionIdx) (cache_.getBaselineFor(node, actionIdx, exploringPl))
 
 
-void Targetor::updateCurrentPosition(const optional<shared_ptr<AOH>> &infoset,
+bool Targetor::updateCurrentPosition(const optional<shared_ptr<AOH>> &infoset,
                                      const optional<shared_ptr<EFGPublicState>> &pubState) {
-    if (infoset == nullopt) {
+    if (!infoset) {
         weightingFactor_ = 1.0;
-        return;
+        return true;
     }
-    if (currentInfoset_ == infoset) return;
+    if (currentInfoset_ == infoset) return true;
 
     currentInfoset_ = *infoset;
     currentPubState_ = *pubState;
 
-    bsSum_ = 0.0;
-    usSum_ = 0.0;
-    updateWeighting(cache_.getRootNode(), 1.0, 1.0);
-    weightingFactor_ = (1 - targetBiasing_) + targetBiasing_ * bsSum_ / usSum_;
+//    cerr << "updating for " << currentInfoset_->getAOids() << endl;
+    const auto [bsSum, usSum] = updateWeighting(cache_.getRootNode(), 1.0, 1.0);
+//    cerr << "updating done" << endl;
+    if(usSum == 0.0) return false;
+    assert(usSum > 0.0);
+    weightingFactor_ = (1 - targetBiasing_) + targetBiasing_ * bsSum / usSum;
+    return true;
 }
 
-void Targetor::updateWeighting(const shared_ptr<EFGNode> &h, double bs_h_all, double us_h_all) {
+pair<double, double> Targetor::updateWeighting(const shared_ptr<EFGNode> &h, double bs_h_all, double us_h_all) {
     const auto updateInfoset = h->getAOHInfSet();
 
+//    cerr << "visiting " << updateInfoset->getAOids() << endl;
     if (*updateInfoset == *currentInfoset_) {
-        bsSum_ += bs_h_all;
-        usSum_ += us_h_all;
-        return; // do not go below
+//        cerr << "adding weight " << bs_h_all << " " << us_h_all << endl;
+        return make_pair(bs_h_all, us_h_all); // do not go below
     }
 
     double biasedSum = 0.0;
@@ -61,15 +64,14 @@ void Targetor::updateWeighting(const shared_ptr<EFGNode> &h, double bs_h_all, do
         case ChanceNode:
             dist = h->chanceProbs();
             break;
-
         case PlayerNode: {
-            CFRData::InfosetData &data = cache_.infosetData.at(updateInfoset);
-            dist = calcRMProbs(data.regrets);
+            CFRData::InfosetData data = cache_.infosetData.at(updateInfoset);
+            dist = vector<double>(data.regrets.size());
+            calcRMProbs(data.regrets, &dist, 0.001); // todo: eps parameter?
+            break;
         }
-
         case TerminalNode:
             assert(false); // no need to update weighting for terminal nodes!
-
         default:
             assert(false); // unrecognized option!
     }
@@ -78,12 +80,21 @@ void Targetor::updateWeighting(const shared_ptr<EFGNode> &h, double bs_h_all, do
         if (!isAllowedAction(h, action)) dist[action->getId()] = 0.0;
     }
     for (const auto &action: actions) biasedSum += dist[action->getId()];
+
+    double ussum = 0.0, bssum = 0.0;
     for (const auto &action: actions) {
         const double pa = dist[action->getId()];
-        if (pa <= 0) continue;
-        if (!cache_.hasChildren(h, action)) continue; // target only parts of the tree we have built
-        updateWeighting(h->performAction(action), us_h_all * pa, bs_h_all * pa / biasedSum);
+        if (pa <= 0.0) continue;
+
+        // Target only parts of the tree we have built.
+        // We have checked that the infoset which we want to target
+        //   does indeed exist!
+        if (!cache_.hasChildren(h, action)) continue;
+
+        const auto [updateUs, updateBs] = updateWeighting(h->performAction(action), us_h_all * pa, bs_h_all * pa / biasedSum);
+        ussum += updateUs; bssum += updateBs;
     }
+    return make_pair(ussum, bssum);
 }
 
 bool Targetor::isAllowedAction(const shared_ptr<EFGNode> &h, const shared_ptr<Action> &action) {
@@ -91,11 +102,9 @@ bool Targetor::isAllowedAction(const shared_ptr<EFGNode> &h, const shared_ptr<Ac
         case OOSSettings::InfosetTargeting:
             return isAOCompatible(currentInfoset_->getAOids(),
                                   h->performAction(action)->getAOids(currentInfoset_->getPlayer()));
-
         case OOSSettings::PublicStateTargeting:
             assert(false); // todo: finish public state targeting
             return false;
-
         default:
             assert(false); // unrecognized option!
     }
@@ -103,11 +112,18 @@ bool Targetor::isAllowedAction(const shared_ptr<EFGNode> &h, const shared_ptr<Ac
 
 
 PlayControl OOSAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
+    // we can't make targetting, if the infoset is not in cache. Give up - play randomly
+    // todo: make partial targetting up to the last known infoset at least?
+    if(currentInfoset && !cache_.hasInfoset(*currentInfoset)) return GiveUp;
+
     playInfoset_ = currentInfoset;
     playPublicState_ = playInfoset_ && cache_.hasPublicState(*playInfoset_)
                        ? optional(cache_.getPublicStateFor(*playInfoset_))
                        : nullopt;
-    targetor_.updateCurrentPosition(playInfoset_, playPublicState_);
+
+    if(!targetor_.updateCurrentPosition(playInfoset_, playPublicState_)) {
+        return GiveUp;
+    }
 
     for (int t = 0; t < cfg_.batchSize; ++t) {
         for (int exploringPl = 0; exploringPl < 2; ++exploringPl) {
@@ -343,7 +359,7 @@ ActionId OOSAlgorithm::selectExploringPlayerAction(const shared_ptr<EFGNode> &h,
 
     if (!shouldBias) {
         if (shouldExplore) return pickUniform(h->countAvailableActions(), generator_);
-        else pickRandom(rmProbs_, generator_);
+        else return pickRandom(rmProbs_, generator_);
     } else {
         if (shouldExplore) {
             ActionId ai = 0;
@@ -425,6 +441,7 @@ void OOSAlgorithm::updateInfosetAcc(const shared_ptr<EFGNode> &h, CFRData::Infos
             calcRMProbs(data.regrets, &rmProbs_, cfg_.approxRegretMatching);
             for (int i = 0; i < data.avgStratAccumulator.size(); i++) {
                 data.avgStratAccumulator[i] += w * s * rmProbs_[i];
+                assert(data.avgStratAccumulator[i] > 0.0);
             }
             break;
         case OOSSettings::LazyWeightedAveraging:

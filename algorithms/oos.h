@@ -37,6 +37,7 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
         EFGCache(domain), InfosetCache(domain),
         CFRData(domain, HistoriesUpdating), PublicStateCache(domain) {
         addCallback([&](const shared_ptr<EFGNode> &n) { this->createOOSBaselineData(n); });
+        this->createOOSBaselineData(getRootNode());
     }
 
     inline double getBaselineFor(const shared_ptr<EFGNode> h, ActionId action, Player exploringPl) {
@@ -122,7 +123,7 @@ class Targetor {
     explicit inline Targetor(OOSData &cache, OOSSettings::Targeting type, double targetBiasing) :
         cache_(cache), targeting_(type), targetBiasing_(targetBiasing) {};
 
-    void updateCurrentPosition(const optional<shared_ptr<AOH>> &infoset,
+    bool updateCurrentPosition(const optional<shared_ptr<AOH>> &infoset,
                                const optional<shared_ptr<EFGPublicState>> &pubState);
     bool isAllowedAction(const shared_ptr<EFGNode> &h, const shared_ptr<Action> &action);
 
@@ -140,17 +141,14 @@ class Targetor {
 
  private:
     double weightingFactor_ = 1.0;
-
     shared_ptr<AOH> currentInfoset_;
     shared_ptr<EFGPublicState> currentPubState_;
 
-    double bsSum_ = 0.0, usSum_ = 0.0;
+    const OOSData &cache_;
+    const OOSSettings::Targeting targeting_;
+    const double targetBiasing_;
 
-    OOSSettings::Targeting targeting_;
-    OOSData &cache_;
-    double targetBiasing_;
-
-    void updateWeighting(const shared_ptr<EFGNode> &dist, double bs_h_all, double us_h_all);
+    pair<double, double> updateWeighting(const shared_ptr<EFGNode> &dist, double bs_h_all, double us_h_all);
 };
 
 /**
