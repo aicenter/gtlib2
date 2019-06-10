@@ -53,6 +53,7 @@ class EFGCache {
     inline explicit EFGCache(const Domain &domain)
         : rootNode_(createRootEFGNode(domain)), domain_(domain) {
         addCallback([&](const shared_ptr<EFGNode> &n) { this->createNode(n); });
+        this->createNode(rootNode_);
     }
 
     /**
@@ -95,12 +96,7 @@ class EFGCache {
     /**
      * Get cached root nodes for the domain
      */
-    inline const shared_ptr<EFGNode> &getRootNode() {
-        if (nodesChildren_.find(rootNode_) == nodesChildren_.end()) {
-            processNode(rootNode_);
-        }
-        return rootNode_;
-    }
+    inline const shared_ptr<EFGNode> &getRootNode() const { return rootNode_; }
 
     /**
      * Get copy of all the nodes that are present in the cache.
@@ -177,6 +173,7 @@ class InfosetCache: public virtual EFGCache {
  public:
     inline explicit InfosetCache(const Domain &domain) : EFGCache(domain) {
         addCallback([&](const shared_ptr<EFGNode> &n) { this->createAugInfosets(n); });
+        this->createAugInfosets(getRootNode());
     }
 
     inline bool hasInfoset(const shared_ptr<AOH> &augInfoset) {
@@ -247,6 +244,7 @@ class PublicStateCache: public virtual EFGCache {
  public:
     inline explicit PublicStateCache(const Domain &domain) : EFGCache(domain) {
         addCallback([&](const shared_ptr<EFGNode> &n) { this->createPublicState(n); });
+        this->createPublicState(getRootNode());
     }
 
     inline bool hasPublicState(const shared_ptr<EFGPublicState> &pubState) {

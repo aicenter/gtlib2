@@ -61,6 +61,7 @@ class CFRData: public virtual InfosetCache {
         InfosetCache(domain),
         updatingPolicy_(updatingPolicy) {
         addCallback([&](const shared_ptr<EFGNode> &n) { this->createCFRInfosetData(n); });
+        this->createCFRInfosetData(getRootNode());
     }
 
     struct InfosetData {
