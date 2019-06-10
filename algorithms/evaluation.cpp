@@ -23,7 +23,7 @@
 
 namespace GTLib2::algorithms {
 
-double calcExploitability(Domain &domain, const StrategyProfile &profile) {
+double calcExploitability(const Domain &domain, const StrategyProfile &profile) {
     assert(domain.getNumberOfPlayers() == 2);
     assert(domain.isZeroSum());
 
@@ -36,7 +36,7 @@ double calcExploitability(Domain &domain, const StrategyProfile &profile) {
     return expl;
 }
 
-double calcExploitability(Domain &domain, const BehavioralStrategy &strat,
+double calcExploitability(const Domain &domain, const BehavioralStrategy &strat,
                           Player pl, double gameValue) {
     assert(domain.getNumberOfPlayers() == 2);
     assert(domain.isZeroSum());

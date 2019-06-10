@@ -30,7 +30,7 @@ namespace GTLib2::algorithms {
 /**
  * Calculate normalized exploitability of the entire strategy profile in two-player zero-sum game.
  */
-double calcExploitability(Domain &domain, const StrategyProfile &profile);
+double calcExploitability(const Domain &domain, const StrategyProfile &profile);
 
 /**
  * Calculate normalized exploitability of player's behavioral strategy in two-player zero-sum game.
@@ -41,7 +41,7 @@ double calcExploitability(Domain &domain, const StrategyProfile &profile);
  *
  * @image html expl_player.png
  */
-double calcExploitability(Domain &domain, const BehavioralStrategy &strat,
+double calcExploitability(const Domain &domain, const BehavioralStrategy &strat,
                           Player pl, double gameValue);
 
 }
