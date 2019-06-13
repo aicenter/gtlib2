@@ -187,6 +187,7 @@ set(SOURCE_FILES
         base/hashing.h base/hashing.cpp
         base/includes.h
         base/random.h base/random.cpp
+        base/tree.h
         # domains
         domains/chessboard_factory.h domains/chessboard_factory.cpp
         domains/genericPoker.h domains/genericPoker.cpp
@@ -208,8 +209,7 @@ set(SOURCE_FILES
         utils/benchmark.h
         utils/export.cpp utils/export.h
         utils/range.h
-        utils/utils.h
-        utils/combinatorics.h utils/combinatorics.cpp
+        utils/utils.hutils/combinatorics.h utils/combinatorics.cpp
         utils/export.h utils/export.cpp
         )
 
