@@ -236,7 +236,7 @@ set(TEST_FILES
         tests/normalFormGameTest.cpp
         tests/randomGameTest.cpp
         tests/liarsDiceTest.cpp
-        )
+        tests/treeTest.cpp)
 
 # -------------------- Executables, linking --------------------
 

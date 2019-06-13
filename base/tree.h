@@ -25,6 +25,7 @@
 
 #include "base/includes.h"
 #include "base/hashing.h"
+#include "utils/utils.h"
 
 namespace GTLib2 {
 
@@ -68,6 +69,14 @@ class Node {
         return ss.str();
     }
 
+    // todo: friend ostream (doesn't work, dunno why)
+//    friend std::ostream &
+//    operator<<(std::ostream &ss, const Node<Parent, Child> &node) {
+//        ss << "∅";
+//        for (unsigned int edgeId : node.history_) ss << "," << edgeId;
+//        return ss;
+//    }
+
     const shared_ptr<Parent const> parent_;
     const unsigned int depth_;
     const EdgeId incomingEdge_;
@@ -103,24 +112,6 @@ void treeWalk(const shared_ptr <N> &node, const NodeCallback<N> &function) {
         treeWalk(node->getChildAt(i), function);
     }
 }
-
-/**
- * Simple example binary tree of depth 2
- */
-class ExampleNode: public Node<ExampleNode, ExampleNode>,
-                   public std::enable_shared_from_this<ExampleNode const> {
- public:
-    ExampleNode(shared_ptr<ExampleNode const> parent, EdgeId incomingEdge)
-        : Node(move(parent), incomingEdge) {}
-
-    inline unsigned int countChildren() {
-        if (depth_ < 2) return 2;
-        return 0;
-    }
-    inline const shared_ptr <ExampleNode> getChildAt(EdgeId index) {
-        return make_shared<ExampleNode>(shared_from_this(), index);
-    }
-};
 
 }
 
