@@ -28,7 +28,7 @@ namespace GTLib2::algorithms {
 
 
 bool Targetor::updateCurrentPosition(const optional<shared_ptr<AOH>> &infoset,
-                                     const optional<shared_ptr<EFGPublicState>> &pubState) {
+                                     const optional<shared_ptr<PublicState>> &pubState) {
     if (!infoset) {
         weightingFactor_ = 1.0;
         return true;
@@ -245,9 +245,9 @@ double OOSAlgorithm::handlePlayerNode(const shared_ptr<EFGNode> &h,
 
     if (h->getPlayer() == exploringPl)
         updateInfosetRegrets(h, exploringPl, data, ai, u_x, u_h,
-                             rm_h_opp * h->chanceReachProb_ / s_h_all);
+                             rm_h_opp * h->chanceReachProb() / s_h_all);
     else
-        updateInfosetAcc(h, data, rm_h_opp * h->chanceReachProb_ / s_h_all);
+        updateInfosetAcc(h, data, rm_h_opp * h->chanceReachProb() / s_h_all);
 
     return u_h;
 }
@@ -399,7 +399,7 @@ void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
             b = reach / s_h_all;
             break;
         case OOSSettings::WeightedAllPlayerBaseline:
-            reach = rm_h_pl * rm_h_opp * h->chanceReachProb_;
+            reach = rm_h_pl * rm_h_opp * h->chanceReachProb();
             a = reach * u_h;
             b = reach / s_h_all;
             break;

@@ -21,7 +21,7 @@
 
 #include "base/cache.h"
 
-#include "algorithms/tree.h"
+
 
 
 namespace GTLib2 {
@@ -132,21 +132,13 @@ void EFGCache::createNode(const shared_ptr<EFGNode> &node) {
                                          ? 0 : node->countAvailableActions(), nullptr));
 }
 
-void EFGCache::buildForest(int maxStateDepth) {
-    // Root node can have state depth of either
-    // 0 - it's a chance node which decides about the root distribution of outcomes
-    // 1 - it's another node that had previously only one outcome
-    if (rootNode_->stateDepth_ <= maxStateDepth
-        && nodesChildren_.find(rootNode_) == nodesChildren_.end()) {
-        processNode(rootNode_);
-    }
-
-    algorithms::treeWalkEFG(*this, [](shared_ptr<EFGNode> _) {}, maxStateDepth);
-    if (maxStateDepth >= domain_.getMaxStateDepth()) builtForest_ = true;
+void EFGCache::buildTree(int maxEfgDepth) {
+    builtForest_ = treeWalk(*this, [](shared_ptr<EFGNode> _) {}, maxEfgDepth);
 }
 
-void EFGCache::buildForest() {
-    buildForest(domain_.getMaxStateDepth());
+void EFGCache::buildTree() {
+    treeWalk(*this, [](shared_ptr<EFGNode> _) {});
+    builtForest_ = true;
 }
 
 void InfosetCache::createAugInfosets(const shared_ptr<EFGNode> &node) {
@@ -196,5 +188,41 @@ void PublicStateCache::createPublicState(const shared_ptr<EFGNode> &node) {
         maybePubStateInfo->second.emplace(infoset1);
     }
 }
+
+void treeWalk(EFGCache &cache, EFGNodeCallback function) {
+    auto traverse = [&](const shared_ptr<EFGNode> &node, const auto &traverse) {
+
+        // Call the provided function on the current node.
+        function(node);
+
+        if (node->type_ == TerminalNode) return;
+
+        for (const auto &action : node->availableActions()) {
+            traverse(cache.getChildFor(node, action), traverse);
+        }
+    };
+
+    traverse(cache.getRootNode(), traverse);
+}
+
+bool treeWalk(EFGCache &cache, EFGNodeCallback function, int maxEfgDepth) {
+    auto traverse = [&](const shared_ptr<EFGNode> &node, const auto &traverse) {
+
+        // Call the provided function on the current node.
+        function(node);
+
+        if (node->type_ == TerminalNode) return true;
+        if (node->efgDepth() == maxEfgDepth) return false;
+
+        bool entireTreeWalked = true;
+        for (const auto &action : node->availableActions()) {
+            entireTreeWalked = traverse(cache.getChildFor(node, action), traverse) && entireTreeWalked;
+        }
+        return entireTreeWalked;
+    };
+
+    return traverse(cache.getRootNode(), traverse);
+}
+
 
 } // namespace GTLib2

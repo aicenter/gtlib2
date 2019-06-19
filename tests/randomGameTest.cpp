@@ -23,7 +23,7 @@
 #include "algorithms/bestResponse.h"
 #include "algorithms/cfr.h"
 #include "algorithms/stats.h"
-#include "algorithms/tree.h"
+
 #include "algorithms/utility.h"
 #include "domains/randomGame.h"
 
@@ -32,7 +32,6 @@
 namespace GTLib2::domains {
 
 using algorithms::DomainStatistics;
-using algorithms::treeWalkEFG;
 
 bool gameConsistency(const RandomGameDomain &domain1, const RandomGameDomain &domain2) {
     unsigned int violations = 0;

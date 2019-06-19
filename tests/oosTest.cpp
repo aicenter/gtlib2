@@ -25,7 +25,7 @@
 #include "algorithms/bestResponse.h"
 #include "algorithms/cfr.h"
 #include "algorithms/oos.h"
-#include "algorithms/tree.h"
+
 #include "algorithms/utility.h"
 #include "algorithms/evaluation.h"
 #include "domains/goofSpiel.h"
@@ -94,7 +94,7 @@ TEST(OOS, CheckExploitabilityInSmallDomain) {
     const auto settings = OOSSettings();
 
     auto data = OOSData(domain);
-    data.buildForest();
+    data.buildTree();
     OOSAlgorithm oos(domain, Player(0), data, settings);
 
 
@@ -116,8 +116,8 @@ TEST(OOS, CheckExploitabilityInSmallDomain) {
              << actualExploitability << endl;
         prevIters = iters;
 
-        EXPECT_TRUE( fabs(floor(pow(10, j)) - floor(iters)) < 1e-5);
-        EXPECT_TRUE( fabs(expectedExploitabilities[j++] - actualExploitability) < 1e-5);
+        EXPECT_LE(fabs(floor(pow(10, j)) - floor(iters)), 1e-5);
+        EXPECT_LE(fabs(expectedExploitabilities[j++] - actualExploitability), 1e-5);
     }
 }
 
@@ -149,9 +149,9 @@ TEST(OOS, PlayMatchInSmallDomain) {
 
     for (int i = 0; i < 3; ++i) {
         auto data0 = OOSData(domain);
-        data0.buildForest();
+        data0.buildTree();
         auto data1 = OOSData(domain);
-        data1.buildForest();
+        data1.buildTree();
         vector<PreparedAlgorithm> algs = {
             createInitializer<FixedSamplingOOS>(data0, settings, samples0[i]),
             createInitializer<FixedSamplingOOS>(data1, settings, samples1[i])

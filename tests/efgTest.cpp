@@ -25,7 +25,7 @@
 #include "algorithms/bestResponse.h"
 #include "algorithms/cfr.h"
 #include "algorithms/strategy.h"
-#include "algorithms/tree.h"
+
 #include "algorithms/utility.h"
 #include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"

@@ -177,13 +177,13 @@ set(SOURCE_FILES
         algorithms/oos.h algorithms/oos.cpp
         algorithms/stats.h algorithms/stats.cpp
         algorithms/strategy.cpp algorithms/strategy.h
-        algorithms/tree.h algorithms/tree.cpp
         algorithms/utility.h algorithms/utility.cpp
         # base
         base/algorithm.cpp base/algorithm.h
         base/base.h base/base.cpp
         base/cache.cpp base/cache.h
         base/efg.h base/efg.cpp
+        base/fogefg.h base/fogefg.cpp
         base/hashing.h base/hashing.cpp
         base/includes.h
         base/random.h base/random.cpp
@@ -209,7 +209,8 @@ set(SOURCE_FILES
         utils/benchmark.h
         utils/export.cpp utils/export.h
         utils/range.h
-        utils/utils.hutils/combinatorics.h utils/combinatorics.cpp
+        utils/utils.hutils/combinatorics.h
+        utils/combinatorics.cpp
         utils/export.h utils/export.cpp
         )
 

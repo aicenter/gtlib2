@@ -31,8 +31,8 @@ namespace GTLib2::algorithms {
  * Capture various domain statistics, for each player if possible.
  */
 struct DomainStatistics {
-    int max_EFGDepth = 0;
-    int max_StateDepth = 0;
+    unsigned int max_EFGDepth = 0;
+    unsigned int max_StateDepth = 0;
 
     uint64_t num_nodes = 0;
     uint64_t num_terminals = 0;

@@ -228,4 +228,28 @@ inline bool is_positive_zero(double val) { return ((val == 0.0) && std::signbit(
     }
 
 
+#define _TYPE_DERIVE_OF_1(T, A)       std::is_base_of<A, T>::value
+#define _TYPE_DERIVE_OF_2(T, A, B)    std::is_base_of<A, T>::value && std::is_base_of<B, T>::value
+#define _TYPE_DERIVE_OF_3(T, A, ...)  std::is_base_of<A, T>::value && _TYPE_DERIVE_OF_2(T, __VA_ARGS__)
+#define _TYPE_DERIVE_OF_4(T, A, ...)  std::is_base_of<A, T>::value && _TYPE_DERIVE_OF_3(T, __VA_ARGS__)
+#define _TYPE_DERIVE_OF_5(T, A, ...)  std::is_base_of<A, T>::value && _TYPE_DERIVE_OF_4(T, __VA_ARGS__)
+#define _TYPE_DERIVE_OF_6(T, A, ...)  std::is_base_of<A, T>::value && _TYPE_DERIVE_OF_5(T, __VA_ARGS__)
+#define _TYPE_DERIVE_OF_7(T, A, ...)  std::is_base_of<A, T>::value && _TYPE_DERIVE_OF_6(T, __VA_ARGS__)
+#define _TYPE_DERIVE_OF_8(T, A, ...)  std::is_base_of<A, T>::value && _TYPE_DERIVE_OF_7(T, __VA_ARGS__)
+#define _TYPE_DERIVE_OF_9(T, A, ...)  std::is_base_of<A, T>::value && _TYPE_DERIVE_OF_8(T, __VA_ARGS__)
+
+// NUM_ARGS(...) evaluates to the literal number of the passed-in arguments.
+#define _NUM_ARGS2(X, X10, X9, X8, X7, X6, X5, X4, X3, X2, X1, N, ...) N
+#define NUM_ARGS(...) _NUM_ARGS2(0, __VA_ARGS__ ,10,9,8,7,6,5,4,3,2,1,0)
+
+#define _TYPE_DERIVE_OF_N3(T, N, ...)  _TYPE_DERIVE_OF_ ## N(T, __VA_ARGS__)
+#define _TYPE_DERIVE_OF_N2(T, N, ...)  _TYPE_DERIVE_OF_N3(T, N, __VA_ARGS__)
+
+// Syntactic sugar for templates (multiple inheritance types)
+#define TYPE_DERIVES_FROM(T, ...)                                  \
+    typename = typename std::enable_if<                            \
+        _TYPE_DERIVE_OF_N2(T, NUM_ARGS(__VA_ARGS__), __VA_ARGS__)  \
+    >::type
+
+
 #endif  // UTILS_UTILS_H_

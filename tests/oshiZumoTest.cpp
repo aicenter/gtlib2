@@ -23,7 +23,6 @@
 #include "algorithms/bestResponse.h"
 #include "algorithms/cfr.h"
 #include "algorithms/stats.h"
-#include "algorithms/tree.h"
 #include "algorithms/utility.h"
 #include "domains/oshiZumo.h"
 
@@ -32,7 +31,6 @@
 namespace GTLib2::domains {
 
 using algorithms::DomainStatistics;
-using algorithms::treeWalkEFG;
 
 
 OshiZumoDomain testDomainsOshiZumo[]{ // NOLINT(cert-err58-cpp)
@@ -192,7 +190,7 @@ TEST(Oshizumo, CorrectRewardsDistribution) {
             }
         }
     };
-    treeWalkEFG(ozd, getRewards);
+    treeWalk(ozd, getRewards);
 
     EXPECT_EQ(rew[0], 4);
     EXPECT_EQ(rew[1], 4);

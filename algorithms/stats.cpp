@@ -21,7 +21,7 @@
 
 #include "algorithms/stats.h"
 
-#include "algorithms/tree.h"
+#include "base/fogefg.h"
 
 
 namespace GTLib2::algorithms {
@@ -41,15 +41,15 @@ void calculateDomainStatistics(const Domain &domain, DomainStatistics *stats) {
     stats->num_infosets = vector<uint64_t>(numPlayers);
     stats->num_sequences = vector<uint64_t>(numPlayers);
 
-    auto countingFn = [&](shared_ptr<EFGNode> node) {
+    auto countingFn = [&](shared_ptr<FOG2EFGNode> node) {
         stats->num_nodes++;
 
-        if (!node->parent_ || node->parent_->stateDepth_ != node->stateDepth_) {
+        if (!node->parent_ || node->parent_->stateDepth() != node->stateDepth()) {
             stats->num_states++;
         }
 
-        stats->max_EFGDepth = max(stats->max_EFGDepth, node->efgDepth_);
-        stats->max_StateDepth = max(stats->max_StateDepth, node->stateDepth_);
+        stats->max_EFGDepth = max(stats->max_EFGDepth, node->efgDepth());
+        stats->max_StateDepth = max(stats->max_StateDepth, node->stateDepth());
 
         for (int i = 0; i < numPlayers; ++i) {
             const auto player = Player(i);
@@ -73,7 +73,8 @@ void calculateDomainStatistics(const Domain &domain, DomainStatistics *stats) {
         collectIS[player].emplace(infSet);
     };
 
-    treeWalkEFG(domain, countingFn, domain.getMaxStateDepth());
+    const auto rootNode = dynamic_pointer_cast<FOG2EFGNode>(createRootEFGNode(domain));
+    treeWalk<FOG2EFGNode>(rootNode, countingFn);
 
     for (int i = 0; i < domain.getNumberOfPlayers(); ++i) {
         stats->num_infosets[i] = collectIS[i].size();

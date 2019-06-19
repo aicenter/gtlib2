@@ -24,8 +24,16 @@
 #define GTLIB2_CACHE_H
 
 #include "base/efg.h"
+#include "base/fogefg.h"
 
 namespace GTLib2 {
+
+/**
+ * Vector of nodes after following a specified action id.
+ *
+ * Note that action ids are indexed from 0..N-1
+ */
+typedef vector<shared_ptr<EFGNode>> EFGChildNodes;
 
 
 /**
@@ -113,12 +121,12 @@ class EFGCache {
     /**
      * Create complete cache up to specified depth
      */
-    void buildForest(int maxStateDepth);
+    void buildTree(int maxEfgDepth);
 
     /**
      * Create complete cache up to the depth specified by the domain.
      */
-    void buildForest();
+    void buildTree();
 
     /**
      * Check if the command `buildForest` was called on this cache before.
@@ -235,11 +243,11 @@ class PublicStateCache: public virtual EFGCache {
       * Many EFGNodes can belong to one public state.
       * Many infosets can belong to one public state.
       */
-    unordered_map<shared_ptr<EFGNode>, shared_ptr<EFGPublicState>> node2publicState_;
-    unordered_map<shared_ptr<EFGPublicState>, unordered_set<shared_ptr<EFGNode>>>
+    unordered_map<shared_ptr<EFGNode>, shared_ptr<PublicState>> node2publicState_;
+    unordered_map<shared_ptr<PublicState>, unordered_set<shared_ptr<EFGNode>>>
         publicState2nodes_;
-    unordered_map<shared_ptr<AOH>, shared_ptr<EFGPublicState>> infoset2publicState_;
-    unordered_map<shared_ptr<EFGPublicState>, unordered_set<shared_ptr<AOH>>> publicState2infosets_;
+    unordered_map<shared_ptr<AOH>, shared_ptr<PublicState>> infoset2publicState_;
+    unordered_map<shared_ptr<PublicState>, unordered_set<shared_ptr<AOH>>> publicState2infosets_;
 
  public:
     inline explicit PublicStateCache(const Domain &domain) : EFGCache(domain) {
@@ -247,7 +255,7 @@ class PublicStateCache: public virtual EFGCache {
         this->createPublicState(getRootNode());
     }
 
-    inline bool hasPublicState(const shared_ptr<EFGPublicState> &pubState) {
+    inline bool hasPublicState(const shared_ptr<PublicState> &pubState) {
         return publicState2nodes_.find(pubState) != publicState2nodes_.end();
     }
     inline bool hasPublicState(const shared_ptr<EFGNode> &node) {
@@ -257,26 +265,26 @@ class PublicStateCache: public virtual EFGCache {
         return infoset2publicState_.find(infoset) != infoset2publicState_.end();
     }
 
-    inline const shared_ptr<EFGPublicState> &getPublicStateFor(const shared_ptr<EFGNode> &node) {
+    inline const shared_ptr<PublicState> &getPublicStateFor(const shared_ptr<EFGNode> &node) {
         return node2publicState_.at(node);
     }
 
-    inline const shared_ptr<EFGPublicState> &getPublicStateFor(const shared_ptr<AOH> &infoset) {
+    inline const shared_ptr<PublicState> &getPublicStateFor(const shared_ptr<AOH> &infoset) {
         return infoset2publicState_.at(infoset);
     }
 
 
     inline const unordered_set<shared_ptr<EFGNode>> &
-    getNodesFor(const shared_ptr<EFGPublicState> &state) {
+    getNodesFor(const shared_ptr<PublicState> &state) {
         return publicState2nodes_.at(state);
     }
 
     inline const unordered_set<shared_ptr<AOH>> &getInfosetsFor(
-        const shared_ptr<EFGPublicState> &pubState) {
+        const shared_ptr<PublicState> &pubState) {
         return publicState2infosets_.at(pubState);
     }
 
-    inline unordered_set<shared_ptr<AOH>> getInfosetsFor(const shared_ptr<EFGPublicState> &pubState,
+    inline unordered_set<shared_ptr<AOH>> getInfosetsFor(const shared_ptr<PublicState> &pubState,
                                                          Player pl) {
         const auto &infosets = publicState2infosets_.at(pubState);
         auto filteredSet = unordered_set<shared_ptr<AOH>>(infosets.size() / 2);
@@ -295,6 +303,18 @@ class PublicStateCache: public virtual EFGCache {
  private:
     void createPublicState(const shared_ptr<EFGNode> &node);
 };
+
+/**
+ * Call supplied function at each EFGNode of the EFG tree supplied by cache, including leaves.
+ * The tree is walked as DFS up to maximum depth.
+ */
+void treeWalk(EFGCache &cache, EFGNodeCallback function);
+
+/**
+ * Call supplied function at each EFGNode of the EFG tree supplied by cache, including leaves.
+ * The tree is walked as DFS up to maximum depth.
+ */
+bool treeWalk(EFGCache &cache, EFGNodeCallback function, int maxEfgDepth);
 
 } // namespace GTLib2
 

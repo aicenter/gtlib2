@@ -23,7 +23,7 @@
 #include "algorithms/bestResponse.h"
 #include "algorithms/common.h"
 #include "algorithms/equilibrium.h"
-#include "algorithms/tree.h"
+
 #include "algorithms/utility.h"
 #include "algorithms/strategy.h"
 #include "domains/goofSpiel.h"
@@ -94,10 +94,10 @@ TEST(BestResponse, GoofspielFullDepthCard4) {
 
         if(node->getPlayer() == opponent) {
             auto infoset = node->getAOHInfSet();
-            playOnlyAction(profile[opponent][infoset], actions[node->efgDepth_]);
+            playOnlyAction(profile[opponent][infoset], actions[node->efgDepth()]);
         }
     };
-    algorithms::treeWalkEFG(domain, setAction);
+    treeWalk(domain, setAction);
 
     auto bestResponse = algorithms::bestResponseTo(profile[opponent], player, domain);
 
@@ -121,13 +121,13 @@ TEST(BestResponse, GoofspielDepth2Card4) {
         if(node->type_ != PlayerNode) return;
 
         auto infoset = node->getAOHInfSet();
-        if (node->efgDepth_ == 1) {
+        if (node->efgDepth() == 1) {
             playOnlyAction(profile[opponent][infoset], lowestCardAction);
-        } else if (node->efgDepth_ == 4) {
+        } else if (node->efgDepth() == 4) {
             playOnlyAction(profile[opponent][infoset], secondLowestCardAction);
         }
     };
-    algorithms::treeWalkEFG(domain, setAction);
+    treeWalk(domain, setAction);
 
     auto bestResponse = algorithms::bestResponseTo(profile[opponent], player, domain);
     EXPECT_LE(std::abs(bestResponse.value - 5), 0.001);
@@ -150,12 +150,12 @@ TEST(BestResponse, GoofspielDepth2Card4) {
 //    auto setAction = [&](shared_ptr<EFGNode> node) {
 //        if(node->type_ != PlayerNode) return;
 //
-//        if (node->efgDepth_ == 1) {
+//        if (node->efgDepth() == 1) {
 //            auto infoset = node->getAOHInfSet();
 //            playOnlyAction(profile[opponent][infoset], lowestCardAction);
 //        }
 //    };
-//    algorithms::treeWalkEFG(domain, setAction, 1);
+//    treeWalk(domain, setAction, 1);
 //
 //    auto bestResponse = algorithms::bestResponseTo(profile[opponent], opponent, player, domain);
 //    EXPECT_LE(std::abs(bestResponse.value - 7), 0.001);

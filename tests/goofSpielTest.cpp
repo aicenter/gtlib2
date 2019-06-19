@@ -25,7 +25,7 @@
 #include "algorithms/cfr.h"
 #include "algorithms/common.h"
 #include "algorithms/equilibrium.h"
-#include "algorithms/tree.h"
+
 #include "algorithms/stats.h"
 #include "algorithms/utility.h"
 #include "algorithms/strategy.h"
@@ -37,7 +37,6 @@
 namespace GTLib2::domains {
 
 using algorithms::DomainStatistics;
-using algorithms::treeWalkEFG;
 using algorithms::getUniformStrategy;
 using algorithms::playOnlyAction;
 
@@ -207,11 +206,11 @@ TEST(Goofspiel, checkBinaryUtilities) {
     };
 
     numViolations = 0;
-    treeWalkEFG(binary, binaryChecker);
+    treeWalk(binary, binaryChecker);
     EXPECT_EQ(numViolations, 0);
 
     numViolations = 0;
-    treeWalkEFG(nonBinary, binaryChecker);
+    treeWalk(nonBinary, binaryChecker);
     EXPECT_EQ(numViolations, 42);
 }
 

@@ -24,7 +24,7 @@
 #define GTLIB2_STRATEGY_H
 
 #include "algorithms/cfr.h"
-#include "algorithms/tree.h"
+
 #include "algorithms/common.h"
 #include "algorithms/utility.h"
 
@@ -52,23 +52,15 @@ struct StrategyValue {
     }
 };
 
-StrategyProfile getAverageStrategy(CFRData &data, int maxDepth);
-
 /**
  * Calculate average strategy profile for each player.
  */
-inline StrategyProfile getAverageStrategy(CFRData &data) {
-    return getAverageStrategy(data, data.getDomainMaxStateDepth());
-}
-
-StrategyProfile getUniformStrategy(InfosetCache &data, int maxDepth);
+StrategyProfile getAverageStrategy(CFRData &data);
 
 /**
  * Create strategy profile where both players play with uniform strategies.
  */
-inline StrategyProfile getUniformStrategy(InfosetCache &data) {
-    return getUniformStrategy(data, data.getDomainMaxStateDepth());
-}
+StrategyProfile getUniformStrategy(InfosetCache &data);
 
 /**
  * Play selected action with 100% probability in given distribution

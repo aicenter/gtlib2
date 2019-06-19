@@ -25,7 +25,7 @@
 
 #include "base/random.h"
 #include "algorithms/cfr.h"
-#include "algorithms/tree.h"
+
 #include "algorithms/common.h"
 
 
@@ -124,7 +124,7 @@ class Targetor {
         cache_(cache), targeting_(type), targetBiasing_(targetBiasing) {};
 
     bool updateCurrentPosition(const optional<shared_ptr<AOH>> &infoset,
-                               const optional<shared_ptr<EFGPublicState>> &pubState);
+                               const optional<shared_ptr<PublicState>> &pubState);
     bool isAllowedAction(const shared_ptr<EFGNode> &h, const shared_ptr<Action> &action);
 
     /**
@@ -142,7 +142,7 @@ class Targetor {
  private:
     double weightingFactor_ = 1.0;
     shared_ptr<AOH> currentInfoset_;
-    shared_ptr<EFGPublicState> currentPubState_;
+    shared_ptr<PublicState> currentPubState_;
 
     const OOSData &cache_;
     const OOSSettings::Targeting targeting_;
@@ -321,7 +321,7 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
     bool isBelowTargetIS_ = false;
 
     optional<shared_ptr<AOH>> playInfoset_ = nullopt;
-    optional<shared_ptr<EFGPublicState>> playPublicState_ = nullopt;
+    optional<shared_ptr<PublicState>> playPublicState_ = nullopt;
 };
 
 }  // namespace GTLib2

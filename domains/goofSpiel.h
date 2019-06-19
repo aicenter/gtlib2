@@ -45,7 +45,7 @@ struct GoofSpielSettings {
 
     bool binaryTerminalRewards = false;
 
-    void shuffleChanceCards(unsigned int seed);
+    void shuffleChanceCards(unsigned long seed);
     vector<int> getNatureCards();
 };
 

@@ -24,6 +24,7 @@
 #include <chrono>
 
 #include "base/random.h"
+#include "base/fogefg.h"
 #include "algorithms/common.h"
 
 namespace GTLib2 {
@@ -86,7 +87,7 @@ FixedActionPlayer::FixedActionPlayer(const Domain &domain, Player playingPlayer,
 
 PlayControl FixedActionPlayer::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
     if (cache_.isCompletelyBuilt()) return StopImproving;
-    cache_.buildForest();
+    cache_.buildTree();
     return StopImproving;
 }
 
@@ -124,7 +125,7 @@ vector<double> playMatch(const Domain &domain,
     auto generator = std::mt19937(matchSeed);
 
     shared_ptr<EFGNode> node = createRootEFGNode(domain.getRootStatesDistribution());
-
+//    node->
     while (node->type_ != TerminalNode) {
         int playerAction;
         auto actions = node->availableActions();

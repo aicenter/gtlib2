@@ -44,10 +44,11 @@ const StrategyValue &_bestResponse(const BehavioralStrategy &opoStrat,
     if (node->type_ == TerminalNode) {
         const double reachOpponent = node->getProbabilityOfActionSeq(opponent(responder), opoStrat);
         const double nodeValue = node->getUtilities()[responder]
-            * reachOpponent * node->chanceReachProb_;
+            * reachOpponent * node->chanceReachProb();
         assert(nodeValue <= domain.getMaxUtility());
         assert(nodeValue >= domain.getMinUtility());
         auto[it, result] = cache.emplace(node, StrategyValue(BehavioralStrategy(), nodeValue));
+//        cout << node->getHistory() << " ::  " << node->getUtilities() << " :: " << it->second.value << "\n";
         return it->second;
     }
 
@@ -324,7 +325,7 @@ StrategyValue bestResponseToPrunning(const BehavioralStrategy &opoStrat,
             nodesInInfSet[infSet].emplace_back(node, node->chanceReachProb_);
         }
     };
-    treeWalkEFG(domain, getAllNodesInInfSet, maxDepth);
+    treeWalk(domain, getAllNodesInInfSet, maxDepth);
 
     auto initNodesProb = createRootEFGNode(
         domain.getRootStatesDistribution());

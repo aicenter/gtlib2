@@ -20,8 +20,8 @@
 */
 
 #include "algorithms/common.h"
+#include "base/fogefg.h"
 
-#include "algorithms/tree.h"
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
@@ -45,7 +45,7 @@ BehavioralStrategy mixedToBehavioralStrategy(const Domain &domain,
         }
     };
 
-    treeWalkEFG(domain, updateBehavStrategy, domain.getMaxStateDepth());
+    treeWalk(domain, updateBehavStrategy);
 
     for (int i = 0; i < pureStrats.size(); ++i) {
         for (const auto &pureStrat : pureStrats[i]) {

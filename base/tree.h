@@ -38,30 +38,38 @@ class Node {
 //    static_assert(std::is_base_of<Node, Parent>::value, "Parent must derive from the Node class");
 //    static_assert(std::is_base_of<Node, Child>::value, "Child must derive from the Node class");
  public:
-    explicit Node(shared_ptr<Parent const> parent, EdgeId incomingEdge) :
+    explicit Node(shared_ptr<Parent const> parent, optional<EdgeId> incomingEdge) :
         parent_(move(parent)),
         depth_(parent_ == nullptr ? 0 : parent_->depth_ + 1),
         incomingEdge_(incomingEdge),
         history_(parent_ == nullptr
                  ? vector<EdgeId>()
-                 : extend(parent_->history_, incomingEdge)),
-        hashNode_(hashWithSeed(history_.data(), history_.size() * sizeof(EdgeId), 1412914847)) {}
+                 : extend(parent_->history_, *incomingEdge)),
+        hashNode_(hashWithSeed(history_.data(), history_.size() * sizeof(EdgeId), 1412914847)) {
+        assert((parent_ == nullptr && incomingEdge == nullopt)
+                   || (parent_ != nullptr && incomingEdge != nullopt));
+    }
 
-    virtual unsigned int countChildren() = 0;
-    virtual const shared_ptr <Child> getChildAt(EdgeId index) = 0;
+    // Root node constructor
+    inline Node() : Node(nullptr, nullopt) {}
 
-    // used for template overloading in hashCombine
+    inline Node(const Node &other) {
+        parent_ = other.parent_;
+        incomingEdge_ = other.incomingEdge_;
+        depth_ = other.depth_;
+        history_ = other.history_;
+        hashNode_ = other.hashNode_;
+    }
+
+    ~Node() = default;
+
     inline HashType getHash() const { return hashNode_; };
-
     inline bool operator==(const Node &rhs) const {
         if (hashNode_ != rhs.hashNode_) return false;
         if (history_.size() != rhs.history_.size()) return false;
         return !memcmp(history_.data(), rhs.history_.data(), history_.size());
     }
 
-    /**
-     * Return textual representation of node history
-     */
     string toString() const {
         std::stringstream ss;
         ss << "∅";
@@ -69,49 +77,60 @@ class Node {
         return ss.str();
     }
 
-    // todo: friend ostream (doesn't work, dunno why)
-//    friend std::ostream &
-//    operator<<(std::ostream &ss, const Node<Parent, Child> &node) {
-//        ss << "∅";
-//        for (unsigned int edgeId : node.history_) ss << "," << edgeId;
-//        return ss;
-//    }
+    // these are both const because we don't want caching
+    virtual unsigned int countChildren() const = 0;
+    virtual const shared_ptr <Child> getChildAt(EdgeId index) const = 0;
+
+    bool isRoot() { return parent_ == nullptr; }
+    bool isLeaf() { return countChildren() == 0; }
 
     const shared_ptr<Parent const> parent_;
     const unsigned int depth_;
-    const EdgeId incomingEdge_;
+    const optional <EdgeId> incomingEdge_;
     const vector <EdgeId> history_;
  private:
     const HashType hashNode_;
 };
 
-template<class N>
-using NodeCallback = function<void(shared_ptr < N > )>;
+template<class Node>
+using NodeCallback = function<void(shared_ptr < Node > )>;
 
 /**
  * Call supplied function at each node of the tree, including leaves.
  * The tree is walked as DFS up to maximum specified depth.
+ *
+ * @return whether the entire tree has been walked
  */
-template<class N>
-void treeWalk(const shared_ptr <N> &node, const NodeCallback<N> &function, int maxDepth) {
+template<class Node>
+bool treeWalk(const shared_ptr <Node> &node, const NodeCallback<Node> &function, int maxDepth) {
     function(node);
-    if (node->depth_ >= maxDepth) return;
+    if (node->depth_ >= maxDepth) return node->countChildren() == 0;
+
+    bool entireTreeWalked = true;
     for (EdgeId i = 0; i < node->countChildren(); ++i) {
-        treeWalk(node->getChildAt(i), function, maxDepth);
+        entireTreeWalked = treeWalk(node->getChildAt(i), function, maxDepth) && entireTreeWalked;
     }
+    return entireTreeWalked;
 }
 
 /**
  * Call supplied function at each node of the tree, including leaves,
  * with no restriction to depth of the tree walk.
  */
-template<class N>
-void treeWalk(const shared_ptr <N> &node, const NodeCallback<N> &function) {
+template<class Node>
+void treeWalk(const shared_ptr <Node> &node, const NodeCallback<Node> &function) {
     function(node);
     for (EdgeId i = 0; i < node->countChildren(); ++i) {
         treeWalk(node->getChildAt(i), function);
     }
 }
+
+//treeFold
+//treeMap
+//treeWalkDFS
+//treeWalkBFS
+
+
 
 }
 

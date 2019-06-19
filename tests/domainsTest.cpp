@@ -22,7 +22,7 @@
 #include "base/base.h"
 #include "tests/domainsTest.h"
 
-#include "algorithms/tree.h"
+#include "base/cache.h"
 #include "algorithms/common.h"
 
 #include "domains/genericPoker.h"
@@ -35,7 +35,6 @@
 
 namespace GTLib2::domains {
 
-using algorithms::treeWalkEFG;
 using GoofSpielVariant::IncompleteObservations;
 using GoofSpielVariant::CompleteObservations;
 
@@ -46,7 +45,7 @@ bool isDomainZeroSum(const Domain &domain) {
       if (node->getUtilities()[0] != -node->getUtilities()[1]) num_violations++;
     };
 
-    treeWalkEFG(domain, countViolations, domain.getMaxStateDepth());
+    treeWalk(domain, countViolations);
     return num_violations == 0;
 }
 
@@ -54,7 +53,7 @@ bool isDomainZeroSum(const Domain &domain) {
 //bool isEFGNodeAndStateConsistent(const Domain &domain) {
 //    int num_violations = 0;
 //    EFGCache cache(domain);
-//    cache.buildForest(domain.getMaxStateDepth());
+//    cache.buildTree(domain.getMaxStateDepth());
 //    auto nodes = cache.getNodes();
 //    for (const auto &n1: nodes) {
 //        for (const auto &n2: nodes) {
@@ -76,7 +75,7 @@ bool areAvailableActionsSorted(const Domain &domain) {
       }
     };
 
-    treeWalkEFG(domain, countViolations, domain.getMaxStateDepth());
+    treeWalk(domain, countViolations);
     return num_violations == 0;
 }
 
@@ -88,18 +87,18 @@ double domainFindMaxUtility(const Domain &domain) {
 //      std::cout << node->getUtilities()[0] << " " << node->getUtilities()[1] << " "<< maxLeafUtility << std::endl;
     };
 
-    treeWalkEFG(domain, traverse, domain.getMaxStateDepth());
+    treeWalk(domain, traverse);
     return maxLeafUtility;
 }
 
 double domainFindMaxDepth(const Domain &domain) {
-
-    int maxDepth = 0;
-    auto countViolations = [&maxDepth](shared_ptr<EFGNode> node) {
-      maxDepth = max(node->stateDepth_, maxDepth);
+    unsigned int maxDepth = 0;
+    const auto countViolations = [&maxDepth](shared_ptr<FOG2EFGNode> node) {
+        maxDepth = max(node->stateDepth(), maxDepth);
     };
+    const auto rootNode = dynamic_pointer_cast<FOG2EFGNode>(createRootEFGNode(domain));
 
-    treeWalkEFG(domain, countViolations, domain.getMaxStateDepth());
+    treeWalk<FOG2EFGNode>(rootNode, countViolations);
     return maxDepth;
 }
 
@@ -134,7 +133,7 @@ bool isActionGenerationAndAOHConsistent(const Domain &domain) {
           }
       }
     };
-    treeWalkEFG(domain, countViolations, domain.getMaxStateDepth());
+    treeWalk(domain, countViolations);
 
     return num_violation == 0;
 }
@@ -165,7 +164,7 @@ bool isActionGenerationAndAOHConsistent(const Domain &domain) {
 //        }
 //    };
 //
-//    treeWalkEFG(domain, countViolations, domain.getMaxStateDepth());
+//    treeWalk(domain, countViolations, domain.getMaxStateDepth());
 //    return num_violations == 0;
 //}
 

@@ -25,7 +25,6 @@
 
 #include "algorithms/utility.h"
 
-#include "algorithms/tree.h"
 #include "algorithms/strategy.h"
 
 namespace GTLib2::algorithms {
@@ -88,7 +87,7 @@ createInfosetsAndActions(const Domain &domain, const Player player) {
         infosetsActions[infoset] = node->availableActions();
     };
 
-    treeWalkEFG(domain, extract, domain.getMaxStateDepth());
+    treeWalk(domain, extract);
     return infosetsActions;
 }
 

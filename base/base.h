@@ -409,6 +409,9 @@ class Domain {
 
     /**
      * Returns default maximal depth used in algorithms.
+     *
+     * Note that the "depth 0" corresponds to the root outcomes, so state after the root outcome
+     * has a state depth of 1 (there has been already one transition in the graph)
      */
     inline unsigned int getMaxStateDepth() const { return maxStateDepth_; }
 

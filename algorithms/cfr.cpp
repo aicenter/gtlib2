@@ -21,7 +21,6 @@
 
 #include "algorithms/cfr.h"
 
-#include "algorithms/tree.h"
 #include "algorithms/common.h"
 #include "algorithms/utility.h"
 
@@ -39,7 +38,7 @@ CFRAlgorithm::CFRAlgorithm(const Domain &domain,
 PlayControl CFRAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
     if (currentInfoset == nullopt) {
         if (cache_.isCompletelyBuilt()) return StopImproving;
-        cache_.buildForest();
+        cache_.buildTree();
         return StopImproving;
     }
 
@@ -88,14 +87,14 @@ void CFRAlgorithm::nodeUpdateRegrets(const shared_ptr<EFGNode> &node) {
 
 void CFRAlgorithm::delayedApplyRegretUpdates() {
     if (settings_.cfrUpdating == InfosetsUpdating) {
-        algorithms::treeWalkEFG(cache_, [&](shared_ptr<EFGNode> node) { nodeUpdateRegrets(node); });
+        treeWalk(cache_, [&](shared_ptr<EFGNode> node) { nodeUpdateRegrets(node); });
     }
 }
 
 
 void CFRAlgorithm::runIterations(int numIterations) {
     if (!cache_.isCompletelyBuilt()) {
-        cache_.buildForest();
+        cache_.buildTree();
     }
 
     for (int i = 0; i < numIterations; ++i) {

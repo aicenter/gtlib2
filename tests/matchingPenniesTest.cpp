@@ -24,7 +24,7 @@
 #include "algorithms/bestResponse.h"
 #include "algorithms/common.h"
 #include "algorithms/equilibrium.h"
-#include "algorithms/tree.h"
+
 #include "algorithms/stats.h"
 #include "algorithms/utility.h"
 #include "algorithms/strategy.h"

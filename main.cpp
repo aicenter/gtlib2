@@ -32,6 +32,7 @@
 using namespace GTLib2;
 
 using domains::GoofSpielDomain;
+using domains::MatchingPenniesDomain;
 using domains::GoofSpielVariant::CompleteObservations;
 using domains::GoofSpielVariant::IncompleteObservations;
 using utils::exportGraphViz;
@@ -45,7 +46,7 @@ void exampleBenchmarkCFR() {
     algorithms::CFRAlgorithm cfr(domain, cache, Player(0), settings);
 
     auto totalTime = benchmark([&]() {
-        cout << "Build time: " << benchmark([&]() { cfr.getCache().buildForest(); }) << " ms" << endl;
+        cout << "Build time: " << benchmark([&]() { cfr.getCache().buildTree(); }) << " ms" << endl;
         cout << "Iters Time: " << benchmark([&]() { cfr.runIterations(100); }) << " ms" << endl;
     });
     cout << "Total Time: " << totalTime << " ms" << endl;
@@ -73,11 +74,13 @@ void exampleExportDomain() {
     // you can run this for visualization
     // $ dot -Tsvg iigs3_seed.dot -o iigs3_seed.svg
     exportGraphViz(iigs3_seed, "./iigs3_seed.dot");
+    exportGraphViz(iigs3, "./iigs3.dot");
+    exportGraphViz(MatchingPenniesDomain(), "./mp.dot");
     exportGraphViz(domains::RPSDomain(), "./rps.dot");
 }
 
 int main(int argc, char *argv[]) {
-    exampleBenchmarkCFR();
+//    exampleBenchmarkCFR();
     exampleExportDomain();
     return 0;
 }

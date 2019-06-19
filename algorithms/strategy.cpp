@@ -24,7 +24,7 @@
 namespace GTLib2::algorithms {
 
 
-StrategyProfile getAverageStrategy(CFRData &data, int maxDepth) {
+StrategyProfile getAverageStrategy(CFRData &data) {
     auto profile = StrategyProfile(2);
     auto getStrategy = [&profile, &data](shared_ptr<EFGNode> node) {
         if (node->type_ != PlayerNode) return;
@@ -38,13 +38,13 @@ StrategyProfile getAverageStrategy(CFRData &data, int maxDepth) {
         playerStrategy->emplace(
             infoSet, mapDistribution(calcAvgProbs(acc), node->availableActions()));
     };
-    treeWalkEFG(data, getStrategy, maxDepth);
+    treeWalk(data, getStrategy);
 
     return profile;
 }
 
 
-StrategyProfile getUniformStrategy(InfosetCache &data, int maxDepth) {
+StrategyProfile getUniformStrategy(InfosetCache &data) {
     auto profile = StrategyProfile(2);
     auto getStrategy = [&profile, &data](shared_ptr<EFGNode> node) {
         if (node->type_ != PlayerNode) return;
@@ -60,7 +60,7 @@ StrategyProfile getUniformStrategy(InfosetCache &data, int maxDepth) {
             infoSet, mapDistribution(
                 ProbDistribution(numActions, 1. / numActions), actions));
     };
-    treeWalkEFG(data, getStrategy, maxDepth);
+    treeWalk(data, getStrategy);
 
     return profile;
 }

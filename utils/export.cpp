@@ -23,7 +23,7 @@
 
 #include <iomanip>
 
-#include "algorithms/tree.h"
+#include "base/fogefg.h"
 #include "algorithms/common.h"
 
 namespace GTLib2::utils {
@@ -32,7 +32,6 @@ using std::setw;
 using std::setfill;
 using std::hex;
 using std::ofstream;
-using algorithms::treeWalkEFG;
 
 
 struct Color {
@@ -125,7 +124,7 @@ void exportGraphViz(const Domain &domain, std::ostream &fs) {
 //    label = "The foo, the bar and the baz";
 //    labelloc = "t"; // place the label at the top (b seems to be default)
 
-    auto walkPrint = [&fs, &domain](shared_ptr<EFGNode> node) {
+    auto walkPrint = [&fs, &domain](shared_ptr<FOG2EFGNode> node) {
         string color = getColor(node);
         string shape = getShape(node);
 
@@ -145,7 +144,7 @@ void exportGraphViz(const Domain &domain, std::ostream &fs) {
            << ",shape=\"" << shape << "\"]\n";
 
         for (auto &action : node->availableActions()) {
-            auto child = node->performAction(action);
+            auto child = dynamic_pointer_cast<FOG2EFGNode>(node->performAction(action));
 
             // Print edges
             fs << "\t\"" << node->toString() << "\""
@@ -154,8 +153,8 @@ void exportGraphViz(const Domain &domain, std::ostream &fs) {
                << " [label=\"" << action->toString() << "\"]\n";
         }
     };
-
-    treeWalkEFG(domain, walkPrint);
+    const auto rootNode = dynamic_pointer_cast<FOG2EFGNode>(createRootEFGNode(domain));
+    treeWalk<FOG2EFGNode>(rootNode, walkPrint);
 
     fs << "}\n";
 }
@@ -190,11 +189,11 @@ void exportGambit(const Domain &domain, std::ostream &fs) {
 
 //        string nodeLabel = node->toString();
         string nodeLabel = "";
-        for (int j = 0; j < node->efgDepth_; ++j) fs << " ";
+        for (int j = 0; j < node->efgDepth(); ++j) fs << " ";
 
         switch (node->type_) {
             case ChanceNode: {
-                for (int j = 0; j < node->efgDepth_; ++j) fs << " ";
+                for (int j = 0; j < node->efgDepth(); ++j) fs << " ";
                 fs << "c \"" << nodeLabel << "\" " << chanceIdx++ << " \"\" { ";
                 int i = 0;
                 for (const auto &chanceProb : node->chanceProbs()) {
@@ -236,7 +235,7 @@ void exportGambit(const Domain &domain, std::ostream &fs) {
         }
     };
 
-    treeWalkEFG(domain, walkPrint);
+    treeWalk(domain, walkPrint);
 }
 
 void exportGambit(const Domain &domain, const string &fileToSave) {

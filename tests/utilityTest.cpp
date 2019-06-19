@@ -27,7 +27,7 @@
 #include "algorithms/equilibrium.h"
 #include "algorithms/stats.h"
 #include "algorithms/strategy.h"
-#include "algorithms/tree.h"
+
 #include "algorithms/utility.h"
 #include "domains/goofSpiel.h"
 #include "tests/domainsTest.h"
@@ -60,26 +60,26 @@ TEST(Utility, ComputeUtilityFullDepthCard4) {
         if(node->type_ != PlayerNode) return;
 
         auto infoset = node->getAOHInfSet();
-        if (node->efgDepth_ == 0) {
+        if (node->efgDepth() == 0) {
             playOnlyAction(profile[opponent][infoset], lowestCardAction);
-        } else if (node->efgDepth_ == 2) {
+        } else if (node->efgDepth() == 2) {
             playOnlyAction(profile[opponent][infoset], secondLowestCardAction);
-        } else if (node->efgDepth_ == 4) {
+        } else if (node->efgDepth() == 4) {
             playOnlyAction(profile[opponent][infoset], thirdLowestCardAction);
-        } else if (node->efgDepth_ == 6) {
+        } else if (node->efgDepth() == 6) {
             playOnlyAction(profile[opponent][infoset], fourthLowestCardAction);
-        } else if (node->efgDepth_ == 1) {
+        } else if (node->efgDepth() == 1) {
             playOnlyAction(profile[player][infoset], lowestCardAction);
-        } else if (node->efgDepth_ == 3) {
+        } else if (node->efgDepth() == 3) {
             playOnlyAction(profile[player][infoset], secondLowestCardAction);
-        } else if (node->efgDepth_ == 5) {
+        } else if (node->efgDepth() == 5) {
             playOnlyAction(profile[player][infoset], thirdLowestCardAction);
-        } else if (node->efgDepth_ == 7) {
+        } else if (node->efgDepth() == 7) {
             playOnlyAction(profile[player][infoset], fourthLowestCardAction);
         }
 
     };
-    algorithms::treeWalkEFG(domain, setAction);
+    treeWalk(domain, setAction);
 
     auto utility = algorithms::computeUtilitiesTwoPlayerGame(domain, profile)[1];
     EXPECT_LE(std::abs(utility - 0), 0.001);
