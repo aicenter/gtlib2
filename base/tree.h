@@ -40,8 +40,6 @@ class Node {
  public:
     explicit Node(shared_ptr<Parent const> parent, optional<EdgeId> incomingEdge) :
         parent_(move(parent)),
-        depth_(parent_ == nullptr ? 0 : parent_->depth_ + 1),
-        incomingEdge_(incomingEdge),
         history_(parent_ == nullptr
                  ? vector<EdgeId>()
                  : extend(parent_->history_, *incomingEdge)),
@@ -55,8 +53,6 @@ class Node {
 
     inline Node(const Node &other) {
         parent_ = other.parent_;
-        incomingEdge_ = other.incomingEdge_;
-        depth_ = other.depth_;
         history_ = other.history_;
         hashNode_ = other.hashNode_;
     }
@@ -77,16 +73,9 @@ class Node {
         return ss.str();
     }
 
-    // these are both const because we don't want caching
-    virtual unsigned int countChildren() const = 0;
-    virtual const shared_ptr <Child> getChildAt(EdgeId index) const = 0;
-
     bool isRoot() { return parent_ == nullptr; }
-    bool isLeaf() { return countChildren() == 0; }
 
     const shared_ptr<Parent const> parent_;
-    const unsigned int depth_;
-    const optional <EdgeId> incomingEdge_;
     const vector <EdgeId> history_;
  private:
     const HashType hashNode_;
@@ -95,6 +84,12 @@ class Node {
 template<class Node>
 using NodeCallback = function<void(shared_ptr < Node > )>;
 
+template<class Node>
+using NodeChildCnt = function<unsigned int(shared_ptr < Node > )>;
+
+template<class Node>
+using NodeChildExpander = function<shared_ptr<Node>(shared_ptr < Node >, EdgeId i)>;
+
 /**
  * Call supplied function at each node of the tree, including leaves.
  * The tree is walked as DFS up to maximum specified depth.
@@ -102,13 +97,18 @@ using NodeCallback = function<void(shared_ptr < Node > )>;
  * @return whether the entire tree has been walked
  */
 template<class Node>
-bool treeWalk(const shared_ptr <Node> &node, const NodeCallback<Node> &function, int maxDepth) {
-    function(node);
-    if (node->depth_ >= maxDepth) return node->countChildren() == 0;
+bool treeWalk(const shared_ptr <Node> &node,
+              const NodeCallback<Node> &callback,
+              const NodeChildCnt<Node> &cntChildren,
+              const NodeChildExpander<Node> &childAt,
+              unsigned int maxDepth) {
+    callback(node);
+    if (node->depth_ >= maxDepth) return cntChildren(node) == 0;
 
     bool entireTreeWalked = true;
-    for (EdgeId i = 0; i < node->countChildren(); ++i) {
-        entireTreeWalked = treeWalk(node->getChildAt(i), function, maxDepth) && entireTreeWalked;
+    for (EdgeId i = 0; i < cntChildren(node); ++i) {
+        entireTreeWalked = treeWalk(node->getChildAt(i), callback, cntChildren, childAt, maxDepth)
+            && entireTreeWalked;
     }
     return entireTreeWalked;
 }
@@ -118,10 +118,13 @@ bool treeWalk(const shared_ptr <Node> &node, const NodeCallback<Node> &function,
  * with no restriction to depth of the tree walk.
  */
 template<class Node>
-void treeWalk(const shared_ptr <Node> &node, const NodeCallback<Node> &function) {
-    function(node);
-    for (EdgeId i = 0; i < node->countChildren(); ++i) {
-        treeWalk(node->getChildAt(i), function);
+void treeWalk(const shared_ptr <Node> &node,
+              const NodeCallback<Node> &callback,
+              const NodeChildCnt<Node> &cntChildren,
+              const NodeChildExpander<Node> &childAt) {
+    callback(node);
+    for (EdgeId i = 0; i < cntChildren(node); ++i) {
+        treeWalk(childAt(node, i), callback, cntChildren, childAt);
     }
 }
 

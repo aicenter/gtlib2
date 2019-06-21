@@ -69,13 +69,17 @@ class EFGChanceAction: public Action {
 };
 
 
-class PublicState : public Node<PublicState, PublicState> {
+class PublicState: public Node<PublicState, PublicState> {
  public:
     inline PublicState() : Node() {}
-    inline PublicState(shared_ptr<PublicState const> parent, optional <ObservationId> publicObs) :
+    inline PublicState(shared_ptr<PublicState const> parent, ObservationId publicObs) :
         Node(move(parent), publicObs) {}
-    unsigned int countChildren() const override { return 0; };
-    const shared_ptr <PublicState> getChildAt(EdgeId index) const override { return nullptr; };
+
+    const vector<ActionId> &getHistory() const { return history_; };
+
+//    const shared_ptr<Observation> incomingObservation_;
+//    unsigned int countChildren() const override { return 0; };
+//    const shared_ptr <PublicState> getChildAt(EdgeId index) const override { return nullptr; };
 };
 
 /**
@@ -164,8 +168,10 @@ class EFGNode {
 
     virtual const vector<ActionId> &getHistory() const = 0;
 
-    virtual double getProbabilityOfActionSeq(Player player, const BehavioralStrategy &strat) const = 0; // todo: remove
-    virtual shared_ptr<ActionSequence> getActionsSeqOfPlayer(Player player) const = 0; // todo: remove
+    virtual double getProbabilityOfActionSeq(Player player,
+                                             const BehavioralStrategy &strat) const = 0; // todo: remove
+    virtual shared_ptr<ActionSequence>
+    getActionsSeqOfPlayer(Player player) const = 0; // todo: remove
     virtual HashType getHash() const = 0;
 
     inline bool operator==(const EFGNode &rhs) const {
@@ -179,7 +185,13 @@ class EFGNode {
      * Return the public state of the node based on public observation history.
      */
     inline shared_ptr<PublicState> getPublicState() const {
-        return make_shared<PublicState>(); // todo: finish
+        if (getParent()) {
+            const auto parentPub = getParent()->getPublicState();
+            const auto pubHistory = getPubObsIds();
+            if (parentPub->getHistory() == pubHistory) return parentPub;
+            return make_shared<PublicState>(parentPub, pubHistory.back());
+        }
+        return make_shared<PublicState>();
     };
 
     /**
@@ -222,7 +234,6 @@ class EFGNode {
     const Player currentPlayer_;
     const vector<double> utilities_;
 };
-
 
 };  // namespace GTLib2
 

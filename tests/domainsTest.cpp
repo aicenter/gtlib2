@@ -96,9 +96,9 @@ double domainFindMaxDepth(const Domain &domain) {
     const auto countViolations = [&maxDepth](shared_ptr<FOG2EFGNode> node) {
         maxDepth = max(node->stateDepth(), maxDepth);
     };
-    const auto rootNode = dynamic_pointer_cast<FOG2EFGNode>(createRootEFGNode(domain));
+    const shared_ptr<FOG2EFGNode> rootNode = dynamic_pointer_cast<FOG2EFGNode>(createRootEFGNode(domain));
 
-    treeWalk<FOG2EFGNode>(rootNode, countViolations);
+    treeWalk(rootNode, countViolations);
     return maxDepth;
 }
 

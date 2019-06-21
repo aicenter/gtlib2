@@ -51,7 +51,7 @@ class FOG2EFGNode: public Node<FOG2EFGNode, FOG2EFGNode>,
     // EFGNode
     inline EFGNodeSpecialization getSpecialization() const override { return NoSpecialization; }
     inline shared_ptr<EFGNode const> getParent() const override { return parent_; }
-    unsigned int efgDepth() const override { return depth_; };
+    unsigned int efgDepth() const override { return history_.size(); };
     unsigned long countAvailableActions() const override;
     vector<shared_ptr<Action>> availableActions() const override;
     shared_ptr<EFGNode> performAction(const shared_ptr<Action> &action) const override;
@@ -66,11 +66,8 @@ class FOG2EFGNode: public Node<FOG2EFGNode, FOG2EFGNode>,
     inline const vector<ActionId> &getHistory() const override { return history_; }
     inline HashType getHash() const override { return Node::getHash(); }
 
-    // Node
-    inline unsigned int countChildren() const override { return countAvailableActions(); };
-    const shared_ptr<FOG2EFGNode> getChildAt(EdgeId index) const override;
-
     // FOG
+    const shared_ptr<FOG2EFGNode> getChildAt(EdgeId index) const;
     inline unsigned int stateDepth() const { return stateDepth_; }
     inline bool operator==(const FOG2EFGNode &rhs) const { return Node::operator==(rhs); }
 
@@ -112,13 +109,19 @@ inline shared_ptr<EFGNode> createRootEFGNode(const Domain &domain) {
 
 typedef function<void(shared_ptr<EFGNode>)> EFGNodeCallback;
 
+inline void treeWalk(const shared_ptr <FOG2EFGNode> &node, const NodeCallback<FOG2EFGNode> &callback) {
+    const auto cntChildren = [](shared_ptr <FOG2EFGNode> n) { return n->countAvailableActions(); };
+    const auto childAt = [](shared_ptr <FOG2EFGNode> n, EdgeId idx) { return n->getChildAt(idx); };
+    GTLib2::treeWalk<FOG2EFGNode>(node, callback, cntChildren, childAt);
+}
+
 /**
  * Call supplied function at each EFGNode of the EFG tree, including leaves.
  * The tree is walked as DFS up to maximum depth allowed by the domain.
  */
-inline void treeWalk(const Domain &domain, const EFGNodeCallback &function) {
+inline void treeWalk(const Domain &domain, const NodeCallback<FOG2EFGNode> &function) {
     const auto rootNode = dynamic_pointer_cast<FOG2EFGNode>(createRootEFGNode(domain));
-    GTLib2::treeWalk<FOG2EFGNode>(rootNode, function);
+    treeWalk(rootNode, function);
 }
 
 
