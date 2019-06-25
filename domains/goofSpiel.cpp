@@ -51,7 +51,7 @@ GoofSpielObservation::GoofSpielObservation(int initialNumOfCards,
         | ((natureCard_ + player0LastCard_ * n + player1LastCard_ * n * n) << 2);
 }
 
-void GoofSpielSettings::shuffleChanceCards(int seed) {
+void GoofSpielSettings::shuffleChanceCards(unsigned int seed) {
     assert(fixChanceCards);
     if (chanceCards.empty()) {
         chanceCards = vector<int>(numCards);

@@ -46,7 +46,7 @@ TEST(PlayMatch, PlaySmallGame) {
     vector<double> expectedUtilities = vector<double>{1., -1.};
     vector<double> actualUtilities = playMatch(
         domain, vector<PreparedAlgorithm>{firstAction, lastAction},
-        vector<int>{1000, 1000}, vector<int>{10, 10}, BudgetTime, 0);
+        vector<int>{1000, 1000}, vector<int>{10, 10}, BudgetIterations, 0);
     EXPECT_EQ(actualUtilities, expectedUtilities);
 }
 

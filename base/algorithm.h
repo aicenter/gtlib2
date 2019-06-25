@@ -56,6 +56,8 @@ class GamePlayingAlgorithm {
     GamePlayingAlgorithm(const Domain &domain, Player playingPlayer)
         : domain_(domain), playingPlayer_(playingPlayer) {};
 
+    virtual ~GamePlayingAlgorithm() = default;
+
     /**
      * Run one step of the algorithm and improve play distribution in current infoset.
      *
