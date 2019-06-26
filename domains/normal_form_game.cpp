@@ -31,28 +31,20 @@ namespace GTLib2::domains {
 bool NFGAction::operator==(const Action &that) const {
     if (typeid(that) == typeid(*this)) {
         const auto rhsAction = static_cast<const NFGAction *>(&that);
-        return actionIndex_ == rhsAction->actionIndex_;
+        return id_ == rhsAction->getId();
     }
     return false;
 }
 
-vector<vector<double>> NFGSettings::getUtilities() {
-    if (inputVariant == VectorOFUtilities) {
-        return utilities;
-    }
-
-    // two players symmetrical matrix input
-
-    assert(dimensions[0] == dimensions[1]);
-
-    uint32 d = dimensions[0];
-    uint32 size = numPlayers * d ^2;
+vector<vector<double >> NFGSettings::getUtilities(vector<vector<double>> twoPlayerZeroSumMatrix) {
+    uint32 d1 = twoPlayerZeroSumMatrix.size();
+    uint32 d2 = twoPlayerZeroSumMatrix[0].size();
 
     vector<vector<double>> ut;
 
-    for (int i1 = 0; i1 < d; i1++) {
-        for (int i2 = 0; i2 < d; i2++) {
-            ut.push_back({utilityMatrix[i1][i2], utilityMatrix[i2][i1]});
+    for (int i1 = 0; i1 < d1; i1++) {
+        for (int i2 = 0; i2 < d2; i2++) {
+            ut.push_back({twoPlayerZeroSumMatrix[i1][i2], (-1) * twoPlayerZeroSumMatrix[i1][i2]});
         }
     }
 
@@ -70,6 +62,14 @@ vector<unsigned int> NFGSettings::getIndexingOffsets() {
         }
     }
 
+
+    // check of settings integrity
+    assert(indexingOffsets[0] * dimensions[0] == utilities.size());
+
+    for (vector<double> u : utilities) {
+        assert(u.size() == numPlayers);
+    }
+
     return indexingOffsets;
 }
 
@@ -77,7 +77,7 @@ NFGDomain::NFGDomain(GTLib2::domains::NFGSettings settings) :
     Domain(2, settings.numPlayers, make_shared<NFGAction>(), make_shared<NFGObservation>()),
     dimensions_(settings.dimensions),
     numPlayers_(settings.numPlayers),
-    utilities_(settings.getUtilities()),
+    utilities_(settings.utilities),
     indexingOffsets_(settings.getIndexingOffsets()) {
 
     auto newState = make_shared<NFGState>(this, false, vector<uint32>());
@@ -117,7 +117,7 @@ vector<shared_ptr<Action>> NFGState::getAvailableActionsFor(const Player player)
     unsigned long limit = countAvailableActionsFor(player);
 
     for (unsigned long i = 0; i < limit; i++) {
-        actions.push_back(make_shared<NFGAction>(i, i));
+        actions.push_back(make_shared<NFGAction>(i));
     }
     return actions;
 }
@@ -127,30 +127,26 @@ NFGState::performActions(const vector<shared_ptr<Action>> &actions) const {
     const auto nfgDomain = static_cast<const NFGDomain *>(domain_);
     vector<uint32> actionValues;
     for (shared_ptr<Action> a : actions) {
-        actionValues.push_back(dynamic_cast<NFGAction &>(*a).actionIndex_);
+        actionValues.push_back(dynamic_cast<NFGAction &>(*a).getId());
     }
 
     OutcomeDistribution newOutcomes;
     const auto newState = make_shared<NFGState>(nfgDomain, true, actionValues);
     shared_ptr<NFGObservation> publicObs = make_shared<NFGObservation>();
 
-    std::function<unsigned int(unsigned int)> foldIndexCalculation = [&](unsigned int player) ->
-        unsigned int {
-        if (player == 0) {
-            return actionValues[0] * nfgDomain->indexingOffsets_[0];
-        } else {
-            return actionValues[player] * nfgDomain->indexingOffsets_[player] + foldIndexCalculation(player - 1);
-        }
-    };
+    unsigned int utilityIndex = 0;
 
-    auto extractRewards = [&]() {
-        return nfgDomain->utilities_[foldIndexCalculation(nfgDomain->numPlayers_ - 1)];
-    };
+    for(int i = nfgDomain->numPlayers_ - 1; i >= 0; i--){
+        utilityIndex += actionValues[i] * nfgDomain->indexingOffsets_[i];
+    }
 
     vector<shared_ptr<Observation>> observations(nfgDomain->numPlayers_);
     std::fill(observations.begin(), observations.end(), publicObs);
 
-    const auto newOutcome = Outcome(newState, observations, publicObs, extractRewards());
+    const auto newOutcome = Outcome(newState,
+                                    observations,
+                                    publicObs,
+                                    nfgDomain->utilities_[utilityIndex]);
     newOutcomes.emplace_back(OutcomeEntry(newOutcome, 1.0));
     return newOutcomes;
 }

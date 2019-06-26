@@ -31,18 +31,13 @@ using namespace GTLib2;
 
 using domains::NFGDomain;
 using domains::NFGSettings;
-using domains::NFGInputVariant;
-using domains::TwoPlayerSymmetricMatrix;
-using domains::VectorOFUtilities;
 using utils::exportGraphViz;
 using utils::exportGambit;
 
 void exampleBenchmarkCFR() {
     auto start = std::chrono::high_resolution_clock::now();
 
-    auto nfgSettings = NFGSettings();
-    nfgSettings.utilityMatrix = {{-1, -3}, {0, -2}};
-    nfgSettings.dimensions = {2, 2};
+    auto nfgSettings = NFGSettings({{1,2},{-2,-1}});
     auto nfg =
         NFGDomain(nfgSettings);
     exportGambit(nfg, "./nfg.gbt");
@@ -58,17 +53,11 @@ void exampleBenchmarkCFR() {
 }
 
 void exampleExportDomain() {
-    auto nfgSettings1 = NFGSettings();
-    nfgSettings1.utilityMatrix = {{-1, -3}, {0, -2}};
-    nfgSettings1.dimensions = {2, 2};
+    auto nfgSettings1 = NFGSettings({{-1, -3}, {0, -2}});
     auto nfg1 =
         NFGDomain(nfgSettings1);
 
-    auto rpsSettings = NFGSettings();
-    rpsSettings.numPlayers = 2;
-    rpsSettings.inputVariant = VectorOFUtilities;
-    rpsSettings.dimensions = {3, 3};
-    rpsSettings.utilities = {{0,0},{-1,1},{1,-1},{1,-1},{0,0},{-1,1},{-1,1},{1,-1},{0,0}};
+    auto rpsSettings = NFGSettings({{0,0},{-1,1},{1,-1},{1,-1},{0,0},{-1,1},{-1,1},{1,-1},{0,0}}, {3, 3});
 
     auto rps = NFGDomain(rpsSettings);
 
@@ -80,14 +69,14 @@ void exampleExportDomain() {
 
 //    auto nfg2 = NFGDomain(nfgSettings2);
 
-//    exportGambit(nfg1, "./nfg1.gbt");
-    exportGambit(rps, "./rps.gbt");
+    exportGambit(nfg1, "./nfg1.gbt");
+//    exportGambit(rps, "./rps.gbt");
 //    exportGambit(nfg2, "./nfg2.gbt");
 
     // you can run this for visualization
     // $ dot -Tsvg iigs3_seed.dot -o iigs3_seed.svg
-//    exportGraphViz(nfg1, "./nfg1.dot");
-    exportGraphViz(rps, "./rps.dot");
+    exportGraphViz(nfg1, "./nfg1.dot");
+//    exportGraphViz(rps, "./rps.dot");
 //    exportGraphViz(nfg2, "./nfg2.dot");
 }
 

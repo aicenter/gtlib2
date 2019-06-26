@@ -29,30 +29,37 @@
 
 namespace GTLib2::domains {
 
-enum NFGInputVariant { TwoPlayerSymmetricMatrix, VectorOFUtilities };
-
 struct NFGSettings {
-    NFGInputVariant inputVariant = TwoPlayerSymmetricMatrix;
+
+    NFGSettings(vector <vector<double >> utilities, vector <uint32> dimensions) :
+        utilities(utilities),
+        dimensions(dimensions) {}
+
+    NFGSettings(vector <vector<double >> utilities, vector <uint32> dimensions, int numPlayers) :
+        utilities(utilities),
+        dimensions(dimensions),
+        numPlayers(numPlayers) {}
+
+    NFGSettings(vector<vector<double>> twoPlayerZeroSumMatrix) :
+        dimensions({(uint32)twoPlayerZeroSumMatrix.size(), (uint32)twoPlayerZeroSumMatrix[0].size()}),
+        utilities(getUtilities(twoPlayerZeroSumMatrix)) {}
 
     vector <vector<double>> utilities = {};
-    vector <vector<double>> utilityMatrix = {};
-
     uint32 numPlayers = 2;
     vector <uint32> dimensions;
 
-    vector <vector<double>> getUtilities();
+    vector <vector<double >> getUtilities(vector<vector<double>> twoPlayerZeroSumMatrix);
     vector<unsigned int> getIndexingOffsets();
 };
 
 class NFGAction : public Action {
  public:
-    inline NFGAction() : Action(), actionIndex_(-1) {}
-    inline NFGAction(ActionId id, int actionIndex) : Action(id), actionIndex_(actionIndex) {}
-    inline string toString() const override { return "Index of action: " + to_string(actionIndex_); };
+    inline NFGAction() : Action() {}
+    inline NFGAction(ActionId id) : Action(id) {}
+    inline string toString() const override { return "Id of action: " + to_string(id_); };
     bool operator==(const Action &that) const override;
-    inline HashType getHash() const override { return actionIndex_; };
+    inline HashType getHash() const override { return id_; };
 
-    const int actionIndex_;
 };
 
 class NFGDomain : public Domain {
