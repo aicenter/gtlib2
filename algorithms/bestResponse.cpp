@@ -35,7 +35,8 @@ const StrategyValue &_bestResponse(const BehavioralStrategy &opoStrat,
                                    const Domain &domain,
                                    BestRespCache &cache,
                                    NodesInInfosets &allNodesInInfosets,
-                                   const shared_ptr<EFGNode> &node) {
+                                   const shared_ptr<EFGNode> &node,
+                                   double chanceReachProb) {
 
 //    if (reachProbChanceOpponent == 0.0) return StrategyValue();
     // We may have solved this infoset already (we traverse by histories, not infosets!)
@@ -44,7 +45,7 @@ const StrategyValue &_bestResponse(const BehavioralStrategy &opoStrat,
     if (node->type_ == TerminalNode) {
         const double reachOpponent = node->getProbabilityOfActionSeq(opponent(responder), opoStrat);
         const double nodeValue = node->getUtilities()[responder]
-            * reachOpponent * node->chanceReachProb();
+            * reachOpponent * chanceReachProb;
         assert(nodeValue <= domain.getMaxUtility());
         assert(nodeValue >= domain.getMinUtility());
         auto[it, result] = cache.emplace(node, StrategyValue(BehavioralStrategy(), nodeValue));
@@ -57,7 +58,8 @@ const StrategyValue &_bestResponse(const BehavioralStrategy &opoStrat,
         auto brs = BehavioralStrategy();
         for (const auto &action : node->availableActions()) {
             const auto response = _bestResponse(opoStrat, responder, domain, cache,
-                                                allNodesInInfosets, node->performAction(action));
+                                                allNodesInInfosets, node->performAction(action),
+                                                chanceReachProb * node->chanceProbForAction(action));
             nodeValue += response.value;
             assert(nodeValue <= domain.getMaxUtility());
             assert(nodeValue >= domain.getMinUtility());
@@ -84,7 +86,7 @@ const StrategyValue &_bestResponse(const BehavioralStrategy &opoStrat,
 
             const auto childNode = node->performAction(action);
             const auto &response = _bestResponse(opoStrat, responder, domain, cache,
-                                                 allNodesInInfosets, childNode);
+                                                 allNodesInInfosets, childNode, chanceReachProb);
             nodeValue += response.value;
             assert(nodeValue <= domain.getMaxUtility());
             assert(nodeValue >= domain.getMinUtility());
@@ -134,7 +136,7 @@ const StrategyValue &_bestResponse(const BehavioralStrategy &opoStrat,
 
             const auto siblingChild = siblingNode->performAction(actions[i]);
             const auto &response = _bestResponse(
-                opoStrat, responder, domain, cache, allNodesInInfosets, siblingChild);
+                opoStrat, responder, domain, cache, allNodesInInfosets, siblingChild, chanceReachProb);
             brs.insert(response.strategy.begin(), response.strategy.end());
             actionValue += response.value;
             siblingsValue.push_back(response.value);
@@ -172,7 +174,7 @@ const StrategyValue bestResponseTo(const BehavioralStrategy &opoStrat,
     NodesInInfosets nodesInInfosets; // empty -- we will need to generate them on the fly
 
     const auto returnValue = _bestResponse(opoStrat, responder, domain,
-                                           cache, nodesInInfosets, createRootEFGNode(domain));
+                                           cache, nodesInInfosets, createRootEFGNode(domain), 1.0);
     assert(returnValue.value <= domain.getMaxUtility());
     assert(returnValue.value >= domain.getMinUtility());
 

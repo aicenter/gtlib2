@@ -38,21 +38,18 @@ bool Targetor::updateCurrentPosition(const optional<shared_ptr<AOH>> &infoset,
     currentInfoset_ = *infoset;
     currentPubState_ = *pubState;
 
-//    cerr << "updating for " << currentInfoset_->getAOids() << endl;
-    const auto [bsSum, usSum] = updateWeighting(cache_.getRootNode(), 1.0, 1.0);
-//    cerr << "updating done" << endl;
-    if(usSum == 0.0) return false;
+    const auto[bsSum, usSum] = updateWeighting(cache_.getRootNode(), 1.0, 1.0);
+    if (usSum == 0.0) return false;
     assert(usSum > 0.0);
     weightingFactor_ = (1 - targetBiasing_) + targetBiasing_ * bsSum / usSum;
     return true;
 }
 
-pair<double, double> Targetor::updateWeighting(const shared_ptr<EFGNode> &h, double bs_h_all, double us_h_all) {
+pair<double, double> Targetor::updateWeighting(const shared_ptr<EFGNode> &h,
+                                               double bs_h_all, double us_h_all) {
     const auto updateInfoset = h->getAOHInfSet();
 
-//    cerr << "visiting " << updateInfoset->getAOids() << endl;
     if (*updateInfoset == *currentInfoset_) {
-//        cerr << "adding weight " << bs_h_all << " " << us_h_all << endl;
         return make_pair(bs_h_all, us_h_all); // do not go below
     }
 
@@ -91,8 +88,11 @@ pair<double, double> Targetor::updateWeighting(const shared_ptr<EFGNode> &h, dou
         //   does indeed exist!
         if (!cache_.hasChildren(h, action)) continue;
 
-        const auto [updateUs, updateBs] = updateWeighting(h->performAction(action), us_h_all * pa, bs_h_all * pa / biasedSum);
-        ussum += updateUs; bssum += updateBs;
+        const auto[updateUs, updateBs] = updateWeighting(h->performAction(action),
+                                                         us_h_all * pa,
+                                                         bs_h_all * pa / biasedSum);
+        ussum += updateUs;
+        bssum += updateBs;
     }
     return make_pair(ussum, bssum);
 }
@@ -114,14 +114,14 @@ bool Targetor::isAllowedAction(const shared_ptr<EFGNode> &h, const shared_ptr<Ac
 PlayControl OOSAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
     // we can't make targetting, if the infoset is not in cache. Give up - play randomly
     // todo: make partial targetting up to the last known infoset at least?
-    if(currentInfoset && !cache_.hasInfoset(*currentInfoset)) return GiveUp;
+    if (currentInfoset && !cache_.hasInfoset(*currentInfoset)) return GiveUp;
 
     playInfoset_ = currentInfoset;
     playPublicState_ = playInfoset_ && cache_.hasPublicState(*playInfoset_)
                        ? optional(cache_.getPublicStateFor(*playInfoset_))
                        : nullopt;
 
-    if(!targetor_.updateCurrentPosition(playInfoset_, playPublicState_)) {
+    if (!targetor_.updateCurrentPosition(playInfoset_, playPublicState_)) {
         return GiveUp;
     }
 
@@ -154,13 +154,14 @@ OOSAlgorithm::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
 }
 
 void OOSAlgorithm::rootIteration(double compensation, Player exploringPl) {
-    iteration(cache_.getRootNode(), 1.0, 1.0, compensation, compensation, exploringPl);
+    iteration(cache_.getRootNode(), 1.0, 1.0, compensation, compensation, 1.0, exploringPl);
     ++stats_.rootVisits;
 }
 
 double OOSAlgorithm::iteration(const shared_ptr<EFGNode> &h,
                                double rm_h_pl, double rm_h_opp,
                                double bs_h_all, double us_h_all,
+                               double us_h_cn,
                                Player exploringPl) {
 
     ++stats_.nodesVisits;
@@ -170,11 +171,11 @@ double OOSAlgorithm::iteration(const shared_ptr<EFGNode> &h,
             ++stats_.terminalsVisits;
             return handleTerminalNode(h, bs_h_all, us_h_all, exploringPl);
         case ChanceNode:
-            return handleChanceNode(h, rm_h_pl, rm_h_opp, bs_h_all, us_h_all, exploringPl);
+            return handleChanceNode(h, rm_h_pl, rm_h_opp, bs_h_all, us_h_all, us_h_cn, exploringPl);
         case PlayerNode:
             if (h->getAOHInfSet() == playInfoset_) ++stats_.infosetVisits;
             if (h->getPublicState() == playPublicState_) ++stats_.pubStateVisits;
-            return handlePlayerNode(h, rm_h_pl, rm_h_opp, bs_h_all, us_h_all, exploringPl);
+            return handlePlayerNode(h, rm_h_pl, rm_h_opp, bs_h_all, us_h_all, us_h_cn, exploringPl);
         default:
             assert(false); // unrecognized type!
     }
@@ -190,7 +191,7 @@ double OOSAlgorithm::handleTerminalNode(const shared_ptr<EFGNode> &h,
 
 double OOSAlgorithm::handleChanceNode(const shared_ptr<EFGNode> &h,
                                       double rm_h_pl, double rm_h_opp,
-                                      double bs_h_all, double us_h_all,
+                                      double bs_h_all, double us_h_all, double us_h_cn,
                                       Player exploringPl) {
     const auto &actions = h->availableActions();
     const auto probs = h->chanceProbs();
@@ -206,7 +207,7 @@ double OOSAlgorithm::handleChanceNode(const shared_ptr<EFGNode> &h,
     const auto &nextNode = cache_.getChildFor(h, actions[ai]);
     const double u_ha = iteration(nextNode,
                                   rm_h_pl, rm_h_opp,
-                                  bs_h_all * bs_ha_all, us_h_all * us_ha_all,
+                                  bs_h_all * bs_ha_all, us_h_all * us_ha_all, us_h_cn * us_ha_all,
                                   exploringPl);
     rm_zh_all_ *= probs[ai];
 
@@ -222,7 +223,7 @@ double OOSAlgorithm::handleChanceNode(const shared_ptr<EFGNode> &h,
 
 double OOSAlgorithm::handlePlayerNode(const shared_ptr<EFGNode> &h,
                                       double rm_h_pl, double rm_h_opp,
-                                      double bs_h_all, double us_h_all,
+                                      double bs_h_all, double us_h_all, double us_h_cn,
                                       Player exploringPl) {
     const auto &actions = h->availableActions();
     const auto &infoset = cache_.getInfosetFor(h);
@@ -234,20 +235,20 @@ double OOSAlgorithm::handlePlayerNode(const shared_ptr<EFGNode> &h,
 
     // @formatter:off
     const auto[ai, rm_ha_all, u_h, u_x] = (cache_.hasAnyChildren(h))
-        ? sampleExistingTree(h, actions, rm_h_pl, rm_h_opp, bs_h_all, us_h_all,
+        ? sampleExistingTree(h, actions, rm_h_pl, rm_h_opp, bs_h_all, us_h_all, us_h_cn,
                              data, infoset, exploringPl)
         : incrementallyBuildTree(h, actions, bias(bs_h_all, us_h_all), exploringPl);
     // @formatter:on
     double rm_zha_all = rm_zh_all_;
     rm_zh_all_ *= rm_ha_all;
 
-    updateEFGNodeExpectedValue(exploringPl, h, u_h, rm_h_pl, rm_h_opp, s_h_all);
+    updateEFGNodeExpectedValue(exploringPl, h, u_h, rm_h_pl, rm_h_opp, us_h_cn, s_h_all);
 
     if (h->getPlayer() == exploringPl)
         updateInfosetRegrets(h, exploringPl, data, ai, u_x, u_h,
-                             rm_h_opp * h->chanceReachProb() / s_h_all);
+                             rm_h_opp * us_h_cn / s_h_all);
     else
-        updateInfosetAcc(h, data, rm_h_opp * h->chanceReachProb() / s_h_all);
+        updateInfosetAcc(h, data, rm_h_opp * us_h_cn / s_h_all);
 
     return u_h;
 }
@@ -255,10 +256,11 @@ double OOSAlgorithm::handlePlayerNode(const shared_ptr<EFGNode> &h,
 PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
                                                    const vector<shared_ptr<Action>> &actions,
                                                    double rm_h_pl, double rm_h_opp,
-                                                   double bs_h_all, double us_h_all,
+                                                   double bs_h_all, double us_h_all, double us_h_cn,
                                                    CFRData::InfosetData &data,
                                                    const shared_ptr<AOH> &infoset,
                                                    Player exploringPl) {
+    assert(h->type_ == PlayerNode);
     const bool exploringMoveInNode = h->getPlayer() == exploringPl;
     calcRMProbs(data.regrets, &rmProbs_, cfg_.approxRegretMatching);
 
@@ -288,7 +290,8 @@ PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
     const double u_ha = iteration(nextNode,
                                   (exploringMoveInNode) ? rm_h_pl * rm_ha_all : rm_h_pl,
                                   (exploringMoveInNode) ? rm_h_opp : rm_h_opp * rm_ha_all,
-                                  bs_h_all * bs_ha_all, us_h_all * us_ha_all, exploringPl);
+                                  bs_h_all * bs_ha_all, us_h_all * us_ha_all, us_h_cn,
+                                  exploringPl);
 
     // finish computing baseline-augmented utilities
     const double s_ha_all = bias(bs_ha_all, us_ha_all);
@@ -380,7 +383,7 @@ ActionId OOSAlgorithm::selectNonExploringPlayerAction(const shared_ptr<EFGNode> 
 
 void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_ptr<EFGNode> &h,
                                               double u_h, double rm_h_pl, double rm_h_opp,
-                                              double s_h_all) {
+                                              double us_h_cn, double s_h_all) {
 
     // let's make sure that the utility is always for player 0
     // updateVal we get is for the exploring player
@@ -399,7 +402,7 @@ void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
             b = reach / s_h_all;
             break;
         case OOSSettings::WeightedAllPlayerBaseline:
-            reach = rm_h_pl * rm_h_opp * h->chanceReachProb();
+            reach = rm_h_pl * rm_h_opp * us_h_cn;
             a = reach * u_h;
             b = reach / s_h_all;
             break;

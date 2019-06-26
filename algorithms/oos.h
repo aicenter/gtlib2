@@ -238,6 +238,7 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
     double iteration(const shared_ptr<EFGNode> &h,
                      double rm_h_pl, double rm_h_opp,
                      double bs_h_all, double us_h_all,
+                     double us_h_cn,
                      Player exploringPl);
     virtual double handleTerminalNode(const shared_ptr<EFGNode> &h,
                                       double bs_h_all, double us_h_all,
@@ -245,10 +246,12 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
     double handleChanceNode(const shared_ptr<EFGNode> &h,
                             double rm_h_pl, double rm_h_opp,
                             double bs_h_all, double us_h_all,
+                            double us_h_cn,
                             Player exploringPl);
     double handlePlayerNode(const shared_ptr<EFGNode> &h,
                             double rm_h_pl, double rm_h_opp,
                             double bs_h_all, double us_h_all,
+                            double us_h_cn,
                             Player exploringPl);
 
     PlayerNodeOutcome incrementallyBuildTree(const shared_ptr<EFGNode> &h,
@@ -258,7 +261,7 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
     PlayerNodeOutcome sampleExistingTree(const shared_ptr<EFGNode> &h,
                                          const vector<shared_ptr<Action>> &actions,
                                          double rm_h_pl, double rm_h_opp,
-                                         double bs_h_all, double us_h_all,
+                                         double bs_h_all, double us_h_all, double us_h_cn,
                                          CFRData::InfosetData &data, const shared_ptr<AOH> &infoset,
                                          Player exploringPl);
 
@@ -278,6 +281,7 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
                                     double u_h,
                                     double rm_h_pl,
                                     double rm_h_opp,
+                                    double us_h_cn,
                                     double s_h_all);
     void updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exploringPl,
                               CFRData::InfosetData &data, int ai,
