@@ -51,7 +51,7 @@ using domains::ActionTails;
 TEST(LPSolver, BestResponseToEquilibrium) {
     MatchingPenniesDomain domain(AlternatingMoves);
     auto stratValue = algorithms::findEquilibriumTwoPlayersZeroSum(domain);
-    auto brsVal = algorithms::bestResponseTo(stratValue.strategy, 0, 1, domain);
+    auto brsVal = algorithms::bestResponseTo(stratValue.strategy, Player(1), domain);
     EXPECT_EQ(stratValue.value, 0.0);
 }
 

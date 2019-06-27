@@ -20,11 +20,8 @@
 */
 
 
-#include "base/base.h"
 #include "base/efg.h"
-
 #include "algorithms/common.h"
-
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunknown-pragmas"
@@ -64,12 +61,24 @@ EFGNode::EFGNode(EFGNodeType type, shared_ptr<EFGNode const> parent,
     assert(history_.size() == efgDepth_);
     // state terminal implies EFGNode terminal
     assert(!parent_ || (!lastOutcome_->state->isTerminal() || type_ == TerminalNode));
+#ifndef NDEBUG // equivalent to assert
+    if(!outcomeDist_.empty()) {
+        double sum = 0.;
+        for (const auto&[_, prob] : outcomeDist_) {
+            sum += prob;
+        }
+        assert(sum > (1 - 1e-6));
+        assert(sum < (1 + 1e-6));
+    }
+#endif
 }
 
 shared_ptr<EFGNode> EFGNode::performAction(const shared_ptr<Action> &action) const {
     switch (type_) { // dispatch
-        case ChanceNode:
-            return performChanceAction(action);
+        case ChanceNode: {
+            auto newnode = performChanceAction(action);
+            return newnode;
+        }
         case PlayerNode: {
             auto newnode = performPlayerAction(action);
             return newnode;
@@ -119,6 +128,7 @@ shared_ptr<EFGNode> EFGNode::performPlayerAction(const shared_ptr<Action> &actio
     // Now we have all the actions of round players that are needed to go to next state.
     const auto &currentState = lastOutcome_->state;
     auto outcomeDistribution = currentState->performPartialActions(updatedActions);
+    assert(outcomeDistribution.size() >= 1);
 
     // Should we create a chance node?
     if (outcomeDistribution.size() > 1) {
@@ -208,6 +218,10 @@ vector<shared_ptr<Action>> EFGNode::createChanceActions() const {
             EFGChanceAction(i, outcomeDist_[i].prob)));
     }
     return actions;
+}
+
+double EFGNode::chanceProbForAction(const ActionId &action) const {
+    return outcomeDist_[action].prob;
 }
 
 double EFGNode::chanceProbForAction(const shared_ptr<Action> &action) const {
@@ -321,6 +335,8 @@ double EFGNode::getProbabilityOfActionSeq(Player player, const BehavioralStrateg
         auto &actionsProbs = strat.at(parentInfSet);
         double actionProb = (actionsProbs.find(incomingAction_) != actionsProbs.end())
                             ? actionsProbs.at(incomingAction_) : 0.0;
+        assert(actionProb <= 1.0);
+        assert(actionProb >= 0.0);
         return prob * actionProb;
     } else {
         return prob;

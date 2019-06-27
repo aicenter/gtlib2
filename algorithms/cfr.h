@@ -23,11 +23,7 @@
 #ifndef ALGORITHMS_CFR_H_
 #define ALGORITHMS_CFR_H_
 
-#include "base/base.h"
-
 #include "base/algorithm.h"
-#include "base/efg.h"
-#include "base/cache.h"
 
 namespace GTLib2::algorithms {
 
@@ -65,6 +61,7 @@ class CFRData: public virtual InfosetCache {
         InfosetCache(domain),
         updatingPolicy_(updatingPolicy) {
         addCallback([&](const shared_ptr<EFGNode> &n) { this->createCFRInfosetData(n); });
+        this->createCFRInfosetData(getRootNode());
     }
 
     struct InfosetData {

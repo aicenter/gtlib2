@@ -22,9 +22,6 @@
 #ifndef ALGORITHMS_TREEWALK_H_
 #define ALGORITHMS_TREEWALK_H_
 
-#include "base/base.h"
-#include <memory>
-#include "base/efg.h"
 #include "base/cache.h"
 
 namespace GTLib2::algorithms {

@@ -25,6 +25,7 @@
 #include "algorithms/strategy.h"
 #include "algorithms/tree.h"
 #include "algorithms/utility.h"
+#include "algorithms/evaluation.h"
 #include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"
 
@@ -279,13 +280,7 @@ TEST(CFR, CalcUtilities) {
 }
 
 TEST(CFR, CheckRegretsAndAccInGS2) {
-    GoofSpielDomain domain({
-                               variant:  IncompleteObservations,
-                               numCards: 2,
-                               fixChanceCards: true,
-                               chanceCards: {2, 1},
-                               binaryTerminalRewards: false
-                           });
+    auto domain = GoofSpielDomain::IIGS_2();
     auto settings = CFRSettings();
     settings.cfrUpdating = InfosetsUpdating;
     settings.accumulatorWeighting = UniformAccWeighting;
@@ -295,8 +290,8 @@ TEST(CFR, CheckRegretsAndAccInGS2) {
     cfr.runIterations(1000);
 
     auto profile = getAverageStrategy(cfr.getCache());
-    auto bestResp0 = bestResponseTo(profile[0], Player(0), Player(1), domain).value;
-    auto bestResp1 = bestResponseTo(profile[1], Player(1), Player(0), domain).value;
+    auto bestResp0 = bestResponseTo(profile[0], Player(1), domain).value;
+    auto bestResp1 = bestResponseTo(profile[1], Player(0), domain).value;
     double utility = computeUtilitiesTwoPlayerGame(domain, profile)[0];
 
     auto rootNode = data.getRootNode();
@@ -316,12 +311,8 @@ TEST(CFR, CheckRegretsAndAccInGS2) {
 }
 
 TEST(CFR, CheckRegretsAndAccInGS3) {
-    GoofSpielDomain domain({
-                               variant:  IncompleteObservations,
-                               numCards: 3,
-                               fixChanceCards: true,
-                               chanceCards: {3, 2, 1}
-                           });
+    auto domain = GoofSpielDomain::IIGS_3();
+
     auto settings = CFRSettings();
     settings.cfrUpdating = InfosetsUpdating;
     auto data = CFRData(domain, settings.cfrUpdating);
@@ -329,8 +320,8 @@ TEST(CFR, CheckRegretsAndAccInGS3) {
     cfr.runIterations(1000);
 
     auto profile = getAverageStrategy(data);
-    auto bestResp0 = bestResponseTo(profile[0], Player(0), Player(1), domain).value;
-    auto bestResp1 = bestResponseTo(profile[1], Player(1), Player(0), domain).value;
+    auto bestResp0 = bestResponseTo(profile[0], Player(1), domain).value;
+    auto bestResp1 = bestResponseTo(profile[1], Player(0), domain).value;
     double utility = computeUtilitiesTwoPlayerGame(domain, profile)[0];
 
     auto rootNode = data.getRootNode();
@@ -372,14 +363,25 @@ TEST(CFR, CheckConvergenceInSmallDomain) {
     for (int i = 0; i < 10; ++i) {
         cfr.runIterations(50);
         auto profile = getAverageStrategy(data);
-        auto bestResp0 = bestResponseTo(profile[0], Player(0), Player(1), domain).value;
-        auto bestResp1 = bestResponseTo(profile[1], Player(1), Player(0), domain).value;
+        auto bestResp0 = bestResponseTo(profile[0], Player(1), domain).value;
+        auto bestResp1 = bestResponseTo(profile[1], Player(0), domain).value;
         double utility = computeUtilitiesTwoPlayerGame(domain, profile)[0];
 
         EXPECT_LE(std::fabs(utility - expectedUtilities[i]), 0.0001);
         EXPECT_LE(std::fabs(bestResp0 - expectedBestResp0[i]), 0.0001);
         EXPECT_LE(std::fabs(bestResp1 - expectedBestResp1[i]), 0.0001);
     }
+}
+
+TEST(CFR, CheckExploitabilityInSmallDomain) {
+    auto domain = GoofSpielDomain::IIGS_5();
+    auto settings = CFRSettings();
+    auto data = CFRData(domain, settings.cfrUpdating);
+    CFRAlgorithm cfr(domain, data, Player(0), settings);
+
+    cfr.runIterations(2);
+    auto profile = getAverageStrategy(data);
+    EXPECT_LE(std::fabs(0.159173 - calcExploitability(domain, getAverageStrategy(data))), 0.0001);
 }
 
 }  // namespace GTLib2

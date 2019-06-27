@@ -23,7 +23,6 @@
 #ifndef LPSOLVERS_CPLEXLPSOLVER_H_
 #define LPSOLVERS_CPLEXLPSOLVER_H_
 
-#include "base/base.h"
 #include "LPsolvers/AbstractLPSolver.h"
 #include <ilcplex/ilocplex.h>
 

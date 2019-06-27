@@ -117,15 +117,23 @@ OutcomeDistribution State::performPartialActions(const vector<PlayerAction> & pl
 }
 
 // todo: explicit max utility!!!!
-Domain::Domain(unsigned int maxStateDepth, unsigned int numberOfPlayers,
+Domain::Domain(unsigned int maxStateDepth, unsigned int numberOfPlayers, bool isZeroSum,
                shared_ptr<Action> noAction, shared_ptr<Observation> noObservation) :
-    maxStateDepth_(maxStateDepth), numberOfPlayers_(numberOfPlayers), maxUtility_(0),
-    noAction_(move(noAction)), noObservation_(move(noObservation)) {
+    maxStateDepth_(maxStateDepth), numberOfPlayers_(numberOfPlayers), isZeroSum_(isZeroSum),
+    maxUtility_(0), noAction_(move(noAction)), noObservation_(move(noObservation)) {
     assert(noAction_->getId() == NO_ACTION);
     assert(noObservation_->getId() == NO_OBSERVATION);
 }
 
 const OutcomeDistribution &Domain::getRootStatesDistribution() const {
+#ifndef NDEBUG // equivalent to assert
+    double sum = 0.;
+    for(const auto&[_, prob] : rootStatesDistribution_) {
+        sum += prob;
+    }
+    assert(sum > (1-1e-6));
+    assert(sum < (1+1e-6));
+#endif
     return rootStatesDistribution_;
 }
 

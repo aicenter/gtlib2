@@ -24,10 +24,8 @@
 #define LPSOLVERS_GUROBILPSOLVER_H_
 
 
-#include "base/base.h"
 #include "LPsolvers/AbstractLPSolver.h"
 #include <gurobi_c++.h>
-#include <cmath>
 
 namespace GTLib2::algorithms {
 

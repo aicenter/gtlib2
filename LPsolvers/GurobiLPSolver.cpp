@@ -19,10 +19,9 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "base/base.h"
 #include "LPsolvers/GurobiLPSolver.h"
-namespace GTLib2::algorithms {
 
+namespace GTLib2::algorithms {
 
 GurobiLPSolver::GurobiLPSolver(): env_(GRBEnv()), model_(GRBModel(env_)) {}
 

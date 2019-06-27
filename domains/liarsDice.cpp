@@ -51,7 +51,7 @@ string LiarsDiceAction::toString() const {
 
 LiarsDiceDomain::LiarsDiceDomain(vector<int> playersDice, int faces) :
     Domain(static_cast<unsigned int>(((playersDice[0] + playersDice[1]) * faces) + 2),
-           2,
+           2, true,
            make_shared<LiarsDiceAction>(),
            make_shared<LiarsDiceObservation>()),
     playersDice_(playersDice),

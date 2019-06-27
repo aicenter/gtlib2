@@ -20,7 +20,6 @@
 */
 
 
-#include "base/base.h"
 #include "domains/kriegspiel.h"
 
 #pragma clang diagnostic push
@@ -754,7 +753,7 @@ Square KriegspielAction::movingFrom() const {
 KriegspielDomain::KriegspielDomain(unsigned int maxDepth,
                                    unsigned int legalMaxDepth,
                                    chess::BOARD b)
-    : Domain(maxDepth, 2,
+    : Domain(maxDepth, 2, true,
              make_shared<KriegspielAction>(),
              make_shared<KriegspielObservation>()) {
     vector<double> rewards(2);
@@ -838,7 +837,7 @@ string KriegspielDomain::getInfo() const {
 }
 
 KriegspielDomain::KriegspielDomain(unsigned int maxDepth, unsigned int legalMaxDepth, string s)
-    : Domain(maxDepth, 2, make_shared<KriegspielAction>(), make_shared<KriegspielObservation>()) {
+    : Domain(maxDepth, 2,  true, make_shared<KriegspielAction>(), make_shared<KriegspielObservation>()) {
     vector<double> rewards(2);
     vector<shared_ptr<Observation>>
         Obs{make_shared<Observation>(NO_OBSERVATION), make_shared<Observation>(-1)};

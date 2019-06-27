@@ -19,7 +19,6 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "base/base.h"
 #include "domains/genericPoker.h"
 
 
@@ -36,8 +35,7 @@ bool GenericPokerAction::operator==(const Action &that) const {
         && value_ == rhsAction->value_;
 }
 string GenericPokerAction::toString() const {
-    if (id_ == NO_ACTION)
-        return "NoA";
+    if (id_ == NO_ACTION) return "NoA";
     switch (type_) {
         case Check:
             return "Check";
@@ -55,11 +53,10 @@ string GenericPokerAction::toString() const {
 }
 
 string GenericPokerObservation::toString() const {
-    if (id_ == NO_OBSERVATION)
-        return "NoOb";
+    if (id_ == NO_OBSERVATION) return "NoOb";
     switch (type_) {
         case PlayCard:
-            return "Card number is " + to_string(value_);
+            return "Play: " + to_string(value_);
         case Check:
             return "Check";
         case Bet:
@@ -75,48 +72,56 @@ string GenericPokerObservation::toString() const {
     }
 }
 
-GenericPokerDomain::GenericPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfTypes,
+GenericPokerDomain::GenericPokerDomain(unsigned int maxCardTypes, unsigned int maxCardsOfEachType,
                                        unsigned int maxRaisesInRow, unsigned int maxDifferentBets,
                                        unsigned int maxDifferentRaises, unsigned int ante) :
-    Domain(7 + 2 * maxRaisesInRow, 2,
+    Domain(7 + 2 * maxRaisesInRow, 2, true,
            make_shared<GenericPokerAction>(),
-           make_shared<GenericPokerObservation>()), maxCardTypes_(maxCardTypes),
-    maxCardsOfEachType_(maxCardsOfTypes), maxRaisesInRow_(maxRaisesInRow), ante_(ante),
-    maxDifferentBets_(maxDifferentBets), maxDifferentRaises_(maxDifferentRaises) {
+           make_shared<GenericPokerObservation>()),
 
-    for (int i = 0; i < maxDifferentBets; i++) betsFirstRound_.push_back((i + 1) * 2);
-    for (int i = 0; i < maxDifferentRaises; i++) raisesFirstRound_.push_back((i + 1) * 2);
-    for (int i : betsFirstRound_) betsSecondRound_.push_back(2 * i);
-    for (int i : raisesFirstRound_) raisesSecondRound_.push_back(2 * i);
+    maxCardTypes_(maxCardTypes),
+    maxCardsOfEachType_(maxCardsOfEachType),
+    maxRaisesInRow_(maxRaisesInRow),
+    maxDifferentBets_(maxDifferentBets),
+    maxDifferentRaises_(maxDifferentRaises),
+    ante_(ante) {
 
-    maxUtility_ = ante + betsFirstRound_.back() + maxRaisesInRow * raisesFirstRound_.back()
-        + betsSecondRound_.back() + maxRaisesInRow * raisesSecondRound_.back();
-    vector<double> rewards(2);
-    int size = maxCardTypes * maxCardTypes;
-    auto next_players = vector<Player>{0};
-    for (int p1card = 0; p1card < maxCardTypes; ++p1card) {
-        for (int p2card = 0; p2card < maxCardTypes; ++p2card) {
-            if (p1card == p2card && maxCardsOfTypes < 2) {
-                --size;
-                continue;
-            }
-            int occurencyCount = 0;
-            if (p1card == p2card) {
-                ++occurencyCount;
-            }
-            double prob = double(maxCardsOfEachType_) / (maxCardTypes * maxCardsOfEachType_)
-                * (maxCardsOfEachType_ - occurencyCount)
-                / (maxCardTypes * maxCardsOfEachType_ - 1);
-            auto newState = make_shared<GenericPokerState>(this, p1card, p2card, nullopt,
-                                                           ante, next_players);
-            vector<shared_ptr<Observation>> newObservations{
+    assert(maxCardTypes_ >= 1);
+    assert(maxCardsOfEachType_ >= 1);
+    // Players play one card and nature one card = 2*1 + 1
+    assert(maxCardTypes_ * maxCardsOfEachType_ >= 3);
+    assert(maxRaisesInRow_ >= 1);
+    assert(maxDifferentBets_ >= 1);
+    assert(maxDifferentRaises_ >= 1);
+
+    for (int i = 1; i <= maxDifferentBets; i++) betsFirstRound_.push_back(i * 2);
+    for (int i = 1; i <= maxDifferentRaises; i++) raisesFirstRound_.push_back(i * 2);
+    for (int i : betsFirstRound_) betsSecondRound_.push_back(i * 2);
+    for (int i : raisesFirstRound_) raisesSecondRound_.push_back(i * 2);
+
+    maxUtility_ = ante_
+        + betsFirstRound_.back()
+        + maxRaisesInRow_ * raisesFirstRound_.back()
+        + (maxCardTypes_ > 1 ? betsSecondRound_.back() : 0) // todo: not entirely sure this is correct
+        + maxRaisesInRow_ * raisesSecondRound_.back();
+
+    for (int p1card = 0; p1card < maxCardTypes_; ++p1card) {
+        for (int p2card = 0; p2card < maxCardTypes_; ++p2card) {
+            // impossible situation that both players get the same card,
+            // but there is only one such card the pile
+            if (p1card == p2card && maxCardsOfEachType_ == 1) continue;
+
+            int occurencyCount = p1card == p2card ? 1 : 0;
+
+            const double prob = double(maxCardsOfEachType_ - occurencyCount) /
+                (maxCardTypes_ * (maxCardsOfEachType_ * maxCardTypes_ - 1));
+            const auto newState = make_shared<GenericPokerState>(this, p1card, p2card, nullopt,
+                                                                 ante, Player(0));
+            const vector<shared_ptr<Observation>> privateObs{
                 make_shared<GenericPokerObservation>(3 + p1card, PlayCard, p1card),
                 make_shared<GenericPokerObservation>(3 + p2card, PlayCard, p2card)
             };
-            shared_ptr<Observation> publicObservation =
-                make_shared<GenericPokerObservation>(3 + p1card, PlayCard, p1card);
-            Outcome outcome(newState, newObservations, publicObservation, rewards);
-
+            const Outcome outcome(newState, privateObs, noObservation_, vector<double>(2));
             rootStatesDistribution_.emplace_back(OutcomeEntry(outcome, prob));
         }
     }
@@ -134,41 +139,51 @@ GenericPokerDomain::GenericPokerDomain(unsigned int maxCardTypes, unsigned int m
 GenericPokerDomain::GenericPokerDomain() : GenericPokerDomain(4, 3, 1, 2, 2, 1) {}
 
 string GenericPokerDomain::getInfo() const {
-    std::stringstream bets1;
-    std::copy(betsFirstRound_.begin(), betsFirstRound_.end(),
-              std::ostream_iterator<int>(bets1, ", "));
-    std::stringstream bets2;
-    std::copy(betsSecondRound_.begin(), betsSecondRound_.end(),
-              std::ostream_iterator<int>(bets2, ", "));
-    std::stringstream raises1;
-    std::copy(raisesFirstRound_.begin(), raisesFirstRound_.end(),
-              std::ostream_iterator<int>(raises1, ", "));
-    std::stringstream raises2;
-    std::copy(raisesSecondRound_.begin(), raisesSecondRound_.end(),
-              std::ostream_iterator<int>(raises2, ", "));
-    return "Generic Poker:\nMax card types: " + to_string(maxCardTypes_) +
-        "\nMax cards of each type: " + to_string(maxCardsOfEachType_) +
-        "\nMax raises in row: " + to_string(maxRaisesInRow_) +
-        "\nMax utility: " + to_string(maxUtility_) + "\nBets first round: [" +
-        bets1.str().substr(0, bets1.str().length() - 2) + "]\nBets second round: [" +
-        bets2.str().substr(0, bets2.str().length() - 2) + "]\nRaises first round: [" +
-        raises1.str().substr(0, raises1.str().length() - 2) + "]\nRaises second round: [" +
-        raises2.str().substr(0, raises2.str().length() - 2) + "]\n";
+    std::stringstream ss;
+    ss << "Generic Poker:"
+       << "\nMax card types: " << maxCardTypes_
+       << "\nMax cards of each type: " << maxCardsOfEachType_
+       << "\nMax utility: " << maxUtility_
+       << "\nAnte: " << ante_
+       << "\nMax raises in row: " << maxRaisesInRow_
+       << "\nBets first round: " << betsFirstRound_
+       << "\nBets second round: " << betsSecondRound_
+       << "\nRaises first round: " << raisesFirstRound_
+       << "\nRaises second round: " << raisesSecondRound_;
+    return ss.str();
 }
 
-// todo: this is only hotfix
 unsigned long GenericPokerState::countAvailableActionsFor(Player player) const {
-    return getAvailableActionsFor(player).size();
+    if (round_ == POKER_TERMINAL_ROUND) return 0;
+
+    const auto pokerDomain = static_cast<const GenericPokerDomain *>(domain_);
+    if (!lastAction_ || lastAction_->getType() == Check || lastAction_->getType() == Call) {
+        long cnt = 1;
+        if (round_ == 1) cnt += pokerDomain->betsFirstRound_.size();
+        if (round_ == 3) cnt += pokerDomain->betsSecondRound_.size();
+        return cnt;
+    }
+
+    if (lastAction_->getType() == Bet || lastAction_->getType() == Raise) {
+        long cnt = 2;
+        if (continuousRaiseCount_ < pokerDomain->maxRaisesInRow_) {
+            if (round_ == 1) cnt += pokerDomain->raisesFirstRound_.size();
+            if (round_ == 3) cnt += pokerDomain->raisesSecondRound_.size();
+        }
+        return cnt;
+    }
+
+    return 0;
 }
 
 vector<shared_ptr<Action>> GenericPokerState::getAvailableActionsFor(Player player) const {
     auto list = vector<shared_ptr<Action>>();
+    if (round_ == POKER_TERMINAL_ROUND) return list;
+
     int count = 0;
     const auto pokerDomain = static_cast<const GenericPokerDomain *>(domain_);
-    if (round_ == pokerDomain->TERMINAL_ROUND) {
-        return list;
-    }
-    if (!lastAction_ || lastAction_->GetType() == Check || lastAction_->GetType() == Call) {
+
+    if (!lastAction_ || lastAction_->getType() == Check || lastAction_->getType() == Call) {
         if (round_ == 1) {
             for (int betValue : pokerDomain->betsFirstRound_) {
                 list.push_back(make_shared<GenericPokerAction>(count, Bet, betValue));
@@ -181,7 +196,10 @@ vector<shared_ptr<Action>> GenericPokerState::getAvailableActionsFor(Player play
             }
         }
         list.push_back(make_shared<GenericPokerAction>(count, Check, 0));
-    } else if (lastAction_->GetType() == Bet || lastAction_->GetType() == Raise) {
+        return list;
+    }
+
+    if (lastAction_->getType() == Bet || lastAction_->getType() == Raise) {
         list.push_back(make_shared<GenericPokerAction>(count, Call, 0));
         ++count;
         if (continuousRaiseCount_ < pokerDomain->maxRaisesInRow_) {
@@ -199,254 +217,153 @@ vector<shared_ptr<Action>> GenericPokerState::getAvailableActionsFor(Player play
         }
         list.push_back(make_shared<GenericPokerAction>(count, Fold, 0));
     }
+
     return list;
 }
 
-OutcomeDistribution GenericPokerState::performActions(const vector <shared_ptr<Action>> &actions) const {
+OutcomeDistribution
+GenericPokerState::performActions(const vector<shared_ptr<Action>> &actions) const {
     const auto pokerDomain = static_cast<const GenericPokerDomain *>(domain_);
-    const auto a1 = dynamic_pointer_cast<GenericPokerAction>(actions[0]);
-    const auto a2 = dynamic_pointer_cast<GenericPokerAction>(actions[1]);
-    OutcomeDistribution newOutcomes;
-    vector<Player> next_players = vector<Player>(1);
-    auto newLastAction = lastAction_;
-    double bet, new_pot = pot_, newFirstPlayerReward = firstPlayerReward_;
-    int newContinuousRaiseCount = continuousRaiseCount_, new_round = round_;
-    ObservationId id = NO_OBSERVATION;
-    auto observations = vector<shared_ptr<Observation>>(2);
-    shared_ptr<GenericPokerState> newState;
-    if (a1) {
-        switch (a1->GetType()) {
-            case Raise:
-                id = static_cast<int>(3 + pokerDomain->maxCardTypes_ +
-                    2 * pokerDomain->maxDifferentBets_);
-                if (round_ == 1) {
-                    for (auto &i : pokerDomain->raisesFirstRound_) {
-                        if (a1->GetValue() == i) {
-                            break;
-                        }
-                        ++id;
-                    }
-                } else {
-                    id += static_cast<int>(pokerDomain->maxDifferentRaises_);
-                    for (auto &i : pokerDomain->raisesSecondRound_) {
-                        if (a1->GetValue() == i) {
-                            break;
-                        }
-                        ++id;
-                    }
-                }
-                newContinuousRaiseCount = continuousRaiseCount_ + 1;
-                bet = lastAction_->GetValue() + a1->GetValue();
-                // bet =  2 * (pot - firstPlayerReward) - pot + a1->GetValue();
-                new_pot += bet;
-                break;
+    assert(getPlayers().size() == 1);
+    const Player currentPlayer = getPlayers()[0];
+    const auto pokerAction = dynamic_pointer_cast<GenericPokerAction>(actions[currentPlayer]);
+    assert(pokerAction->getId() != NO_ACTION);
+    assert(actions[opponent(currentPlayer)]->getId() == NO_ACTION);
 
-            case Call:
-                id = Call;
-                newContinuousRaiseCount = 0;
-                new_round = round_ + 1;
-                bet = lastAction_->GetValue();  // 2 *(pot - firstPlayerReward) - pot;
-                new_pot += bet;
-                break;
+    double currentBet = 0.;
+    double newFirstPlayerReward = cumulativeFirstPlayerReward_;
+    int newContinuousRaiseCount = continuousRaiseCount_;
+    int newRound = round_;
+    PokerObservationId obsId = 0;
 
-            case Check:
-                id = Check;
-                break;
-            case Bet:
-                bet = a1->GetValue();
-                new_pot += bet;
-                id = 3 + pokerDomain->maxCardTypes_;
-                if (round_ == 1) {
-                    for (auto &i : pokerDomain->betsFirstRound_) {
-                        if (bet == i) {
-                            break;
-                        }
-                        ++id;
-                    }
-                } else {
-                    id += static_cast<int>(pokerDomain->maxDifferentBets_);
-                    for (auto &i : pokerDomain->betsSecondRound_) {
-                        if (bet == i) {
-                            break;
-                        }
-                        ++id;
-                    }
+    switch (pokerAction->getType()) {
+        case Raise:
+            obsId = int(3 + pokerDomain->maxCardTypes_ + 2 * pokerDomain->maxDifferentBets_);
+            if (round_ == 1) {
+                for (auto &i : pokerDomain->raisesFirstRound_) {
+                    if (pokerAction->getValue() == i) break;
+                    ++obsId;
                 }
-                break;
-            case Fold:
-                id = Fold;
-                newFirstPlayerReward = pot_ - firstPlayerReward_;
-                new_round = pokerDomain->TERMINAL_ROUND;
-                break;
-            default:
-                break;
-        }
-        if (new_round == 2 && natureCard_ == nullopt && a1->GetType() == Call) {
-            for (int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
-                if ((player1Card_ == i && player2Card_ == i && pokerDomain->maxCardsOfEachType_ < 3)
-                    ||
-                        ((player1Card_ == i || player2Card_ == i)
-                            && pokerDomain->maxCardsOfEachType_ < 2)) {
-                    continue;
+            } else {
+                obsId += int(pokerDomain->maxDifferentRaises_);
+                for (auto &i : pokerDomain->raisesSecondRound_) {
+                    if (pokerAction->getValue() == i) break;
+                    ++obsId;
                 }
-                newLastAction = a1;
-                next_players[0] = 0;
-                int occurrenceCount = 0;
-                if (player1Card_ == i)
-                    ++occurrenceCount;
-                if (player2Card_ == i)
-                    ++occurrenceCount;
-                double
-                    prob = static_cast<double>(pokerDomain->maxCardsOfEachType_ - occurrenceCount) /
-                    (pokerDomain->maxCardTypes_ * pokerDomain->maxCardsOfEachType_ - 2);
-                newState = make_shared<GenericPokerState>(
-                    domain_, player1Card_, player2Card_, i,
-                    newFirstPlayerReward, new_pot, next_players, new_round + 1,
-                    newLastAction, 0);
-                Outcome outcome(newState,
-                                vector<shared_ptr<Observation>>
-                                    {make_shared<GenericPokerObservation>(3 + i, PlayCard, i),
-                                     make_shared<GenericPokerObservation>(3 + i, PlayCard, i)},
-                                shared_ptr<Observation>(),
-                                vector<double>(2));
-                newOutcomes.emplace_back(OutcomeEntry(outcome, prob));
             }
-            return newOutcomes;
-        }
-        newLastAction = a1;
-        next_players[0] = 1;
-        if (new_round == pokerDomain->TERMINAL_ROUND) {
-            next_players.clear();
-        }
-        newState = make_shared<GenericPokerState>(
-            domain_, player1Card_, player2Card_, natureCard_,
-            newFirstPlayerReward, new_pot, next_players, new_round,
-            newLastAction, newContinuousRaiseCount);
-        observations[0] = make_shared<Observation>(NO_OBSERVATION);
-        observations[1] = make_shared<GenericPokerObservation>(id, a1->GetType(), a1->GetValue());
-    } else if (a2) {
-        switch (a2->GetType()) {
-            case Raise:
-                id = static_cast<int>(3 + pokerDomain->maxCardTypes_ +
-                    2 * pokerDomain->maxDifferentBets_);
-                if (round_ == 1) {
-                    for (auto &i : pokerDomain->raisesFirstRound_) {
-                        if (a2->GetValue() == i) {
-                            break;
-                        }
-                        ++id;
-                    }
-                } else {
-                    id += static_cast<int>(pokerDomain->maxDifferentRaises_);
-                    for (auto &i : pokerDomain->raisesSecondRound_) {
-                        if (a2->GetValue() == i) {
-                            break;
-                        }
-                        ++id;
-                    }
-                }
+            newContinuousRaiseCount = continuousRaiseCount_ + 1;
+            currentBet = lastAction_->getValue() + pokerAction->getValue();
+            if (currentPlayer == Player(1)) newFirstPlayerReward += currentBet;
+            break;
 
-                newContinuousRaiseCount = continuousRaiseCount_ + 1;
-                bet = lastAction_->GetValue()
-                    + a2->GetValue();  // 2*firstPlayerReward-pot+a2->GetValue();
-                new_pot += bet;
-                newFirstPlayerReward += bet;
-                break;
+        case Call:
+            obsId = Call;
+            newContinuousRaiseCount = 0;
+            newRound = round_ + 1;
+            currentBet = lastAction_->getValue();
+            if (currentPlayer == Player(1)) newFirstPlayerReward += currentBet;
+            break;
 
-            case Call:
-                id = Call;
-                newContinuousRaiseCount = 0;
-                new_round = round_ + 1;
-                bet = lastAction_->GetValue();  // -2 *firstPlayerReward + pot;
-                new_pot += bet;
-                newFirstPlayerReward += bet;
-                break;
+        case Check:
+            obsId = Check;
+            if (currentPlayer == Player(1)) newRound = round_ + 1;
+            break;
 
-            case Check:
-                id = Check;
-                new_round = round_ + 1;
-                break;
-            case Bet:
-                bet = a2->GetValue();
-                new_pot += bet;
-                newFirstPlayerReward += bet;
-                id = 3 + pokerDomain->maxCardTypes_;
-                if (round_ == 1) {
-                    for (auto &i : pokerDomain->betsFirstRound_) {
-                        if (bet == i) {
-                            break;
-                        }
-                        ++id;
-                    }
-                } else {
-                    id += static_cast<int>(pokerDomain->maxDifferentBets_);
-                    for (auto &i : pokerDomain->betsSecondRound_) {
-                        if (bet == i) {
-                            break;
-                        }
-                        ++id;
-                    }
+        case Bet:
+            currentBet = pokerAction->getValue();
+            if (currentPlayer == Player(1)) newFirstPlayerReward += currentBet;
+            obsId = 3 + pokerDomain->maxCardTypes_;
+            if (round_ == 1) {
+                for (auto &i : pokerDomain->betsFirstRound_) {
+                    if (currentBet == i) break;
+                    ++obsId;
                 }
-                break;
-            case Fold:
-                id = Fold;
-                new_round = pokerDomain->TERMINAL_ROUND;
-                break;
-            default:
-                break;
-        }
-        if (new_round == 2 && natureCard_ == nullopt &&
-            (a2->GetType() == Call || a2->GetType() == Check)) {
-            for (int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
-                if ((player1Card_ == i && player2Card_ == i && pokerDomain->maxCardsOfEachType_ < 3)
-                    ||
-                        ((player1Card_ == i || player2Card_ == i)
-                            && pokerDomain->maxCardsOfEachType_ < 2)) {
-                    continue;
+            } else {
+                obsId += static_cast<int>(pokerDomain->maxDifferentBets_);
+                for (auto &i : pokerDomain->betsSecondRound_) {
+                    if (currentBet == i) break;
+                    ++obsId;
                 }
-                newLastAction = a2;
-                next_players[0] = 0;
-                int occurrenceCount = 0;
-                if (player1Card_ == i)
-                    ++occurrenceCount;
-                if (player2Card_ == i)
-                    ++occurrenceCount;
-                double
-                    prob = static_cast<double>(pokerDomain->maxCardsOfEachType_ - occurrenceCount) /
-                    (pokerDomain->maxCardTypes_ * pokerDomain->maxCardsOfEachType_ - 2);
-                newState = make_shared<GenericPokerState>(
-                    domain_, player1Card_, player2Card_, i,
-                    newFirstPlayerReward, new_pot, next_players, new_round + 1,
-                    newLastAction, 0);
-                Outcome outcome(newState,
-                                vector<shared_ptr<Observation>>
-                                    {make_shared<GenericPokerObservation>(3 + i, PlayCard, i),
-                                     make_shared<GenericPokerObservation>(3 + i, PlayCard, i)},
-                                shared_ptr<Observation>(),
-                                vector<double>(2));
-                newOutcomes.emplace_back(OutcomeEntry(outcome, prob));
             }
-            return newOutcomes;
-        }
-        next_players[0] = 0;
-        if (new_round == pokerDomain->TERMINAL_ROUND) {
-            next_players.clear();
-        }
-        newLastAction = a2;
-        newState = make_shared<GenericPokerState>(
-            domain_, player1Card_, player2Card_, natureCard_,
-            newFirstPlayerReward, new_pot, next_players, new_round,
-            newLastAction, newContinuousRaiseCount);
-        observations[0] = make_shared<GenericPokerObservation>(id, a2->GetType(), a2->GetValue());
-        observations[1] = make_shared<Observation>(NO_OBSERVATION);
+            break;
+
+        case Fold:
+            obsId = Fold;
+            if (currentPlayer == Player(0))
+                newFirstPlayerReward = pot_ - cumulativeFirstPlayerReward_;
+            newRound = POKER_TERMINAL_ROUND;
+            break;
+
+        default:
+            assert(false); // unrecognized option!
     }
+
+    double newPot = pot_ + currentBet;
+
+    if (newRound == 2 && natureCard_ == nullopt
+        && (pokerAction->getType() == Call
+            || (pokerAction->getType() == Check && currentPlayer == Player(1)))) {
+        return revealChanceCard(newFirstPlayerReward, newPot, pokerAction);
+    } else {
+        return progressRound(newFirstPlayerReward, newContinuousRaiseCount, newPot,
+                             currentPlayer, newRound, obsId, pokerAction);
+    }
+}
+
+OutcomeDistribution GenericPokerState::progressRound(
+    double newFirstPlayerReward, double newContinuousRaiseCount, double newPot,
+    Player currentPlayer, int newRound, PokerObservationId obsId,
+    const shared_ptr<GenericPokerAction> &pokerAction) const {
+    auto nextPlayer = opponent(currentPlayer);
     vector<double> rewards(2);
-    if (new_round == pokerDomain->TERMINAL_ROUND) {
-        int result = hasPlayerOneWon(newLastAction, a1 ? -1 : 1);
+    if (newRound == POKER_TERMINAL_ROUND) {
+        nextPlayer = NO_PLAYER;
+        int result = hasPlayerOneWon(pokerAction, currentPlayer == Player(0) ? -1 : 1);
         rewards = vector<double>{result * newFirstPlayerReward, -result * newFirstPlayerReward};
     }
-    Outcome outcome(newState, move(observations), shared_ptr<Observation>(), rewards);
-    newOutcomes.emplace_back(OutcomeEntry(outcome));
+
+    const auto newState = make_shared<GenericPokerState>(
+        domain_, player1Card_, player2Card_, natureCard_,
+        newFirstPlayerReward, newPot, nextPlayer, newRound,
+        pokerAction, newContinuousRaiseCount);
+
+    const auto pubObs = make_shared<GenericPokerObservation>(
+        obsId, pokerAction->getType(), pokerAction->getValue());
+
+    return OutcomeDistribution{OutcomeEntry(Outcome(newState, {pubObs, pubObs}, pubObs, rewards))};
+}
+
+OutcomeDistribution GenericPokerState::revealChanceCard(double newFirstPlayerReward, double new_pot,
+                                                        const shared_ptr<GenericPokerAction> &pokerAction) const {
+    const auto pokerDomain = static_cast<const GenericPokerDomain *>(domain_);
+
+    OutcomeDistribution newOutcomes;
+    // Nature card is going to be one of the possible types
+    for (int natureCard = 0; natureCard < pokerDomain->maxCardTypes_; ++natureCard) {
+
+        // Do not have a chance card in impossible situations
+        const bool bothPlayersPlayed = player1Card_ == natureCard
+            && player2Card_ == natureCard
+            && pokerDomain->maxCardsOfEachType_ == 2;
+        const bool onePlayerPlayed = (player1Card_ == natureCard || player2Card_ == natureCard)
+            && pokerDomain->maxCardsOfEachType_ == 1;
+        if (bothPlayersPlayed || onePlayerPlayed) continue;
+
+        int occurrenceCount = 0;
+        if (player1Card_ == natureCard) ++occurrenceCount;
+        if (player2Card_ == natureCard) ++occurrenceCount;
+
+        const double prob = double(pokerDomain->maxCardsOfEachType_ - occurrenceCount)
+            / (pokerDomain->maxCardTypes_ * pokerDomain->maxCardsOfEachType_ - 2);
+        const auto newState = make_shared<GenericPokerState>(
+            domain_, player1Card_, player2Card_, natureCard,
+            newFirstPlayerReward, new_pot, Player(0), 3, pokerAction, 0);
+
+        const auto observation = make_shared<GenericPokerObservation>(
+            3 + natureCard, PlayCard, natureCard);
+        Outcome outcome(newState, {observation, observation}, observation, vector<double>(2));
+        newOutcomes.emplace_back(OutcomeEntry(outcome, prob));
+    }
 
     return newOutcomes;
 }
@@ -461,14 +378,14 @@ bool GenericPokerState::operator==(const State &rhs) const {
         && player2Card_ == rhsState.player2Card_
         && round_ == rhsState.round_
         && pot_ == rhsState.pot_
-        && firstPlayerReward_ == rhsState.firstPlayerReward_
+        && cumulativeFirstPlayerReward_ == rhsState.cumulativeFirstPlayerReward_
         && natureCard_.value_or(-1) == rhsState.natureCard_.value_or(-1)
-        && players_ == rhsState.players_;
+        && actingPlayer_ == rhsState.actingPlayer_;
 }
 
 int GenericPokerState::hasPlayerOneWon(const shared_ptr<GenericPokerAction> &lastAction,
-                                       Player player) const {
-    if (lastAction->GetType() == Fold) return player;
+                                       int sign) const {
+    if (lastAction->getType() == Fold) return sign;
     if (player1Card_ == player2Card_) return 0;
     if (player1Card_ == natureCard_) return 1;
     if (player2Card_ == natureCard_) return -1;
@@ -477,12 +394,14 @@ int GenericPokerState::hasPlayerOneWon(const shared_ptr<GenericPokerAction> &las
 }
 
 string GenericPokerState::toString() const {
-    return "Player 0 card: " + to_string(player1Card_) + "\nPlayer 1 card: " +
-        to_string(player2Card_) + "\nNature card: " + to_string(natureCard_.value_or(-1)) +
-        "\nPlayer on move: " + to_string(players_[0]) + "\nPot: " + to_string(pot_) +
-        "\nReward for first player: " + to_string(firstPlayerReward_) +
+    return "Player 0 card: " + to_string(player1Card_) +
+        "\nPlayer 1 card: " + to_string(player2Card_) +
+        "\nNature card: " + to_string(natureCard_.value_or(-1)) +
+        "\nActing player: " + to_string(actingPlayer_) +
+        "\nPot: " + to_string(pot_) +
+        "\nReward for first player: " + to_string(cumulativeFirstPlayerReward_) +
         "\nLast action: " + (lastAction_ ? lastAction_->toString() : "Nothing") +
-        "\nRound: " + to_string(round_) + "\nContinuous raise count: " +
-        to_string(continuousRaiseCount_) + "\n";
+        "\nRound: " + to_string(round_) +
+        "\nContinuous raise count: " + to_string(continuousRaiseCount_) + "\n";
 }
 }  // namespace GTLib2

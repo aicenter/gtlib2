@@ -73,6 +73,13 @@ Please note there are two ways of building up the project: in _debug_ or _releas
 If you want to change your configuration later, you will have to reset CMake cache and rebuild the project:
 - In CLion: `Tools -> CMake -> Reset Cache and Reload Project`
 
+# Use LP solvers
+
+See [installation instructions for LP solvers.](INSTALL_LP.md) 
+
+# Documentation
+
+Install doxygen and run `make doc` from your build directory. The `/doxygen` directory with html/latex documentation should appear.
 
 # High-level overview
 
@@ -94,7 +101,3 @@ Extensive form game is built on top of this graph. There are some major differen
 # Contributing
 
 Please check the [CONTRIBUTING.md](CONTRIBUTING.md) file to understand how to contribute code to this repository. 
-
-todo: write about release / debug, asserts are turned of in debug
-use arrays for players
-there should be no chance player in domain
