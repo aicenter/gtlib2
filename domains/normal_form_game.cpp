@@ -43,7 +43,7 @@ vector<vector<double>> NFGSettings::getUtilities(vector<vector<double>> twoPlaye
     return u;
 }
 
-vector<unsigned int> NFGSettings::getIndexingOffsets() {
+vector<unsigned int> NFGSettings::getIndexingOffsets() const {
     vector<unsigned int> indexingOffsets(numPlayers, 1);
 
     for (int i = numPlayers - 1; i > 0; i--) {
@@ -58,7 +58,7 @@ vector<unsigned int> NFGSettings::getIndexingOffsets() {
     return indexingOffsets;
 }
 
-vector<vector<string>> NFGSettings::getActionNames() {
+vector<vector<string>> NFGSettings::getActionNames() const {
     if(!actionNames.empty()) return actionNames;
 
     vector<vector<string>> allNames;
@@ -73,9 +73,17 @@ vector<vector<string>> NFGSettings::getActionNames() {
     }
     return allNames;
 }
+bool NFGSettings::isZeroSum() const {
+    for (const auto &utility : utilities) {
+        double sum = 0;
+        for (const double u : utility) sum += u;
+        if (sum != 0.0) return false;
+    }
+    return true;
+}
 
-NFGDomain::NFGDomain(GTLib2::domains::NFGSettings settings) :
-    Domain(2, settings.numPlayers, make_shared<NFGAction>(), make_shared<Observation>()),
+NFGDomain::NFGDomain(NFGSettings settings) :
+    Domain(2, settings.numPlayers, settings.isZeroSum(), make_shared<NFGAction>(), make_shared<Observation>()),
     dimensions_(settings.dimensions),
     numPlayers_(settings.numPlayers),
     utilities_(settings.utilities),

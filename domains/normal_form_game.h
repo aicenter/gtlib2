@@ -38,7 +38,7 @@ struct NFGSettings {
         actionNames(move(actionNames_)) {
 #if NDEBUG
         // check that each utility has value for each player
-        for(const auto &playerUtils : utilities) assert(playerUtils.size() == numPlayers);
+        for (const auto &playerUtils : utilities) assert(playerUtils.size() == numPlayers);
 #endif
     }
 
@@ -62,8 +62,9 @@ struct NFGSettings {
     const vector <vector<string>> actionNames;
 
     static vector <vector<double>> getUtilities(vector <vector<double>> twoPlayerZeroSumMatrix);
-    vector<unsigned int> getIndexingOffsets();
-    vector <vector<string>> getActionNames();
+    vector<unsigned int> getIndexingOffsets()  const;
+    vector <vector<string>> getActionNames()  const;
+    bool isZeroSum() const;
 };
 
 class NFGAction: public Action {
