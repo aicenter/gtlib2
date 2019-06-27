@@ -30,75 +30,92 @@
 namespace GTLib2::domains {
 
 struct NFGSettings {
+    NFGSettings(vector <vector<double>> utilities_, vector <uint32> dimensions_,
+                int numPlayers_, vector <vector<string>> actionNames_) :
+        utilities(move(utilities_)),
+        dimensions(move(dimensions_)),
+        numPlayers(numPlayers_),
+        actionNames(move(actionNames_)) {
+#if NDEBUG
+        // check that each utility has value for each player
+        for(const auto &playerUtils : utilities) assert(playerUtils.size() == numPlayers);
+#endif
+    }
 
-    NFGSettings(vector <vector<double >> utilities, vector <uint32> dimensions) :
-        utilities(utilities),
-        dimensions(dimensions) {}
+    NFGSettings(vector <vector<double>> utilities, vector <uint32> dimensions) :
+        NFGSettings(move(utilities), move(dimensions), 2, {}) {}
 
-    NFGSettings(vector <vector<double >> utilities, vector <uint32> dimensions, int numPlayers) :
-        utilities(utilities),
-        dimensions(dimensions),
-        numPlayers(numPlayers) {}
+    explicit NFGSettings(vector <vector<double>> twoPlayerZeroSumMatrix) :
+        NFGSettings(getUtilities(twoPlayerZeroSumMatrix), {
+            (uint32) twoPlayerZeroSumMatrix.size(),
+            (uint32) twoPlayerZeroSumMatrix[0].size()
+        }, 2, {}) {}
 
-    NFGSettings(vector<vector<double>> twoPlayerZeroSumMatrix) :
-        dimensions({(uint32)twoPlayerZeroSumMatrix.size(), (uint32)twoPlayerZeroSumMatrix[0].size()}),
-        utilities(getUtilities(twoPlayerZeroSumMatrix)) {}
+    /**
+     * Utilities in the game: inner vector represents utilities for each of the players,
+     * outer vector is the indexing of n-dimensional tensor (based on how many players play)
+     * by serializing it into a single array.
+     */
+    const vector <vector<double>> utilities;
+    const uint32 numPlayers;
+    const vector <uint32> dimensions;
+    const vector <vector<string>> actionNames;
 
-    vector <vector<double>> utilities = {};
-    uint32 numPlayers = 2;
-    vector <uint32> dimensions;
-
-    vector <vector<double >> getUtilities(vector<vector<double>> twoPlayerZeroSumMatrix);
+    static vector <vector<double>> getUtilities(vector <vector<double>> twoPlayerZeroSumMatrix);
     vector<unsigned int> getIndexingOffsets();
+    vector <vector<string>> getActionNames();
 };
 
-class NFGAction : public Action {
+class NFGAction: public Action {
  public:
     inline NFGAction() : Action() {}
-    inline NFGAction(ActionId id) : Action(id) {}
-    inline string toString() const override { return "Id of action: " + to_string(id_); };
-    bool operator==(const Action &that) const override;
-    inline HashType getHash() const override { return id_; };
-
+    inline NFGAction(ActionId id, string actionName) : Action(id), actionName_(move(actionName)) {}
+    inline string toString() const override { return actionName_; };
+    const string actionName_;
 };
 
-class NFGDomain : public Domain {
+class NFGDomain: public Domain {
  public:
     explicit NFGDomain(NFGSettings settings);
-    string getInfo() const override;
-    vector <Player> getPlayers() const;
+    inline string getInfo() const override {
+        return to_string(numPlayers_) + " players normal form game";
+    }
+    inline vector <Player> getPlayers() const {
+        vector<Player> ps(numPlayers_);
+        std::iota(ps.begin(), ps.end(), 0);
+        return ps;
+    }
+    inline string getActionName(ActionId i, Player pl) const {
+        return actionNames_.at(pl).at(i);
+    }
     const vector <uint32> dimensions_;
     const uint32 numPlayers_;
     const vector <vector<double>> utilities_;
     const vector<unsigned int> indexingOffsets_;
-
+    const vector <vector<string>> actionNames_;
 };
 
-class NFGObservation : public Observation {
- public:
-    inline NFGObservation() :
-        Observation() {}
-};
 
-class NFGState : public State {
+class NFGState: public State {
  public:
-    inline NFGState(const Domain *domain, bool terminal, vector <uint32> playerActions) :
-        State(domain, hashCombine(98612345434231, terminal, playerActions)),
-        terminal_(terminal),
-        playerActions_(playerActions) {}
+    inline NFGState(const Domain *domain, vector <uint32> playerActions) :
+        State(domain, hashCombine(98612345434231, playerActions)),
+        playedActions_(move(playerActions)) {}
 
     unsigned long countAvailableActionsFor(Player player) const override;
     vector <shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
     OutcomeDistribution performActions(const vector <shared_ptr<Action>> &actions) const override;
-    vector <Player> getPlayers() const override;
-    bool isTerminal() const override;
+    inline vector <Player> getPlayers() const override {
+        const auto nfgDomain = static_cast<const NFGDomain *>(domain_);
+        return nfgDomain->getPlayers();
+    }
+    inline bool isTerminal() const override { return !playedActions_.empty(); }
     string toString() const override;
     bool operator==(const State &rhs) const override;
 
-    const bool terminal_;
-    vector <uint32> playerActions_;
+    const vector <uint32> playedActions_;
 };
 
-} // namespace GTLib2
+}; // namespace GTLib2
 
 #endif //GTLIB2_DOMAINS_NORMAL_FORM_GAME_H_

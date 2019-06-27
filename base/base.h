@@ -108,7 +108,7 @@ constexpr ActionId NO_ACTION = 0xFFFFFFFF;
  *
  * Different actions must have different ids, the same actions must have the same id.
  *
- * Each domain must implement it's own Action subclass.
+ * Each domain can implement it's own Action subclass.
  */
 class Action {
  public:
@@ -142,8 +142,6 @@ constexpr ObservationId NO_OBSERVATION = 0xFFFFFFFF;
  *
  * It's up to each domain to guarantee consistency of observation ids.
  */
-
-
 class Observation {
  public:
     inline explicit Observation(ObservationId id) : id_(id) {}
