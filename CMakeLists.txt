@@ -176,6 +176,8 @@ set(SOURCE_FILES
         domains/goofSpiel.h domains/goofSpiel.cpp
         domains/kriegspiel.h domains/kriegspiel.cpp
         domains/matching_pennies.h domains/matching_pennies.cpp
+        domains/normal_form_game.cpp domains/normal_form_game.h
+        domains/simple_games.h
         domains/phantomTTT.h domains/phantomTTT.cpp
         domains/pursuit.h domains/pursuit.cpp
         domains/RhodeIslandPoker.h domains/RhodeIslandPoker.cpp
@@ -185,8 +187,7 @@ set(SOURCE_FILES
         LPsolvers/LPSolver.h
         # utils
         utils/utils.h
-        utils/export.cpp utils/export.h
-        domains/normal_form_game.cpp domains/normal_form_game.h)
+        utils/export.cpp utils/export.h)
 
 set(TEST_FILES
         tests/domainsTest.h tests/domainsTest.cpp
