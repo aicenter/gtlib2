@@ -24,12 +24,7 @@
 #define GTLIB2_RANDOM_H
 
 
-#include "base/base.h"
 #include "base/efg.h"
-#include "base/cache.h"
-#include "algorithms/cfr.h"
-#include "algorithms/tree.h"
-#include "algorithms/common.h"
 
 namespace GTLib2 {
 
@@ -44,13 +39,19 @@ int pickRandom(const Distribution &probs, double probSum, std::mt19937 &generato
 
 int pickRandom(const EFGNode &node, std::mt19937 &generator);
 
-int pickUniform(unsigned int numOutcomes, std::mt19937 &generator);
+int pickUniform(unsigned long numOutcomes, std::mt19937 &generator);
 
 
 struct RandomLeafOutcome {
-    vector<double> utilities; // for player 0
+    vector<double> utilities;
     vector<double> playerReachProbs;
     double chanceReachProb;
+
+    inline double reachProb() const { return chanceReachProb * playersReachProb(); }
+    inline double playersReachProb() const {
+        return std::accumulate(playerReachProbs.begin(), playerReachProbs.begin(),
+                               1, std::multiplies<>());
+    }
 };
 
 RandomLeafOutcome pickRandomLeaf(const std::shared_ptr<EFGNode> &start, std::mt19937 &generator);

@@ -23,7 +23,6 @@
 #ifndef ALGORITHMS_DOUBLEORACLENFG_H_
 #define ALGORITHMS_DOUBLEORACLENFG_H_
 
-#include "base/base.h"
 #include "algorithms/normalFormLP.h"
 
 class DoubleOracleNFG {

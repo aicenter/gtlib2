@@ -23,7 +23,6 @@
 #ifndef GTLIB2_STRATEGY_H
 #define GTLIB2_STRATEGY_H
 
-#include "base/base.h"
 #include "algorithms/cfr.h"
 #include "algorithms/tree.h"
 #include "algorithms/common.h"
@@ -42,27 +41,31 @@ inline double getActionProb(const ActionProbDistribution &dist, const shared_ptr
 
 struct StrategyValue {
     BehavioralStrategy strategy;
-    double value; // at root node
+    double value; // at root node for player 0
 
     inline StrategyValue() : strategy(BehavioralStrategy()), value(0) {}
-    inline StrategyValue(BehavioralStrategy strategy, double value)
-        : strategy(move(strategy)), value(value) {}
+    inline StrategyValue(BehavioralStrategy strategy_, double value_)
+        : strategy(move(strategy_)), value(value_) {}
+    inline StrategyValue(const StrategyValue &other) {
+        value = other.value;
+        strategy = other.strategy;
+    }
 };
 
-/**
- * Calculate average strategy for each player.
- */
 StrategyProfile getAverageStrategy(CFRData &data, int maxDepth);
 
+/**
+ * Calculate average strategy profile for each player.
+ */
 inline StrategyProfile getAverageStrategy(CFRData &data) {
     return getAverageStrategy(data, data.getDomainMaxStateDepth());
 }
 
+StrategyProfile getUniformStrategy(InfosetCache &data, int maxDepth);
+
 /**
  * Create strategy profile where both players play with uniform strategies.
  */
-StrategyProfile getUniformStrategy(InfosetCache &data, int maxDepth);
-
 inline StrategyProfile getUniformStrategy(InfosetCache &data) {
     return getUniformStrategy(data, data.getDomainMaxStateDepth());
 }

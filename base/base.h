@@ -44,6 +44,11 @@ class AOH;
 class Domain;
 
 typedef uint8_t Player;
+constexpr Player NO_PLAYER = 0xff;
+inline Player opponent(Player pl) {
+    assert(pl == 0 || pl == 1);
+    return Player(1-pl);
+}
 
 /**
  * For a given State/EFGNode/InformationSet, IDs should be indexed
@@ -270,7 +275,7 @@ class AOH: public InformationSet {
 
     inline Player getPlayer() const { return player_; }
     inline ObservationId getInitialObservationId() const { return aoh_.front().observation; }
-    inline vector<ActionObservationIds> getAOHistory() const { return aoh_; }
+    inline vector<ActionObservationIds> getAOids() const { return aoh_; }
     string toString() const override;
 
  private:
@@ -386,7 +391,7 @@ class State {
  */
 class Domain {
  public:
-    Domain(unsigned int maxStateDepth, unsigned int numberOfPlayers,
+    Domain(unsigned int maxStateDepth, unsigned int numberOfPlayers, bool isZeroSum_,
            shared_ptr<Action> noAction, shared_ptr<Observation> noObservation);
 
     virtual ~Domain() = default;
@@ -406,6 +411,12 @@ class Domain {
      * Returns default maximal depth used in algorithms.
      */
     inline unsigned int getMaxStateDepth() const { return maxStateDepth_; }
+
+    /**
+     * Are all the rewards in outcomes zero-sum?
+     */
+    inline bool isZeroSum() const { return isZeroSum_; };
+
     inline double getMaxUtility() const { return maxUtility_; }
     inline double getMinUtility() const { return -maxUtility_; }
 
@@ -420,7 +431,8 @@ class Domain {
  protected:
     OutcomeDistribution rootStatesDistribution_;
     unsigned int maxStateDepth_;
-    unsigned int numberOfPlayers_;
+    const unsigned int numberOfPlayers_;
+    const bool isZeroSum_;
     double maxUtility_;
 
     const shared_ptr<Action> noAction_;

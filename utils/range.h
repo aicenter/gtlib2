@@ -20,39 +20,37 @@
 */
 
 
-#ifndef GTLIB2_LPSOLVER_H
-#define GTLIB2_LPSOLVER_H
+#ifndef GTLIB2_RANGE_H
+#define GTLIB2_RANGE_H
+
 
 #include "base/base.h"
 #include <cmath>
 
-#define NO_LP_SOLVER 0
-#define GUROBI_SOLVER 1
-#define CPLEX_SOLVER 2
-#define GLPK_SOLVER 3
+namespace GTLib2::utils {
 
-#if GUROBIFOUND == 1
-    #define LP_SOLVER GUROBI_SOLVER
-    #include "LPsolvers/GurobiLPSolver.h"
-#elif CPLEXFOUND == 1
-    #define LP_SOLVER CPLEX_SOLVER
-    #include "LPsolvers/CplexLPSolver.h"
-#elif GLPKFOUND == 1
-    #define LP_SOLVER GLPK_SOLVER
-    #include "LPsolvers/GlpkLPSolver.h"
-#else
-    #define LP_SOLVER NO_LP_SOLVER
+inline vector<double> logRange(double start, double end, unsigned int numSteps, double base) {
+    assert(start > 0);
+    assert(end > 0);
+    assert(end > start);
+    assert(base > 0);
+    assert(numSteps > 0);
 
-namespace GTLib2::algorithms {
-    inline double solveLP(const unsigned int rows,
-                          const unsigned int cols,
-                          const vector<double> &utility_matrix,
-                          vector<double> &solution) {
-        assert(("No LP solver included to project", false));
-        return NAN;
+    const double logStart = log(start) / log(base);
+    const double logEnd = log(end) / log(base);
+    vector<double> steps;
+    for (double i = 0; i < numSteps; ++i) {
+        double ratio = (i / (numSteps - 1));
+        double y = logEnd * ratio + logStart * (1 - ratio);
+        steps.push_back(pow(base, y));
     }
-}  // namespace GTLib2
+    return steps;
+}
 
-#endif
+inline vector<double> log10Range(double start, double end, unsigned int numSteps) {
+    return logRange(start, end, numSteps, 10.);
+}
 
-#endif //GTLIB2_LPSOLVER_H
+}
+
+#endif //GTLIB2_RANGE_H

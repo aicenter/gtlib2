@@ -20,15 +20,9 @@
 */
 
 
-#include "base/base.h"
 #include "algorithms/bestResponse.h"
 
-#include <limits>
 #include <algorithm>
-
-#include "base/efg.h"
-#include "algorithms/common.h"
-#include "algorithms/tree.h"
 
 namespace GTLib2::algorithms {
 
@@ -36,36 +30,49 @@ namespace GTLib2::algorithms {
 typedef unordered_map<shared_ptr<EFGNode>, StrategyValue> BestRespCache;
 typedef unordered_map<shared_ptr<AOH>, vector<shared_ptr<EFGNode>>> NodesInInfosets;
 
-StrategyValue _bestResponse(const BehavioralStrategy &opoStrat,
-                            const Player opponent, const Player player,
-                            const Domain &domain,
-                            BestRespCache &cache, NodesInInfosets &allNodesInInfosets,
-                            const shared_ptr<EFGNode> &node) {
+const StrategyValue &_bestResponse(const BehavioralStrategy &opoStrat,
+                                   const Player responder,
+                                   const Domain &domain,
+                                   BestRespCache &cache,
+                                   NodesInInfosets &allNodesInInfosets,
+                                   const shared_ptr<EFGNode> &node) {
 
 //    if (reachProbChanceOpponent == 0.0) return StrategyValue();
     // We may have solved this infoset already (we traverse by histories, not infosets!)
     if (cache.find(node) != cache.end()) return cache.at(node);
+
     if (node->type_ == TerminalNode) {
-        double reachOpponent = node->getProbabilityOfActionSeq(opponent, opoStrat);
-        return StrategyValue(BehavioralStrategy(),
-                             node->getUtilities()[player] * reachOpponent * node->chanceReachProb_);
+        const double reachOpponent = node->getProbabilityOfActionSeq(opponent(responder), opoStrat);
+        const double nodeValue = node->getUtilities()[responder]
+            * reachOpponent * node->chanceReachProb_;
+        assert(nodeValue <= domain.getMaxUtility());
+        assert(nodeValue >= domain.getMinUtility());
+        auto[it, result] = cache.emplace(node, StrategyValue(BehavioralStrategy(), nodeValue));
+        return it->second;
     }
+
     if (node->type_ == ChanceNode) {
         double nodeValue = 0.0;
         auto brs = BehavioralStrategy();
         for (const auto &action : node->availableActions()) {
-            const auto response = _bestResponse(opoStrat, opponent, player, domain, cache,
+            const auto response = _bestResponse(opoStrat, responder, domain, cache,
                                                 allNodesInInfosets, node->performAction(action));
             nodeValue += response.value;
+            assert(nodeValue <= domain.getMaxUtility());
+            assert(nodeValue >= domain.getMinUtility());
             brs.insert(response.strategy.begin(), response.strategy.end());
         }
-        return StrategyValue(brs, nodeValue);
+
+        assert(nodeValue <= domain.getMaxUtility());
+        assert(nodeValue >= domain.getMinUtility());
+        auto[it, result] = cache.emplace(node, StrategyValue(brs, nodeValue));
+        return it->second;
     }
 
     assert(node->type_ == PlayerNode);
     const auto infoset = node->getAOHInfSet();
 
-    if (node->getPlayer() != player) { // Opponent's node
+    if (node->getPlayer() != responder) { // Opponent's node
         double nodeValue = 0.0;
         auto brs = BehavioralStrategy();
         const auto &stratAtTheNode = opoStrat.at(infoset);
@@ -75,13 +82,19 @@ StrategyValue _bestResponse(const BehavioralStrategy &opoStrat,
             if (actionProb == 0.0) continue;
 
             const auto childNode = node->performAction(action);
-            const auto response = _bestResponse(opoStrat, opponent, player, domain, cache,
-                                                allNodesInInfosets, childNode);
+            const auto &response = _bestResponse(opoStrat, responder, domain, cache,
+                                                 allNodesInInfosets, childNode);
             nodeValue += response.value;
+            assert(nodeValue <= domain.getMaxUtility());
+            assert(nodeValue >= domain.getMinUtility());
+
             brs.insert(response.strategy.begin(), response.strategy.end());
         }
+        assert(nodeValue <= domain.getMaxUtility());
+        assert(nodeValue >= domain.getMinUtility());
 
-        return StrategyValue(brs, nodeValue);
+        auto[it, result] = cache.emplace(node, StrategyValue(brs, nodeValue));
+        return it->second;
     }
 
     // Player's node
@@ -94,29 +107,33 @@ StrategyValue _bestResponse(const BehavioralStrategy &opoStrat,
     }
     assert(!nodesInInfoset.empty());
     const auto actions = node->availableActions();
-    const auto infosetSize = nodesInInfoset.size();
+    const auto numActions = actions.size();
+    const auto numNodes = nodesInInfoset.size();
 
     ActionId bestAction = 0;
     double bestActionExpectedVal = -std::numeric_limits<double>::infinity();
     BehavioralStrategy brs;
 
+    // actions -> node -> value
     auto actionVals = vector<vector<double>>();
-    actionVals.reserve(actions.size());
+    actionVals.reserve(numActions);
 
-    for (int i = 0; i < actions.size(); ++i) {
+    for (int i = 0; i < numActions; ++i) {
         assert(actions[i]->getId() == i);
-
-        vector<double> siblingsValue;
-        siblingsValue.reserve(infosetSize);
         double actionValue = 0.0;
 
-        for (int j = 0; j < infosetSize; ++j) {
+        vector<double> siblingsValue;
+        siblingsValue.reserve(numNodes);
+        for (int j = 0; j < numNodes; ++j) {
             const auto &siblingNode = nodesInInfoset[j];
-            if(siblingNode->getProbabilityOfActionSeq(opponent, opoStrat) == 0.) continue;
+            if (siblingNode->getProbabilityOfActionSeq(opponent(responder), opoStrat) == 0.0) {
+                siblingsValue.push_back(0.0);
+                continue;
+            }
 
             const auto siblingChild = siblingNode->performAction(actions[i]);
-            const auto response = _bestResponse(
-                opoStrat, opponent, player, domain, cache, allNodesInInfosets, siblingChild);
+            const auto &response = _bestResponse(
+                opoStrat, responder, domain, cache, allNodesInInfosets, siblingChild);
             brs.insert(response.strategy.begin(), response.strategy.end());
             actionValue += response.value;
             siblingsValue.push_back(response.value);
@@ -130,24 +147,35 @@ StrategyValue _bestResponse(const BehavioralStrategy &opoStrat,
     }
     brs[infoset] = {{actions[bestAction], 1.0}};
 
-    for (int i = 0; i < nodesInInfoset.size(); ++i) {
-        const auto &siblingNode = nodesInInfoset[i];
-        auto bestActionVal = actionVals.at(bestAction)[i];
-        cache[siblingNode] = StrategyValue(brs, bestActionVal);
+    for (int j = 0; j < numNodes; ++j) {
+        const auto &siblingNode = nodesInInfoset[j];
+        auto bestActionVal = actionVals[bestAction][j];
+
+        assert(bestActionVal >= domain.getMinUtility());
+        assert(bestActionVal <= domain.getMaxUtility());
+        cache.emplace(siblingNode, StrategyValue(brs, bestActionVal));
     }
 
-    return cache.at(node);
+    const StrategyValue &returnValue = cache.at(node);
+    assert(returnValue.value <= domain.getMaxUtility());
+    assert(returnValue.value >= domain.getMinUtility());
+    return returnValue;
 }
 
 
-StrategyValue bestResponseTo(const BehavioralStrategy &opoStrat, Player opponent, Player player,
-                             const Domain &domain) {
+const StrategyValue bestResponseTo(const BehavioralStrategy &opoStrat,
+                                   const Player responder,
+                                   const Domain &domain) {
 
     unordered_map<shared_ptr<EFGNode>, StrategyValue> cache;
     NodesInInfosets nodesInInfosets; // empty -- we will need to generate them on the fly
 
-    return _bestResponse(opoStrat, opponent, player, domain, cache, nodesInInfosets,
-                         createRootEFGNode(domain));
+    const auto returnValue = _bestResponse(opoStrat, responder, domain,
+                                           cache, nodesInInfosets, createRootEFGNode(domain));
+    assert(returnValue.value <= domain.getMaxUtility());
+    assert(returnValue.value >= domain.getMinUtility());
+
+    return returnValue;
 }
 
 // todo: use infoset cache

@@ -25,12 +25,6 @@
 #ifndef ALGORITHMS_NORMALFORMLP_H_
 #define ALGORITHMS_NORMALFORMLP_H_
 
-#include "base/base.h"
-#include <cassert>
-#include <iostream>
-#include <vector>
-#include <memory>
-#include "base/efg.h"
 #include "LPsolvers/AbstractLPSolver.h"
 #include "algorithms/utility.h"
 #include "algorithms/common.h"

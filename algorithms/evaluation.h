@@ -20,19 +20,29 @@
 */
 
 
-#ifndef GTLIB2_EXPORT_H
-#define GTLIB2_EXPORT_H
+#ifndef GTLIB2_EVALUATION_H
+#define GTLIB2_EVALUATION_H
 
-#include "base/base.h"
-#include <fstream>
+#include "algorithms/bestResponse.h"
 
-namespace GTLib2::utils {
+namespace GTLib2::algorithms {
 
-void exportGraphViz(const Domain &domain, const string &fileToSave);
-void exportGraphViz(const Domain &domain, std::ostream &fs);
-void exportGambit(const Domain &domain, const string &fileToSave);
-void exportGambit(const Domain &domain, std::ostream &fs);
+/**
+ * Calculate normalized exploitability of the entire strategy profile in two-player zero-sum game.
+ */
+double calcExploitability(const Domain &domain, const StrategyProfile &profile);
+
+/**
+ * Calculate normalized exploitability of player's behavioral strategy in two-player zero-sum game.
+ *
+ * Game value is utility for Player(0) under Nash eq. strategy.
+ * This can be hard to calculate in general, but for some specific games can be easy
+ * (for example for II-GoofSpiel it's zero).
+ *
+ * @image html expl_player.png
+ */
+double calcExploitability(const Domain &domain, const BehavioralStrategy &strat,
+                          Player pl, double gameValue);
 
 }
-
-#endif //GTLIB2_EXPORT_H
+#endif //GTLIB2_EVALUATION_H

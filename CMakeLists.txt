@@ -21,6 +21,7 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif ()
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-Wgnu-designator")
 set(CMAKE_CXX_FLAGS_RELEASE "-m64 -msse2 -O3 -ffast-math -DNDEBUG")
 
 # link pthread library
@@ -137,6 +138,20 @@ if(NOT USE_CPLEX AND NOT USE_GUROBI AND NOT USE_GLPK)
     message("No LP solver is used")
 endif()
 
+# ------------ automatic documentation ----------------
+
+find_package(Doxygen)
+if (NOT DOXYGEN_FOUND)
+    message(WARNING "doxygen not found - target 'doc' will be unavailable.")
+else ()
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+    add_custom_target(doc
+            ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMENT "Generating API documentation with Doxygen" VERBATIM)
+endif ()
+
+
 # -------------------- Source files --------------------
 
 # Individually list all source files.
@@ -157,7 +172,9 @@ set(SOURCE_FILES
         algorithms/cfr.h algorithms/cfr.cpp
         algorithms/common.h algorithms/common.cpp
         algorithms/equilibrium.h algorithms/equilibrium.cpp
+        algorithms/evaluation.cpp algorithms/evaluation.h
         algorithms/normalFormLP.h algorithms/normalFormLP.cpp
+        algorithms/oos.h algorithms/oos.cpp
         algorithms/stats.h algorithms/stats.cpp
         algorithms/strategy.cpp algorithms/strategy.h
         algorithms/tree.h algorithms/tree.cpp
@@ -187,8 +204,10 @@ set(SOURCE_FILES
         LPsolvers/AbstractLPSolver.h
         LPsolvers/LPSolver.h
         # utils
-        utils/utils.h
+        utils/benchmark.h
         utils/export.cpp utils/export.h
+        utils/range.h
+        utils/utils.h
         )
 
 set(TEST_FILES
@@ -209,6 +228,8 @@ set(TEST_FILES
         tests/matchingPenniesTest.cpp
         tests/oshiZumoTest.cpp
         tests/utilityTest.cpp
+        tests/rangeTest.cpp
+        tests/oosTest.h tests/oosTest.cpp
         tests/normalFormGameTest.cpp
         tests/randomGameTest.cpp
         )

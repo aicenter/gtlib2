@@ -23,7 +23,6 @@
 #ifndef ALGORITHMS_STATS_H_
 #define ALGORITHMS_STATS_H_
 
-#include "base/base.h"
 #include "base/efg.h"
 
 namespace GTLib2::algorithms {

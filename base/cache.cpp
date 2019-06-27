@@ -19,8 +19,7 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "base/base.h"
-#include "cache.h"
+#include "base/cache.h"
 
 #include "algorithms/tree.h"
 
@@ -54,15 +53,15 @@ bool EFGCache::hasChildren(const shared_ptr<EFGNode> &node,
     if (it == nodesChildren_.end()) return false;
     const EFGChildNodes &actionNodes = it->second;
     auto id = action->getId();
-    return actionNodes.size() >= id && actionNodes[id];
+    return actionNodes.size() >= id && actionNodes[id] != nullptr;
 }
 
 EFGChildNodes &EFGCache::getCachedNode(const shared_ptr<EFGNode> &node) {
     // Node not found -- maybe trying to get children
     // for a node gotten outside from cache?
     if (nodesChildren_.find(node) == nodesChildren_.end()) {
-        if (*getRootNode() == *node) {
-            processNode(getRootNode());
+        if (*rootNode_ == *node) {
+            processNode(rootNode_);
 
             // createNode must append to nodesChildren
             return nodesChildren_[node];

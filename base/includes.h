@@ -25,7 +25,6 @@
 
 #include <iostream>
 #include <array>
-#include <boost/functional/hash.hpp>
 #include <cassert>
 #include <functional>
 #include <memory>

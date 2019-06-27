@@ -67,6 +67,7 @@
 #include <stdlib.h>  // for size_t.
 #include <stdint.h>
 #include <utility>
+#include <string>
 #include <cstring>
 #include <vector>
 #include <memory>

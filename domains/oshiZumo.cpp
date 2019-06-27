@@ -19,7 +19,6 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "base/base.h"
 #include "domains/oshiZumo.h"
 
 namespace GTLib2::domains {
@@ -47,7 +46,7 @@ OshiZumoDomain::OshiZumoDomain(OshiZumoSettings settings) :
            (settings.minBid == 0
             ? settings.startingCoins * 2
             : settings.startingCoins / settings.minBid) + 1,
-           2,
+           2, true,
            make_shared<OshiZumoAction>(),
            make_shared<OshiZumoObservation>()
     ),

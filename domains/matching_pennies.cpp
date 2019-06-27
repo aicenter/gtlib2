@@ -20,7 +20,6 @@
 */
 
 
-#include "base/base.h"
 #include "domains/matching_pennies.h"
 
 #pragma clang diagnostic push
@@ -28,7 +27,7 @@
 
 namespace GTLib2::domains {
 MatchingPenniesDomain::MatchingPenniesDomain(MatchingPenniesVariant variant)
-    : Domain((variant == AlternatingMoves ? 2 : 1) + 1, 2,
+    : Domain((variant == AlternatingMoves ? 2 : 1) + 1, 2, true,
              make_shared<MatchingPenniesAction>(),
              make_shared<MatchingPenniesObservation>()), variant_(variant) {
     maxUtility_ = 1.0;

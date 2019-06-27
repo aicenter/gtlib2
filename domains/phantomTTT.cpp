@@ -19,7 +19,6 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "base/base.h"
 #include "domains/phantomTTT.h"
 
 #pragma clang diagnostic push
@@ -202,7 +201,7 @@ string PhantomTTTState::toString() const {
 }
 
 PhantomTTTDomain::PhantomTTTDomain(unsigned int max) :
-    Domain(max, 2, make_shared<PhantomTTTAction>(),
+    Domain(max, 2, true, make_shared<PhantomTTTAction>(),
            make_shared<PhantomTTTObservation>()) {
     auto vec = vector<vector<int>>{{0, 0, 0, 0, 0, 0, 0, 0, 0},
                                    {0, 0, 0, 0, 0, 0, 0, 0, 0}};

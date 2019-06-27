@@ -13,26 +13,33 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public 
+    You should have received a copy of the GNU Lesser General Public
     License along with Game Theoretic Library.
 
     If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef GTLIB2_EXPORT_H
-#define GTLIB2_EXPORT_H
 
 #include "base/base.h"
-#include <fstream>
+#include "utils/range.h"
+
+#include "gtest/gtest.h"
+
+#define EXPECT_VEC_DOUBLE_EQ(vec1, vec2)       \
+    for(int i = 0; i < vec1.size(); i++) {     \
+        const auto v1 = vec1[i];               \
+        const auto v2 = vec2[i];               \
+        EXPECT_DOUBLE_EQ(v1, v2);              \
+    }
+
 
 namespace GTLib2::utils {
 
-void exportGraphViz(const Domain &domain, const string &fileToSave);
-void exportGraphViz(const Domain &domain, std::ostream &fs);
-void exportGambit(const Domain &domain, const string &fileToSave);
-void exportGambit(const Domain &domain, std::ostream &fs);
-
+TEST(Range, LogRange) {
+    EXPECT_VEC_DOUBLE_EQ(logRange(1., 10000., 5, 10.), (vector<double>{1., 10., 100., 1000., 10000.}));
+    EXPECT_VEC_DOUBLE_EQ(logRange(10., 10000., 4, 10.), (vector<double>{10., 100., 1000., 10000.}));
+    EXPECT_VEC_DOUBLE_EQ(logRange(10., 100., 3, 10.),   (vector<double>{10., 31.622776601683793, 100.}));
 }
 
-#endif //GTLIB2_EXPORT_H
+}

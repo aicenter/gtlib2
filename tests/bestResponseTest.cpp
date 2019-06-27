@@ -63,7 +63,7 @@ TEST(BestResponse, TestSmallDomain) {
     BehavioralStrategy stratHeads;
     stratHeads[rootInfoset] = {{headAction, 1.0}};
 
-    auto response = algorithms::bestResponseTo(stratHeads, Player(0), Player(1), domain);
+    auto response = algorithms::bestResponseTo(stratHeads, Player(1), domain);
     auto infosetStrategy = response.strategy[childInfoset];
     auto optimalAction = (*infosetStrategy.begin()).first;
 
@@ -99,7 +99,7 @@ TEST(BestResponse, GoofspielFullDepthCard4) {
     };
     algorithms::treeWalkEFG(domain, setAction);
 
-    auto bestResponse = algorithms::bestResponseTo(profile[opponent], opponent, player, domain);
+    auto bestResponse = algorithms::bestResponseTo(profile[opponent], player, domain);
 
     EXPECT_LE(std::abs(bestResponse.value - 5.25), 0.001);
 }
@@ -129,7 +129,7 @@ TEST(BestResponse, GoofspielDepth2Card4) {
     };
     algorithms::treeWalkEFG(domain, setAction);
 
-    auto bestResponse = algorithms::bestResponseTo(profile[opponent], opponent, player, domain);
+    auto bestResponse = algorithms::bestResponseTo(profile[opponent], player, domain);
     EXPECT_LE(std::abs(bestResponse.value - 5), 0.001);
 }
 

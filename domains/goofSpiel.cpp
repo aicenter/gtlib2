@@ -20,7 +20,6 @@
 */
 
 
-#include "base/base.h"
 #include "domains/goofSpiel.h"
 
 #pragma clang diagnostic push
@@ -52,7 +51,7 @@ GoofSpielObservation::GoofSpielObservation(int initialNumOfCards,
         | ((natureCard_ + player0LastCard_ * n + player1LastCard_ * n * n) << 2);
 }
 
-void GoofSpielSettings::shuffleChanceCards(int seed) {
+void GoofSpielSettings::shuffleChanceCards(unsigned int seed) {
     assert(fixChanceCards);
     if (chanceCards.empty()) {
         chanceCards = vector<int>(numCards);
@@ -75,7 +74,7 @@ vector<int> GoofSpielSettings::getNatureCards() {
 }
 
 GoofSpielDomain::GoofSpielDomain(GoofSpielSettings settings) :
-    Domain(settings.numCards+1, 2,
+    Domain(settings.numCards + 1, 2, true,
            make_shared<GoofSpielAction>(),
            make_shared<GoofSpielObservation>()),
     numberOfCards_(settings.numCards),
@@ -167,6 +166,50 @@ string GoofSpielDomain::getInfo() const {
     return ss.str();
 }
 
+GoofSpielDomain GoofSpielDomain::IIGS_2() {
+    return GoofSpielDomain({
+                               variant:  IncompleteObservations,
+                               numCards: 2,
+                               fixChanceCards: true,
+                               chanceCards: {2, 1}
+                           });
+}
+GoofSpielDomain GoofSpielDomain::IIGS_3() {
+    return GoofSpielDomain({
+                               variant:  IncompleteObservations,
+                               numCards: 3,
+                               fixChanceCards: true,
+                               chanceCards: {3, 2, 1}
+                           });
+}
+
+GoofSpielDomain GoofSpielDomain::IIGS_4() {
+    return GoofSpielDomain({
+                               variant:  IncompleteObservations,
+                               numCards: 4,
+                               fixChanceCards: true,
+                               chanceCards: {4, 3, 2, 1}
+                           });
+}
+
+GoofSpielDomain GoofSpielDomain::IIGS_5() {
+    return GoofSpielDomain({
+                               variant:  IncompleteObservations,
+                               numCards: 5,
+                               fixChanceCards: true,
+                               chanceCards: {5, 4, 3, 2, 1}
+                           });
+}
+
+GoofSpielDomain GoofSpielDomain::IIGS_6() {
+    return GoofSpielDomain({
+                               variant:  IncompleteObservations,
+                               numCards: 6,
+                               fixChanceCards: true,
+                               chanceCards: {6, 5, 4, 3, 2, 1}
+                           });
+}
+
 unsigned long GoofSpielState::countAvailableActionsFor(Player player) const {
     return playerDecks_[player].size();
 }
@@ -191,8 +234,8 @@ GoofSpielState::performActions(const vector<shared_ptr<Action>> &actions) const 
     const auto &natureDeck = playerDecks_[2];
 
     const GoofspielRoundOutcome roundResult = chosenCards[0] == chosenCards[1]
-                                        ? PL0_DRAW : chosenCards[0] > chosenCards[1] ? PL0_WIN
-                                                                                     : PL0_LOSE;
+                                              ? PL0_DRAW : chosenCards[0] > chosenCards[1] ? PL0_WIN
+                                                                                           : PL0_LOSE;
     const double roundReward = goofdomain->binaryTerminalRewards_
                                ? (double) roundResult / goofdomain->numberOfCards_
                                : (double) roundResult * natureSelectedCard_;

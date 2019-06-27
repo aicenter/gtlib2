@@ -19,10 +19,9 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "base/base.h"
 #include "algorithms/stats.h"
 
-#include "tree.h"
+#include "algorithms/tree.h"
 
 
 namespace GTLib2::algorithms {

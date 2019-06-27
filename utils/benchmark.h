@@ -13,30 +13,30 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with Game Theoretic Library.
+    You should have received a copy of the GNU Lesser General Public 
+    License along with Game Theoretic Library.
 
     If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef ALGORITHMS_BESTRESPONSE_H_
-#define ALGORITHMS_BESTRESPONSE_H_
-
-#include "algorithms/strategy.h"
+#ifndef GTLIB2_BENCHMARK_H
+#define GTLIB2_BENCHMARK_H
 
 
-namespace GTLib2::algorithms {
+#include "base/base.h"
+#include <chrono>
 
+namespace GTLib2::utils {
 
-const StrategyValue bestResponseTo(const BehavioralStrategy &opoStrat,
-                                   const Player responder,
-                                   const Domain &domain);
+inline long benchmark(const std::function<void()>& callback) {
+    using ms = std::chrono::duration<int, std::milli>;
+    auto start = std::chrono::high_resolution_clock::now();
+    callback();
+    auto end = std::chrono::high_resolution_clock::now();
+    return std::chrono::duration_cast<ms>(end - start).count();
+}
 
-// todo:
-//StrategyValue bestResponseToPrunning(const BehavioralStrategy &opoStrat, Player opponent,
-//                                     Player player, const Domain &domain);
+}
 
-}  // namespace GTLib2
-
-#endif  // ALGORITHMS_BESTRESPONSE_H_
+#endif //GTLIB2_BENCHMARK_H

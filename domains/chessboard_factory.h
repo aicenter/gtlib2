@@ -25,7 +25,6 @@
 #ifndef GTLIB2_CHESSBOARDS_H
 #define GTLIB2_CHESSBOARDS_H
 
-#include "base/base.h"
 #include "kriegspiel.h"
 
 namespace GTLib2::domains {

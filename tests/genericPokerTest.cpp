@@ -38,38 +38,59 @@ namespace GTLib2::domains {
 using algorithms::DomainStatistics;
 
 GenericPokerDomain testDomainsPoker[] = { // NOLINT(cert-err58-cpp)
+    GenericPokerDomain(3, 1, 1, 1, 1),
+    GenericPokerDomain(1, 3, 1, 1, 1),
     GenericPokerDomain(2, 2, 2, 2, 2),
     GenericPokerDomain(3, 3, 1, 2, 3),
 };
 
 TEST(Poker, BuildGameTreeAndCheckSizes) {
-//    vector<DomainStatistics> expectedResults = {
-//        {
-//            .max_EFGDepth   = 10,
-//            .max_StateDepth = 10,
-//            .num_nodes      = 15370,
-//            .num_terminals  = 10030,
-//            .num_states     = 15370,
-//            .num_histories  = {2670, 2670},
-//            .num_infosets   = {1770, 1770},
-//            .num_sequences  = {5075, 5075},
-//        }, {
-//            .max_EFGDepth   = 8,
-//            .max_StateDepth = 8,
-//            .num_nodes      = 23715,
-//            .num_terminals  = 15291,
-//            .num_states     = 23715,
-//            .num_histories  = {4212, 4212},
-//            .num_infosets   = {1404, 1404},
-//            .num_sequences  = {3901, 3901},
-//        }
-//    };
-//
-//    for (int i = 0; i < expectedResults.size(); ++i) {
-//        DomainStatistics stats;
-//        calculateDomainStatistics(testDomainsPoker[i], &stats);
-//        EXPECT_EQ(stats, expectedResults[i]);
-//    }
+    vector<DomainStatistics> expectedStats = {
+        {
+            .max_EFGDepth   = 9,
+            .max_StateDepth = 9,
+            .num_nodes      = 511,
+            .num_terminals  = 294,
+            .num_states     = 511,
+            .num_histories  = {108, 108},
+            .num_infosets   = {99, 99},
+            .num_sequences  = {232, 232},
+        },{
+            .max_EFGDepth   = 8,
+            .max_StateDepth = 9,
+            .num_nodes      = 85,
+            .num_terminals  = 49,
+            .num_states     = 85,
+            .num_histories  = {18, 18},
+            .num_infosets   = {18, 18},
+            .num_sequences  = {43, 43},
+        },{
+            .max_EFGDepth   = 12,
+            .max_StateDepth = 11,
+            .num_nodes      = 15429,
+            .num_terminals  = 10030,
+            .num_states     = 15371,
+            .num_histories  = {2670, 2670},
+            .num_infosets   = {1770, 1770},
+            .num_sequences  = {5075, 5075},
+        }, {
+            .max_EFGDepth   = 10,
+            .max_StateDepth = 9,
+            .num_nodes      = 23869,
+            .num_terminals  = 15291,
+            .num_states     = 23716,
+            .num_histories  = {4212, 4212},
+            .num_infosets   = {1404, 1404},
+            .num_sequences  = {3901, 3901},
+        }
+    };
+
+    for (int i = 0; i < expectedStats.size(); ++i) {
+        cout << ">> checking domain [" << i << "] " << testDomainsPoker[i].getInfo() << endl;
+        DomainStatistics actualStats;
+        calculateDomainStatistics(testDomainsPoker[i], &actualStats);
+        EXPECT_EQ(actualStats, expectedStats[i]);
+    }
 }
 
 // todo: create an actual domain test!
