@@ -19,7 +19,7 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "binomial.h"
+#include "combinatorics.h"
 
 namespace GTLib2::utils {
 unsigned int binomial_coefficient(unsigned int n, unsigned int k) {

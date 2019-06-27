@@ -186,7 +186,8 @@ set(SOURCE_FILES
         LPsolvers/LPSolver.h
         # utils
         utils/utils.h
-        utils/export.cpp utils/export.h
+        utils/combinatorics.h utils/combinatorics.cpp
+        utils/export.h utils/export.cpp
         )
 
 set(TEST_FILES

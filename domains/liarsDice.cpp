@@ -22,7 +22,7 @@
 
 
 #include "liarsDice.h"
-#include "utils/binomial.h"
+#include "utils/combinatorics.h"
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
@@ -39,8 +39,9 @@ bool LiarsDiceAction::operator==(const Action &that) const {
         return false;
     }
 
-    return (getValue() == otherAction->getValue() && isRoll() == otherAction->isRoll()
-        && id_ == otherAction->id_);
+    return getValue() == otherAction->getValue()
+        && isRoll() == otherAction->isRoll()
+        && id_ == otherAction->id_;
 }
 
 string LiarsDiceAction::toString() const {
@@ -109,20 +110,22 @@ void LiarsDiceDomain::addToRootStates(std::vector<int> rolls, double baseProbabi
     }
 
     auto obsPl1 = playerRolls[0].empty()
-                  ? noObservation_ : make_shared<LiarsDiceObservation>(playerRolls[0], faces_ -1);
+                  ? noObservation_ : make_shared<LiarsDiceObservation>(playerRolls[0], faces_, -1);
     auto obsPl2 = playerRolls[1].empty()
-                  ? noObservation_ : make_shared<LiarsDiceObservation>(playerRolls[1], faces_ -1);
+                  ? noObservation_ : make_shared<LiarsDiceObservation>(playerRolls[1], faces_, -1);
 
     auto newState = make_shared<LiarsDiceState>(this, 0, 0, 0, 0, rolls);
     Outcome outcome(newState, {obsPl1, obsPl2}, noObservation_, {0.0, 0.0});
     rootStatesDistribution_.emplace_back(OutcomeEntry(outcome,
-                                                      calculateProbabilityForRolls(baseProbability, playerRolls)));
+                                                      calculateProbabilityForRolls(baseProbability,
+                                                                                   playerRolls)));
 }
 
 void LiarsDiceDomain::initRootStates() {
     double baseProbability = 1.0 / pow(double(faces_), double(getSumDice()));
 
-    function<void(int, int, vector<int>)> backtrack = [&](int depth, int limit, vector<int> rolls) -> void {
+    function<void(int, int, vector<int>)>
+        backtrack = [&](int depth, int limit, vector<int> rolls) -> void {
         if (depth == getSumDice()) {
             addToRootStates(rolls, baseProbability);
         } else {
@@ -157,7 +160,6 @@ vector<shared_ptr<Action>> LiarsDiceState::getAvailableActionsFor(Player player)
     vector<shared_ptr<Action>> actions;
 
     unsigned int id = 0;
-
     const auto LDdomain = static_cast<const LiarsDiceDomain *>(domain_);
 
     if (player == currentPlayer_) {
@@ -178,29 +180,20 @@ vector<shared_ptr<Action>> LiarsDiceState::getAvailableActionsFor(Player player)
 
 unsigned long LiarsDiceState::countAvailableActionsFor(Player player) const {
     const auto LDdomain = static_cast<const LiarsDiceDomain *>(domain_);
-    if (!(player == currentPlayer_)) {
-        return 0;
-    }
-
-    if (currentBid_ == 0) {
-        return LDdomain->getMaxBid() - 1;
-    } else {
-        return LDdomain->getMaxBid() - currentBid_;
-    }
+    if (player != currentPlayer_) return 0;
+    if (currentBid_ == 0) return LDdomain->getMaxBid() - 1;
+    return LDdomain->getMaxBid() - currentBid_;
 }
 
-OutcomeDistribution LiarsDiceState::performActions(const vector<shared_ptr<Action>> &actions) const {
+OutcomeDistribution
+LiarsDiceState::performActions(const vector<shared_ptr<Action>> &actions) const {
     const auto LDdomain = static_cast<const LiarsDiceDomain *>(domain_);
     auto currentPlayerAction =
         dynamic_cast<LiarsDiceAction &>(*actions[currentPlayer_]);
     int newPlayer = currentPlayer_ == 0 ? 1 : 0;
     int newBid = currentPlayerAction.getValue();
-    const auto newState = make_shared<LiarsDiceState>(LDdomain,
-                                                      newBid,
-                                                      currentBid_,
-                                                      round_ + 1,
-                                                      newPlayer,
-                                                      rolls_);
+    const auto newState = make_shared<LiarsDiceState>(
+        LDdomain, newBid, currentBid_, round_ + 1, newPlayer, rolls_);
 
     const auto publicObs = make_shared<LiarsDiceObservation>(vector<int>(), -1, newBid);
     vector<double> rewards(2);
@@ -221,13 +214,7 @@ OutcomeDistribution LiarsDiceState::performActions(const vector<shared_ptr<Actio
         }
     }
 
-    OutcomeDistribution newOutcome;
-    const auto
-        outcome = Outcome(newState, {publicObs, publicObs}, publicObs, rewards);
-    newOutcome.emplace_back(OutcomeEntry(outcome));
-
-    return newOutcome;
-
+    return {OutcomeEntry(Outcome(newState, {publicObs, publicObs}, publicObs, rewards))};
 }
 
 bool LiarsDiceState::isBluffCallSuccessful() const {
@@ -258,29 +245,27 @@ vector<Player> LiarsDiceState::getPlayers() const {
 
 bool LiarsDiceState::isTerminal() const {
     const auto LDdomain = static_cast<const LiarsDiceDomain *>(domain_);
-    return (currentBid_ == LDdomain->getMaxBid());
+    return currentBid_ == LDdomain->getMaxBid();
 }
 
 string LiarsDiceState::toString() const {
     std::stringstream ret;
-    ret << ("Current bid: " + to_string(currentBid_) + "\n");
-    ret << ("Previous bid: " + to_string(previousBid_) + "\n");
-    ret << ("Round: " + to_string(round_) + "\n");
-    ret << ("Current player : " + to_string(currentPlayer_) + "\n");
-    ret << ("Rolls: ");
-        ret << rolls_;
-    ret << "\n";
+    ret << "Current bid: " << currentBid_ << "\n";
+    ret << "Previous bid: " << previousBid_ << "\n";
+    ret << "Round: " << round_ << "\n";
+    ret << "Current player : " << currentPlayer_ << "\n";
+    ret << "Rolls: " << rolls_ << "\n";
     return ret.str();
 }
 
 bool LiarsDiceState::operator==(const GTLib2::State &rhs) const {
     const auto otherState = static_cast<const LiarsDiceState *>(&rhs);
 
-    return (getHash() == otherState->getHash()
+    return getHash() == otherState->getHash()
         & currentBid_ == otherState->currentBid_
         & previousBid_ == otherState->previousBid_
         & round_ == otherState->round_
         & currentPlayer_ == otherState->currentPlayer_
-        & rolls_ == otherState->rolls_);
+        & rolls_ == otherState->rolls_;
 }
 }
