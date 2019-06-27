@@ -26,6 +26,7 @@
 #include <iostream>
 #include <vector>
 #include <memory>
+#include <cmath>
 
 
 /**
@@ -98,6 +99,43 @@ inline std::vector<double> &operator+=(std::vector<double> &v1, const std::vecto
         }
     }
     return v1;
+}
+
+/**
+ * Elegant pairing and unpairing functions by Matthew Szudzik @ Wolfram Research, Inc.
+ * Gives unique integers for pair of positive integers, range <(0, 0), (65535, 65535)>
+ */
+inline unsigned int elegantPair(unsigned int a, unsigned int b) {
+    assert(a <= 65535);
+    assert(b <= 65535);
+    return a >= b ? a * a + a + b : a + b * b;
+}
+
+inline std::array<unsigned int, 2> elegantUnpair(unsigned int z) {
+    unsigned sqrtZ = floor(sqrt(z));
+    unsigned sqSqrtZ = sqrtZ * sqrtZ;
+    if ((z - sqSqrtZ) >= sqrtZ) {
+        return {sqrtZ, z - sqSqrtZ - sqrtZ};
+    }
+    return {z - sqSqrtZ, sqrtZ};
+}
+
+/**
+ * Returns signum of given number, e.g. -1 if number < 0, 0 if number == 0, 1 if number > 0.
+ * @param number
+ * @return
+ */
+inline double signum(double number) {
+    return (double) ((0 < number) - (0 > number));
+}
+
+/**
+ * Returns given boolean as string.
+ * @param expr
+ * @return
+ */
+inline std::string boolToString(bool expr) {
+    return expr ? "True" : "False";
 }
 
 

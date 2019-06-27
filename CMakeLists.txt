@@ -182,12 +182,14 @@ set(SOURCE_FILES
         domains/pursuit.h domains/pursuit.cpp
         domains/RhodeIslandPoker.h domains/RhodeIslandPoker.cpp
         domains/oshiZumo.h domains/oshiZumo.cpp
+        domains/randomGame.h domains/randomGame.cpp
         # LPSolvers
         LPsolvers/AbstractLPSolver.h
         LPsolvers/LPSolver.h
         # utils
         utils/utils.h
-        utils/export.cpp utils/export.h)
+        utils/export.cpp utils/export.h
+        )
 
 set(TEST_FILES
         tests/domainsTest.h tests/domainsTest.cpp
@@ -207,7 +209,9 @@ set(TEST_FILES
         tests/matchingPenniesTest.cpp
         tests/oshiZumoTest.cpp
         tests/utilityTest.cpp
-        tests/normalFormGameTest.cpp)
+        tests/normalFormGameTest.cpp
+        tests/randomGameTest.cpp
+        )
 
 # -------------------- Executables, linking --------------------
 

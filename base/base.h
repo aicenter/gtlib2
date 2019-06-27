@@ -174,6 +174,11 @@ struct ActionObservationIds {
     bool operator==(const ActionObservationIds &rhs) const;
     bool operator!=(const ActionObservationIds &rhs) const;
     const HashType getHash() const { return hashCombine(132456456, action, observation); }
+    inline friend std::ostream & operator<<(std::ostream &ss, ActionObservationIds &ids) {
+        ss << (ids.action == NO_ACTION ? "NoA" : to_string(ids.action)) << " ";
+        ss << (ids.observation == NO_OBSERVATION ? "NoOb" : to_string(ids.observation));
+        return ss;
+    }
 };
 
 static_assert(sizeof(ActionObservationIds) == 8, "Should fit within size_t (64 bit)");
@@ -441,7 +446,7 @@ MAKE_HASHABLE(GTLib2::ActionSequence)
 
 namespace std { // NOLINT(cert-dcl58-cpp)
 
-template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
+template<typename T>
 std::ostream &operator<<(std::ostream &ss, vector<T> arr) {
     ss << "[";
     for (int i = 0; i < arr.size(); ++i) {
