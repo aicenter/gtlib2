@@ -1,5 +1,3 @@
-#include <utility>
-
 /*
 
     Copyright 2019 Faculty of Electrical Engineering at CTU in Prague
@@ -94,13 +92,19 @@ class PublicState: public Node<PublicState> {
 class EFGNode {
  public:
     inline explicit EFGNode(const EFGNodeType type,
-                            const double chanceTransitionProb,
                             const Player currentPlayer,
                             vector<double> utilities) :
         type_(type),
-        chanceTransitionProb_(chanceTransitionProb),
-        currentPlayer_(type_ == PlayerNode ? currentPlayer : -1),
+        // use NO_PLAYER so we don't allocate more memory by optional
+        currentPlayer_(type_ == PlayerNode ? currentPlayer : NO_PLAYER),
         utilities_(move(utilities)) {}
+
+    inline explicit EFGNode() :
+        EFGNode(ChanceNode, NO_PLAYER, vector<double>()) {}
+    inline explicit EFGNode(Player currentPlayer) :
+        EFGNode(PlayerNode, currentPlayer, vector<double>()) {}
+    inline explicit EFGNode(vector<double> utilities) :
+        EFGNode(TerminalNode, NO_PLAYER, move(utilities)) {}
 
     virtual EFGNodeSpecialization getSpecialization() const = 0;
 
@@ -147,12 +151,14 @@ class EFGNode {
      *
      * They should be properly indexed, i.e. ProbDistribution[0] is for ActionId == 0
      */
-    virtual ProbDistribution chanceProbs() const = 0;
-
-    /**
-     * Return chance reach probability from the root to this node.
-     */
-    virtual double chanceReachProb() const = 0;
+    inline virtual ProbDistribution chanceProbs() const {
+        assert(type_ == ChanceNode);
+        const auto numActions = countAvailableActions();
+        auto dist = ProbDistribution();
+        dist.reserve(numActions);
+        for (int i = 0; i < numActions; ++i) dist.push_back(chanceProbForAction(i));
+        return dist;
+    }
 
     /**
      * Describe the vector of (action,observation) of given player.
@@ -174,7 +180,7 @@ class EFGNode {
     getActionsSeqOfPlayer(Player player) const = 0; // todo: remove
     virtual HashType getHash() const = 0;
 
-    inline bool operator==(const EFGNode &rhs) const {
+    virtual inline bool operator==(const EFGNode &rhs) const {
         if (getHash() != rhs.getHash()) return false;
         if (getHistory().size() != rhs.getHistory().size()) return false;
         return !memcmp(getHistory().data(), rhs.getHistory().data(), getHistory().size());
@@ -229,7 +235,6 @@ class EFGNode {
     }
 
     const EFGNodeType type_;
-    const double chanceTransitionProb_;
  protected:
     const Player currentPlayer_;
     const vector<double> utilities_;

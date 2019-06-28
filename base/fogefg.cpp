@@ -27,7 +27,6 @@ namespace GTLib2 {
 FOG2EFGNode::FOG2EFGNode(const shared_ptr<FOG2EFGNode const> &parent,
                          shared_ptr<Action> incomingAction,
                          EFGNodeType type,
-                         double chanceTransitionProb,
                          shared_ptr<Outcome> lastOutcome,
                          OutcomeDistribution outcomeDist,
                          vector<Player> remainingRoundPlayers,
@@ -36,9 +35,10 @@ FOG2EFGNode::FOG2EFGNode(const shared_ptr<FOG2EFGNode const> &parent,
     Node<FOG2EFGNode>(
         parent,
         parent == nullptr ? nullopt : optional(incomingAction->getId())), // can't call isRoot here
-    EFGNode(type, chanceTransitionProb,
+    EFGNode(type,
             type == PlayerNode ? remainingRoundPlayers[0] : NO_PLAYER,
-            type == TerminalNode ? parent_->cumRewards_ + lastOutcome->rewards // terminals always make state transition
+            type == TerminalNode ? parent_->cumRewards_
+                + lastOutcome->rewards // terminals always make state transition
                                  : vector<double>()),
     stateDepth_(stateDepth),
     incomingAction_(move(incomingAction)),
@@ -46,8 +46,7 @@ FOG2EFGNode::FOG2EFGNode(const shared_ptr<FOG2EFGNode const> &parent,
     outcomeDist_(move(outcomeDist)),
     remainingRoundPlayers_(move(remainingRoundPlayers)),
     roundActions_(move(roundActions)),
-    cumRewards_(isRoot() ? vector<double>(2, 0.0) : getNewCumRewards(lastOutcome_->rewards)),
-    chanceReachProb_(isRoot() ? 1.0 : parent_->chanceReachProb_ * chanceTransitionProb_) {
+    cumRewards_(isRoot() ? vector<double>(2, 0.0) : getNewCumRewards(lastOutcome_->rewards)) {
 
 #ifndef NDEBUG // equivalent to assert
     assert(history_.size() == depth_);
@@ -108,7 +107,7 @@ shared_ptr<FOG2EFGNode> FOG2EFGNode::performPlayerAction(const shared_ptr<Action
     if (remainingRoundPlayers_.size() > 1) {
         const auto shiftedPlayers = vector<Player>(remainingRoundPlayers_.begin() + 1,
                                                    remainingRoundPlayers_.end());
-        return make_shared<FOG2EFGNode>(shared_from_this(), action, PlayerNode, 1.0, lastOutcome_,
+        return make_shared<FOG2EFGNode>(shared_from_this(), action, PlayerNode, lastOutcome_,
                                         OutcomeDistribution(), shiftedPlayers, updatedActions,
                                         stateDepth_);
     }
@@ -120,7 +119,7 @@ shared_ptr<FOG2EFGNode> FOG2EFGNode::performPlayerAction(const shared_ptr<Action
 
     // Should we create a chance node?
     if (outcomeDistribution.size() > 1) {
-        return make_shared<FOG2EFGNode>(shared_from_this(), action, ChanceNode, 1.0, lastOutcome_,
+        return make_shared<FOG2EFGNode>(shared_from_this(), action, ChanceNode, lastOutcome_,
                                         outcomeDistribution, vector<Player>(), updatedActions,
                                         stateDepth_);
     }
@@ -159,17 +158,16 @@ shared_ptr<FOG2EFGNode> FOG2EFGNode::createNodeForSpecificOutcome(
     if (childType != ChanceNode) {
         // Enter new round without chance node.
         return make_shared<FOG2EFGNode>(shared_from_this(), playerAction,
-                                        childType, chanceProb,
-                                        make_shared<Outcome>(outcome), OutcomeDistribution(),
-                                        nextState->getPlayers(), vector<PlayerAction>(),
-                                        stateDepth_ + 1);
+                                        childType, make_shared<Outcome>(outcome),
+                                        OutcomeDistribution(), nextState->getPlayers(),
+                                        vector<PlayerAction>(), stateDepth_ + 1);
     }
 
     // We will return chance node, but we need to call NO_ACTION
     // for all players to get distribution for the chance player.
     const auto outcomeDistribution = nextState->performPartialActions(vector<PlayerAction>());
 
-    return make_shared<FOG2EFGNode>(shared_from_this(), playerAction, ChanceNode, chanceProb,
+    return make_shared<FOG2EFGNode>(shared_from_this(), playerAction, ChanceNode,
                                     make_shared<Outcome>(outcome), outcomeDistribution,
                                     vector<Player>(), vector<PlayerAction>(), stateDepth_ + 1);
 }
@@ -337,8 +335,7 @@ FOG2EFGNode::getProbabilityOfActionSeq(Player player, const BehavioralStrategy &
 shared_ptr<EFGNode> createRootEFGNode(const OutcomeDistribution &rootOutcomes) {
     if (rootOutcomes.size() > 1) {
         return make_shared<FOG2EFGNode>(shared_ptr<FOG2EFGNode const>(), shared_ptr<Action>(),
-                                        ChanceNode, 1.0,
-                                        shared_ptr<Outcome>(), rootOutcomes,
+                                        ChanceNode, shared_ptr<Outcome>(), rootOutcomes,
                                         vector<Player>(), vector<PlayerAction>(), 0);
     }
 
@@ -361,17 +358,16 @@ shared_ptr<EFGNode> createRootEFGNode(const OutcomeDistribution &rootOutcomes) {
         // Note that the state depth is set to 1 -- only the root chance node
         // gets to have state depth equal to 0
         return make_shared<FOG2EFGNode>(shared_ptr<FOG2EFGNode const>(), shared_ptr<Action>(),
-                                        childType, chanceProb,
-                                        make_shared<Outcome>(outcome), OutcomeDistribution(),
-                                        rootState->getPlayers(), vector<PlayerAction>(), 1);
+                                        childType, make_shared<Outcome>(outcome),
+                                        OutcomeDistribution(), rootState->getPlayers(),
+                                        vector<PlayerAction>(), 1);
     }
 
     // We will return chance node, but we need to call NO_ACTION
     // for all players to get distribution for the chance player.
     const auto outcomeDistribution = rootState->performPartialActions(vector<PlayerAction>());
     return make_shared<FOG2EFGNode>(shared_ptr<FOG2EFGNode const>(), shared_ptr<Action>(),
-                                    ChanceNode, chanceProb,
-                                    make_shared<Outcome>(outcome), outcomeDistribution,
+                                    ChanceNode, make_shared<Outcome>(outcome), outcomeDistribution,
                                     vector<Player>(), vector<PlayerAction>(), 0);
 }
 

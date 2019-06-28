@@ -41,7 +41,6 @@ class FOG2EFGNode: public Node<FOG2EFGNode>,
 
     explicit FOG2EFGNode(const shared_ptr<FOG2EFGNode const> &parent,
                          shared_ptr<Action> incomingAction, EFGNodeType type,
-                         double chanceTransitionProb,
                          shared_ptr<Outcome> lastOutcome,
                          OutcomeDistribution outcomeDist,
                          vector<Player> remainingRoundPlayers,
@@ -58,7 +57,6 @@ class FOG2EFGNode: public Node<FOG2EFGNode>,
     double chanceProbForAction(const ActionId &action) const override;
     double chanceProbForAction(const shared_ptr<Action> &action) const override;
     ProbDistribution chanceProbs() const override;
-    inline double chanceReachProb() const override { return chanceReachProb_; }
     vector<ActionObservationIds> getAOids(Player player) const override;
     vector<ObservationId> getPubObsIds() const override;
     double getProbabilityOfActionSeq(Player player, const BehavioralStrategy &strat) const override; // todo: remove
@@ -99,7 +97,6 @@ class FOG2EFGNode: public Node<FOG2EFGNode>,
     const vector<Player> remainingRoundPlayers_;
     const vector<PlayerAction> roundActions_;
     const vector<double> cumRewards_;
-    const double chanceReachProb_;
 };
 
 shared_ptr<EFGNode> createRootEFGNode(const OutcomeDistribution &rootOutcomes);
