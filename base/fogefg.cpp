@@ -33,7 +33,7 @@ FOG2EFGNode::FOG2EFGNode(const shared_ptr<FOG2EFGNode const> &parent,
                          vector<Player> remainingRoundPlayers,
                          vector<PlayerAction> roundActions,
                          unsigned int stateDepth) :
-    Node<FOG2EFGNode, FOG2EFGNode>(
+    Node<FOG2EFGNode>(
         parent,
         parent == nullptr ? nullopt : optional(incomingAction->getId())), // can't call isRoot here
     EFGNode(type, chanceTransitionProb,

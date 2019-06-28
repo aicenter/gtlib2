@@ -69,7 +69,7 @@ class EFGChanceAction: public Action {
 };
 
 
-class PublicState: public Node<PublicState, PublicState> {
+class PublicState: public Node<PublicState> {
  public:
     inline PublicState() : Node() {}
     inline PublicState(shared_ptr<PublicState const> parent, ObservationId publicObs) :

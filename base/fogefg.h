@@ -34,7 +34,7 @@ namespace GTLib2 {
  * Note that **many calls are not cached!** Use EFGCache to save the tree structure,
  * and iterate over the tree using the EFGCache::getChildrenFor() method.
  */
-class FOG2EFGNode: public Node<FOG2EFGNode, FOG2EFGNode>,
+class FOG2EFGNode: public Node<FOG2EFGNode>,
                    public EFGNode,
                    public std::enable_shared_from_this<FOG2EFGNode const> {
  public:
@@ -109,10 +109,13 @@ inline shared_ptr<EFGNode> createRootEFGNode(const Domain &domain) {
 
 typedef function<void(shared_ptr<EFGNode>)> EFGNodeCallback;
 
-inline void treeWalk(const shared_ptr <FOG2EFGNode> &node, const NodeCallback<FOG2EFGNode> &callback) {
-    const auto cntChildren = [](shared_ptr <FOG2EFGNode> n) { return n->countAvailableActions(); };
-    const auto childAt = [](shared_ptr <FOG2EFGNode> n, EdgeId idx) { return n->getChildAt(idx); };
-    GTLib2::treeWalk<FOG2EFGNode>(node, callback, cntChildren, childAt);
+template<>
+inline unsigned int nodeChildCnt<FOG2EFGNode>(shared_ptr<FOG2EFGNode> node) {
+    return node->countAvailableActions();
+}
+template<>
+inline shared_ptr<FOG2EFGNode> nodeChildExpander<FOG2EFGNode>(shared_ptr<FOG2EFGNode> node, EdgeId index) {
+    return node->getChildAt(index);
 }
 
 /**

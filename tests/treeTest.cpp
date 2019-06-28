@@ -31,20 +31,24 @@ namespace GTLib2 {
 /**
  * Simple example binary tree of depth 2
  */
-class ExampleNode: public Node<ExampleNode, ExampleNode>,
+class ExampleNode: public Node<ExampleNode>,
                    public std::enable_shared_from_this<ExampleNode const> {
  public:
     ExampleNode(shared_ptr<ExampleNode const> parent, EdgeId incomingEdge)
         : Node(move(parent), incomingEdge) {}
 
-    inline unsigned int countChildren() {
-        if (depth_ < 2) return 2;
-        return 0;
-    }
-    inline const shared_ptr<ExampleNode> getChildAt(EdgeId index) {
-        return make_shared<ExampleNode>(shared_from_this(), index);
-    }
 };
+
+template<>
+unsigned int nodeChildCnt<ExampleNode>(shared_ptr<ExampleNode> node) {
+    if (node->getDepth() < 2) return 2;
+    return 0;
+}
+
+template<>
+inline shared_ptr<ExampleNode> nodeChildExpander<ExampleNode>(shared_ptr<ExampleNode> node, EdgeId index) {
+    return make_shared<ExampleNode>(node->shared_from_this(), index);
+}
 
 TEST(Tree, TreeWalkBinary) {
     std::stringstream ss;

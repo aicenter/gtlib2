@@ -153,8 +153,7 @@ void exportGraphViz(const Domain &domain, std::ostream &fs) {
                << " [label=\"" << action->toString() << "\"]\n";
         }
     };
-    const auto rootNode = dynamic_pointer_cast<FOG2EFGNode>(createRootEFGNode(domain));
-    treeWalk(rootNode, walkPrint);
+    treeWalk(domain, walkPrint);
 
     fs << "}\n";
 }

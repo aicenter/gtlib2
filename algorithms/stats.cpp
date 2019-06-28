@@ -73,8 +73,7 @@ void calculateDomainStatistics(const Domain &domain, DomainStatistics *stats) {
         collectIS[player].emplace(infSet);
     };
 
-    const auto rootNode = dynamic_pointer_cast<FOG2EFGNode>(createRootEFGNode(domain));
-    treeWalk(rootNode, countingFn);
+    treeWalk(domain, countingFn);
 
     for (int i = 0; i < domain.getNumberOfPlayers(); ++i) {
         stats->num_infosets[i] = collectIS[i].size();

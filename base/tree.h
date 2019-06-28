@@ -31,14 +31,10 @@ namespace GTLib2 {
 
 typedef uint32_t EdgeId;
 
-template<class Parent, class Child>
+template<class Parent>
 class Node {
-// This can't be used unfortunately: template is instantiated by a class that's inheriting it.
-// This calss is only forward declared and can be used only to hold the pointer or reference.
-//    static_assert(std::is_base_of<Node, Parent>::value, "Parent must derive from the Node class");
-//    static_assert(std::is_base_of<Node, Child>::value, "Child must derive from the Node class");
  public:
-    explicit Node(shared_ptr<Parent const> parent, optional<EdgeId> incomingEdge) :
+    explicit Node(shared_ptr<Parent const> parent, optional <EdgeId> incomingEdge) :
         parent_(move(parent)),
         history_(parent_ == nullptr
                  ? vector<EdgeId>()
@@ -57,8 +53,9 @@ class Node {
         hashNode_ = other.hashNode_;
     }
 
-    ~Node() = default;
+    virtual ~Node() = default;
 
+    inline unsigned long getDepth() const { return history_.size(); }
     inline HashType getHash() const { return hashNode_; };
     inline bool operator==(const Node &rhs) const {
         if (hashNode_ != rhs.hashNode_) return false;
@@ -73,7 +70,7 @@ class Node {
         return ss.str();
     }
 
-    bool isRoot() { return parent_ == nullptr; }
+    bool isRoot() const { return parent_ == nullptr; }
 
     const shared_ptr<Parent const> parent_;
     const vector <EdgeId> history_;
@@ -86,9 +83,25 @@ using NodeCallback = function<void(shared_ptr < Node > )>;
 
 template<class Node>
 using NodeChildCnt = function<unsigned int(shared_ptr < Node > )>;
+template<class Node>
+unsigned int nodeChildCnt(shared_ptr < Node >);
 
 template<class Node>
-using NodeChildExpander = function<shared_ptr<Node>(shared_ptr < Node >, EdgeId i)>;
+using NodeChildExpander = function<shared_ptr<Node>(shared_ptr<Node>, EdgeId)>;
+template<class Node>
+shared_ptr<Node> nodeChildExpander(shared_ptr<Node>, EdgeId);
+
+/**
+ * Call supplied function at each node of the tree, including leaves,
+ * with no restriction to depth of the tree walk.
+ */
+template<class Node>
+void treeWalk(const shared_ptr <Node> &node, const NodeCallback<Node> &callback) {
+    callback(node);
+    for (EdgeId i = 0; i < nodeChildCnt<Node>(node); ++i) {
+        treeWalk(nodeChildExpander<Node>(node, i), callback);
+    }
+}
 
 /**
  * Call supplied function at each node of the tree, including leaves.
@@ -107,7 +120,7 @@ bool treeWalk(const shared_ptr <Node> &node,
 
     bool entireTreeWalked = true;
     for (EdgeId i = 0; i < cntChildren(node); ++i) {
-        entireTreeWalked = treeWalk(node->getChildAt(i), callback, cntChildren, childAt, maxDepth)
+        entireTreeWalked = treeWalk(childAt(node, i), callback, cntChildren, childAt, maxDepth)
             && entireTreeWalked;
     }
     return entireTreeWalked;

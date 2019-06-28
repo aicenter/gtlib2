@@ -24,7 +24,16 @@
 #define TESTS_TESTUTILS_H_
 
 #include "base/base.h"
+#include "base/cache.h"
+#include "algorithms/common.h"
 
+#include "domains/genericPoker.h"
+#include "domains/goofSpiel.h"
+#include "domains/matching_pennies.h"
+#include "domains/oshiZumo.h"
+#include "domains/randomGame.h"
+
+#include "gtest/gtest.h"
 
 using GTLib2::Domain;
 

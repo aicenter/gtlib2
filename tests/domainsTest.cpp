@@ -19,19 +19,7 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "base/base.h"
 #include "tests/domainsTest.h"
-
-#include "base/cache.h"
-#include "algorithms/common.h"
-
-#include "domains/genericPoker.h"
-#include "domains/goofSpiel.h"
-#include "domains/matching_pennies.h"
-#include "domains/oshiZumo.h"
-#include "domains/randomGame.h"
-
-#include "gtest/gtest.h"
 
 namespace GTLib2::domains {
 
@@ -96,9 +84,7 @@ double domainFindMaxDepth(const Domain &domain) {
     const auto countViolations = [&maxDepth](shared_ptr<FOG2EFGNode> node) {
         maxDepth = max(node->stateDepth(), maxDepth);
     };
-    const shared_ptr<FOG2EFGNode> rootNode = dynamic_pointer_cast<FOG2EFGNode>(createRootEFGNode(domain));
-
-    treeWalk(rootNode, countViolations);
+    treeWalk(domain, countViolations);
     return maxDepth;
 }
 

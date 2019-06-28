@@ -24,7 +24,6 @@
 #include <chrono>
 
 #include "base/random.h"
-#include "base/fogefg.h"
 #include "algorithms/common.h"
 
 namespace GTLib2 {
