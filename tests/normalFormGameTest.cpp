@@ -24,25 +24,15 @@
 */
 
 
-#include "base/base.h"
-#include "algorithms/bestResponse.h"
-#include "algorithms/common.h"
-#include "algorithms/equilibrium.h"
-#include "algorithms/tree.h"
 #include "algorithms/stats.h"
-#include "algorithms/utility.h"
-#include "algorithms/strategy.h"
 #include "domains/normal_form_game.h"
 
-#include "LPsolvers/LPSolver.h"
 #include "tests/domainsTest.h"
-
 #include "gtest/gtest.h"
 
 namespace GTLib2::domains {
 
 using algorithms::DomainStatistics;
-using algorithms::playOnlyAction;
 
 TEST(NormalFormGame, buildGameTreeAndCheckSizesMatrix) {
     DomainStatistics expectedStat = {

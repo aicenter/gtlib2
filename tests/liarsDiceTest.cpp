@@ -19,27 +19,15 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "base/base.h"
-
-#include "algorithms/bestResponse.h"
-#include "algorithms/cfr.h"
-#include "algorithms/common.h"
-#include "algorithms/equilibrium.h"
-#include "algorithms/tree.h"
 #include "algorithms/stats.h"
-#include "algorithms/utility.h"
-#include "algorithms/strategy.h"
 #include "domains/liarsDice.h"
-#include "tests/domainsTest.h"
 
+#include "tests/domainsTest.h"
 #include "gtest/gtest.h"
 
 namespace GTLib2::domains {
 
 using algorithms::DomainStatistics;
-using algorithms::treeWalkEFG;
-using algorithms::getUniformStrategy;
-using algorithms::playOnlyAction;
 
 
 // @formatter:off
@@ -136,10 +124,5 @@ TEST(LiarsDice, BuildGameTreeAndCheckSizes) {
         EXPECT_EQ(actualStats, expectedStats[i]);
     }
 }
-
-// todo: create an actual domain test!
-//  i.e. given some game position, these are the action available etc.
-//  for inspiration look at kriegspieltest!
-
 
 }  // namespace GTLib2

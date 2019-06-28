@@ -209,9 +209,9 @@ set(SOURCE_FILES
         utils/benchmark.h
         utils/export.cpp utils/export.h
         utils/range.h
-        utils/utils.hutils/combinatorics.h
-        utils/combinatorics.cpp
+        utils/combinatorics.h utils/combinatorics.cpp
         utils/export.h utils/export.cpp
+        utils/utils.h
         )
 
 set(TEST_FILES
