@@ -182,7 +182,7 @@ set(SOURCE_FILES
         base/algorithm.cpp base/algorithm.h
         base/base.h base/base.cpp
         base/cache.cpp base/cache.h
-        base/efg.h base/efg.cpp
+        base/efg.h
         base/fogefg.h base/fogefg.cpp
         base/hashing.h base/hashing.cpp
         base/includes.h

@@ -49,7 +49,6 @@ FOG2EFGNode::FOG2EFGNode(const shared_ptr<FOG2EFGNode const> &parent,
     cumRewards_(isRoot() ? vector<double>(2, 0.0) : getNewCumRewards(lastOutcome_->rewards)) {
 
 #ifndef NDEBUG // equivalent to assert
-    assert(history_.size() == depth_);
     // state terminal implies EFGNode terminal
     assert(!parent_ || (!lastOutcome_->state->isTerminal() || type_ == TerminalNode));
 
@@ -279,9 +278,12 @@ vector<ActionObservationIds> FOG2EFGNode::getAOids(Player player) const {
 vector<ObservationId> FOG2EFGNode::getPubObsIds() const {
     if (!parent_) return vector<ObservationId>{};
 
-    ObservationId lastObservation = lastOutcome_->publicObservation->getId();
     auto oh = parent_->getPubObsIds();
-    oh.push_back(lastObservation);
+    if (hasNewOutcome() && lastOutcome_->publicObservation->getId() != NO_OBSERVATION)
+        oh.push_back(lastOutcome_->publicObservation->getId());
+    else if (parent_->type_ == PlayerNode)
+        oh.push_back(observationPlayerMoved(parent_->getPlayer()));
+
     return oh;
 }
 
