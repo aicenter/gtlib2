@@ -304,6 +304,11 @@ class PublicStateCache: public virtual EFGCache {
     void createPublicState(const shared_ptr<EFGNode> &node);
 };
 
+class StrategyCache {
+ public:
+    virtual ProbDistribution strategyFor(const shared_ptr<AOH> &currentInfoset) = 0;
+};
+
 /**
  * Call supplied function at each EFGNode of the EFG tree supplied by cache, including leaves.
  * The tree is walked as DFS up to maximum depth.

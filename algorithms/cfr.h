@@ -50,10 +50,29 @@ struct CFRSettings {
 };
 
 
+void calcRMProbs(const vector<double> &regrets, ProbDistribution *pProbs, double epsilonUniform);
+void calcAvgProbs(const vector<double> &acc, ProbDistribution *pProbs);
+
+inline void calcRMProbs(const vector<double> &regrets, ProbDistribution *pProbs) {
+    calcRMProbs(regrets, pProbs, 0);
+}
+inline ProbDistribution calcRMProbs(const vector<double> &regrets) {
+    auto rmProbs = vector<double>(regrets.size());
+    calcRMProbs(regrets, &rmProbs);
+    return rmProbs;
+}
+inline ProbDistribution calcAvgProbs(const vector<double> &acc) {
+    auto avgProbs = vector<double>(acc.size());
+    calcAvgProbs(acc, &avgProbs);
+    return avgProbs;
+}
+
+
 /**
  * Container for regrets and average strategy accumulators
  */
-class CFRData: public virtual InfosetCache {
+class CFRData: public virtual InfosetCache,
+               public StrategyCache {
 
  public:
     inline explicit CFRData(const Domain &domain, CFRUpdating updatingPolicy) :
@@ -89,6 +108,10 @@ class CFRData: public virtual InfosetCache {
     };
 
     unordered_map<shared_ptr<AOH>, InfosetData> infosetData;
+
+    inline ProbDistribution strategyFor(const shared_ptr<AOH> &currentInfoset) override {
+        return calcAvgProbs(infosetData.at(currentInfoset).avgStratAccumulator);
+    }
 
  protected:
     CFRUpdating updatingPolicy_ = HistoriesUpdating;
@@ -172,23 +195,6 @@ struct ExpectedUtility {
         return ss;
     }
 };
-
-void calcRMProbs(const vector<double> &regrets, ProbDistribution *pProbs, double epsilonUniform);
-void calcAvgProbs(const vector<double> &acc, ProbDistribution *pProbs);
-
-inline void calcRMProbs(const vector<double> &regrets, ProbDistribution *pProbs) {
-    calcRMProbs(regrets, pProbs, 0);
-}
-inline ProbDistribution calcRMProbs(const vector<double> &regrets) {
-    auto rmProbs = vector<double>(regrets.size());
-    calcRMProbs(regrets, &rmProbs);
-    return rmProbs;
-}
-inline ProbDistribution calcAvgProbs(const vector<double> &acc) {
-    auto avgProbs = vector<double>(acc.size());
-    calcAvgProbs(acc, &avgProbs);
-    return avgProbs;
-}
 
 /**
  * Calculate expected utilities under RM / avg strategy for specified node
