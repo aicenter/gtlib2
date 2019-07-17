@@ -63,7 +63,7 @@ class GamePlayingAlgorithm {
      *
      * Infoset in which this algorithm should currently play is provided.
      * It will always be only infosets of the previously specified playing player.
-     * If currentInfoset is empty, it means root iterations (preplay) should be done.
+     * If currentInfoset is nullopt, it means root iterations (preplay) should be done.
      *
      * @return how the game flow should operatore, see PlayControl
      */
