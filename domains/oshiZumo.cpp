@@ -81,6 +81,23 @@ string OshiZumoDomain::getInfo() const {
         "\nMax depth: " + to_string(maxStateDepth_) + '\n';
 }
 
+
+unique_ptr<OshiZumoDomain> OshiZumoDomain::IIOZ(unsigned int n) {
+    return make_unique<OshiZumoDomain>(OshiZumoSettings{
+        variant:  IncompleteObservation,
+        startingCoins: n,
+        startingLocation: n,
+    });
+}
+
+unique_ptr<OshiZumoDomain> OshiZumoDomain::OZ(unsigned int n) {
+    return make_unique<OshiZumoDomain>(OshiZumoSettings{
+        variant:  CompleteObservation,
+        startingCoins: n,
+        startingLocation: n,
+    });
+}
+
 OshiZumoState::OshiZumoState(const Domain *domain, int wrestlerLocation, int startingCoins) :
     OshiZumoState(domain, wrestlerLocation, {startingCoins, startingCoins}) {}
 

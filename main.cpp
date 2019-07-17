@@ -19,68 +19,47 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "utils/global_args.h"
 
-#include <chrono>
-#include "algorithms/cfr.h"
-#include "domains/goofSpiel.h"
-#include "domains/randomGame.h"
-#include "domains/simple_games.h"
-#include "utils/export.h"
-#include "utils/benchmark.h"
+// All the possible commands
+#include "experiments/benchmark_cfr.h"
+#include "experiments/export_domain.h"
+#include "experiments/cfr_regrets.h"
 
+#include <iostream>
 
-using namespace GTLib2;
+int main(int argc, const char **argv) {
+    args::ArgumentParser parser("Command runner for GTLib2");
+    args::CompletionFlag completion(parser, {"complete"}); // bash completion
+    args::GlobalOptions globals(parser, args::arguments);
 
-using domains::GoofSpielDomain;
-using domains::MatchingPenniesDomain;
-using domains::GoofSpielVariant::CompleteObservations;
-using domains::GoofSpielVariant::IncompleteObservations;
-using utils::exportGraphViz;
-using utils::exportGambit;
-using utils::benchmark;
+    // --------- utils ----------
+    args::Group utils(parser, "commands (utils)");
+    args::Command export_domain(utils, "export_domain",
+                                "Export domain to gambit or graphviz", &Command_ExportDomain);
+    args::Command benchmark_cfr(utils, "benchmark_cfr",
+                                "Calculate run time of CFR on IIGS-5.", &Command_BenchmarkCFR);
 
-void exampleBenchmarkCFR() {
-    const auto domain = GoofSpielDomain::IIGS_5();
-    auto settings = algorithms::CFRSettings();
-    auto cache = algorithms::CFRData(domain, settings.cfrUpdating);
-    algorithms::CFRAlgorithm cfr(domain, cache, Player(0), settings);
+    // ------ experiments -------
+    args::Group experiments(parser, "commands (experiments)");
+    args::Command cfr_regrets(experiments, "cfr_regrets",
+                              "Calculate regrets and strategies in CFR", &Command_CFRRegrets);
 
-    auto totalTime = benchmark([&]() {
-        cout << "Build time: " << benchmark([&]() { cfr.getCache().buildTree(); }) << " ms" << endl;
-        cout << "Iters Time: " << benchmark([&]() { cfr.runIterations(100); }) << " ms" << endl;
-    });
-    cout << "Total Time: " << totalTime << " ms" << endl;
-}
+    try {
+        parser.ParseCLI(argc, argv);
+    }
+    catch (const args::Help &) {
+        std::cout << parser;
+        return 0;
+    }
+    catch (const args::Completion &e) {
+        std::cout << e.what();
+        return 0;
+    }
+    catch (const args::Error &e) {
+        std::cerr << e.what() << std::endl << parser;
+        return 1;
+    }
 
-void exampleExportDomain() {
-    //@formatter:off
-    auto gs2 =        GoofSpielDomain({variant:  CompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}});
-    auto gs3 =        GoofSpielDomain({variant:  CompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}, binaryTerminalRewards: true});
-    auto gs3_seed =   GoofSpielDomain({variant:  CompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
-    auto iigs3 =      GoofSpielDomain({variant:  IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
-    auto iigs1_seed = GoofSpielDomain({variant:  IncompleteObservations, numCards: 1, fixChanceCards: true, chanceCards: {}});
-    auto iigs2_seed = GoofSpielDomain({variant:  IncompleteObservations, numCards: 2, fixChanceCards: true, chanceCards: {}});
-    auto iigs3_seed = GoofSpielDomain({variant:  IncompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
-    //@formatter:on
-    exportGambit(gs2, "./gs2.gbt");
-    exportGambit(gs3, "./gs3.gbt");
-    exportGambit(gs3_seed, "./gs3_seed.gbt");
-    exportGambit(iigs3, "./iigs3.gbt");
-    exportGambit(iigs1_seed, "./iigs1_seed.gbt");
-    exportGambit(iigs2_seed, "./iigs2_seed.gbt");
-    exportGambit(iigs3_seed, "./iigs3_seed.gbt");
-    exportGambit(domains::RPSDomain(), "./rps.gbt");
-
-    // you can run this for visualization
-    // $ dot -Tsvg iigs3_seed.dot -o iigs3_seed.svg
-    exportGraphViz(iigs3_seed, "./iigs3_seed.dot");
-    exportGraphViz(iigs3, "./iigs3.dot");
-    exportGraphViz(MatchingPenniesDomain(), "./mp.dot");
-    exportGraphViz(domains::RPSDomain(), "./rps.dot");
-}
-
-int main(int argc, char *argv[]) {
-//    exampleBenchmarkCFR();
-    exampleExportDomain();
     return 0;
 }

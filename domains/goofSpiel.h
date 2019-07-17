@@ -87,11 +87,8 @@ class GoofSpielDomain: public Domain {
     const vector<int> natureCards_;
 
     // Factories for common instances of IIGS
-    static GoofSpielDomain IIGS_2();
-    static GoofSpielDomain IIGS_3();
-    static GoofSpielDomain IIGS_4();
-    static GoofSpielDomain IIGS_5();
-    static GoofSpielDomain IIGS_6();
+    static unique_ptr<GoofSpielDomain> IIGS(unsigned int n);
+    static unique_ptr<GoofSpielDomain> GS(unsigned int n);
 
  private:
     void initRandomCards(const vector<int> &natureCards);

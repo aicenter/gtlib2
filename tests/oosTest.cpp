@@ -90,12 +90,12 @@ using domains::GoofSpielVariant::CompleteObservations;
 
 
 TEST(OOS, CheckExploitabilityInSmallDomain) {
-    const auto domain = GoofSpielDomain::IIGS_4();
+    const auto domain = GoofSpielDomain::IIGS(4);
     const auto settings = OOSSettings();
 
-    auto data = OOSData(domain);
+    auto data = OOSData(*domain);
     data.buildTree();
-    OOSAlgorithm oos(domain, Player(0), data, settings);
+    OOSAlgorithm oos(*domain, Player(0), data, settings);
 
 
     const auto expectedExploitabilities = vector<double>{
@@ -108,7 +108,7 @@ TEST(OOS, CheckExploitabilityInSmallDomain) {
         const auto timems = utils::benchmark([&]() {
             for (int i = 0; i < (iters - prevIters); ++i) oos.runPlayIteration(nullopt);
         });
-        const auto actualExploitability = calcExploitability(domain, getAverageStrategy(data));
+        const auto actualExploitability = calcExploitability(*domain, getAverageStrategy(data));
 
         cout << floor(iters) << " "
              << floor(iters - prevIters) << " "
@@ -126,7 +126,7 @@ TEST(OOS, PlayMatchInSmallDomain) {
     EXPECT_DOUBLE_EQ(uniformDist(generator), 0.59284461651668263);
     EXPECT_DOUBLE_EQ(uniformDist(generator), 0.84426574425659828);
 
-    const auto domain = GoofSpielDomain::IIGS_2();
+    const auto domain = GoofSpielDomain::IIGS(2);
     const auto settings = OOSSettings();
     const auto expectedRewards =
         vector<double>{0, 0, 0, 0}; // todo: make better test where we don't get just zeros :/
@@ -148,22 +148,22 @@ TEST(OOS, PlayMatchInSmallDomain) {
     };
 
     for (int i = 0; i < 3; ++i) {
-        auto data0 = OOSData(domain);
+        auto data0 = OOSData(*domain);
         data0.buildTree();
-        auto data1 = OOSData(domain);
+        auto data1 = OOSData(*domain);
         data1.buildTree();
         vector<PreparedAlgorithm> algs = {
             createInitializer<FixedSamplingOOS>(data0, settings, samples0[i]),
             createInitializer<FixedSamplingOOS>(data1, settings, samples1[i])
         };
         auto r = expectedRewards[i];
-        EXPECT_EQ(playMatch(domain, algs, {1, 1}, {i, i}, BudgetIterations, 0),
+        EXPECT_EQ(playMatch(*domain, algs, {1, 1}, {i, i}, BudgetIterations, 0),
                   (vector<double>{r, -r}));
     }
 }
 
 TEST(OOS, PlayManyMatches) {
-    const auto domain = GoofSpielDomain::IIGS_3();
+    const auto domain = GoofSpielDomain::IIGS(3);
     const auto settings = OOSSettings();
     const auto expectedRewards = vector<double>{
         0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -176,14 +176,14 @@ TEST(OOS, PlayManyMatches) {
     };
 
     for (int i = 0; i < 100; ++i) {
-        auto data0 = OOSData(domain);
-        auto data1 = OOSData(domain);
+        auto data0 = OOSData(*domain);
+        auto data1 = OOSData(*domain);
         vector<PreparedAlgorithm> algs = {
             createInitializer<OOSAlgorithm>(data0, settings),
             createInitializer<OOSAlgorithm>(data1, settings)
         };
         auto r = expectedRewards[i];
-        auto actualOutcome = playMatch(domain, algs, {10, 10}, {5, 5}, BudgetIterations, i);
+        auto actualOutcome = playMatch(*domain, algs, {10, 10}, {5, 5}, BudgetIterations, i);
         auto expectedOutcome = vector<double>{r, -r};
         EXPECT_EQ(expectedOutcome, actualOutcome);
     }
@@ -209,15 +209,15 @@ TEST(OOS, PlayManyMatches) {
 //}
 //
 //TEST(OOS, CheckSpecificSamples) {
-//    auto domain = GoofSpielDomain::IIGS_3();
+//    auto domain = GoofSpielDomain::IIGS(3);
 //
 //    auto settings = OOSSettings();
-//    auto dataFixed = OOSData(domain);
-//    auto dataNotFixed = OOSData(domain);
+//    auto dataFixed = OOSData(*domain);
+//    auto dataNotFixed = OOSData(*domain);
 //
 //    auto samples = loadSamplesIIGS_3("resources/oos_test_samples.txt");
-//    FixedSamplingOOS fixed(domain, Player(0), dataFixed, settings, samples);
-//    OOSAlgorithm notFixed(domain, Player(0), dataNotFixed, settings);
+//    FixedSamplingOOS fixed(*domain, Player(0), dataFixed, settings, samples);
+//    OOSAlgorithm notFixed(*domain, Player(0), dataNotFixed, settings);
 //
 //    for (int i = 0; i < samples.size(); ++i) notFixed.runPlayIteration(nullopt);
 //

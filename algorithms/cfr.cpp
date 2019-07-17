@@ -98,10 +98,10 @@ void CFRAlgorithm::runIterations(int numIterations) {
     }
 
     for (int i = 0; i < numIterations; ++i) {
-        runIteration(cache_.getRootNode(), array<double, 3>{1., 1., 1.}, Player(0));
+        runIteration(Player(0));
         delayedApplyRegretUpdates();
 
-        runIteration(cache_.getRootNode(), array<double, 3>{1., 1., 1.}, Player(1));
+        runIteration(Player(1));
         delayedApplyRegretUpdates();
     }
 }

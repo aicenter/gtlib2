@@ -206,12 +206,18 @@ set(SOURCE_FILES
         LPsolvers/AbstractLPSolver.h
         LPsolvers/LPSolver.h
         # utils
+        utils/args.hpp
+        utils/global_args.h
         utils/benchmark.h
         utils/export.cpp utils/export.h
         utils/range.h
         utils/combinatorics.h utils/combinatorics.cpp
         utils/export.h utils/export.cpp
         utils/utils.h
+        # experiments
+        experiments/benchmark_cfr.h
+        experiments/export_domain.h
+        experiments/cfr_regrets.h
         )
 
 set(TEST_FILES

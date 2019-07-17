@@ -166,49 +166,28 @@ string GoofSpielDomain::getInfo() const {
     return ss.str();
 }
 
-GoofSpielDomain GoofSpielDomain::IIGS_2() {
-    return GoofSpielDomain({
-                               variant:  IncompleteObservations,
-                               numCards: 2,
-                               fixChanceCards: true,
-                               chanceCards: {2, 1}
-                           });
-}
-GoofSpielDomain GoofSpielDomain::IIGS_3() {
-    return GoofSpielDomain({
-                               variant:  IncompleteObservations,
-                               numCards: 3,
-                               fixChanceCards: true,
-                               chanceCards: {3, 2, 1}
-                           });
+unique_ptr<GoofSpielDomain> GoofSpielDomain::IIGS(unsigned int n) {
+    auto chanceCards = vector<int>(n);
+    std::generate(chanceCards.begin(), chanceCards.end(), [&n] { return n--; });
+    return make_unique<GoofSpielDomain>(GoofSpielSettings{
+        variant:  IncompleteObservations,
+        numCards: static_cast<uint32>(chanceCards.size()),
+        fixChanceCards: true,
+        chanceCards: chanceCards
+    });
 }
 
-GoofSpielDomain GoofSpielDomain::IIGS_4() {
-    return GoofSpielDomain({
-                               variant:  IncompleteObservations,
-                               numCards: 4,
-                               fixChanceCards: true,
-                               chanceCards: {4, 3, 2, 1}
-                           });
+unique_ptr<GoofSpielDomain> GoofSpielDomain::GS(unsigned int n) {
+    auto chanceCards = vector<int>(n);
+    std::generate(chanceCards.begin(), chanceCards.end(), [&n] { return n--; });
+    return make_unique<GoofSpielDomain>(GoofSpielSettings{
+        variant:  CompleteObservations,
+        numCards: static_cast<uint32>(chanceCards.size()),
+        fixChanceCards: true,
+        chanceCards: chanceCards
+    });
 }
 
-GoofSpielDomain GoofSpielDomain::IIGS_5() {
-    return GoofSpielDomain({
-                               variant:  IncompleteObservations,
-                               numCards: 5,
-                               fixChanceCards: true,
-                               chanceCards: {5, 4, 3, 2, 1}
-                           });
-}
-
-GoofSpielDomain GoofSpielDomain::IIGS_6() {
-    return GoofSpielDomain({
-                               variant:  IncompleteObservations,
-                               numCards: 6,
-                               fixChanceCards: true,
-                               chanceCards: {6, 5, 4, 3, 2, 1}
-                           });
-}
 
 unsigned long GoofSpielState::countAvailableActionsFor(Player player) const {
     return playerDecks_[player].size();

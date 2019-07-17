@@ -125,6 +125,10 @@ class CFRAlgorithm: public GamePlayingAlgorithm {
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
     optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override;
 
+    inline double runIteration(const Player updatingPl) {
+        return runIteration(cache_.getRootNode(), array<double, 3>{1., 1., 1.}, updatingPl);
+    }
+
     /**
      * Run an updating iteration for specified player starting at some node.
      * @return counterfactual value for infoset under current (regret-matching) strategy.

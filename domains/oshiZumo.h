@@ -40,9 +40,9 @@ enum OshiZumoVariant { CompleteObservation, IncompleteObservation };
  */
 struct OshiZumoSettings {
   OshiZumoVariant variant = CompleteObservation;
-  int startingCoins = 3;
-  int startingLocation = 3;
-  int minBid = 1;
+  unsigned int startingCoins = 3;
+  unsigned int startingLocation = 3;
+  unsigned int minBid = 1;
   bool optimalEndGame = true;
 };
 
@@ -70,6 +70,9 @@ class OshiZumoDomain : public Domain {
   inline const bool isOptimalEndGame() const { return optimalEndGame_; }
   inline const OshiZumoVariant getVariant() const { return variant_; }
   inline const int getStartingCoins() const { return startingCoins_; }
+
+  static unique_ptr<OshiZumoDomain> IIOZ(unsigned int n);
+  static unique_ptr<OshiZumoDomain> OZ(unsigned int n);
 
  private:
   const int startingCoins_;
