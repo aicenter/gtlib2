@@ -21,8 +21,8 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif ()
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-Wgnu-designator")
-set(CMAKE_CXX_FLAGS_RELEASE "-m64 -msse2 -O3 -ffast-math -DNDEBUG")
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wgnu-designator")
+set(CMAKE_CXX_FLAGS_RELEASE "-m64 -msse2 -O3 -ffast-math -DNDEBUG -Wgnu-designator")
 
 # link pthread library
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
@@ -202,6 +202,7 @@ set(SOURCE_FILES
         domains/RhodeIslandPoker.h domains/RhodeIslandPoker.cpp
         domains/oshiZumo.h domains/oshiZumo.cpp
         domains/randomGame.h domains/randomGame.cpp
+        domains/stratego.h domains/stratego.cpp
         # LPSolvers
         LPsolvers/AbstractLPSolver.h
         LPsolvers/LPSolver.h

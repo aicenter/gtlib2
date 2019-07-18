@@ -72,6 +72,7 @@
 #include <vector>
 #include <memory>
 
+
 namespace GTLib2 {
 
 typedef uint8_t uint8;
