@@ -175,6 +175,31 @@ inline bool is_negative_zero(float val) { return ((val == 0.0f) && std::signbit(
 inline bool is_negative_zero(double val) { return ((val == 0.0) && std::signbit(val)); }
 inline bool is_positive_zero(float val) { return ((val == 0.0f) && std::signbit(val)); }
 inline bool is_positive_zero(double val) { return ((val == 0.0) && std::signbit(val)); }
+
+struct Escaped {
+    string str;
+
+    friend inline std::ostream& operator<<(std::ostream& os, const Escaped& e) {
+        for(const char &c : e.str) {
+            switch (c) {
+                case '\a':  os << "\\a"; break;
+                case '\b':  os << "\\b"; break;
+                case '\f':  os << "\\f"; break;
+                case '\n':  os << "\\n"; break;
+                case '\r':  os << "\\r"; break;
+                case '\t':  os << "\\t"; break;
+                case '\v':  os << "\\v"; break;
+                case '\\':  os << "\\\\"; break;
+                case '\'':  os << "\\'"; break;
+                case '\"':  os << "\\\""; break;
+                case '\?':  os << "\\\?"; break;
+                default: os << c;
+            }
+        }
+        return os;
+    }
+};
+
 }
 
 #define MAKE_HASHABLE(type)                                           \

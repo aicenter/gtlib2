@@ -130,8 +130,7 @@ MatchingPenniesState::performActions(const vector <shared_ptr<Action>> &actions)
 }
 
 string MatchingPenniesState::toString() const {
-    return "Player 1: " + to_string(moves_[0])
-        + " Player 2: " + to_string(moves_[1]);
+    return "Pl1: " + to_string(moves_[0]) + "\nPl2: " + to_string(moves_[1]);
 }
 
 bool MatchingPenniesState::operator==(const State &rhs) const {
