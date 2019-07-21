@@ -133,6 +133,7 @@ void exportGraphViz(const Domain &domain, std::ostream &fs) {
             fs << "\t\"" << node->toString() << "\" "
                << "[fillcolor=\"" << color << "\""
                << ",label=\"" << node->getUtilities() << "\""
+               << ",tooltip=\"" << Escaped{node->getState()->toString()} << "\""
                << ",shape=\"" << shape << "\"]\n";
             return;
         }
@@ -141,6 +142,7 @@ void exportGraphViz(const Domain &domain, std::ostream &fs) {
         fs << "\t\"" << node->toString() << "\" "
            << "[fillcolor=\"" << color << "\""
            << ",label=\"" << node->toString() << "\""
+           << ",tooltip=\"" << Escaped{node->getState()->toString()} << "\""
            << ",shape=\"" << shape << "\"]\n";
 
         for (auto &action : node->availableActions()) {

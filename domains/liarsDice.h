@@ -29,23 +29,24 @@
 
 namespace GTLib2::domains {
 
+/**
+ * Liar’s Dice LD({D1,D2},F) is a dice-bidding game.
+ * Each die has faces 0 to F − 1. Each player i rolls Di of these dice
+ * without showing them to their opponent.
+ *
+ * Each round, players alternate by bidding on the outcome
+ * of all dice in play until one player "calls liar”,
+ * i.e. claims that their opponent’s latest bid does not hold.
+ *
+ * If the bid holds, the calling player loses; otherwise, she wins.
+ *
+ * A bid consists of a quantity of dice and a face value.
+ * To bid, the player must increase either the quantity or face value of the current bid (or both).
+ * All actions in this game are public. The only hiddeninformation is caused
+ * by chance at the beginning of the game.
+ * Therefore, the size of all information sets is identical.
+ */
 class LiarsDiceDomain : public Domain {
-    /*
-     * Liar’s Dice LD({D1,D2},F) is a dice-bidding game.
-     * Each die has faces 0 to F − 1.
-     * . Each player rolls Di of these dice
-     * without showing them to their opponent.
-     * Each round, players alternate by bidding on the outcome
-     * of all dice in play until one player "calls liar”,
-     * i.e. claims that their opponent’s latest bid does not hold.
-     * If the bid holds, the calling player loses; otherwise, she wins.
-     * A bid consists of a quantity of dice and a face value.
-     * To bid, the player must increase either
-     * the quantity or face value of the current bid (or both).
-     * All actions in this game are public. The only hidden
-     * information is caused by chance at the beginning of the game.
-     * Therefore, the size of all information sets is identical.
-     */
 
  public:
     LiarsDiceDomain(vector<int> playersDice, int faces);

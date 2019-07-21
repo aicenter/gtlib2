@@ -86,8 +86,6 @@ struct OOSSettings {
 
     double exploration = 0.6;
     double targetBiasing = 0.0;
-    double gadgetExploration = 0.0;
-    double gadgetInfosetBiasing = 0.0;
     double approxRegretMatching = 0.001;
 
     /**

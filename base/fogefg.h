@@ -66,6 +66,7 @@ class FOG2EFGNode: public Node<FOG2EFGNode>,
 
     // FOG
     const shared_ptr<FOG2EFGNode> getChildAt(EdgeId index) const;
+    const shared_ptr<State> getState() const { return lastOutcome_->state; }
     inline unsigned int stateDepth() const { return stateDepth_; }
     inline bool operator==(const FOG2EFGNode &rhs) const { return Node::operator==(rhs); }
 
