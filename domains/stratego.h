@@ -41,13 +41,14 @@ public:
 
 class StrategoMoveAction: public Action {
 public:
-    inline StrategoMoveAction() : Action(), startPos(0), endPos(0)  {}
-    inline StrategoMoveAction(ActionId id, int start, int end) : Action(id), startPos(start), endPos(end)  {}
-    inline string toString() const override { return "moving from " + to_string(startPos) + " to " + to_string(endPos); };
+    inline StrategoMoveAction() : Action(), startPos(0), endPos(0), boardWidth_(0)  {}
+    inline StrategoMoveAction(ActionId id, int start, int end, int width) : Action(id), startPos(start), endPos(end), boardWidth_(width)  {}
+    inline string toString() const override;
     bool operator==(const Action &that) const override;
     inline HashType getHash() const override { return id_; };
     const int startPos;
     const int endPos;
+    const int boardWidth_;
 };
 
 class StrategoDomain: public Domain {

@@ -19,6 +19,7 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <domains/stratego.h>
 #include "utils/args.hpp"
 
 #ifndef GTLIB2_GLOBAL_ARGSH
@@ -50,6 +51,8 @@ std::unique_ptr<GTLib2::Domain> constructDomain(const std::string &description) 
     using domains::BiasedRPSDomain;
     using domains::MatchingPenniesDomain;
     using domains::PrisonnersDilemmaDomain;
+    using domains::StrategoDomain;
+    using domains::StrategoSettings;
 
 
     string buf;
@@ -64,11 +67,11 @@ std::unique_ptr<GTLib2::Domain> constructDomain(const std::string &description) 
         const auto numCards = static_cast<uint32>(stoi(p.at(0)));
         if (p.size() == 1) {
             return make_unique<GoofSpielDomain>(GoofSpielSettings{
-                variant: v,
-                numCards: numCards,
-                fixChanceCards: false, // chance cards are not fixed !! (in constrast to IIGS_#)
-                chanceCards: {},
-                binaryTerminalRewards: false
+                .variant =  v,
+                .numCards =  numCards,
+                .fixChanceCards =  false, // chance cards are not fixed !! (in constrast to IIGS_#)
+                .chanceCards =  {},
+                .binaryTerminalRewards =  false
             });
         }
 
@@ -79,11 +82,11 @@ std::unique_ptr<GTLib2::Domain> constructDomain(const std::string &description) 
         });
 
         return make_unique<GoofSpielDomain>(GoofSpielSettings{
-            variant: v,
-            numCards: numCards,
-            fixChanceCards: true,
-            chanceCards: cards,
-            binaryTerminalRewards: false
+            .variant =  v,
+            .numCards =  numCards,
+            .fixChanceCards =  true,
+            .chanceCards =  cards,
+            .binaryTerminalRewards =  false
         });
     };
 
@@ -93,10 +96,10 @@ std::unique_ptr<GTLib2::Domain> constructDomain(const std::string &description) 
         const auto minBid = p.size() >= 3 ? static_cast<uint32>(stoi(p.at(2))) : 1;
 
         return make_unique<OshiZumoDomain>(OshiZumoSettings{
-            variant: v,
-            startingCoins: startingCoins,
-            startingLocation: startingLocation,
-            minBid: minBid,
+            .variant = v,
+            .startingCoins = startingCoins,
+            .startingLocation = startingLocation,
+            .minBid = minBid,
         });
     };
 
@@ -130,6 +133,7 @@ std::unique_ptr<GTLib2::Domain> constructDomain(const std::string &description) 
         {"RPS",    [ ](vector<string> p) { return make_unique<RPSDomain>(); }},
         {"BRPS",   [ ](vector<string> p) { return make_unique<BiasedRPSDomain>(stod(p.at(0))); }},
         {"PD",     [ ](vector<string> p) { return make_unique<PrisonnersDilemmaDomain>(); }},
+        {"STRAT2x2",     [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{3,2,{{1,1,1,1}},{'1', '2'}}); }},
     };
     // @formatter:on
 

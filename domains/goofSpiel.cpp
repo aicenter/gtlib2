@@ -58,7 +58,7 @@ void GoofSpielSettings::shuffleChanceCards(unsigned long seed) {
         std::iota(chanceCards.begin(), chanceCards.end(), 1);
     }
 
-    std::default_random_engine eng{seed};
+    std::default_random_engine eng{static_cast<std::default_random_engine::result_type>(seed)};
     std::mt19937 randEng(eng());
     std::shuffle(chanceCards.begin(), chanceCards.end(), randEng);
 }
@@ -170,10 +170,10 @@ unique_ptr<GoofSpielDomain> GoofSpielDomain::IIGS(unsigned int n) {
     auto chanceCards = vector<int>(n);
     std::generate(chanceCards.begin(), chanceCards.end(), [&n] { return n--; });
     return make_unique<GoofSpielDomain>(GoofSpielSettings{
-        variant:  IncompleteObservations,
-        numCards: static_cast<uint32>(chanceCards.size()),
-        fixChanceCards: true,
-        chanceCards: chanceCards
+        .variant =   IncompleteObservations,
+        .numCards =  static_cast<uint32>(chanceCards.size()),
+        .fixChanceCards =  true,
+        .chanceCards =  chanceCards
     });
 }
 
@@ -181,10 +181,10 @@ unique_ptr<GoofSpielDomain> GoofSpielDomain::GS(unsigned int n) {
     auto chanceCards = vector<int>(n);
     std::generate(chanceCards.begin(), chanceCards.end(), [&n] { return n--; });
     return make_unique<GoofSpielDomain>(GoofSpielSettings{
-        variant:  CompleteObservations,
-        numCards: static_cast<uint32>(chanceCards.size()),
-        fixChanceCards: true,
-        chanceCards: chanceCards
+        .variant =   CompleteObservations,
+        .numCards =  static_cast<uint32>(chanceCards.size()),
+        .fixChanceCards =  true,
+        .chanceCards =  chanceCards
     });
 }
 

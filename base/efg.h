@@ -61,7 +61,7 @@ class EFGChanceAction: public Action {
         }
         return false;
     }
-    inline size_t getHash() const override { return id_; }
+    inline HashType getHash() const override { return id_; }
 
     double chanceProb_ = 1.0;
 };

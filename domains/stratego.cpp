@@ -37,10 +37,10 @@ namespace GTLib2::domains {
         return figure + 128;
     }
 
-    bool isSamePlayer(unsigned char figure1, unsigned char figure2)
+    bool isSamePlayer(int figure1, int figure2)
     {
         if (figure2 == ' ') return false;
-        return abs(figure1 - figure2) < 128;
+        return ((figure1 > 128) && (figure2 > 128)) || ((figure1 < 128) && (figure2 < 128)) ;
     }
 
     unsigned char getRank(unsigned char figure)
@@ -83,6 +83,11 @@ namespace GTLib2::domains {
             return (startPos == rhsAction->startPos) && (endPos == rhsAction->endPos);
         }
         return false;
+    }
+
+    string StrategoMoveAction::toString() const {
+
+        return "move: (" + to_string(startPos%boardWidth_) + "," + to_string(startPos/boardWidth_) + ") -> (" + to_string(endPos%boardWidth_) + "," + to_string(endPos/boardWidth_) + ")";
     }
 
     vector<unsigned char> StrategoSettings::generateBoard() {
@@ -219,16 +224,16 @@ namespace GTLib2::domains {
                     if (getRank(boardState_[i]) == 'B' || getRank(boardState_[i]) == 'F') continue;
                     if ((i+1) > stratdomain->boardWidth_) // i not in the top row
                         if (!isSamePlayer(boardState_[i], boardState_[i - stratdomain->boardWidth_]) && (boardState_[i - stratdomain->boardWidth_] != 'L'))
-                            actions.push_back(make_shared<StrategoMoveAction>(id++, i, i - stratdomain->boardWidth_));
+                            actions.push_back(make_shared<StrategoMoveAction>(id++, i, i - stratdomain->boardWidth_, stratdomain->boardWidth_));
                     if ((i+1) % stratdomain->boardWidth_ != 0) // i not in the right column
                         if (!isSamePlayer(boardState_[i], boardState_[i + 1]) && (boardState_[i + 1] != 'L'))
-                            actions.push_back(make_shared<StrategoMoveAction>(id++, i, i + 1));
+                            actions.push_back(make_shared<StrategoMoveAction>(id++, i, i + 1, stratdomain->boardWidth_));
                     if ((i+1) % stratdomain->boardWidth_ != 1) // i not in the left column
                         if (!isSamePlayer(boardState_[i], boardState_[i - 1]) && (boardState_[i - 1] != 'L'))
-                            actions.push_back(make_shared<StrategoMoveAction>(id++, i, i - 1));
+                            actions.push_back(make_shared<StrategoMoveAction>(id++, i, i - 1, stratdomain->boardWidth_));
                     if (stratdomain->startBoard_.size() - (i+1) >= stratdomain->boardWidth_)// i not in the bottom row
                         if (!isSamePlayer(boardState_[i], boardState_[i + stratdomain->boardWidth_]) && (boardState_[i + stratdomain->boardWidth_] != 'L'))
-                            actions.push_back(make_shared<StrategoMoveAction>(id++, i, i + stratdomain->boardWidth_));
+                            actions.push_back(make_shared<StrategoMoveAction>(id++, i, i + stratdomain->boardWidth_, stratdomain->boardWidth_));
                 }
             }
         }
@@ -246,14 +251,22 @@ namespace GTLib2::domains {
     }
 
     string StrategoState::toString() const {
-        string ret = "current state: ";
-        for (int i = 0; i < dynamic_cast<const StrategoDomain *>(getDomain())->boardHeight_; i++) {
-            for (int j = 0; j < dynamic_cast<const StrategoDomain *>(getDomain())->boardWidth_; j++)
+        int w = dynamic_cast<const StrategoDomain *>(getDomain())->boardWidth_, h = dynamic_cast<const StrategoDomain *>(getDomain())->boardHeight_;
+        string ret = "current state:";
+        for (int i = 0; i < h; i++) {
+            ret += "\n";
+            for (int j = 0; j < w; j++)
             {
-                ret += (getRank(boardState_[dynamic_cast<const StrategoDomain *>(getDomain())->boardWidth_+i + j]));
+                unsigned char fig = boardState_[w*i + j];
+                if (fig == ' ') ret += "__";
+                else if (fig == 'L') ret += "LL";
+                else
+                {
+                    ret += isPlayers(fig, 0) ? '0' : '1';
+                    ret += getRank(fig);
+                }
                 ret += ' ';
             }
-            ret += "\n";
         }
         return ret;
     }
@@ -303,13 +316,28 @@ namespace GTLib2::domains {
             }
 
             bool pl0f = false, pl1f = false;
-            for (unsigned char f : board)
-            {
-                if (isPlayers(f, 0)) pl0f = true;
-                if (isPlayers(f, 1)) pl1f = true;
+            unsigned char pl0fig = ' ', pl1fig = ' ';
+            int pl0counter = 0, pl1counter = 0;
+            for (unsigned char f : board) {
+                if (isPlayers(f, 0)) {
+                    pl0counter++;
+                    if (pl0counter == 1) pl0fig = getRank(f);
+                    pl0f = true;
+                }
+                if (isPlayers(f, 1)) {
+                    pl1counter++;
+                    if (pl1counter == 1) pl1fig = getRank(f);
+                    pl1f = true;
+                }
             }
+
             if (!pl1f) pl0won = true;
-            else if (!pl0f) pl1won = true;
+            if (!pl0f) pl1won = true;
+            if ((pl0counter == 1) && (pl1counter == 1) && (pl0fig == pl1fig))
+            {
+                pl0won = true;
+                pl1won = true;
+            }
             const vector<double> newRewards = { (pl0won ? 1.0 : 0.0) + (pl1won ? (-1.0) : 0.0), (pl1won ? 1.0 : 0.0) + (pl0won ? (-1.0) : 0.0)};
             shared_ptr<StrategoObservation> obs = make_shared<StrategoObservation>(action.startPos, action.endPos,
                     boardState_[action.endPos] == ' ' ? 0 : boardState_[action.startPos],
