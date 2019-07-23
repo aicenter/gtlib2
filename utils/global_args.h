@@ -133,7 +133,7 @@ std::unique_ptr<GTLib2::Domain> constructDomain(const std::string &description) 
         {"RPS",    [ ](vector<string> p) { return make_unique<RPSDomain>(); }},
         {"BRPS",   [ ](vector<string> p) { return make_unique<BiasedRPSDomain>(stod(p.at(0))); }},
         {"PD",     [ ](vector<string> p) { return make_unique<PrisonnersDilemmaDomain>(); }},
-        {"STRAT2x2",     [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{3,2,{{1,1,1,1}},{'1', '2'}}); }},
+        {"STRAT2x2",     [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{2,3,{},{'1', '2'}}); }},
     };
     // @formatter:on
 

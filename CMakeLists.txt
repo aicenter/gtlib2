@@ -222,6 +222,7 @@ set(SOURCE_FILES
         )
 
 set(TEST_FILES
+        tests/strategoTest.cpp
         tests/domainsTest.h tests/domainsTest.cpp
         tests/algorithmTest.cpp
         tests/bestResponseTest.cpp

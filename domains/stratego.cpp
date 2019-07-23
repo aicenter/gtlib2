@@ -22,7 +22,7 @@ namespace GTLib2::domains {
 
     int maxNoAction(int h, int w)
     {
-        return (2*h * 2*w - 4)/2;
+        return (2*h + 2*w - 4)*2;
     }
 
     bool isPlayers(unsigned char figure, int player)
@@ -128,16 +128,16 @@ namespace GTLib2::domains {
 
         id_ = encodeSetup(id1, id2);
     }
-
+//maxNoAction(settings.boardHeight, settings.boardWidth)*settings.figures.size()
     StrategoDomain::StrategoDomain(StrategoSettings settings) :
-            Domain(maxNoAction(settings.boardHeight, settings.boardWidth)*2*settings.figures.size(), 2, true,
-                   make_shared<Action>(),
+            Domain(11,//maxNoAction(settings.boardHeight, settings.boardWidth)*settings.figures.size()*2,
+                    2, true, make_shared<Action>(),
                    make_shared<StrategoObservation>()),
             startBoard_(settings.generateBoard()),
             startFigures_(settings.figures),
             boardWidth_(settings.boardWidth),
             boardHeight_(settings.boardHeight){
-        assert(startBoard_.size() > 1);
+//        assert(startBoard_.size() > 1);
         const auto newState = make_shared<StrategoState>(this, startBoard_, true, false, 0, 0);
         shared_ptr<StrategoObservation> obs = make_shared<StrategoObservation>(0, 0, 0, 0);
         Outcome outcome(newState, {obs, obs}, obs, {0.0, 0.0});
@@ -222,16 +222,16 @@ namespace GTLib2::domains {
                 if (isPlayers(boardState_[i], player))
                 {
                     if (getRank(boardState_[i]) == 'B' || getRank(boardState_[i]) == 'F') continue;
-                    if ((i+1) > stratdomain->boardWidth_) // i not in the top row
+                    if ((stratdomain->boardHeight_ > 1) && ((i+1) > stratdomain->boardWidth_)) // i not in the top row
                         if (!isSamePlayer(boardState_[i], boardState_[i - stratdomain->boardWidth_]) && (boardState_[i - stratdomain->boardWidth_] != 'L'))
                             actions.push_back(make_shared<StrategoMoveAction>(id++, i, i - stratdomain->boardWidth_, stratdomain->boardWidth_));
-                    if ((i+1) % stratdomain->boardWidth_ != 0) // i not in the right column
+                    if ((stratdomain->boardWidth_ > 1) && ((i+1) % stratdomain->boardWidth_ != 0)) // i not in the right column
                         if (!isSamePlayer(boardState_[i], boardState_[i + 1]) && (boardState_[i + 1] != 'L'))
                             actions.push_back(make_shared<StrategoMoveAction>(id++, i, i + 1, stratdomain->boardWidth_));
-                    if ((i+1) % stratdomain->boardWidth_ != 1) // i not in the left column
+                    if ((stratdomain->boardWidth_ > 1) && ((i+1) % stratdomain->boardWidth_ != 1)) // i not in the left column
                         if (!isSamePlayer(boardState_[i], boardState_[i - 1]) && (boardState_[i - 1] != 'L'))
                             actions.push_back(make_shared<StrategoMoveAction>(id++, i, i - 1, stratdomain->boardWidth_));
-                    if (stratdomain->startBoard_.size() - (i+1) >= stratdomain->boardWidth_)// i not in the bottom row
+                    if ((stratdomain->boardHeight_ > 1) && (stratdomain->startBoard_.size() - (i+1) >= stratdomain->boardWidth_))// i not in the bottom row
                         if (!isSamePlayer(boardState_[i], boardState_[i + stratdomain->boardWidth_]) && (boardState_[i + stratdomain->boardWidth_] != 'L'))
                             actions.push_back(make_shared<StrategoMoveAction>(id++, i, i + stratdomain->boardWidth_, stratdomain->boardWidth_));
                 }
@@ -252,7 +252,7 @@ namespace GTLib2::domains {
 
     string StrategoState::toString() const {
         int w = dynamic_cast<const StrategoDomain *>(getDomain())->boardWidth_, h = dynamic_cast<const StrategoDomain *>(getDomain())->boardHeight_;
-        string ret = "current state:";
+        string ret = "current player: " + to_string(currentPlayer_) + "\ncurrent state:";
         for (int i = 0; i < h; i++) {
             ret += "\n";
             for (int j = 0; j < w; j++)
