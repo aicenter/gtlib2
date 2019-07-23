@@ -130,7 +130,7 @@ namespace GTLib2::domains {
     }
 //maxNoAction(settings.boardHeight, settings.boardWidth)*settings.figures.size()
     StrategoDomain::StrategoDomain(StrategoSettings settings) :
-            Domain(11,//maxNoAction(settings.boardHeight, settings.boardWidth)*settings.figures.size()*2,
+            Domain(maxNoAction(settings.boardHeight, settings.boardWidth)*settings.figures.size()*2,
                     2, true, make_shared<Action>(),
                    make_shared<StrategoObservation>()),
             startBoard_(settings.generateBoard()),
