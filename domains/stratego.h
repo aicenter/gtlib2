@@ -12,7 +12,7 @@
 
 namespace GTLib2::domains {
 
-//enum ActionDirection {Left, Right, Up, Down};
+unsigned char makePlayer1(unsigned char figure);
 
 struct Lake {
     unsigned char x, y, height, width;

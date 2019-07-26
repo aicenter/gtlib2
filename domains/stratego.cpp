@@ -32,8 +32,7 @@ namespace GTLib2::domains {
         return (((player == 0) && (figure < 128)) || ((player == 1) && (figure >= 128))) && (figure != 'L');
     }
 
-    unsigned char makePlayer1(unsigned char figure)
-    {
+    unsigned char makePlayer1(unsigned char figure) {
         return figure + 128;
     }
 
@@ -166,17 +165,19 @@ namespace GTLib2::domains {
         {
             int count = 0;
             for (int i = 0; i < boardState_.size(); i++) {
-                if (isPlayers(boardState_[i], player)) {
-                    if ((i+1) > stratdomain->boardWidth_) // i not in the top row
+                if (isPlayers(boardState_[i], player))
+                {
+                    if (getRank(boardState_[i]) == 'B' || getRank(boardState_[i]) == 'F') continue;
+                    if ((stratdomain->boardHeight_ > 1) && ((i+1) > stratdomain->boardWidth_)) // i not in the top row
                         if (!isSamePlayer(boardState_[i], boardState_[i - stratdomain->boardWidth_]) && (boardState_[i - stratdomain->boardWidth_] != 'L'))
                             count++;
-                    if ((i+1) % stratdomain->boardWidth_ != 0) // i not in the right column
+                    if ((stratdomain->boardWidth_ > 1) && ((i+1) % stratdomain->boardWidth_ != 0)) // i not in the right column
                         if (!isSamePlayer(boardState_[i], boardState_[i + 1]) && (boardState_[i + 1] != 'L'))
                             count++;
-                    if ((i+1) % stratdomain->boardWidth_ != 1) // i not in the left column
+                    if ((stratdomain->boardWidth_ > 1) && ((i+1) % stratdomain->boardWidth_ != 1)) // i not in the left column
                         if (!isSamePlayer(boardState_[i], boardState_[i - 1]) && (boardState_[i - 1] != 'L'))
                             count++;
-                    if (stratdomain->startBoard_.size() - (i+1) >= stratdomain->boardWidth_)// i not in the bottom row
+                    if ((stratdomain->boardHeight_ > 1) && (stratdomain->startBoard_.size() - (i+1) >= stratdomain->boardWidth_))// i not in the bottom row
                         if (!isSamePlayer(boardState_[i], boardState_[i + stratdomain->boardWidth_]) && (boardState_[i + stratdomain->boardWidth_] != 'L'))
                             count++;
                 }
