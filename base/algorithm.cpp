@@ -32,7 +32,7 @@ using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::microseconds;
 
-bool playForBudget(unique_ptr<GamePlayingAlgorithm> &alg,
+bool playForBudget(GamePlayingAlgorithm &alg,
                    const optional<shared_ptr<AOH>> &currentInfoset,
                    long budgetValue, BudgetType type) {
 
@@ -46,7 +46,7 @@ bool playForBudget(unique_ptr<GamePlayingAlgorithm> &alg,
     }
 }
 
-bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
+bool playForMicroseconds(GamePlayingAlgorithm &alg,
                          const optional<shared_ptr<AOH>> &currentInfoset,
                          long budgetUs) {
 
@@ -54,7 +54,7 @@ bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
     bool continueImproving = true;
     while (budgetUs > 0 && continueImproving) {
         high_resolution_clock::time_point t1 = high_resolution_clock::now();
-        state = alg->runPlayIteration(currentInfoset);
+        state = alg.runPlayIteration(currentInfoset);
         if (state == StopImproving || state == GiveUp) continueImproving = false;
         high_resolution_clock::time_point t2 = high_resolution_clock::now();
         auto duration = duration_cast<microseconds>(t2 - t1).count();
@@ -65,14 +65,14 @@ bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
     return state != GiveUp;
 }
 
-bool playForIterations(unique_ptr<GamePlayingAlgorithm> &alg,
+bool playForIterations(GamePlayingAlgorithm &alg,
                        const optional<shared_ptr<AOH>> &currentInfoset,
                        long budgetIters) {
 
     PlayControl state = ContinueImproving;
     bool continueImproving = true;
     while (budgetIters > 0 && continueImproving) {
-        state = alg->runPlayIteration(currentInfoset);
+        state = alg.runPlayIteration(currentInfoset);
         if (state == StopImproving || state == GiveUp) continueImproving = false;
         budgetIters--;
     }
@@ -118,7 +118,7 @@ vector<double> playMatch(const Domain &domain,
         algs[i] = algorithmInitializers[i](domain, Player(i));
     }
     for (int i = 0; i < numAlgs; ++i) {
-        continuePlay[i] = playForBudget(algs[i], nullopt, preplayBudget[i], simulationType);
+        continuePlay[i] = playForBudget(*algs[i], nullopt, preplayBudget[i], simulationType);
     }
 
     auto generator = std::mt19937(matchSeed);
@@ -139,7 +139,7 @@ vector<double> playMatch(const Domain &domain,
                 Player pl = node->getPlayer();
 
                 if (continuePlay[pl])
-                    continuePlay[pl] = playForBudget(algs[pl], infoset,
+                    continuePlay[pl] = playForBudget(*algs[pl], infoset,
                                                      moveBudget[pl], simulationType);
 
                 ProbDistribution probs;

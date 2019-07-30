@@ -184,6 +184,7 @@ set(SOURCE_FILES
         base/cache.cpp base/cache.h
         base/efg.h
         base/fogefg.h base/fogefg.cpp
+        base/gadget.h base/gadget.cpp
         base/hashing.h base/hashing.cpp
         base/includes.h
         base/random.h base/random.cpp
@@ -229,6 +230,7 @@ set(TEST_FILES
         tests/commonTest.cpp
         tests/efgTest.cpp
         tests/exportTest.cpp
+        tests/gadgetTest.cpp
         tests/genericPokerTest.cpp
         tests/goofSpielTest.cpp
         tests/hashingTest.cpp

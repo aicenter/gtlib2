@@ -90,7 +90,7 @@ class PublicState: public Node<PublicState> {
  * we can have various implementation of EFGNode (for example GadgetNode)
  */
 class EFGNode {
- public:
+ protected:
     inline explicit EFGNode(const EFGNodeType type,
                             const Player currentPlayer,
                             vector<double> utilities) :
@@ -106,6 +106,7 @@ class EFGNode {
     inline explicit EFGNode(vector<double> utilities) :
         EFGNode(TerminalNode, NO_PLAYER, move(utilities)) {}
 
+ public:
     virtual EFGNodeSpecialization getSpecialization() const = 0;
 
     /**
@@ -173,6 +174,12 @@ class EFGNode {
     virtual vector<ObservationId> getPubObsIds() const = 0;
 
     virtual const vector<ActionId> &getHistory() const = 0;
+
+    inline const ActionId getLastActionId() const {
+        const auto &h = getHistory();
+        assert(!h.empty());
+        return h.at(h.size()-1);
+    }
 
     virtual double getProbabilityOfActionSeq(Player player,
                                              const BehavioralStrategy &strat) const = 0; // todo: remove

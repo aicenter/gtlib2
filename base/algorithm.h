@@ -88,7 +88,7 @@ enum BudgetType { BudgetTime, BudgetIterations };
  *
  * @return whether algorithm decided to continue (true) or give up (false)
  */
-bool playForBudget(unique_ptr<GamePlayingAlgorithm> &alg,
+bool playForBudget(GamePlayingAlgorithm &alg,
                    const optional<shared_ptr<AOH>> &currentInfoset,
                    long budgetValue, BudgetType type);
 
@@ -96,14 +96,14 @@ bool playForBudget(unique_ptr<GamePlayingAlgorithm> &alg,
  * Run iterations of given algorithm for a given number of iterations.
  * @return whether algorithm decided to continue (true) or give up (false)
  */
-bool playForIterations(unique_ptr<GamePlayingAlgorithm> &alg,
+bool playForIterations(GamePlayingAlgorithm &alg,
                        const optional<shared_ptr<AOH>> &currentInfoset,
                        long budgetIters);
 /**
  * Run iterations of given algorithm for a given time budget in microseconds.
  * @return whether algorithm decided to continue (true) or give up (false)
  */
-bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
+bool playForMicroseconds(GamePlayingAlgorithm &alg,
                          const optional<shared_ptr<AOH>> &currentInfoset,
                          long budgetUs);
 

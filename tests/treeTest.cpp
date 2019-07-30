@@ -34,26 +34,26 @@ namespace GTLib2 {
 class ExampleNode: public Node<ExampleNode>,
                    public std::enable_shared_from_this<ExampleNode const> {
  public:
-    ExampleNode(shared_ptr<ExampleNode const> parent, EdgeId incomingEdge)
+    ExampleNode(shared_ptr<ExampleNode const> parent, optional<EdgeId> incomingEdge)
         : Node(move(parent), incomingEdge) {}
 
 };
 
 template<>
-unsigned int nodeChildCnt<ExampleNode>(shared_ptr<ExampleNode> node) {
+unsigned int nodeChildCnt<ExampleNode>(const shared_ptr<ExampleNode> &node) {
     if (node->getDepth() < 2) return 2;
     return 0;
 }
 
 template<>
-inline shared_ptr<ExampleNode> nodeChildExpander<ExampleNode>(shared_ptr<ExampleNode> node, EdgeId index) {
+inline shared_ptr<ExampleNode> nodeChildExpander<ExampleNode>(const shared_ptr<ExampleNode> &node, EdgeId index) {
     return make_shared<ExampleNode>(node->shared_from_this(), index);
 }
 
 TEST(Tree, TreeWalkBinary) {
     std::stringstream ss;
     auto callback = [&](shared_ptr<ExampleNode> node) { ss << node->toString() << "\n"; };
-    auto rootNode = make_shared<ExampleNode>(nullptr, 0);
+    auto rootNode = make_shared<ExampleNode>(nullptr, nullopt);
     treeWalk<ExampleNode>(rootNode, callback);
 
     string expectedTree = "∅\n"

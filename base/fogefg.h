@@ -108,11 +108,19 @@ inline shared_ptr<EFGNode> createRootEFGNode(const Domain &domain) {
 typedef function<void(shared_ptr<EFGNode>)> EFGNodeCallback;
 
 template<>
-inline unsigned int nodeChildCnt<FOG2EFGNode>(shared_ptr<FOG2EFGNode> node) {
+inline unsigned int nodeChildCnt<EFGNode>(const shared_ptr<EFGNode> &node) {
     return node->countAvailableActions();
 }
 template<>
-inline shared_ptr<FOG2EFGNode> nodeChildExpander<FOG2EFGNode>(shared_ptr<FOG2EFGNode> node, EdgeId index) {
+inline shared_ptr<EFGNode> nodeChildExpander<EFGNode>(const shared_ptr<EFGNode> &node, EdgeId index) {
+    return node->performAction(node->availableActions().at(index));
+}
+template<>
+inline unsigned int nodeChildCnt<FOG2EFGNode>(const shared_ptr<FOG2EFGNode> &node) {
+    return node->countAvailableActions();
+}
+template<>
+inline shared_ptr<FOG2EFGNode> nodeChildExpander<FOG2EFGNode>(const shared_ptr<FOG2EFGNode> &node, EdgeId index) {
     return node->getChildAt(index);
 }
 
@@ -121,7 +129,7 @@ inline shared_ptr<FOG2EFGNode> nodeChildExpander<FOG2EFGNode>(shared_ptr<FOG2EFG
  * The tree is walked as DFS up to maximum depth allowed by the domain.
  */
 inline void treeWalk(const Domain &domain, const NodeCallback<FOG2EFGNode> &function) {
-    const auto rootNode = dynamic_pointer_cast<FOG2EFGNode>(createRootEFGNode(domain));
+    auto rootNode = dynamic_pointer_cast<FOG2EFGNode>(createRootEFGNode(domain));
     treeWalk(rootNode, function);
 }
 
