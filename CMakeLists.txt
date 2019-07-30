@@ -218,6 +218,7 @@ set(SOURCE_FILES
         # experiments
         experiments/benchmark_cfr.h
         experiments/export_domain.h
+        experiments/export_ring.h
         experiments/cfr_regrets.h
         )
 

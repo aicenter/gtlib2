@@ -24,6 +24,7 @@
 // All the possible commands
 #include "experiments/benchmark_cfr.h"
 #include "experiments/export_domain.h"
+#include "experiments/export_ring.h"
 #include "experiments/cfr_regrets.h"
 
 #include <iostream>
@@ -44,6 +45,8 @@ int main(int argc, const char **argv) {
     args::Group experiments(parser, "commands (experiments)");
     args::Command cfr_regrets(experiments, "cfr_regrets",
                               "Calculate regrets and strategies in CFR", &Command_CFRRegrets);
+    args::Command export_ring(experiments, "export_ring",
+                              "Export leaf utilities of EFG as a color ring", &Command_ExportRing);
 
     try {
         parser.ParseCLI(argc, argv);
