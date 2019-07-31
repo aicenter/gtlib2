@@ -59,7 +59,7 @@ typedef uint32_t ActionId;
 /**
  * Unlike ActionId, the values of ObservationId *do not* need to be indexed from 0 to N-1.
  */
-typedef uint32_t  ObservationId;
+typedef uint32_t ObservationId;
 
 /**
  * Specify action that given player played.

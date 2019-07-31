@@ -1,21 +1,42 @@
-#include <utility>
+/*
+    Copyright 2019 Faculty of Electrical Engineering at CTU in Prague
 
-//
-// Created by Nikita Milyukov on 2019-06-26.
-//
+    This file is part of Game Theoretic Library.
+
+    Game Theoretic Library is free software: you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public License
+    as published by the Free Software Foundation, either version 3
+    of the License, or (at your option) any later version.
+
+    Game Theoretic Library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with Game Theoretic Library.
+
+    If not, see <http://www.gnu.org/licenses/>.
+*/
+
+
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
 #ifndef GTLIB2_STRATEGO_H
 #define GTLIB2_STRATEGO_H
 #include "base/base.h"
+//#include <utility>
+
+typedef uint8_t CellState;
+typedef char Rank;
 
 namespace GTLib2::domains {
 
-unsigned char makePlayer1(unsigned char figure);
+CellState makePlayer1(Rank figure);
 
 struct Lake {
-    unsigned char x, y, height, width;
+    const int x, y, height, width;
 
 };
 
@@ -23,20 +44,23 @@ struct StrategoSettings {
     int boardHeight = 3;
     int boardWidth = 3;
     vector<Lake> lakes = {{1, 1, 1, 1}};
-    vector<unsigned char> figures = {'1', '2', '3'};
-    vector<unsigned char> generateBoard();
+
+    // initial list of ranks available for player
+    vector<Rank> figures = {'1', '2', '3'};
+    vector<CellState> generateBoard();
     int getBoardSize() const {return boardHeight*boardWidth;};
 };
 
-
+// setup actions are permutations of startFigures of domain
+// figures are placed from the left top cell to the right for player 0 and right bottom cell to the right for player 1
 class StrategoSetupAction: public Action {
 public:
     inline StrategoSetupAction() : Action(), figuresSetup() {}
-    inline StrategoSetupAction(ActionId id, vector<unsigned char> setup) : Action(id), figuresSetup(std::move(setup))  {}
+    inline StrategoSetupAction(ActionId id, vector<Rank> setup) : Action(id), figuresSetup(move(setup))  {}
     inline string toString() const override;
     bool operator==(const Action &that) const override;
     inline HashType getHash() const override { return id_; };
-    const vector<unsigned char> figuresSetup;
+    const vector<Rank> figuresSetup;
 };
 
 class StrategoMoveAction: public Action {
@@ -50,7 +74,19 @@ public:
     const int endPos;
     const int boardWidth_;
 };
-
+/*
+ * Basic rules:
+ * A each turn a figure can be moved to another cell or an attack action can be performed.
+ * When one figure attacks another the figure with higher rank wins the fight (with some exceptions).
+ * If attacking figure won the fight, it will be moved to the cell of the attacked figure.
+ * If attacking figure lost the fight, it will be removed from the board and the attacked figure wont be moved.
+ * If both figures have the same rank, both will be removed.
+ * If the attacked figure is a Bomb (B), the attacking figure loses this fight.
+ * Bombs can be only destroyed by figures called Sapper, it has to be added to the isFigureSlain function (can has any rank).
+ * If the attacked figure is a Flag (F), owner of the attacking figure wins the game.
+ * Flags and Bombs cannot move or perform attacks.
+ * If a player has lost all his figures, he loses the game. If both players lost all figure, it's a draw.
+ */
 class StrategoDomain: public Domain {
 public:
     explicit StrategoDomain(StrategoSettings settings);
@@ -61,10 +97,9 @@ public:
 
     const int boardHeight_;
     const int boardWidth_;
-    const vector<unsigned char> startFigures_;
-    const vector<unsigned char> startBoard_;
+    const vector<Rank> startFigures_;
+    const vector<CellState> startBoard_;
 
-private:
 };
 
 class StrategoObservation: public Observation {
@@ -75,37 +110,41 @@ public:
             endPos_(0),
             startRank_(0),
             endRank_(0){}
-    StrategoObservation(int startPos, int endPos, unsigned char startRank, unsigned char endRank);
+    StrategoObservation(int startPos, int endPos, Rank startRank, Rank endRank);
     StrategoObservation(int id1, int id2);
     const int startPos_;
     const int endPos_;
-    const unsigned char startRank_;
-    const unsigned char endRank_;
+    const Rank startRank_;
+    const Rank endRank_;
 };
 
 class StrategoState: public State {
 public:
-    inline StrategoState(const Domain *domain, vector<unsigned char> boardState, bool setupState, bool finished, int player, int noAction) :
+    inline StrategoState(const Domain *domain, vector<CellState> boardState, bool setupState, bool finished, int player, int noAttackCounter) :
             State(domain, hashCombine(98612345434231, boardState, setupState, finished, player)),
             boardState_(move(boardState)),
             setupState_(setupState),
             isFinished_(finished),
             currentPlayer_(player),
-            noActionCounter_(noAction){}
+            noAttackCounter_(noAttackCounter){}
 
     unsigned long countAvailableActionsFor(Player player) const override;
     vector <shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
+    OutcomeDistribution performMoveAction(const vector <shared_ptr<Action>> &actions, const StrategoDomain *stratDomain) const;
+    OutcomeDistribution performSetupAction(const vector <shared_ptr<Action>> &actions, const StrategoDomain *stratDomain) const;
     OutcomeDistribution performActions(const vector <shared_ptr<Action>> &actions) const override;
     vector <Player> getPlayers() const override;
     bool isTerminal() const override;
     inline string toString() const override;
     bool operator==(const State &rhs) const override;
 
-    const int noActionCounter_;
+    // noAttackCounter prevent games from looping. After a fixed number of moves without attacks game is stopped with a draw.
+    const int noAttackCounter_;
     const Player currentPlayer_;
     const bool isFinished_;
     const bool setupState_;
-    const vector<unsigned char> boardState_;
+    const vector<CellState> boardState_;
+
 };
 }
 
