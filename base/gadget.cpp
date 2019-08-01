@@ -65,8 +65,6 @@ vector<double> GadgetGame::computeTerminateCFVValues() {
     auto cfvValues = vector<double>();
     cfvValues.reserve(numHistories);
     for (int i = 0; i < numHistories; ++i) {
-        assert(infosetReaches.at(augInfosetse.at(i)) > 0);
-
         // the pubStateReach_ term must be added by the resolver when accessing terminal node!
         cfvValues.emplace_back(
             infosetValues.at(augInfosetse.at(i)) / infosetReaches.at(augInfosetse.at(i)));

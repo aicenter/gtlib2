@@ -64,6 +64,8 @@ class EFGCache {
         this->createNode(rootNode_);
     }
 
+    virtual ~EFGCache() = default;
+
     /**
      * Check if cache contains all the children for given node (after following any action).
      */
@@ -238,7 +240,6 @@ class InfosetCache: public virtual EFGCache {
  * Add caching of public states and their respective augmented information sets and nodes.
  */
 class PublicStateCache: public virtual EFGCache {
-
     /**
       * Many EFGNodes can belong to one public state.
       * Many infosets can belong to one public state.
@@ -258,10 +259,10 @@ class PublicStateCache: public virtual EFGCache {
     inline bool hasPublicState(const shared_ptr<PublicState> &pubState) {
         return publicState2nodes_.find(pubState) != publicState2nodes_.end();
     }
-    inline bool hasPublicState(const shared_ptr<EFGNode> &node) {
+    inline bool hasPublicStateFor(const shared_ptr<EFGNode> &node) {
         return node2publicState_.find(node) != node2publicState_.end();
     }
-    inline bool hasPublicState(const shared_ptr<AOH> &infoset) {
+    inline bool hasPublicStateFor(const shared_ptr<AOH> &infoset) {
         return infoset2publicState_.find(infoset) != infoset2publicState_.end();
     }
 
@@ -275,7 +276,7 @@ class PublicStateCache: public virtual EFGCache {
 
 
     inline const unordered_set<shared_ptr<EFGNode>> &
-    getNodesFor(const shared_ptr<PublicState> &state) {
+    getNodesForPubState(const shared_ptr<PublicState> &state) {
         return publicState2nodes_.at(state);
     }
 
@@ -284,8 +285,8 @@ class PublicStateCache: public virtual EFGCache {
         return publicState2infosets_.at(pubState);
     }
 
-    inline unordered_set<shared_ptr<AOH>> getInfosetsFor(const shared_ptr<PublicState> &pubState,
-                                                         Player pl) {
+    inline unordered_set<shared_ptr<AOH>>
+    getInfosetsForPubStatePlayer(const shared_ptr<PublicState> &pubState, Player pl) {
         const auto &infosets = publicState2infosets_.at(pubState);
         auto filteredSet = unordered_set<shared_ptr<AOH>>(infosets.size() / 2);
         for (const auto &infoset : infosets) {
@@ -294,6 +295,15 @@ class PublicStateCache: public virtual EFGCache {
             }
         }
         return filteredSet;
+    }
+
+    const shared_ptr<PublicState> &getRootPublicState() {
+        return node2publicState_.at(getRootNode());
+    }
+
+    const unordered_map<shared_ptr<PublicState>, unordered_set<shared_ptr<EFGNode>>> &
+    getPublicState2nodes() {
+        return publicState2nodes_;
     }
 
     inline unsigned long countPublicStates() {

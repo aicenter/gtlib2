@@ -39,14 +39,15 @@ TEST(Gadget, GadgetForRPS) {
     const auto rootNode = createRootEFGNode(rps);
     const auto rootInfoset = rootNode->getAOHInfSet();
 
-
     const auto rockNode = rootNode->performAction(rootNode->availableActions()[0]);
     const auto paperNode = rootNode->performAction(rootNode->availableActions()[1]);
     const auto scissorsNode = rootNode->performAction(rootNode->availableActions()[2]);
 
+    const auto pubState = rockNode->getPublicState();
     const auto childInfoset = rockNode->getAOHInfSet();
 
-    const auto summary = PublicStateSummary({rockNode, paperNode, scissorsNode},
+    const auto summary = PublicStateSummary(pubState,
+                                            {rockNode, paperNode, scissorsNode},
                                             {{0.2, 1.0, 1.0},
                                              {0.3, 1.0, 1.0},
                                              {0.5, 1.0, 1.0}},

@@ -28,16 +28,25 @@ namespace GTLib2 {
 
 
 struct PublicStateSummary {
+    const shared_ptr<PublicState> publicState;
     const vector<shared_ptr<EFGNode>> topmostHistories;
     const vector<array<double, 3>> topmostHistoriesReachProbs;
     const vector<double> expectedValues; // for player 0 for each topmost history
 
-    PublicStateSummary(vector<shared_ptr<EFGNode>> topmostHistories_,
-                       vector<array<double, 3>> topmostHistoriesReachProbs_,
-                       vector<double> expectedValues_)
-        : topmostHistories(move(topmostHistories_)),
-          topmostHistoriesReachProbs(move(topmostHistoriesReachProbs_)),
-          expectedValues(move(expectedValues_)) {}
+    PublicStateSummary(shared_ptr<PublicState> _publicState,
+                       vector<shared_ptr<EFGNode>> _topmostHistories,
+                       vector<array<double, 3>> _topmostHistoriesReachProbs,
+                       vector<double> _expectedValues)
+        : publicState(move(_publicState)),
+          topmostHistories(move(_topmostHistories)),
+          topmostHistoriesReachProbs(move(_topmostHistoriesReachProbs)),
+          expectedValues(move(_expectedValues)) {
+#ifdef NDEBUG
+        for (const auto &h : topmostHistories) {
+            assert(h->getPubObsIds() == publicState->getHistory());
+        }
+#endif
+    }
 };
 
 class GadgetRootNode;
@@ -51,7 +60,7 @@ enum GadgetVariant {
 class GadgetGame {
  public:
     // Information needed to construct the gadget game
-    const PublicStateSummary &summary_;
+    const PublicStateSummary summary_;
     // Player for which we want to recover strategy
     const Player resolvingPlayer_;
     // Player after chance node, he chooses follow / terminate
@@ -68,11 +77,11 @@ class GadgetGame {
 
 
  public:
-    GadgetGame(const PublicStateSummary &summary,
+    GadgetGame(PublicStateSummary summary,
                Player resolvingPlayer,
                shared_ptr<AOH> targetAOH,
                GadgetVariant variant) :
-        summary_(summary),
+        summary_(move(summary)),
         resolvingPlayer_(resolvingPlayer),
         viewingPlayer_(opponent(resolvingPlayer)),
         targetAOH_(move(targetAOH)),
@@ -91,10 +100,10 @@ class GadgetGame {
 
 class GadgetRootNode: public EFGNode,
                       public std::enable_shared_from_this<GadgetRootNode const> {
-    const GadgetGame &gadget_;
     const vector<ActionId> history_ = {};
-
  public:
+
+    const GadgetGame &gadget_;
     inline explicit GadgetRootNode(const GadgetGame &game) : gadget_(game) {};
 
     inline EFGNodeSpecialization getSpecialization() const override { return GadgetSpecialization; }
@@ -146,7 +155,7 @@ constexpr ActionId GADGET_TERMINATE = 1;
 
 class GadgetAction: public Action {
  public:
-    inline explicit GadgetAction(ActionId id) : Action(id) {   }
+    inline explicit GadgetAction(ActionId id) : Action(id) {}
     string toString() const override {
         if (id_ == 0) return "Follow";
         if (id_ == 1) return "Terminate";
