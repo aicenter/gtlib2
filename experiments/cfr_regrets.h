@@ -47,7 +47,7 @@ void Command_CFRRegrets(args::Subparser &parser) {
     assert(rootData.regrets.size() == args::get(regrets).size());
     rootData.regrets = args::get(regrets);
 
-    CFRAlgorithm cfr(*domain, data, Player(0), settings);
+    CFRAlgorithm cfr(*domain, Player(0), data, settings);
 
     cout << "reg0,reg1,sigma_curr0,sigma_avg0" << endl;
     for (int i = 0; i < 1000; ++i) {

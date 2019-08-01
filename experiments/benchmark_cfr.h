@@ -40,7 +40,7 @@ void Command_BenchmarkCFR(args::Subparser &parser) {
     const auto domain = GoofSpielDomain::IIGS(5);
     auto settings = CFRSettings();
     auto cache = CFRData(*domain, settings.cfrUpdating);
-    CFRAlgorithm cfr(*domain, cache, Player(0), settings);
+    CFRAlgorithm cfr(*domain, Player(0), cache, settings);
 
     auto totalTime = benchmark([&]() {
         cout << "Build time: " << benchmark([&]() { cfr.getCache().buildTree(); }) << " ms"

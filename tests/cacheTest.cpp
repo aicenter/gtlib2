@@ -259,12 +259,12 @@ TEST(Cache, PublicStateCacheGetInfosets) {
     shared_ptr<EFGNode> bNode = childNodes[1];
     auto children = unordered_set<shared_ptr<EFGNode>>{aNode, bNode};
     auto pubState = cache.getPublicStateFor(aNode);
-    EXPECT_EQ(cache.getNodesFor(pubState).size(), 2);
-    EXPECT_EQ(cache.getNodesFor(pubState), children);
+    EXPECT_EQ(cache.getNodesForPubState(pubState).size(), 2);
+    EXPECT_EQ(cache.getNodesForPubState(pubState), children);
 
     // infoset for player 1 contains the two nodes
     shared_ptr<AOH> actualInfoset = aNode->getAOHInfSet();
-    shared_ptr<AOH> expectedInfoset = *cache.getInfosetsFor(pubState, Player(1)).begin();
+    shared_ptr<AOH> expectedInfoset = *cache.getInfosetsForPubStatePlayer(pubState, Player(1)).begin();
     EXPECT_NE(expectedInfoset, actualInfoset);
     EXPECT_EQ(*expectedInfoset, *actualInfoset);
 
@@ -273,7 +273,7 @@ TEST(Cache, PublicStateCacheGetInfosets) {
         *aNode->getAOHAugInfSet(Player(0)),
         *bNode->getAOHAugInfSet(Player(0)),
     };
-    auto cachedInfosets = cache.getInfosetsFor(pubState, Player(0));
+    auto cachedInfosets = cache.getInfosetsForPubStatePlayer(pubState, Player(0));
     auto it = cachedInfosets.begin();
     const AOH &x = *(*std::next(it, 0));
     const AOH &y = *(*std::next(it, 1));
@@ -300,14 +300,14 @@ TEST(Cache, PublicStateCacheGetInfosetsLarge) {
     // eNode == draw outcome 3 times in a row
 
     auto pubState = cache.getPublicStateFor(eNode);
-    cout << cache.getNodesFor(pubState).size() << " ";
-    EXPECT_EQ(cache.getNodesFor(pubState).size(), 24); // 3! * 4
+    cout << cache.getNodesForPubState(pubState).size() << " ";
+    EXPECT_EQ(cache.getNodesForPubState(pubState).size(), 24); // 3! * 4
 
-    auto expectedInfosets = cache.getInfosetsFor(pubState, Player(0));
+    auto expectedInfosets = cache.getInfosetsForPubStatePlayer(pubState, Player(0));
     cout << expectedInfosets.size() << " ";
     EXPECT_EQ(expectedInfosets.size(), 24);
 
-    expectedInfosets = cache.getInfosetsFor(pubState, Player(1));
+    expectedInfosets = cache.getInfosetsForPubStatePlayer(pubState, Player(1));
     cout << expectedInfosets.size() << " ";
     EXPECT_EQ(expectedInfosets.size(), 12);
 
