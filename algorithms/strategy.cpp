@@ -86,5 +86,32 @@ ActionProbDistribution mapDistribution(const ProbDistribution &dist,
     }
     return actionDist;
 }
+array<double, 3> calcReachProbs(const shared_ptr<EFGNode> &h, StrategyCache *cache) {
+    array<double, 3> probs = {1.,1.,1.};
+    EFGNode const * current = h.get();
+    while(current->getParent() != nullptr) {
+        EFGNode const * parent = current->getParent().get();
+        ActionId incomingId = current->getHistory().back();
+
+        switch (parent->type_) {
+            case ChanceNode:
+                probs[2] *= parent->chanceProbForAction(incomingId);
+                break;
+            case PlayerNode: {
+                // todo: more efficient computation, we need it only @ incomingId
+                double p = cache->strategyFor(parent->getAOHInfSet()).at(incomingId);
+                probs[parent->getPlayer()] *= p;
+                break;
+            }
+            case TerminalNode:
+                assert(false); // cannot encounter terminal node while traversing up!
+            default:
+                assert(false); // unrecognized option!
+        }
+
+        current = parent;
+    }
+    return probs;
+}
 
 }  // namespace GTLib2
