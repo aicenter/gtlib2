@@ -117,7 +117,7 @@ PlayControl OOSAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &curr
     if (currentInfoset && !cache_.hasInfoset(*currentInfoset)) return GiveUp;
 
     playInfoset_ = currentInfoset;
-    playPublicState_ = playInfoset_ && cache_.hasPublicState(*playInfoset_)
+    playPublicState_ = playInfoset_ && cache_.hasPublicStateFor(*playInfoset_)
                        ? optional(cache_.getPublicStateFor(*playInfoset_))
                        : nullopt;
 

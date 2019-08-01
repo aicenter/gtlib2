@@ -23,8 +23,10 @@
 #ifndef ALGORITHMS_OOS_H_
 #define ALGORITHMS_OOS_H_
 
+#include "base/gadget.h"
 #include "base/random.h"
 #include "algorithms/cfr.h"
+#include "algorithms/strategy.h"
 
 #include "algorithms/common.h"
 
@@ -51,6 +53,38 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
     };
 
     unordered_map<shared_ptr<EFGNode>, Baseline> baselineValues_;
+
+    PublicStateSummary getPublicStateSummary(const shared_ptr<PublicState> & ps ) {
+        // todo: make more efficient
+        const auto &histories = getNodesForPubState(ps);
+        vector<shared_ptr<EFGNode>> topmostHistories_;
+        for(const auto&a : histories) {
+            bool hasTopperHistory = false;
+            for(const auto&b : histories) {
+                if(isExtension(b->getHistory(), a->getHistory())) {
+                    hasTopperHistory = true;
+                    break;
+                }
+            }
+
+            if(!hasTopperHistory) topmostHistories_.push_back(a);
+        }
+
+        vector<array<double, 3>> topmostHistoriesReachProbs_;
+        topmostHistoriesReachProbs_.reserve(topmostHistories_.size());
+        for(const auto &h : topmostHistories_) {
+            topmostHistoriesReachProbs_.emplace_back(calcReachProbs(h, this));
+        }
+
+        // todo: maybe we want to make separate storage of cfv values from baselines?
+        vector<double> cfvValues_;
+        cfvValues_.reserve(topmostHistories_.size());
+        for(const auto &h : topmostHistories_) {
+            cfvValues_.emplace_back(baselineValues_.at(h).value());
+        }
+
+        return PublicStateSummary(ps, topmostHistories_, topmostHistoriesReachProbs_, cfvValues_);
+    }
 
  private:
     void createOOSBaselineData(const shared_ptr<EFGNode> &node) {
