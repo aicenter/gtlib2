@@ -48,7 +48,7 @@ TEST(CFR, CheckRegretsAndAccInSmallDomain) {
     MatchingPenniesDomain domain(AlternatingMoves);
     auto settings = CFRSettings();
     auto data = CFRData(domain, settings.cfrUpdating);
-    CFRAlgorithm cfr(domain, data, Player(0), settings);
+    CFRAlgorithm cfr(domain, Player(0), data, settings);
     data.buildTree();
     auto rootNode = data.getRootNode();
     auto rootInfoset = rootNode->getAOHInfSet();
@@ -99,7 +99,7 @@ TEST(CFR, CheckRegretsAndAccInSmallDomainForInfosetUpdatingCFR) {
     auto settings = CFRSettings();
     settings.cfrUpdating = InfosetsUpdating;
     auto data = CFRData(domain, settings.cfrUpdating);
-    CFRAlgorithm cfr(domain, data, Player(0), settings);
+    CFRAlgorithm cfr(domain, Player(0), data, settings);
 
     data.buildTree();
     auto rootNode = data.getRootNode();
@@ -199,7 +199,7 @@ TEST(CFR, CheckRegretsAndAccInSmallDomainFixStrategy) {
     auto settings = CFRSettings();
     settings.cfrUpdating = InfosetsUpdating;
     auto data = CFRData(domain, settings.cfrUpdating);
-    CFRAlgorithm cfr(domain, data, Player(0), settings);
+    CFRAlgorithm cfr(domain, Player(0), data, settings);
     data.buildTree();
     auto rootNode = data.getRootNode();
     auto rootInfoset = rootNode->getAOHInfSet();
@@ -306,7 +306,7 @@ TEST(CFR, CheckRegretsAndAccInGS2) {
     settings.accumulatorWeighting = UniformAccWeighting;
     settings.regretMatching = RegretMatchingNormal;
     auto data = CFRData(*domain, settings.cfrUpdating);
-    CFRAlgorithm cfr(*domain, data, Player(0), settings);
+    CFRAlgorithm cfr(*domain, Player(0), data, settings);
     cfr.runIterations(1000);
 
     auto profile = getAverageStrategy(cfr.getCache());
@@ -336,7 +336,7 @@ TEST(CFR, CheckRegretsAndAccInGS3) {
     auto settings = CFRSettings();
     settings.cfrUpdating = InfosetsUpdating;
     auto data = CFRData(*domain, settings.cfrUpdating);
-    CFRAlgorithm cfr(*domain, data, Player(0), settings);
+    CFRAlgorithm cfr(*domain, Player(0), data, settings);
     cfr.runIterations(1000);
 
     auto profile = getAverageStrategy(data);
@@ -368,7 +368,7 @@ TEST(CFR, CheckConvergenceInSmallDomain) {
                            });
     auto settings = CFRSettings();
     auto data = CFRData(domain, settings.cfrUpdating);
-    CFRAlgorithm cfr(domain, data, Player(0), settings);
+    CFRAlgorithm cfr(domain, Player(0), data, settings);
 
     double expectedUtilities[] =
         {0.00467926, 0.00251501, 0.00171567, 0.00130139, 0.00104813, 0.000877345, 0.000754399,
@@ -402,7 +402,7 @@ TEST(CFR, CheckConvergenceSmallStepsInSmallDomain) {
                            });
     auto settings = CFRSettings();
     auto data = CFRData(domain, settings.cfrUpdating);
-    CFRAlgorithm cfr(domain, data, Player(0), settings);
+    CFRAlgorithm cfr(domain, Player(0), data, settings);
     double expectedUtilities[] =
         {-0.113618827, -0.122875501, -0.0612063457, -0.0277733968, -0.015568159, -0.0034593418,
          0.00288986606, 0.0063839834, 0.0083464808, 0.00943900775};
@@ -435,7 +435,7 @@ TEST(CFR, CheckConvergenceSmallStepsInSmallDomain2) {
                            });
     auto settings = CFRSettings();
     auto data = CFRData(domain, settings.cfrUpdating);
-    CFRAlgorithm cfr(domain, data, Player(0), settings);
+    CFRAlgorithm cfr(domain, Player(0), data, settings);
     double expectedUtilities[] =
         {-0.25, -0.125, -0.0833333333, -0.0625, -0.05, -0.0416666667, -0.0357142857, -0.03125, -0.0277777778, -0.025};
     double expectedBestResp0[] =
@@ -460,7 +460,7 @@ TEST(CFR, CheckExploitabilityInSmallDomain) {
     auto domain = GoofSpielDomain::IIGS(5);
     auto settings = CFRSettings();
     auto data = CFRData(*domain, settings.cfrUpdating);
-    CFRAlgorithm cfr(*domain, data, Player(0), settings);
+    CFRAlgorithm cfr(*domain, Player(0), data, settings);
 
     cfr.runIterations(2);
     auto profile = getAverageStrategy(data);

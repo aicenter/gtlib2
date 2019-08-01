@@ -28,8 +28,8 @@
 namespace GTLib2::algorithms {
 
 CFRAlgorithm::CFRAlgorithm(const Domain &domain,
-                           CFRData &cache,
                            Player playingPlayer,
+                           CFRData &cache,
                            CFRSettings settings) :
     GamePlayingAlgorithm(domain, playingPlayer),
     cache_(cache),

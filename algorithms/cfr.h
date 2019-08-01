@@ -142,8 +142,8 @@ constexpr int CHANCE_PLAYER = 2;
 class CFRAlgorithm: public GamePlayingAlgorithm {
  public:
     CFRAlgorithm(const Domain &domain,
-                 CFRData &cache,
                  Player playingPlayer,
+                 CFRData &cache,
                  CFRSettings settings);
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
     optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override;
