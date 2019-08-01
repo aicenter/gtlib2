@@ -171,6 +171,7 @@ set(SOURCE_FILES
         algorithms/bestResponse.h algorithms/bestResponse.cpp
         algorithms/cfr.h algorithms/cfr.cpp
         algorithms/common.h algorithms/common.cpp
+        algorithms/continualResolving.h
         algorithms/equilibrium.h algorithms/equilibrium.cpp
         algorithms/evaluation.cpp algorithms/evaluation.h
         algorithms/normalFormLP.h algorithms/normalFormLP.cpp
@@ -228,6 +229,7 @@ set(TEST_FILES
         tests/bestResponseTest.cpp
         tests/cacheTest.cpp
         tests/cfrTest.cpp
+        tests/crTest.cpp
         tests/commonTest.cpp
         tests/efgTest.cpp
         tests/exportTest.cpp
