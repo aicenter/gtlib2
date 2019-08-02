@@ -31,6 +31,15 @@ namespace GTLib2::domains {
 typedef uint8_t CellState;
 typedef char Rank;
 
+constexpr auto LAKE = CellState('L');
+constexpr auto EMPTY = CellState(' ');
+
+constexpr auto FLAG = Rank('F');
+constexpr auto BOMB = Rank('B');
+constexpr auto SAPPER = Rank('2');
+constexpr auto SPY = Rank('0');
+constexpr auto MARSHALL = Rank('9');
+
 struct Lake {
     const int x, y, height, width;
 };
@@ -82,7 +91,7 @@ class StrategoDomain: public Domain {
 
 };
 
-CellState getCellState(Rank figure, Player player);
+CellState createCell(Rank figure, Player player);
 
 /**
  * Setup actions are permutations of startFigures_ of domain.
@@ -116,12 +125,12 @@ class StrategoMoveAction: public Action {
 class StrategoObservation: public Observation {
  public:
     inline StrategoObservation() :
-        Observation(), startPos_(0), endPos_(0), startRank_(0), endRank_(0) {}
-    StrategoObservation(int startPos, int endPos, Rank startRank, Rank endRank);
+        Observation(), startPos_(0), endPos_(0), startCell_(0), endCell_(0) {}
+    StrategoObservation(int startPos, int endPos, Rank startCell, Rank endCell);
     const int startPos_;
     const int endPos_;
-    const Rank startRank_;
-    const Rank endRank_;
+    const Rank startCell_;
+    const Rank endCell_;
 };
 
 class StrategoState: public State {

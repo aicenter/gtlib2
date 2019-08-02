@@ -28,47 +28,51 @@
 namespace GTLib2::domains {
 
 // startpos/endpos < 512
-unsigned int encodeAction(int startPos, int endPos, Rank startRank, Rank endRank) {
-    return (startPos << 23)
-        | (endPos << 14)
-        | (startRank << 7)
-        | endRank; // 32 bits total
+unsigned int encodeObservation(int startPos, int endPos, CellState startCell, CellState endCell) {
+    // 32 bits total
+    // max sizes of stratego boards are 10x10 = 100, so pos < 8bits = 256
+    return (startPos << 24)
+        | (endPos << 16)
+        | (startCell << 8) // 8 bits
+        | endCell; // 8 bits
 }
 
 int maxMovesWithoutAttack(int h, int w) {
-    return (2 * h + 2 * w - 4) * 2;
+    return 2 * h + 2 * w - 4;
 }
 
-bool isPlayers(CellState figure, Player player) {
-    if (figure == 'L') return false;
-    if (figure == ' ') return false;
-    return (((player == 0) && (figure < 128))
-        || ((player == 1) && (figure >= 128)))
-        && (figure != 'L');
+bool isPlayers(CellState cell, Player player) {
+    if (cell == LAKE) return false;
+    if (cell == EMPTY) return false;
+    return (((player == Player(0)) && (cell < 128))
+        || ((player == Player(1)) && (cell >= 128)))
+        && (cell != LAKE);
 }
 
-CellState getCellState(Rank figure, Player player) {
-    return player == 0 ? figure : figure + 128;
+CellState createCell(Rank figure, Player player) {
+    return player == Player(0) ? figure : figure + 128;
 }
 
-bool isSamePlayer(CellState figure1, CellState figure2) {
-    if (figure2 == ' ') return false;
-    return (isPlayers(figure1, 0) && isPlayers(figure2, 0))
-        || (isPlayers(figure1, 1) && isPlayers(figure2, 1));
+bool isSamePlayer(CellState cell1, CellState cell2) {
+    if (cell1 == EMPTY || cell2 == EMPTY) return false;
+    return (isPlayers(cell1, Player(0)) && isPlayers(cell2, Player(0)))
+        || (isPlayers(cell1, Player(1)) && isPlayers(cell2, Player(1)));
 }
 
-Rank getRank(CellState figure) {
-    return figure < 128 ? figure : figure - 128;
+Rank getRank(CellState cell) {
+    return cell < 128 ? cell : cell - 128;
 }
 
-bool isFigureSlain(CellState figure1, CellState figure2) {
-    char f1 = getRank(figure1);
-    char f2 = getRank(figure2);
-    if (f1 == ' ') return true;
-    if (f2 == 'B') return f1 == '2'; // sapper rank
-    if (f1 == '0' && f2 == '9') return true; // 0 - Spy (min rank), 9 - Marshal (max Rank)
+bool isFigureSlain(CellState attacker, CellState defender) {
+    assert(attacker != EMPTY);
+    if (defender == EMPTY) return true;
 
-    return f1 > f2;
+    char rank1 = getRank(attacker);
+    char rank2 = getRank(defender);
+    if (rank2 == BOMB) return rank1 == SAPPER;
+    if (rank1 == SPY && rank2 == MARSHALL) return true;
+
+    return rank1 > rank2;
 }
 
 bool StrategoSetupAction::operator==(const Action &that) const {
@@ -108,7 +112,7 @@ vector<CellState> StrategoSettings::generateBoard() {
     for (auto &lake : lakes) {
         for (int i = 0; i < lake.height; i++) {
             for (int j = 0; j < lake.width; j++) {
-                board[(lake.y + i) * boardWidth + lake.x + j] = 'L';
+                board[(lake.y + i) * boardWidth + lake.x + j] = LAKE;
             }
         }
     }
@@ -116,13 +120,13 @@ vector<CellState> StrategoSettings::generateBoard() {
 }
 
 StrategoObservation::StrategoObservation(const int startPos, const int endPos,
-                                         const Rank startRank, const Rank endRank)
+                                         const Rank startCell, const Rank endCell)
     : Observation(),
       startPos_(startPos), endPos_(endPos),
-      startRank_(startRank), endRank_(endRank) {
+      startCell_(startCell), endCell_(endCell) {
 
     assert(startPos + endPos > 0);
-    id_ = encodeAction(startPos_, endPos_, startRank_, endRank_);
+    id_ = encodeObservation(startPos_, endPos_, startCell_, endCell_);
 }
 
 
@@ -155,28 +159,28 @@ bool canMoveUp(int i, const vector<CellState> &board, int height, int width) {
     return (height > 1)
         && ((i + 1) > width)
         && !isSamePlayer(board[i], board[i - width])
-        && (board[i - width] != 'L');
+        && (board[i - width] != LAKE);
 }
 
 bool canMoveDown(int i, const vector<CellState> &board, int height, int width) {
     return ((height > 1)
         && (board.size() - (i + 1) >= width)
         && !isSamePlayer(board[i], board[i + width])
-        && (board[i + width] != 'L'));
+        && (board[i + width] != LAKE));
 }
 
 bool canMoveLeft(int i, const vector<CellState> &board, int width) {
     return ((width > 1)
         && ((i + 1) % width != 1)
         && !isSamePlayer(board[i], board[i - 1])
-        && (board[i - 1] != 'L'));
+        && (board[i - 1] != LAKE));
 }
 
 bool canMoveRight(int i, const vector<CellState> &board, int width) {
     return ((width > 1)
         && ((i + 1) % width != 0)
         && !isSamePlayer(board[i], board[i + 1])
-        && (board[i + 1] != 'L'));
+        && (board[i + 1] != LAKE));
 }
 
 unsigned long StrategoState::countAvailableActionsFor(Player player) const {
@@ -190,8 +194,8 @@ unsigned long StrategoState::countAvailableActionsFor(Player player) const {
     int count = 0;
     for (int i = 0; i < boardState_.size(); i++) {
         if (!isPlayers(boardState_[i], player)
-            || getRank(boardState_[i]) == 'B'
-            || getRank(boardState_[i]) == 'F')
+            || getRank(boardState_[i]) == BOMB
+            || getRank(boardState_[i]) == FLAG)
             continue;
 
         if (canMoveUp(i, boardState_, height, width)) count++;
@@ -219,8 +223,8 @@ shared_ptr<Action> StrategoState::getActionByID(const Player player, ActionId ac
 
     for (int i = 0; i < boardState_.size(); i++) {
         if (!isPlayers(boardState_[i], player)
-            || getRank(boardState_[i]) == 'B'
-            || getRank(boardState_[i]) == 'F')
+            || getRank(boardState_[i]) == BOMB
+            || getRank(boardState_[i]) == FLAG)
             continue;
 
         if (canMoveUp(i, boardState_, height, width)) {
@@ -261,8 +265,8 @@ vector<shared_ptr<Action>> StrategoState::getAvailableActionsFor(const Player pl
 
     for (int i = 0; i < boardState_.size(); i++) {
         if (!isPlayers(boardState_[i], player)
-            || getRank(boardState_[i]) == 'B'
-            || getRank(boardState_[i]) == 'F')
+            || getRank(boardState_[i]) == BOMB
+            || getRank(boardState_[i]) == FLAG)
             continue;
 
         if (canMoveUp(i, boardState_, height, width))
@@ -288,13 +292,14 @@ string StrategoState::toString() const {
     int w = dynamic_cast<const StrategoDomain *>(getDomain())->boardWidth_,
         h = dynamic_cast<const StrategoDomain *>(getDomain())->boardHeight_;
 
-    string ret = "current player: " + to_string(currentPlayer_) + "\ncurrent state:";
+    string ret = "Pl: " + to_string(currentPlayer_) + "\n" +
+        "No attacks: " + to_string(noAttackCounter_) + "\n";
     for (int i = 0; i < h; i++) {
         ret += "\n";
         for (int j = 0; j < w; j++) {
             CellState fig = boardState_[w * i + j];
-            if (fig == ' ') ret += "__";
-            else if (fig == 'L') ret += "LL";
+            if (fig == EMPTY) ret += "__";
+            else if (fig == LAKE) ret += "LL";
             else {
                 ret += isPlayers(fig, 0) ? '0' : '1';
                 ret += getRank(fig);
@@ -315,8 +320,8 @@ StrategoState::performSetupAction(const vector<shared_ptr<Action>> &actions) con
         actionpl1 = dynamic_cast<StrategoSetupAction &>(*actions[1]); // player 1 setup
     vector<CellState> board = stratDomain->emptyBoard_;
     for (int i = 0; i < actionpl0.figuresSetup.size(); i++) {
-        board[i] = getCellState(actionpl0.figuresSetup[i], 0);
-        board[board.size() - 1 - i] = getCellState(actionpl1.figuresSetup[i], 1);
+        board[i] = createCell(actionpl0.figuresSetup[i], 0);
+        board[board.size() - 1 - i] = createCell(actionpl1.figuresSetup[i], 1);
     }
 
     const auto newState = make_shared<StrategoState>(stratDomain, board, false, false, 0, 0);
@@ -326,70 +331,95 @@ StrategoState::performSetupAction(const vector<shared_ptr<Action>> &actions) con
     return OutcomeDistribution{OutcomeEntry(newOutcome)};
 }
 
-OutcomeDistribution
-StrategoState::performMoveAction(const vector<shared_ptr<Action>> &actions) const {
-    const auto stratDomain = dynamic_cast<const StrategoDomain *>(domain_);
+vector<CellState> updateBoard(const vector<CellState> &oldBoard, int start, int end) {
+    vector<CellState> board = oldBoard;
 
-    StrategoMoveAction action = dynamic_cast<StrategoMoveAction &>(*actions[currentPlayer_]);
-    vector<CellState> board = boardState_;
-    bool pl0won = false, pl1won = false;
+    const CellState &startCell = oldBoard.at(start);
+    const CellState &endCell = oldBoard.at(end);
 
-    if (getRank(boardState_[action.endPos]) == 'F') {
-        board[action.startPos] = ' ';
-        board[action.endPos] = boardState_[action.startPos];
-        if (currentPlayer_ == 0) pl0won = true;
-        else pl1won = true;
-    } else if (getRank(boardState_[action.startPos]) == getRank(boardState_[action.endPos])) {
-        board[action.startPos] = ' ';
-        board[action.endPos] = ' ';
-    } else if (isFigureSlain(boardState_[action.startPos], boardState_[action.endPos])) {
-        board[action.startPos] = ' ';
-        board[action.endPos] = boardState_[action.startPos];
+    if (getRank(endCell) == FLAG) {
+        // Flag captured!
+        board[start] = EMPTY;
+        board[end] = startCell;
+    } else if (getRank(startCell) == getRank(endCell)) {
+        // Both units killed
+        board[start] = EMPTY;
+        board[end] = EMPTY;
+    } else if (isFigureSlain(startCell, endCell)) {
+        // Attack move! attacker wins
+        board[start] = EMPTY;
+        board[end] = startCell;
     } else {
-        board[action.startPos] = ' ';
+        // Attack move! defender wins
+        board[start] = EMPTY;
     }
 
-    bool pl0f = false, pl1f = false;
-    CellState pl0fig = ' ', pl1fig = ' ';
+    return board;
+}
+
+pair<bool, bool> checkOnlyOneMovablePieceRemains(const vector<CellState> &newBoard) {
+    CellState pl0fig = EMPTY, pl1fig = EMPTY;
     int pl0MovableCounter = 0, pl1MovableCounter = 0;
-    for (CellState f : board) {
-        if (getRank(f) == 'B' || getRank(f) == 'F') continue;
+    for (CellState f : newBoard) {
+        if (f == EMPTY || f == LAKE || getRank(f) == BOMB || getRank(f) == FLAG) continue;
+
         if (isPlayers(f, 0)) {
             pl0MovableCounter++;
-            if (pl0MovableCounter == 1) pl0fig = getRank(f);
-            pl0f = true;
+            pl0fig = pl0fig > getRank(f) ? pl0fig : getRank(f);
         }
         if (isPlayers(f, 1)) {
             pl1MovableCounter++;
-            if (pl1MovableCounter == 1) pl1fig = getRank(f);
-            pl1f = true;
+            pl1fig = pl1fig > getRank(f) ? pl1fig : getRank(f);
         }
     }
 
-    if (!pl1f) pl0won = true;
-    if (!pl0f) pl1won = true;
-    if ((pl0MovableCounter == 1) && (pl1MovableCounter == 1) && (pl0fig == pl1fig)) {
-        pl0won = true;
-        pl1won = true;
+    if (pl0MovableCounter == 0 || pl1MovableCounter == 0) {
+        return make_pair(pl1MovableCounter == 0, pl0MovableCounter == 0);
     }
+    if(pl0MovableCounter == 1 && pl1MovableCounter == 1) {
+        return make_pair(pl0fig >= pl1fig, pl1fig >= pl0fig);
+    }
+    return make_pair(false, false);
+}
+
+OutcomeDistribution
+StrategoState::performMoveAction(const vector<shared_ptr<Action>> &actions) const {
+    const auto stratDomain = dynamic_cast<const StrategoDomain *>(domain_);
+    StrategoMoveAction action = dynamic_cast<StrategoMoveAction &>(*actions[currentPlayer_]);
+
+    const CellState &startCell = boardState_.at(action.startPos);
+    const CellState &endCell = boardState_.at(action.endPos);
+    assert(startCell != EMPTY && startCell != LAKE);
+
+    vector<CellState> newBoard = updateBoard(boardState_, action.startPos, action.endPos);
+    bool pl0won = false, pl1won = false;
+
+    if (getRank(endCell) == FLAG) { // Flag captured!
+        if (currentPlayer_ == 0) pl0won = true;
+        else pl1won = true;
+    } else {
+        tie(pl0won, pl1won) = checkOnlyOneMovablePieceRemains(newBoard);
+    }
+
     const vector<double> newRewards = {(pl0won ? 1.0 : 0.0) + (pl1won ? (-1.0) : 0.0),
                                        (pl1won ? 1.0 : 0.0) + (pl0won ? (-1.0) : 0.0)};
+
     shared_ptr<StrategoObservation> obs = make_shared<StrategoObservation>(
         action.startPos, action.endPos,
-        boardState_[action.endPos] == ' ' ? 0 : boardState_[action.startPos],
-        boardState_[action.endPos] == ' ' ? 0 : boardState_[action.endPos]);
+        endCell == EMPTY ? EMPTY : startCell, // do not reveal rank if moving to empty cell
+        endCell); // reveal rank if it wasn't empty
 
-    if (boardState_[action.endPos] == ' '
-        && (noAttackCounter_ == maxMovesWithoutAttack(stratDomain->boardWidth_,
-                                                      stratDomain->boardHeight_))) {
-        const auto newState = make_shared<StrategoState>(
-            stratDomain, board, false, true, currentPlayer_ == 0 ? 1 : 0, 0);
+    if (endCell == EMPTY && (noAttackCounter_ ==
+        maxMovesWithoutAttack(stratDomain->boardWidth_, stratDomain->boardHeight_))) {
+
+        const auto newState = make_shared<StrategoState>(stratDomain, newBoard, false, true,
+                                                         opponent(currentPlayer_), 0);
         const auto newOutcome = Outcome(newState, {obs, obs}, obs, newRewards);
         return OutcomeDistribution{OutcomeEntry(newOutcome)};
     } else {
         const auto newState = make_shared<StrategoState>(
-            stratDomain, board, false, pl0won || pl1won, opponent(currentPlayer_),
-            (boardState_[action.endPos] == ' ') ? noAttackCounter_ + 1 : 0);
+            stratDomain, newBoard, false, pl0won || pl1won, opponent(currentPlayer_),
+            (endCell == EMPTY) ? noAttackCounter_ + 1 : 0);
         const auto newOutcome = Outcome(newState, {obs, obs}, obs, newRewards);
         return OutcomeDistribution{OutcomeEntry(newOutcome)};
     }
