@@ -228,20 +228,20 @@ shared_ptr<Action> StrategoState::getActionByID(const Player player, ActionId ac
             continue;
 
         if (canMoveUp(i, boardState_, height, width)) {
-            id++;
             if (id == action) return make_shared<StrategoMoveAction>(id++, i, i - width, width);
+            id++;
         }
         if (canMoveRight(i, boardState_, width)) {
-            id++;
             if (id == action) return make_shared<StrategoMoveAction>(id++, i, i + 1, width);
+            id++;
         }
         if (canMoveLeft(i, boardState_, width)) {
-            id++;
             if (id == action) return make_shared<StrategoMoveAction>(id++, i, i - 1, width);
+            id++;
         }
         if (canMoveDown(i, boardState_, height, width)) {
-            id++;
             if (id == action) return make_shared<StrategoMoveAction>(id++, i, i + width, width);
+            id++;
         }
     }
 
@@ -376,7 +376,7 @@ pair<bool, bool> checkOnlyOneMovablePieceRemains(const vector<CellState> &newBoa
     if (pl0MovableCounter == 0 || pl1MovableCounter == 0) {
         return make_pair(pl1MovableCounter == 0, pl0MovableCounter == 0);
     }
-    if(pl0MovableCounter == 1 && pl1MovableCounter == 1) {
+    if (pl0MovableCounter == 1 && pl1MovableCounter == 1) {
         return make_pair(pl0fig >= pl1fig, pl1fig >= pl0fig);
     }
     return make_pair(false, false);
