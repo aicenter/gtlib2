@@ -27,37 +27,32 @@
 
 namespace GTLib2::domains {
 
-    // rank < 96, startpos/endpos < 512
+    // startpos/endpos < 512
     unsigned int encodeAction(int startPos, int endPos, Rank startRank, Rank endRank)
     {
-        return (startPos << 21) | (endPos << 12) | ((startRank - 32) << 6) | (endRank - 32); // 30 bits total
+        return (startPos << 23) | (endPos << 14) | (startRank << 7) | endRank; // 32 bits total
     }
 
-    unsigned int encodeSetup(int id1, int id2)
-    {
-        return (3 << 30) | id1 | id2;
-    }
-
-    int maxNoAction(int h, int w)
+    int maxMovesWithoutAttack(int h, int w)
     {
         return (2*h + 2*w - 4)*2;
     }
 
-    bool isPlayers(CellState figure, int player)
+    bool isPlayers(CellState figure, Player player)
     {
         if (figure == 'L')  return false;
         if  (figure == ' ') return false;
         return (((player == 0) && (figure < 128)) || ((player == 1) && (figure >= 128))) && (figure != 'L');
     }
 
-    CellState makePlayer1(Rank figure) {
-        return figure + 128;
+    CellState getCellState(Rank figure, Player player) {
+        return player == 0 ? figure : figure + 128;
     }
 
-    bool isSamePlayer(int figure1, int figure2)
+    bool isSamePlayer(CellState figure1, CellState figure2)
     {
         if (figure2 == ' ') return false;
-        return ((figure1 > 128) && (figure2 > 128)) || ((figure1 < 128) && (figure2 < 128)) ;
+        return (isPlayers(figure1, 0) && isPlayers(figure2, 0)) || (isPlayers(figure1, 1) && isPlayers(figure2, 1)) ;
     }
 
     Rank getRank(CellState figure)
@@ -70,9 +65,10 @@ namespace GTLib2::domains {
         char f1 = getRank(figure1);
         char f2 = getRank(figure2);
         if (f1 == ' ') return true;
-        if (f2 == 'B') return false;
-        if (f1 > f2) return true;
-        return false;
+        if (f2 == 'B') return f1 == '2'; // sapper rank
+        if (f1 == '0' && f2 == '9') return true; // 0 - Spy (min rank), 9 - Marshal (max Rank)
+
+        return f1 > f2;
     }
 
     bool StrategoSetupAction::operator==(const Action &that) const {
@@ -129,41 +125,30 @@ namespace GTLib2::domains {
               startRank_(startRank),
               endRank_(endRank) {
 
-        //assert(startPos+endPos > 0);
+        assert(startPos+endPos > 0);
 
         id_ = encodeAction(startPos_, endPos_, startRank_, endRank_);
     }
 
-    StrategoObservation::StrategoObservation(const int id1, int id2)
-            : Observation(),
-              startPos_(0),
-              endPos_(0),
-              startRank_(0),
-              endRank_(0) {
-
-        //assert(startPos+endPos > 0);
-
-        id_ = encodeSetup(id1, id2);
-    }
 
     StrategoDomain::StrategoDomain(StrategoSettings settings) :
-            Domain(maxNoAction(settings.boardHeight, settings.boardWidth)*settings.figures.size()*2,
+            Domain(maxMovesWithoutAttack(settings.boardHeight, settings.boardWidth)*settings.figures.size()*2,
                     2, true, make_shared<Action>(),
                    make_shared<StrategoObservation>()),
-            startBoard_(settings.generateBoard()),
+            emptyBoard_(settings.generateBoard()),
             startFigures_(settings.figures),
             boardWidth_(settings.boardWidth),
             boardHeight_(settings.boardHeight){
-//        assert(startBoard_.size() > 1);
-        const auto newState = make_shared<StrategoState>(this, startBoard_, true, false, 0, 0);
-        shared_ptr<StrategoObservation> obs = make_shared<StrategoObservation>(0, 0, 0, 0);
+        assert(boardHeight_*boardWidth_ > 1);
+        const auto newState = make_shared<StrategoState>(this, emptyBoard_, true, false, 0, 0);
+        shared_ptr<StrategoObservation> obs = make_shared<StrategoObservation>();
         Outcome outcome(newState, {obs, obs}, obs, {0.0, 0.0});
         maxUtility_ = 1.0;
         rootStatesDistribution_.emplace_back(OutcomeEntry(outcome));
     }
 
     string StrategoDomain::getInfo() const {
-        return "Stratego game with " + to_string(startBoard_.size()) + " cells";
+        return "Stratego game with " + to_string(emptyBoard_.size()) + " cells";
     }
 
     int fact(int n)
@@ -173,79 +158,81 @@ namespace GTLib2::domains {
         return n*fact(n-1);
     }
 
-    bool isTopRow(int i, const vector<CellState> &board, int height, int width)
+    bool canMoveUp(int i, const vector<CellState> &board, int height, int width)
     {
-        if ((height > 1) && ((i+1) > width)) // i not in the top row
-            if (!isSamePlayer(board[i], board[i - width]) && (board[i - width] != 'L'))
-                return false;
-        return true;
+        return (height > 1) && ((i + 1) > width) && !isSamePlayer(board[i], board[i - width]) &&
+               (board[i - width] != 'L');
     }
 
-    bool isBottomRow(int i, const vector<CellState> &board, int height, int width, int startBoardSize)
+    bool canMoveDown(int i, const vector<CellState> &board, int height, int width)
     {
-        if ((height > 1) && (startBoardSize - (i+1) >= width))// i not in the bottom row
-            if (!isSamePlayer(board[i], board[i + width]) && (board[i + width] != 'L'))
-                return false;
-        return true;
+        return ((height > 1) && (board.size() - (i+1) >= width) && !isSamePlayer(board[i], board[i + width]) && (board[i + width] != 'L'));
     }
 
-    bool isLeftColumn(int i, const vector<CellState> &board, int height, int width)
+    bool canMoveLeft(int i, const vector<CellState> &board, int width)
     {
-        if ((width > 1) && ((i+1) % width != 1)) // i not in the left column
-            if (!isSamePlayer(board[i], board[i - 1]) && (board[i - 1] != 'L'))
-                return false;
-        return true;
+        return ((width > 1) && ((i+1) % width != 1) && !isSamePlayer(board[i], board[i - 1]) && (board[i - 1] != 'L'));
     }
 
-    bool isRightColumn(int i, const vector<CellState> &board, int height, int width)
+    bool canMoveRight(int i, const vector<CellState> &board, int width)
     {
-        if ((width > 1) && ((i+1) % width != 0)) // i not in the right column
-            if (!isSamePlayer(board[i], board[i + 1]) && (board[i + 1] != 'L'))
-                return false;
-        return true;
+        return ((width > 1) && ((i+1) % width != 0) && !isSamePlayer(board[i], board[i + 1]) && (board[i + 1] != 'L'));
     }
 
     unsigned long StrategoState::countAvailableActionsFor(Player player) const {
         const auto stratDomain = dynamic_cast<const StrategoDomain *>(domain_);
         int height = stratDomain->boardHeight_;
         int width = stratDomain->boardWidth_;
-        if (setupState_)
+        if (isSetupState_)
         {
             return fact(stratDomain->startFigures_.size());
         }
         int count = 0;
         for (int i = 0; i < boardState_.size(); i++) {
             if (!isPlayers(boardState_[i], player) || getRank(boardState_[i]) == 'B' || getRank(boardState_[i]) == 'F') continue;
-            if (!isTopRow(i, boardState_, height, width)) count++;
-            if (!isRightColumn(i, boardState_, height, width)) count++;
-            if (!isLeftColumn(i, boardState_, height, width)) count++;
-            if (!isBottomRow(i, boardState_, height, width, stratDomain->startBoard_.size())) count++;
+            if (canMoveUp(i, boardState_, height, width)) count++;
+            if (canMoveRight(i, boardState_, width)) count++;
+            if (canMoveLeft(i, boardState_, width)) count++;
+            if (canMoveDown(i, boardState_, height, width)) count++;
         }
         return count;
     }
 
-//    void permute(vector<Rank> a, int l, int r, vector<shared_ptr<Action>> * actions, int * id)
-//    {
-//        // Base case
-//        if (l == r)
-//            actions->push_back(make_shared<StrategoSetupAction>((*id)++, a));
-//        else
-//        {
-//            // Permutations made
-//            for (int i = l; i <= r; i++)
-//            {
-//
-//                // Swapping done
-//                std::swap(a[l], a[i]);
-//
-//                // Recursion called
-//                permute(a, l+1, r, actions, id);
-//
-//                //backtrack
-//                std::swap(a[l], a[i]);
-//            }
-//        }
-//    }
+    shared_ptr<Action> StrategoState::getActionByID(const Player player, const int actionID) const {
+        const auto stratDomain = dynamic_cast<const StrategoDomain *>(domain_);
+        int id = 0;
+        int height = stratDomain->boardHeight_;
+        int width = stratDomain->boardWidth_;
+        if (isSetupState_) {
+            vector<Rank> comb = dynamic_cast<const StrategoDomain *>(getDomain())->startFigures_;
+            do {
+                if (id == actionID) return make_shared<StrategoSetupAction>(id++, comb);
+            } while (next_permutation(comb.begin(), comb.end()));
+
+            return make_shared<Action>();
+        }
+        for (int i = 0; i < boardState_.size(); i++)
+        {
+            if (!isPlayers(boardState_[i], player) || getRank(boardState_[i]) == 'B' || getRank(boardState_[i]) == 'F') continue;
+            if (canMoveUp(i, boardState_, height, width)) {
+                id++;
+                if (id == actionID) return make_shared<StrategoMoveAction>(id++, i, i - width, width);
+            }
+            if (canMoveRight(i, boardState_, width)) {
+                id++;
+                if (id == actionID) return make_shared<StrategoMoveAction>(id++, i, i + 1, width);
+            }
+            if (canMoveLeft(i, boardState_, width)) {
+                id++;
+                if (id == actionID) return make_shared<StrategoMoveAction>(id++, i, i - 1, width);
+            }
+            if (canMoveDown(i, boardState_, height, width)) {
+                id++;
+                if (id == actionID) return make_shared<StrategoMoveAction>(id++, i, i + width, width);
+            }
+        }
+        return make_shared<Action>();
+    }
 
     vector<shared_ptr<Action>> StrategoState::getAvailableActionsFor(const Player player) const {
         vector<shared_ptr<Action>> actions;
@@ -253,32 +240,30 @@ namespace GTLib2::domains {
         int id = 0;
         int height = stratDomain->boardHeight_;
         int width = stratDomain->boardWidth_;
-        if (setupState_) {
+        if (isSetupState_) {
             vector<Rank> comb = dynamic_cast<const StrategoDomain *>(getDomain())->startFigures_;
             do {
                 actions.push_back(make_shared<StrategoSetupAction>(id++, comb));
-            } while ( next_permutation(comb.begin(), comb.end()) );
-
-            //permute(comb, 0, comb.size()-1, &actions, &id);
+            } while (next_permutation(comb.begin(), comb.end()));
             return actions;
         }
         for (int i = 0; i < boardState_.size(); i++)
         {
             if (!isPlayers(boardState_[i], player) || getRank(boardState_[i]) == 'B' || getRank(boardState_[i]) == 'F') continue;
-            if (!isTopRow(i, boardState_, height, width))
+            if (canMoveUp(i, boardState_, height, width))
                 actions.push_back(make_shared<StrategoMoveAction>(id++, i, i - width, width));
-            if (!isRightColumn(i, boardState_, height, width))
+            if (canMoveRight(i, boardState_, width))
                 actions.push_back(make_shared<StrategoMoveAction>(id++, i, i + 1, width));
-            if (!isLeftColumn(i, boardState_, height, width))
+            if (canMoveLeft(i, boardState_, width))
                 actions.push_back(make_shared<StrategoMoveAction>(id++, i, i - 1, width));
-            if (!isBottomRow(i, boardState_, height, width, stratDomain->startBoard_.size()))
+            if (canMoveDown(i, boardState_, height, width))
                 actions.push_back(make_shared<StrategoMoveAction>(id++, i, i + width, width));
         }
         return actions;
     }
 
     vector<Player> StrategoState::getPlayers() const {
-        if (setupState_) {
+        if (isSetupState_) {
         return {0, 1};
         } else if (isFinished_){
             return {};
@@ -312,16 +297,16 @@ namespace GTLib2::domains {
         OutcomeDistribution newOutcomes;
         StrategoSetupAction actionpl0 = dynamic_cast<StrategoSetupAction &>(*actions[0]); // player 0 setup
         StrategoSetupAction actionpl1 = dynamic_cast<StrategoSetupAction &>(*actions[1]); // player 1 setup
-        vector<CellState> board = stratDomain->startBoard_;
+        vector<CellState> board = stratDomain->emptyBoard_;
         for (int i = 0; i < actionpl0.figuresSetup.size(); i++)
         {
-            board[i] = actionpl0.figuresSetup[i];
-            board[board.size() - 1 - i] = makePlayer1(actionpl1.figuresSetup[i]);
+            board[i] = getCellState(actionpl0.figuresSetup[i], 0);
+            board[board.size() - 1 - i] = getCellState(actionpl1.figuresSetup[i], 1);
         }
         const auto newState = make_shared<StrategoState>(stratDomain, board, false, false, 0, 0);
-        shared_ptr<StrategoObservation> obs = make_shared<StrategoObservation>(actionpl0.getId(), actionpl1.getId());
+        shared_ptr<StrategoObservation> obs = make_shared<StrategoObservation>();
         const auto newOutcome = Outcome(newState, {obs, obs}, obs, {0,0});
-        newOutcomes.emplace_back(OutcomeEntry(newOutcome, 1.0));
+        newOutcomes.emplace_back(OutcomeEntry(newOutcome));
         return newOutcomes;
     }
 
@@ -354,23 +339,24 @@ namespace GTLib2::domains {
 
         bool pl0f = false, pl1f = false;
         CellState pl0fig = ' ', pl1fig = ' ';
-        int pl0counter = 0, pl1counter = 0;
+        int pl0MovableCounter = 0, pl1MovableCounter = 0;
         for (CellState f : board) {
+            if (getRank(f) == 'B' || getRank(f) == 'F') continue;
             if (isPlayers(f, 0)) {
-                pl0counter++;
-                if (pl0counter == 1) pl0fig = getRank(f);
+                pl0MovableCounter++;
+                if (pl0MovableCounter == 1) pl0fig = getRank(f);
                 pl0f = true;
             }
             if (isPlayers(f, 1)) {
-                pl1counter++;
-                if (pl1counter == 1) pl1fig = getRank(f);
+                pl1MovableCounter++;
+                if (pl1MovableCounter == 1) pl1fig = getRank(f);
                 pl1f = true;
             }
         }
 
         if (!pl1f) pl0won = true;
         if (!pl0f) pl1won = true;
-        if ((pl0counter == 1) && (pl1counter == 1) && (pl0fig == pl1fig))
+        if ((pl0MovableCounter == 1) && (pl1MovableCounter == 1) && (pl0fig == pl1fig))
         {
             pl0won = true;
             pl1won = true;
@@ -379,7 +365,7 @@ namespace GTLib2::domains {
         shared_ptr<StrategoObservation> obs = make_shared<StrategoObservation>(action.startPos, action.endPos,
                                                                                boardState_[action.endPos] == ' ' ? 0 : boardState_[action.startPos],
                                                                                boardState_[action.endPos] == ' ' ? 0 : boardState_[action.endPos]);
-        if (boardState_[action.endPos] == ' ' && (noAttackCounter_ == maxNoAction(stratDomain->boardWidth_, stratDomain->boardHeight_)))
+        if (boardState_[action.endPos] == ' ' && (noAttackCounter_ == maxMovesWithoutAttack(stratDomain->boardWidth_, stratDomain->boardHeight_)))
         {
             const auto newState = make_shared<StrategoState>(stratDomain, board, false, true,
                                                              currentPlayer_ == 0 ? 1 : 0,
@@ -402,7 +388,7 @@ namespace GTLib2::domains {
     OutcomeDistribution StrategoState::performActions(const vector<shared_ptr<Action>> &actions) const {
         const auto stratdomain = dynamic_cast<const StrategoDomain *>(domain_);
 
-        if (setupState_) return performSetupAction(actions, stratdomain);
+        if (isSetupState_) return performSetupAction(actions, stratdomain);
         else return performMoveAction(actions, stratdomain);
     }
 
@@ -415,7 +401,7 @@ namespace GTLib2::domains {
 
         return hash_ == state.hash_
                && currentPlayer_ == state.currentPlayer_
-               && setupState_ == state.setupState_
+               && isSetupState_ == state.isSetupState_
                && isFinished_ == state.isFinished_
                && boardState_ == state.boardState_;
     }
