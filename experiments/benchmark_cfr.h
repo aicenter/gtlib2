@@ -29,7 +29,7 @@
 using namespace GTLib2;
 
 using domains::GoofSpielDomain;
-using utils::benchmark;
+using utils::benchmarkRuntime;
 using algorithms::CFRSettings;
 using algorithms::CFRData;
 using algorithms::CFRAlgorithm;
@@ -42,10 +42,11 @@ void Command_BenchmarkCFR(args::Subparser &parser) {
     auto cache = CFRData(*domain, settings.cfrUpdating);
     CFRAlgorithm cfr(*domain, Player(0), cache, settings);
 
-    auto totalTime = benchmark([&]() {
-        cout << "Build time: " << benchmark([&]() { cfr.getCache().buildTree(); }) << " ms"
+    auto totalTime = benchmarkRuntime([&]() {
+        cout << "Build time: " << benchmarkRuntime([&]() { cfr.getCache().buildTree(); }) << " ms"
              << endl;
-        cout << "Iters Time: " << benchmark([&]() { cfr.runIterations(100); }) << " ms" << endl;
+        cout << "Iters Time: " << benchmarkRuntime([&]() { cfr.runIterations(100); }) << " ms"
+             << endl;
     });
     cout << "Total Time: " << totalTime << " ms" << endl;
 }

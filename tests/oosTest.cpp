@@ -105,7 +105,7 @@ TEST(OOS, CheckExploitabilityInSmallDomain) {
     cout << endl;
     double prevIters = 1.0;
     for (const auto iters: utils::log10Range(1, 1e4, 5)) {
-        const auto timems = utils::benchmark([&]() {
+        const auto timems = utils::benchmarkRuntime([&]() {
             for (int i = 0; i < (iters - prevIters); ++i) oos.runPlayIteration(nullopt);
         });
         const auto actualExploitability = calcExploitability(*domain, getAverageStrategy(data));

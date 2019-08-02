@@ -29,7 +29,7 @@
 
 namespace GTLib2::utils {
 
-inline long benchmark(const std::function<void()>& callback) {
+inline long benchmarkRuntime(const std::function<void()> &callback) {
     using ms = std::chrono::duration<int, std::milli>;
     auto start = std::chrono::high_resolution_clock::now();
     callback();
