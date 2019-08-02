@@ -133,11 +133,22 @@ std::unique_ptr<GTLib2::Domain> constructDomain(const std::string &description) 
         {"RPS",    [ ](vector<string> p) { return make_unique<RPSDomain>(); }},
         {"BRPS",   [ ](vector<string> p) { return make_unique<BiasedRPSDomain>(stod(p.at(0))); }},
         {"PD",     [ ](vector<string> p) { return make_unique<PrisonnersDilemmaDomain>(); }},
-        {"STRAT2x2",     [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{2,2,{},{'1', '2'}}); }},
-        {"STRAT2x3",     [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{2,3,{},{'1', '2', '3'}});}},
-        {"STRAT3x2",     [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{3,2,{},{'1', '2'}});}},
-        {"STRAT3x3",     [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{3,3,{{1,1,1,1}},{'1', '2', '3'}});}},
-        {"STRAT10x10",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{10,10,{{3,5,2,2}, {7,5,2,2}},{'B','B','B','B','B','B','9','8','7','7','6','6','6','5','5','5','5','4','4','4','4','3','3','3','3','2','2','2','2','2','1','1','1','1','1','1','1','1','0','F' }});}}
+        {"STRAT2x2",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{2,2,{},{'1', '2'}}); }},
+        {"STRAT2x3",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{2,3,{},{'1', '2', '3'}});}},
+        {"STRAT3x2",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{3,2,{},{'1', '2'}});}},
+        {"STRAT3x3",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{3,3,{{1,1,1,1}},{'1', '2', '3'}});}},
+        {"STRAT6x6",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{6,6,{{2,2,2,2}},
+                                                                                                   {'B','4','3','3','2','2',
+                                                                                                    '2','1','1','1','1','F'}});}},
+        {"STRAT10x10", [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{10,10, {{3,5,2,2}, {7,5,2,2}},
+                                                                                                   {'B','B','B','B','B',
+                                                                                                    'B','9','8','7','7',
+                                                                                                    '6','6','6','5','5',
+                                                                                                    '5','5','4','4','4',
+                                                                                                    '4','3','3','3','3',
+                                                                                                    '2','2','2','2','2',
+                                                                                                    '1','1','1','1','1',
+                                                                                                    '1','1','1','0','F'}});}}
     };
     // @formatter:on
 
