@@ -215,20 +215,20 @@ namespace GTLib2::domains {
         {
             if (!isPlayers(boardState_[i], player) || getRank(boardState_[i]) == 'B' || getRank(boardState_[i]) == 'F') continue;
             if (canMoveUp(i, boardState_, height, width)) {
-                id++;
                 if (id == actionID) return make_shared<StrategoMoveAction>(id++, i, i - width, width);
+                id++;
             }
             if (canMoveRight(i, boardState_, width)) {
-                id++;
                 if (id == actionID) return make_shared<StrategoMoveAction>(id++, i, i + 1, width);
+                id++;
             }
             if (canMoveLeft(i, boardState_, width)) {
-                id++;
                 if (id == actionID) return make_shared<StrategoMoveAction>(id++, i, i - 1, width);
+                id++;
             }
             if (canMoveDown(i, boardState_, height, width)) {
-                id++;
                 if (id == actionID) return make_shared<StrategoMoveAction>(id++, i, i + width, width);
+                id++;
             }
         }
         return make_shared<Action>();
