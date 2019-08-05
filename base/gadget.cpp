@@ -109,7 +109,7 @@ shared_ptr<EFGNode> GadgetInnerNode::performAction(const shared_ptr<Action> &act
         case GADGET_FOLLOW:
             return underlyingNode_;
         case GADGET_TERMINATE: {
-            double v = game_.cfvValues_.at(underlyingNode_->getLastActionId());
+            double v = game_.cfvValues_.at(getLastActionId());
             return make_shared<GadgetTerminalNode>(shared_from_this(), vector<double>{v, -v});
         }
         default:

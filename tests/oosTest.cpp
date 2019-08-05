@@ -175,15 +175,15 @@ TEST(OOS, PlayManyMatches) {
         0, 0, 1, 0,
     };
 
-    for (int i = 0; i < 100; ++i) {
+    for (int seed = 0; seed < 100; ++seed) {
         auto data0 = OOSData(*domain);
         auto data1 = OOSData(*domain);
         vector<PreparedAlgorithm> algs = {
             createInitializer<OOSAlgorithm>(data0, settings),
             createInitializer<OOSAlgorithm>(data1, settings)
         };
-        auto r = expectedRewards[i];
-        auto actualOutcome = playMatch(*domain, algs, {10, 10}, {5, 5}, BudgetIterations, i);
+        auto r = expectedRewards[seed];
+        auto actualOutcome = playMatch(*domain, algs, {10, 10}, {5, 5}, BudgetIterations, seed);
         auto expectedOutcome = vector<double>{r, -r};
         EXPECT_EQ(expectedOutcome, actualOutcome);
     }

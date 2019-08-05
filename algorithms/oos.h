@@ -54,32 +54,32 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
 
     unordered_map<shared_ptr<EFGNode>, Baseline> baselineValues_;
 
-    PublicStateSummary getPublicStateSummary(const shared_ptr<PublicState> & ps ) {
+    PublicStateSummary getPublicStateSummary(const shared_ptr<PublicState> &ps) {
         // todo: make more efficient
         const auto &histories = getNodesForPubState(ps);
         vector<shared_ptr<EFGNode>> topmostHistories_;
-        for(const auto&a : histories) {
+        for (const auto &a : histories) {
             bool hasTopperHistory = false;
-            for(const auto&b : histories) {
-                if(isExtension(b->getHistory(), a->getHistory())) {
+            for (const auto &b : histories) {
+                if (isExtension(b->getHistory(), a->getHistory())) {
                     hasTopperHistory = true;
                     break;
                 }
             }
 
-            if(!hasTopperHistory) topmostHistories_.push_back(a);
+            if (!hasTopperHistory) topmostHistories_.push_back(a);
         }
 
         vector<array<double, 3>> topmostHistoriesReachProbs_;
         topmostHistoriesReachProbs_.reserve(topmostHistories_.size());
-        for(const auto &h : topmostHistories_) {
+        for (const auto &h : topmostHistories_) {
             topmostHistoriesReachProbs_.emplace_back(calcReachProbs(h, this));
         }
 
         // todo: maybe we want to make separate storage of cfv values from baselines?
         vector<double> cfvValues_;
         cfvValues_.reserve(topmostHistories_.size());
-        for(const auto &h : topmostHistories_) {
+        for (const auto &h : topmostHistories_) {
             cfvValues_.emplace_back(baselineValues_.at(h).value());
         }
 
@@ -180,7 +180,8 @@ class Targetor {
     const OOSSettings::Targeting targeting_;
     const double targetBiasing_;
 
-    pair<double, double> updateWeighting(const shared_ptr<EFGNode> &dist, double bs_h_all, double us_h_all);
+    pair<double, double>
+    updateWeighting(const shared_ptr<EFGNode> &dist, double bs_h_all, double us_h_all);
 };
 
 /**
@@ -275,16 +276,16 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
     virtual double handleTerminalNode(const shared_ptr<EFGNode> &h,
                                       double bs_h_all, double us_h_all,
                                       Player exploringPl);
-    double handleChanceNode(const shared_ptr<EFGNode> &h,
-                            double rm_h_pl, double rm_h_opp,
-                            double bs_h_all, double us_h_all,
-                            double us_h_cn,
-                            Player exploringPl);
-    double handlePlayerNode(const shared_ptr<EFGNode> &h,
-                            double rm_h_pl, double rm_h_opp,
-                            double bs_h_all, double us_h_all,
-                            double us_h_cn,
-                            Player exploringPl);
+    virtual double handleChanceNode(const shared_ptr<EFGNode> &h,
+                                    double rm_h_pl, double rm_h_opp,
+                                    double bs_h_all, double us_h_all,
+                                    double us_h_cn,
+                                    Player exploringPl);
+    virtual double handlePlayerNode(const shared_ptr<EFGNode> &h,
+                                    double rm_h_pl, double rm_h_opp,
+                                    double bs_h_all, double us_h_all,
+                                    double us_h_cn,
+                                    Player exploringPl);
 
     PlayerNodeOutcome incrementallyBuildTree(const shared_ptr<EFGNode> &h,
                                              const vector<shared_ptr<Action>> &actions,
@@ -297,12 +298,12 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
                                          CFRData::InfosetData &data, const shared_ptr<AOH> &infoset,
                                          Player exploringPl);
 
-    pair<int, double> calcBiasing(const shared_ptr <EFGNode> &h,
-                                  const vector <shared_ptr<Action>> &actions,
+    pair<int, double> calcBiasing(const shared_ptr<EFGNode> &h,
+                                  const vector<shared_ptr<Action>> &actions,
                                   double bs_h_all);
 
-    virtual pair <ActionId, RandomLeafOutcome> selectLeaf(const shared_ptr<EFGNode> &h,
-                                                          const vector<shared_ptr<Action>> &actions);
+    virtual pair<ActionId, RandomLeafOutcome> selectLeaf(const shared_ptr<EFGNode> &h,
+                                                         const vector<shared_ptr<Action>> &actions);
     virtual ActionId selectChanceAction(const shared_ptr<EFGNode> &h, double bsum);
     virtual ActionId selectExploringPlayerAction(const shared_ptr<EFGNode> &h,
                                                  int biasApplicableActions, double bsum);
@@ -315,9 +316,9 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
                                     double rm_h_opp,
                                     double us_h_cn,
                                     double s_h_all);
-    void updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exploringPl,
-                              CFRData::InfosetData &data, int ai,
-                              double u_x, double u_h, double w);
+    virtual void updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exploringPl,
+                                      CFRData::InfosetData &data, int ai,
+                                      double u_x, double u_h, double w);
     void updateInfosetAcc(const shared_ptr<EFGNode> &h, CFRData::InfosetData &data, double s);
 
     inline double bias(double biased, double nonBiased) const {

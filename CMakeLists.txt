@@ -174,6 +174,7 @@ set(SOURCE_FILES
         algorithms/continualResolving.h
         algorithms/equilibrium.h algorithms/equilibrium.cpp
         algorithms/evaluation.cpp algorithms/evaluation.h
+        algorithms/mccr.h algorithms/mccr.cpp
         algorithms/normalFormLP.h algorithms/normalFormLP.cpp
         algorithms/oos.h algorithms/oos.cpp
         algorithms/stats.h algorithms/stats.cpp
@@ -241,6 +242,7 @@ set(TEST_FILES
         tests/LPTest.cpp
         tests/matchingPenniesTest.cpp
         tests/matchingPenniesTest.cpp
+        tests/mccrTest.cpp
         tests/oshiZumoTest.cpp
         tests/utilityTest.cpp
         tests/rangeTest.cpp

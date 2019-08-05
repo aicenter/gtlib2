@@ -34,15 +34,17 @@ namespace GTLib2::algorithms {
 /**
  * When accessing terminal leaf nodes, you must multiple utilities by the pubStateReach_ term of the gadget game!
  */
-template<class CRCache, TYPE_DERIVES_FROM(CRCache, PublicStateCache, StrategyCache)>
-class ContinualResolving: GamePlayingAlgorithm {
+class ContinualResolving: public GamePlayingAlgorithm {
  protected:
     OOSData &cache_;
     unique_ptr<GadgetGame> gadget_;
+    shared_ptr<GadgetRootNode> gadgetRoot_;
 
  public:
-    ContinualResolving(const Domain &domain, Player playingPlayer, CRCache &cache)
-        : GamePlayingAlgorithm(domain, playingPlayer), cache_(cache) {}
+    ContinualResolving(const Domain &domain, Player playingPlayer, OOSData &cache)
+        : GamePlayingAlgorithm(domain, playingPlayer), cache_(cache), gadget_(nullptr) {}
+
+    virtual ~ContinualResolving() = default;
 
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override {
         // we can't make targetting, if the infoset is not in cache. Give up - play randomly
@@ -55,9 +57,7 @@ class ContinualResolving: GamePlayingAlgorithm {
             playPublicState_ = playInfoset_ ? optional(cache_.getPublicStateFor(*playInfoset_))
                                             : nullopt;
 
-            gadget_ = make_unique<GadgetGame>(
-                cache_.getPublicStateSummary(*playPublicState_), playingPlayer_,
-                *playInfoset_, SAFE_RESOLVING);
+            updateGadget();
         }
 
         if (currentInfoset == nullopt)
@@ -68,6 +68,14 @@ class ContinualResolving: GamePlayingAlgorithm {
 
     optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override {
         return cache_.strategyFor(currentInfoset);
+    }
+
+    virtual void updateGadget() {
+        gadget_ = make_unique<GadgetGame>(
+            cache_.getPublicStateSummary(*playPublicState_), playingPlayer_,
+            *playInfoset_, SAFE_RESOLVING);
+
+        gadgetRoot_ = gadget_->getRootNode();
     }
 
     /**
@@ -96,8 +104,8 @@ class ContinualResolving: GamePlayingAlgorithm {
     inline unsigned int cntPsChildren(const shared_ptr<PublicState> &parent) {
         // todo: inefficient but gets jobs done -- we have fully built caches
         auto cnt = 0;
-        for(const auto &[pubState, nodes] :  cache_.getPublicState2nodes()) {
-            if(pubState->getDepth() == parent->getDepth() + 1
+        for (const auto &[pubState, nodes] :  cache_.getPublicState2nodes()) {
+            if (pubState->getDepth() == parent->getDepth() + 1
                 && isCompatible(parent->getHistory(), pubState->getHistory()))
                 cnt++;
         }
@@ -107,8 +115,8 @@ class ContinualResolving: GamePlayingAlgorithm {
     inline shared_ptr<PublicState> expandPs(const shared_ptr<PublicState> &parent, EdgeId index) {
         // todo: inefficient but gets jobs done -- we have fully built caches
         vector<shared_ptr<PublicState>> children;
-        for(const auto &[pubState, nodes] :  cache_.getPublicState2nodes()) {
-            if(pubState->getDepth() == parent->getDepth() + 1
+        for (const auto &[pubState, nodes] :  cache_.getPublicState2nodes()) {
+            if (pubState->getDepth() == parent->getDepth() + 1
                 && isCompatible(parent->getHistory(), pubState->getHistory())) {
                 children.push_back(pubState);
             }

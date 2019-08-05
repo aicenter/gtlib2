@@ -281,7 +281,6 @@ class AOH: public InformationSet {
  public:
     AOH(Player player, const vector<ActionObservationIds> &aoHistory);
 
-    inline unsigned long getSize() const { return aoh_.size(); }
     inline HashType getHash() const final { return hash_; }
     bool operator==(const InformationSet &rhs) const override;
 

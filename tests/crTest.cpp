@@ -42,7 +42,7 @@ namespace GTLib2::algorithms {
 using domains::GoofSpielDomain;
 using domains::RPSDomain;
 
-class ExampleCR: public ContinualResolving<OOSData> {
+class ExampleCR: public ContinualResolving {
  public:
     ExampleCR(const Domain &domain, Player playingPlayer, OOSData &cache)
         : ContinualResolving(domain, playingPlayer, cache) {}

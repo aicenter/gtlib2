@@ -128,7 +128,8 @@ PlayControl OOSAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &curr
     for (int t = 0; t < cfg_.batchSize; ++t) {
         for (int exploringPl = 0; exploringPl < 2; ++exploringPl) {
             isBiasedIteration_ = dist_(generator_) <= cfg_.targetBiasing;
-            isBelowTargetIS_ = currentInfoset == nullopt || (*currentInfoset)->getSize() == 0;
+            isBelowTargetIS_ = currentInfoset == nullopt
+                || (*currentInfoset)->getAOids().size() == 0;
 
             rootIteration(1 / targetor_.compensateTargeting(), Player(exploringPl));
         }
@@ -173,8 +174,19 @@ double OOSAlgorithm::iteration(const shared_ptr<EFGNode> &h,
         case ChanceNode:
             return handleChanceNode(h, rm_h_pl, rm_h_opp, bs_h_all, us_h_all, us_h_cn, exploringPl);
         case PlayerNode:
-            if (h->getAOHInfSet() == playInfoset_) ++stats_.infosetVisits;
-            if (h->getPublicState() == playPublicState_) ++stats_.pubStateVisits;
+            if (h->getSpecialization() == NoSpecialization) {
+                // do not generate unncessary objects (AOH/PublicState), just compare ids
+
+                if (playInfoset_
+                    && h->getAOids(h->getPlayer()) == (*playInfoset_)->getAOids()
+                    && (*playInfoset_)->getPlayer() == h->getPlayer())
+                    ++stats_.infosetVisits;
+
+                if (playPublicState_
+                    && h->getPubObsIds() == (*playPublicState_)->getHistory())
+                    ++stats_.pubStateVisits;
+            }
+
             return handlePlayerNode(h, rm_h_pl, rm_h_opp, bs_h_all, us_h_all, us_h_cn, exploringPl);
         default:
             assert(false); // unrecognized type!
