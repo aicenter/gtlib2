@@ -26,13 +26,12 @@
 #include "experiments/export_domain.h"
 #include "experiments/export_ring.h"
 #include "experiments/cfr_regrets.h"
-
-#include <iostream>
+#include "experiments/play_match.h"
 
 int main(int argc, const char **argv) {
     args::ArgumentParser parser("Command runner for GTLib2");
     args::CompletionFlag completion(parser, {"complete"}); // bash completion
-    args::GlobalOptions globals(parser, args::arguments);
+    args::GlobalOptions globals(parser, args::arguments); // add global args
 
     // --------- utils ----------
     args::Group utils(parser, "commands (utils)");
@@ -40,6 +39,8 @@ int main(int argc, const char **argv) {
                                 "Export domain to gambit or graphviz", &Command_ExportDomain);
     args::Command benchmark_cfr(utils, "benchmark_cfr",
                                 "Calculate run time of CFR on IIGS-5.", &Command_BenchmarkCFR);
+    args::Command play_match(utils, "play_match",
+                             "Play match given preplay and per-move time.", &Command_PlayMatch);
 
     // ------ experiments -------
     args::Group experiments(parser, "commands (experiments)");

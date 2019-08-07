@@ -22,20 +22,21 @@
 #ifndef GTLIB2_BENCHMARK_CFR_H
 #define GTLIB2_BENCHMARK_CFR_H
 
+#include "utils/cli_helpers.h"
+
 #include "algorithms/cfr.h"
 #include "domains/goofSpiel.h"
 #include "utils/benchmark.h"
 
-using namespace GTLib2;
-
-using domains::GoofSpielDomain;
-using utils::benchmarkRuntime;
-using algorithms::CFRSettings;
-using algorithms::CFRData;
-using algorithms::CFRAlgorithm;
-
 void Command_BenchmarkCFR(args::Subparser &parser) {
-    parser.Parse(); // always include this line in command
+    using namespace GTLib2;
+    using domains::GoofSpielDomain;
+    using utils::benchmarkRuntime;
+    using algorithms::CFRSettings;
+    using algorithms::CFRData;
+    using algorithms::CFRAlgorithm;
+
+    initializeParser(parser); // always include this line in command
 
     const auto domain = GoofSpielDomain::IIGS(5);
     auto settings = CFRSettings();

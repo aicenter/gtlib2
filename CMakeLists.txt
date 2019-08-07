@@ -210,12 +210,14 @@ set(SOURCE_FILES
         LPsolvers/LPSolver.h
         # utils
         utils/args.hpp
-        utils/global_args.h
         utils/benchmark.h
-        utils/export.cpp utils/export.h
-        utils/range.h
+        utils/cli_helpers.h
         utils/combinatorics.h utils/combinatorics.cpp
+        utils/export.cpp utils/export.h
         utils/export.h utils/export.cpp
+        utils/global_args.h
+        utils/logging.h
+        utils/range.h
         utils/utils.h
         # experiments
         experiments/benchmark_cfr.h

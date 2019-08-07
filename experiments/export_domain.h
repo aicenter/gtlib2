@@ -22,29 +22,25 @@
 #ifndef GTLIB2_EXPORT_DOMAIN_H
 #define GTLIB2_EXPORT_DOMAIN_H
 
-#include "domains/goofSpiel.h"
-#include "domains/randomGame.h"
-#include "domains/simple_games.h"
+#include "utils/cli_helpers.h"
 #include "utils/export.h"
 
-using utils::exportGraphViz;
-using utils::exportGambit;
-
-
 void Command_ExportDomain(args::Subparser &parser) {
+    using namespace GTLib2;
+
     args::Group group(parser, "Export type:", args::Group::Validators::Xor);
     args::Flag gambit(group, "gambit", "", {"gbt", "gambit"});
     args::Flag graphviz(group, "graphviz", "", {"dot", "graphviz"});
-    parser.Parse(); // always include this line in command
+    initializeParser(parser); // always include this line in command
 
     unique_ptr<Domain> d = constructDomain(args::get(args::domain));
 
     if (gambit) {
-        exportGambit(*d, cout);
+        utils::exportGambit(*d, cout);
         return;
     }
     if (graphviz) {
-        exportGraphViz(*d, cout);
+        utils::exportGraphViz(*d, cout);
         return;
     }
     throw std::runtime_error("Invalid export type!");
