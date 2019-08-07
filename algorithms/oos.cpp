@@ -401,8 +401,8 @@ void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
     // updateVal we get is for the exploring player
     u_h *= exploringPl == Player(0) ? 1 : -1;
 
-    const auto &baselineIdx = cache_.baselineValues_.find(h);
-    assert(baselineIdx != cache_.baselineValues_.end());
+    const auto &baselineIdx = cache_.baselineValues.find(h);
+    assert(baselineIdx != cache_.baselineValues.end());
     auto baseline = baselineIdx->second;
 
     double a = 0.0, b = 0.0;

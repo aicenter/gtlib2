@@ -21,15 +21,15 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif ()
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-Wgnu-designator")
+set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-Wgnu-designator -fsanitize=address")
 set(CMAKE_CXX_FLAGS_RELEASE "-m64 -msse2 -O3 -ffast-math -DNDEBUG")
 
 # link pthread library
-set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-find_package(Threads REQUIRED)
-if (CMAKE_USE_PTHREADS_INIT)
-    set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-pthread")
-endif ()
+#set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+#find_package(Threads REQUIRED)
+#if (CMAKE_USE_PTHREADS_INIT)
+#    set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-pthread")
+#endif ()
 
 # add google test
 add_subdirectory(external/googletest)
@@ -170,6 +170,7 @@ set(SOURCE_FILES
         # algorithms
         algorithms/bestResponse.h algorithms/bestResponse.cpp
         algorithms/cfr.h algorithms/cfr.cpp
+        algorithms/cfr_cr.cpp algorithms/cfr_cr.h
         algorithms/common.h algorithms/common.cpp
         algorithms/continualResolving.h
         algorithms/equilibrium.h algorithms/equilibrium.cpp

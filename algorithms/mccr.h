@@ -30,6 +30,30 @@ namespace GTLib2::algorithms {
 
 class MCCRAlgorithm;
 
+struct MCCRSettings: OOSSettings {
+    enum RetentionPolicy { ResetData, KeepData };
+
+    RetentionPolicy retentionPolicy = ResetData;
+
+    template<class Archive>
+    void serialize(Archive &archive) {
+        archive(CEREAL_NVP(samplingBlock),
+                CEREAL_NVP(accumulatorWeighting),
+                CEREAL_NVP(regretMatching),
+                CEREAL_NVP(targeting),
+                CEREAL_NVP(playStrategy),
+                CEREAL_NVP(samplingScheme),
+                CEREAL_NVP(avgStrategyComputation),
+                CEREAL_NVP(baseline),
+                CEREAL_NVP(exploration),
+                CEREAL_NVP(targetBiasing),
+                CEREAL_NVP(approxRegretMatching),
+                CEREAL_NVP(batchSize),
+                CEREAL_NVP(seed),
+                CEREAL_NVP(retentionPolicy));
+    }
+};
+
 class MCCRResolver: public OOSAlgorithm {
  public:
     MCCRResolver(const Domain &domain, Player playingPlayer, OOSData &cache, const OOSSettings &cfg)
@@ -53,18 +77,18 @@ class MCCRResolver: public OOSAlgorithm {
     unordered_map<shared_ptr<AOH>, CFRData::InfosetData> gadgetInfosetData_;
     ProbDistribution gadgetChanceProbs_ = ProbDistribution(OOS_MAX_ACTIONS);
     double gadgetBsum_;
-
-    friend MCCRAlgorithm;
 };
 
 class MCCRAlgorithm: public ContinualResolving {
     unique_ptr<MCCRResolver> resolver_;
+    MCCRSettings cfg_;
 
  public:
-    MCCRAlgorithm(const Domain &domain, Player playingPlayer, OOSData &cache, OOSSettings settings)
+    MCCRAlgorithm(const Domain &domain, Player playingPlayer, OOSData &cache, MCCRSettings settings)
         : ContinualResolving(domain, playingPlayer, cache),
-          resolver_(make_unique<MCCRResolver>(domain, playingPlayer, cache, settings)) {}
-    ~MCCRAlgorithm() = default;
+          resolver_(make_unique<MCCRResolver>(domain, playingPlayer, cache, settings)),
+          cfg_(settings) {}
+    ~MCCRAlgorithm() override = default;
 
     void updateGadget() override;
 

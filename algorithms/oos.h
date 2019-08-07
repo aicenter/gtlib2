@@ -43,16 +43,20 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
     }
 
     inline double getBaselineFor(const shared_ptr<EFGNode> h, ActionId action, Player exploringPl) {
-        return baselineValues_.at(h).value() * (exploringPl == Player(0) ? 1 : -1);
+        return baselineValues.at(h).value() * (exploringPl == Player(0) ? 1 : -1);
     }
 
     struct Baseline {
         double nominator = 0.;
         double denominator = 1.;
         inline double value() const { return nominator / denominator; }
+        inline void reset() {
+            nominator = 0;
+            denominator = 0;
+        }
     };
 
-    unordered_map<shared_ptr<EFGNode>, Baseline> baselineValues_;
+    unordered_map<shared_ptr<EFGNode>, Baseline> baselineValues;
 
     PublicStateSummary getPublicStateSummary(const shared_ptr<PublicState> &ps) {
         // todo: make more efficient
@@ -80,7 +84,7 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
         vector<double> cfvValues_;
         cfvValues_.reserve(topmostHistories_.size());
         for (const auto &h : topmostHistories_) {
-            cfvValues_.emplace_back(baselineValues_.at(h).value());
+            cfvValues_.emplace_back(baselineValues.at(h).value());
         }
 
         return PublicStateSummary(ps, topmostHistories_, topmostHistoriesReachProbs_, cfvValues_);
@@ -88,7 +92,7 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
 
  private:
     void createOOSBaselineData(const shared_ptr<EFGNode> &node) {
-        baselineValues_.emplace(make_pair(node, Baseline()));
+        baselineValues.emplace(make_pair(node, Baseline()));
     }
 
 };
@@ -128,6 +132,23 @@ struct OOSSettings {
     unsigned long batchSize = 1;
 
     unsigned long seed = 0;
+
+    template<class Archive>
+    void serialize(Archive &archive) {
+        archive(CEREAL_NVP(samplingBlock),
+                CEREAL_NVP(accumulatorWeighting),
+                CEREAL_NVP(regretMatching),
+                CEREAL_NVP(targeting),
+                CEREAL_NVP(playStrategy),
+                CEREAL_NVP(samplingScheme),
+                CEREAL_NVP(avgStrategyComputation),
+                CEREAL_NVP(baseline),
+                CEREAL_NVP(exploration),
+                CEREAL_NVP(targetBiasing),
+                CEREAL_NVP(approxRegretMatching),
+                CEREAL_NVP(batchSize),
+                CEREAL_NVP(seed));
+    }
 };
 
 /**

@@ -47,6 +47,11 @@ struct CFRSettings {
     AccumulatorWeighting accumulatorWeighting = UniformAccWeighting;
     RegretMatching regretMatching = RegretMatchingNormal;
     CFRUpdating cfrUpdating = HistoriesUpdating;
+
+    template<class Archive>
+    void serialize(Archive &archive) {
+        archive(accumulatorWeighting, regretMatching, cfrUpdating);
+    }
 };
 
 
@@ -104,6 +109,13 @@ class CFRData: public virtual InfosetCache,
             avgStratAccumulator = vector<double>(numActions, 0.0);
             if (updatingPolicy == HistoriesUpdating) regretUpdates = vector<double>(0);
             else regretUpdates = vector<double>(numActions, 0.);
+        }
+
+        void reset() {
+            std::fill(regrets.begin(), regrets.end(), 0.);
+            std::fill(avgStratAccumulator.begin(), avgStratAccumulator.end(), 0.);
+            std::fill(regretUpdates.begin(), regretUpdates.end(), 0.);
+            numUpdates = 0;
         }
     };
 
