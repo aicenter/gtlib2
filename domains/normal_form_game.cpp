@@ -140,8 +140,8 @@ OutcomeDistribution NFGState::performActions(const vector<shared_ptr<Action>> &a
 
 string NFGState::toString() const {
     if (!isTerminal()) return "Initial state\n";
-    string ret;
 
+    string ret;
     ret.append("Terminal state\n");
     for (int i = 0; i < playedActions_.size(); i++) {
         ret.append("Player ");
@@ -150,6 +150,7 @@ string NFGState::toString() const {
         ret.append(std::to_string(playedActions_[i]));
         ret.append("\n");
     }
+    return ret;
 }
 
 bool NFGState::operator==(const GTLib2::State &rhs) const {
