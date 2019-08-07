@@ -25,7 +25,7 @@
 #include <iomanip>
 #include <fstream>
 
-#include "cereal/archives/json.hpp"
+#include "external/cereal/archives/json.hpp"
 #include "utils/args.hpp"
 #include "utils/global_args.h"
 
