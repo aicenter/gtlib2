@@ -137,6 +137,7 @@ void EFGCache::buildTree(int maxEfgDepth) {
 }
 
 void EFGCache::buildTree() {
+    LOG_DEBUG("Building tree")
     treeWalk(*this, [](shared_ptr<EFGNode> _) {});
     builtForest_ = true;
 }

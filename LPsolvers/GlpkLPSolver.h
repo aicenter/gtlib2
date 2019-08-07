@@ -126,7 +126,7 @@ inline double solveLP(const unsigned int rows,
         glp_write_lp(lp, nullptr, "e.lp");
         return glp_get_obj_val(lp);
     } catch (glp_errfunc &e) {
-        cerr << "GLPK exception caught: " << e << "\n";
+        LOG_ERROR("GLPK exception caught: " << e)
         return NAN;
     }
 }

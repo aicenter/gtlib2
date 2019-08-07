@@ -103,9 +103,9 @@ bool playForIterations(GamePlayingAlgorithm &alg,
  * Run iterations of given algorithm for a given time budget in microseconds.
  * @return whether algorithm decided to continue (true) or give up (false)
  */
-bool playForMicroseconds(GamePlayingAlgorithm &alg,
+bool playForMilliseconds(GamePlayingAlgorithm &alg,
                          const optional<shared_ptr<AOH>> &currentInfoset,
-                         long budgetUs);
+                         long budgetMs);
 
 /**
  * Random player gives up right away, and the rest of the match is played uniformly randomly.
@@ -143,6 +143,10 @@ PreparedAlgorithm createInitializer(Args &... args) {
         return make_unique<T>(domain, pl, args...);
     };
 }
+
+struct AlgorithmWithData {
+    virtual PreparedAlgorithm prepare() = 0;
+};
 
 /**
  * Play match between given algorithms, for a given preplay budget and another budget for each move.

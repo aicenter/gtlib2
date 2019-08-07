@@ -269,6 +269,7 @@ set(SOURCE_FILES
         experiments/export_domain.h
         experiments/export_ring.h
         experiments/cfr_regrets.h
+        experiments/play_match.h
         )
 
 set(TEST_FILES

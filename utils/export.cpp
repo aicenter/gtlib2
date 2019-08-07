@@ -163,7 +163,7 @@ void exportGraphViz(const Domain &domain, std::ostream &fs) {
 void exportGraphViz(const Domain &domain, const string &fileToSave) {
     ofstream fs(fileToSave);
     if (!fs.is_open()) {
-        cerr << "Could not open " << fileToSave << " for writing.";
+        LOG_ERROR("Could not open " << fileToSave << " for writing.")
         return;
     }
     exportGraphViz(domain, fs);
@@ -244,7 +244,7 @@ void exportGambit(const Domain &domain, std::ostream &fs) {
 void exportGambit(const Domain &domain, const string &fileToSave) {
     ofstream fs(fileToSave);
     if (!fs.is_open()) {
-        cerr << "Could not open " << fileToSave << " for writing.";
+        LOG_ERROR("Could not open " << fileToSave << " for writing.")
         return;
     }
     exportGambit(domain, fs);

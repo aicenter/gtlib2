@@ -38,7 +38,7 @@ bool playForBudget(GamePlayingAlgorithm &alg,
 
     switch (type) {
         case BudgetTime:
-            return playForMicroseconds(alg, currentInfoset, budgetValue);
+            return playForMilliseconds(alg, currentInfoset, budgetValue);
         case BudgetIterations:
             return playForIterations(alg, currentInfoset, budgetValue);
         default:
@@ -46,12 +46,13 @@ bool playForBudget(GamePlayingAlgorithm &alg,
     }
 }
 
-bool playForMicroseconds(GamePlayingAlgorithm &alg,
+bool playForMilliseconds(GamePlayingAlgorithm &alg,
                          const optional<shared_ptr<AOH>> &currentInfoset,
-                         long budgetUs) {
+                         long budgetMs) {
 
     PlayControl state = ContinueImproving;
     bool continueImproving = true;
+    long budgetUs = budgetMs * 1000;
     while (budgetUs > 0 && continueImproving) {
         high_resolution_clock::time_point t1 = high_resolution_clock::now();
         state = alg.runPlayIteration(currentInfoset);
@@ -60,7 +61,7 @@ bool playForMicroseconds(GamePlayingAlgorithm &alg,
         auto duration = duration_cast<microseconds>(t2 - t1).count();
         budgetUs -= duration;
     }
-    if (budgetUs < -100) cerr << "Budget missed by " << budgetUs << " us\n";
+    if (budgetUs < -1000) LOG_WARN("Budget missed by " << -1*budgetUs/1000. << " ms")
 
     return state != GiveUp;
 }
@@ -101,7 +102,7 @@ FixedActionPlayer::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
 }
 
 vector<double> playMatch(const Domain &domain,
-                         vector <PreparedAlgorithm> algorithmInitializers,
+                         vector<PreparedAlgorithm> algorithmInitializers,
                          vector<int> preplayBudget,
                          vector<int> moveBudget,
                          BudgetType simulationType,
@@ -115,9 +116,11 @@ vector<double> playMatch(const Domain &domain,
     auto continuePlay = vector<bool>(numAlgs, true);
 
     for (int i = 0; i < numAlgs; ++i) {
+        LOG_INFO("Initializing Player " << i)
         algs[i] = algorithmInitializers[i](domain, Player(i));
     }
     for (int i = 0; i < numAlgs; ++i) {
+        LOG_INFO("Preplay for player " << i)
         continuePlay[i] = playForBudget(*algs[i], nullopt, preplayBudget[i], simulationType);
     }
 
@@ -132,15 +135,18 @@ vector<double> playMatch(const Domain &domain,
         switch (node->type_) {
             case ChanceNode:
                 playerAction = pickRandom(*node, generator);
+                LOG_INFO("Chance picked action " << playerAction)
                 break;
 
             case PlayerNode: {
                 auto infoset = node->getAOHInfSet();
                 Player pl = node->getPlayer();
 
-                if (continuePlay[pl])
+                if (continuePlay[pl]) {
+                    LOG_INFO("Player " << int(pl) << " is thinking...")
                     continuePlay[pl] = playForBudget(*algs[pl], infoset,
                                                      moveBudget[pl], simulationType);
+                }
 
                 ProbDistribution probs;
                 if (continuePlay[pl]) {
@@ -149,7 +155,7 @@ vector<double> playMatch(const Domain &domain,
                     else probs = *maybeProbs;
                 }
                 if (!continuePlay[pl]) {
-                    cerr << "Player " << int(pl) << " gave up!" << endl;
+                    LOG_INFO("Player " << int(pl) << " gave up!")
                     probs = ProbDistribution(actions.size(), 1. / actions.size());
                 }
 
@@ -159,6 +165,7 @@ vector<double> playMatch(const Domain &domain,
                 assert(fabs(1.0 - sumProbs) < 1e-9);
 
                 playerAction = pickRandom(probs, generator);
+                LOG_INFO("Player " << int(pl) << " picked action " << playerAction << " from distr " << probs)
                 break;
             }
 
