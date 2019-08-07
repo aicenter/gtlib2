@@ -93,6 +93,8 @@ class GadgetGame {
         return make_shared<GadgetRootNode>(*this);
     }
 
+    double chanceProbForAction(const ActionId &action) const;
+
  private:
     double computePubStateReach();
     vector<double> computeTerminateCFVValues();

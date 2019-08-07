@@ -72,21 +72,25 @@ vector<double> GadgetGame::computeTerminateCFVValues() {
 
     return cfvValues; // again, defined for player 0
 }
+double GadgetGame::chanceProbForAction(const ActionId &action) const {
+    const auto reach = summary_.topmostHistoriesReachProbs.at(action);
 
-double GadgetRootNode::chanceProbForAction(const ActionId &action) const {
-    const auto reach = gadget_.summary_.topmostHistoriesReachProbs.at(action);
-
-    switch (gadget_.variant_) {
+    switch (variant_) {
         case SAFE_RESOLVING:
-            return reach[gadget_.resolvingPlayer_] * reach[2] / gadget_.pubStateReach_;
+            return reach[resolvingPlayer_] * reach[2] / pubStateReach_;
         case UNSAFE_RESOLVING:
-            return reach[0] * reach[1] * reach[2] / gadget_.pubStateReach_;
+            return reach[0] * reach[1] * reach[2] / pubStateReach_;
         case MAX_MARGIN:
             assert(false);
         default:
             assert(false);
     }
 }
+
+double GadgetRootNode::chanceProbForAction(const ActionId &action) const {
+    return gadget_.chanceProbForAction(action);
+}
+
 shared_ptr<EFGNode> GadgetRootNode::performAction(const shared_ptr<Action> &action) const {
     const auto underlyingNode = gadget_.summary_.topmostHistories.at(action->getId());
 
