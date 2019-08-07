@@ -219,6 +219,51 @@ set(SOURCE_FILES
         utils/logging.h
         utils/range.h
         utils/utils.h
+        # cereal
+        external/cereal/archives/xml.hpp
+        external/cereal/archives/adapters.hpp
+        external/cereal/archives/portable_binary.hpp
+        external/cereal/archives/json.hpp
+        external/cereal/archives/binary.hpp
+        external/cereal/access.hpp
+        external/cereal/details/util.hpp
+        external/cereal/details/polymorphic_impl.hpp
+        external/cereal/details/traits.hpp
+        external/cereal/details/helpers.hpp
+        external/cereal/details/polymorphic_impl_fwd.hpp
+        external/cereal/details/static_object.hpp
+        external/cereal/external/rapidxml/rapidxml_iterators.hpp
+        external/cereal/external/rapidxml/rapidxml_print.hpp
+        external/cereal/external/rapidxml/rapidxml.hpp
+        external/cereal/external/rapidxml/rapidxml_utils.hpp
+        external/cereal/external/base64.hpp
+        external/cereal/types/stack.hpp
+        external/cereal/types/functional.hpp
+        external/cereal/types/polymorphic.hpp
+        external/cereal/types/base_class.hpp
+        external/cereal/types/common.hpp
+        external/cereal/types/unordered_set.hpp
+        external/cereal/types/utility.hpp
+        external/cereal/types/tuple.hpp
+        external/cereal/types/concepts/pair_associative_container.hpp
+        external/cereal/types/vector.hpp
+        external/cereal/types/unordered_map.hpp
+        external/cereal/types/chrono.hpp
+        external/cereal/types/memory.hpp
+        external/cereal/types/map.hpp
+        external/cereal/types/array.hpp
+        external/cereal/types/valarray.hpp
+        external/cereal/types/list.hpp
+        external/cereal/types/deque.hpp
+        external/cereal/types/string.hpp
+        external/cereal/types/queue.hpp
+        external/cereal/types/set.hpp
+        external/cereal/types/complex.hpp
+        external/cereal/types/boost_variant.hpp
+        external/cereal/types/bitset.hpp
+        external/cereal/types/forward_list.hpp
+        external/cereal/cereal.hpp
+        external/cereal/macros.hpp
         # experiments
         experiments/benchmark_cfr.h
         experiments/export_domain.h
