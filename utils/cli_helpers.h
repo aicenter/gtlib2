@@ -40,21 +40,11 @@
 #include "domains/randomGame.h"
 #include "domains/simple_games.h"
 
+namespace GTLib2::CLI {
+using namespace domains;
+using namespace algorithms;
 
-std::unique_ptr<GTLib2::Domain> constructDomain(const std::string &description) {
-    using namespace GTLib2;
-    using domains::GoofSpielDomain;
-    using domains::GoofSpielSettings;
-    using domains::GoofSpielVariant;
-    using domains::OshiZumoDomain;
-    using domains::OshiZumoSettings;
-    using domains::OshiZumoVariant;
-    using domains::RPSDomain;
-    using domains::BiasedRPSDomain;
-    using domains::MatchingPenniesDomain;
-    using domains::PrisonnersDilemmaDomain;
-
-
+unique_ptr<Domain> constructDomain(const string &description) {
     string buf;
     std::stringstream ss(description);
     string domain;
@@ -142,15 +132,6 @@ std::unique_ptr<GTLib2::Domain> constructDomain(const std::string &description) 
 std::unique_ptr<GTLib2::AlgorithmWithData> constructAlgWithData(const GTLib2::Domain &d,
                                                                 const std::string &algName,
                                                                 const std::string &settingFile) {
-    using namespace GTLib2;
-    using algorithms::CFRAlgorithm;
-    using algorithms::CFRData;
-    using algorithms::CFRSettings;
-    using algorithms::OOSAlgorithm;
-    using algorithms::OOSData;
-    using algorithms::OOSSettings;
-    using algorithms::MCCRAlgorithm;
-    using algorithms::MCCRSettings;
 
     struct WrapperCFR: AlgorithmWithData {
         CFRData data;
@@ -204,6 +185,8 @@ std::unique_ptr<GTLib2::AlgorithmWithData> constructAlgWithData(const GTLib2::Do
     // @formatter:on
 
     return algorithmsTable.at(algName)();
+}
+
 }
 
 #endif

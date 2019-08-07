@@ -27,6 +27,8 @@
 #include "base/fogefg.h"
 #include "utils/global_args.h"
 
+namespace GTLib2::CLI {
+
 const auto cmap_parula = std::vector<std::string>{
     "#352a87", "#362d8d", "#363296", "#36359c", "#3639a6", "#353dac", "#3341b6", "#2f47bf",
     "#2c4ac6", "#2450d0", "#1d54d5", "#105bdd", "#0760e0", "#0364e1", "#0268e1", "#036ae1",
@@ -44,8 +46,6 @@ const auto cmap_parula = std::vector<std::string>{
 };
 
 void Command_ExportRing(args::Subparser &parser) {
-    using namespace GTLib2;
-
     initializeParser(parser); // always include this line in command
 
     unique_ptr<Domain> d = constructDomain(args::get(args::domain));
@@ -70,7 +70,8 @@ void Command_ExportRing(args::Subparser &parser) {
     double umin = *std::min_element(utils.begin(), utils.end());
 
     for (int i = 0; i < utils.size(); ++i) {
-        const unsigned long coloridx = floor( (utils[i] - umin) / (umax-umin) * (cmap_parula.size()-1) );
+        const unsigned long
+            coloridx = floor((utils[i] - umin) / (umax - umin) * (cmap_parula.size() - 1));
         const auto color = cmap_parula[coloridx];
 
         cout
@@ -87,5 +88,5 @@ void Command_ExportRing(args::Subparser &parser) {
 
 }
 
-
+}
 #endif // GTLIB2_EXPORT_RING_H

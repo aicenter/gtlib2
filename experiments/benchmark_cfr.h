@@ -28,14 +28,9 @@
 #include "domains/goofSpiel.h"
 #include "utils/benchmark.h"
 
-void Command_BenchmarkCFR(args::Subparser &parser) {
-    using namespace GTLib2;
-    using domains::GoofSpielDomain;
-    using utils::benchmarkRuntime;
-    using algorithms::CFRSettings;
-    using algorithms::CFRData;
-    using algorithms::CFRAlgorithm;
+namespace GTLib2::CLI {
 
+void Command_BenchmarkCFR(args::Subparser &parser) {
     initializeParser(parser); // always include this line in command
 
     const auto domain = GoofSpielDomain::IIGS(5);
@@ -43,13 +38,14 @@ void Command_BenchmarkCFR(args::Subparser &parser) {
     auto cache = CFRData(*domain, settings.cfrUpdating);
     CFRAlgorithm cfr(*domain, Player(0), cache, settings);
 
-    auto totalTime = benchmarkRuntime([&]() {
-        cout << "Build time: " << benchmarkRuntime([&]() { cfr.getCache().buildTree(); }) << " ms"
+    auto totalTime = utils::benchmarkRuntime([&]() {
+        cout << "Build time: " << utils::benchmarkRuntime([&]() { cfr.getCache().buildTree(); }) << " ms"
              << endl;
-        cout << "Iters Time: " << benchmarkRuntime([&]() { cfr.runIterations(100); }) << " ms"
+        cout << "Iters Time: " << utils::benchmarkRuntime([&]() { cfr.runIterations(100); }) << " ms"
              << endl;
     });
     cout << "Total Time: " << totalTime << " ms" << endl;
 }
 
+}
 #endif // GTLIB2_BENCHMARK_CFR_H

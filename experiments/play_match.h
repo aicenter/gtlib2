@@ -24,8 +24,9 @@
 
 #include "utils/cli_helpers.h"
 
+namespace GTLib2::CLI {
+
 void Command_PlayMatch(args::Subparser &parser) {
-    using namespace GTLib2;
     args::Group group(parser, "Algorithms to play");
     args::ValueFlagList<int> preplayBudget(group, "ms", "Budget in preplay", {"preplay"});
     args::ValueFlagList<int> moveBudget(group, "ms", "Budget per move", {"move"});
@@ -39,12 +40,12 @@ void Command_PlayMatch(args::Subparser &parser) {
 
     const auto algs = args::get(args::alg);
     if (algs.size() != 2) {
-        cerr << "Two algorithms must be specified!" << endl;
+        LOG_ERROR("Two algorithms must be specified!");
         exit(1);
     }
     const auto cfgs = args::get(args::algcfg);
     if (algs.size() != 2) {
-        cerr << "Two algorithm configs must be specified!" << endl;
+        LOG_ERROR("Two algorithm configs must be specified!")
         exit(1);
     }
 
@@ -73,8 +74,8 @@ void Command_PlayMatch(args::Subparser &parser) {
 
     cout << playMatch(*domain, {instance1->prepare(), instance2->prepare()},
                       pb, mb, time ? BudgetTime : BudgetIterations, seedValue) << endl;
-
 }
 
+}
 
 #endif // GTLIB2_EXPERIMENT_PLAY_MATCH_H

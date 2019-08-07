@@ -44,13 +44,13 @@ args::ValueFlagList<std::string> algcfg(arguments,
                                         {'c', "algcfg"},
                                         {"settings/cfr.json", "settings/cfr.json"});
 args::ValueFlag<unsigned int> log_level(arguments, "",
-                                        "Logging level", {'l', "log_level"}, GTLib2::LOGLEVEL_INFO);
+                                        "Logging level", {'l', "log_level"}, GTLib2::CLI::LOGLEVEL_INFO);
 
 }
 
 void initializeParser(args::Subparser &parser) {
     parser.Parse();
-    GTLib2::log_level = args::get(args::log_level);
+    GTLib2::CLI::log_level = args::get(args::log_level);
 }
 
 #endif // GTLIB2_GLOBAL_ARGSH

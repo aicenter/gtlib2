@@ -28,7 +28,7 @@
 #include <iomanip>
 #include <iostream>
 
-namespace GTLib2 {
+namespace GTLib2::CLI {
 
 constexpr unsigned int LOGLEVEL_CRITICAL = 50;
 constexpr unsigned int LOGLEVEL_ERROR = 40;
@@ -57,8 +57,8 @@ inline auto time_diff() {
 
     std::stringstream ss;
     ss.fill(' ');
-    ss.precision(2);
-    ss << std::setw(4);
+    ss.precision(1);
+    ss << std::setw(5) << std::fixed;
     if (diff > 1000000 * 60) {
         ss << diff / 1000000. * 60 << "min";
     } else if (diff > 1000000) {
@@ -66,7 +66,7 @@ inline auto time_diff() {
     } else if (diff > 1000) {
         ss << diff / 1000. << "ms";
     } else {
-        ss << diff << "us";
+        ss << diff / 1. << "us";
     }
     return ss.str();
 }
@@ -98,14 +98,14 @@ inline static std::string set_color(Color foreground = NONE, Color background = 
 }
 
 //@formatter:off
-#define LOG_TIME_DIFF    time_diff()
+#define LOG_TIME_DIFF    CLI::time_diff()
 #define LOG_THREAD       std::this_thread::get_id()
 
-#define LOG_DEBUG(x)     if(log_level <= LOGLEVEL_DEBUG)    { cerr << set_color(GRAY) << "[DEBUG][thread-" << LOG_THREAD << "][" << LOG_TIME_DIFF << "] " << x << set_color() << endl; }
-#define LOG_INFO(x)      if(log_level <= LOGLEVEL_INFO)     { cerr << set_color(WHITE) << "[INFO ][thread-" << LOG_THREAD << "][" << LOG_TIME_DIFF << "] " << x << set_color() << endl; }
-#define LOG_WARN(x)      if(log_level <= LOGLEVEL_WARNING)  { cerr << set_color(GREEN) << "[WARN ][thread-" << LOG_THREAD << "][" << LOG_TIME_DIFF << "] " << x << set_color() << endl; }
-#define LOG_ERROR(x)     if(log_level <= LOGLEVEL_ERROR)    { cerr << set_color(RED) << "[ERROR][thread-" << LOG_THREAD << "][" << LOG_TIME_DIFF << "] " << x << set_color() << endl; }
-#define LOG_CRITICAL(x)  if(log_level <= LOGLEVEL_CRITICAL) { cerr << set_color(RED, GRAY) << "[CRIT ][thread-" << LOG_THREAD << "][" << LOG_TIME_DIFF << "] " << x << set_color() << endl; }
+#define LOG_DEBUG(x)     if(CLI::log_level <= CLI::LOGLEVEL_DEBUG)    { cerr << CLI::set_color(CLI::GRAY) << "[DEBUG][thread-" << LOG_THREAD << "] " << LOG_TIME_DIFF << " | " << x << CLI::set_color() << endl; }
+#define LOG_INFO(x)      if(CLI::log_level <= CLI::LOGLEVEL_INFO)     { cerr << CLI::set_color(CLI::WHITE) << "[INFO ][thread-" << LOG_THREAD << "] " << LOG_TIME_DIFF << " | " << x << CLI::set_color() << endl; }
+#define LOG_WARN(x)      if(CLI::log_level <= CLI::LOGLEVEL_WARNING)  { cerr << CLI::set_color(CLI::GREEN) << "[WARN ][thread-" << LOG_THREAD << "] " << LOG_TIME_DIFF << " | " << x << CLI::set_color() << endl; }
+#define LOG_ERROR(x)     if(CLI::log_level <= CLI::LOGLEVEL_ERROR)    { cerr << CLI::set_color(CLI::RED) << "[ERROR][thread-" << LOG_THREAD << "] " << LOG_TIME_DIFF << " | " << x << CLI::set_color() << endl; }
+#define LOG_CRITICAL(x)  if(CLI::log_level <= CLI::LOGLEVEL_CRITICAL) { cerr << CLI::set_color(CLI::RED, CLI::GRAY) << "[CRIT ][thread-" << LOG_THREAD << "] " << LOG_TIME_DIFF << " | " << x << CLI::set_color() << endl; }
 //@formatter:on
 
 }

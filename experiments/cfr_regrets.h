@@ -26,12 +26,9 @@
 #include "utils/cli_helpers.h"
 #include "algorithms/cfr.h"
 
-void Command_CFRRegrets(args::Subparser &parser) {
-    using namespace GTLib2;
-    using algorithms::CFRSettings;
-    using algorithms::CFRData;
-    using algorithms::CFRAlgorithm;
+namespace GTLib2::CLI {
 
+void Command_CFRRegrets(args::Subparser &parser) {
     args::PositionalList<double> regrets(parser, "REGRETS",
                                          "initial regrets at the root", {0., 0.});
     initializeParser(parser); // always include this line in command
@@ -69,5 +66,6 @@ void Command_CFRRegrets(args::Subparser &parser) {
     }
 }
 
+}
 
 #endif //GTLIB2_CFR_REGRETS_H

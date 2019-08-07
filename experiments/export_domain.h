@@ -25,9 +25,9 @@
 #include "utils/cli_helpers.h"
 #include "utils/export.h"
 
-void Command_ExportDomain(args::Subparser &parser) {
-    using namespace GTLib2;
+namespace GTLib2::CLI {
 
+void Command_ExportDomain(args::Subparser &parser) {
     args::Group group(parser, "Export type:", args::Group::Validators::Xor);
     args::Flag gambit(group, "gambit", "", {"gbt", "gambit"});
     args::Flag graphviz(group, "graphviz", "", {"dot", "graphviz"});
@@ -46,5 +46,6 @@ void Command_ExportDomain(args::Subparser &parser) {
     throw std::runtime_error("Invalid export type!");
 }
 
+}
 
 #endif // GTLIB2_EXPORT_DOMAIN_H
