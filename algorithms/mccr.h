@@ -73,6 +73,13 @@ class MCCRResolver: public OOSAlgorithm {
                                     CFRData::InfosetData &data,
                                     double us_h_cn, double rm_zha_all, double rm_ha_all);
 
+    // only MCCRAlgorithm can update gadget
+    friend MCCRAlgorithm;
+    void updateGadget(GadgetGame *newGadget);
+
+    double updateGadgetInfosetData();
+    void updateGadgetBiasingProbs(double playInfosetReachProb);
+
     GadgetGame *gadget_ = nullptr; // in root, we don't have a gadget
     unordered_map<shared_ptr<AOH>, CFRData::InfosetData> gadgetInfosetData_;
     ProbDistribution gadgetChanceProbs_ = ProbDistribution(OOS_MAX_ACTIONS);

@@ -80,13 +80,23 @@ void MCCRAlgorithm::solveEntireGame(int preplayBudget, int resolveBudget, Budget
 
 void MCCRAlgorithm::updateGadget() {
     ContinualResolving::updateGadget();
-    const auto &r = resolver_;
+    resolver_->updateGadget(gadget_.get());
 
-    // Update stateful gadget
-    r->gadget_ = gadget_.get();
+    if (cfg_.retentionPolicy == MCCRSettings::ResetData) {
+        for (auto&[key, val] : cache_.baselineValues) val.reset();
+        for (auto&[key, val] : cache_.infosetData) val.reset();
+    }
+}
 
-    // Construct gadget infoset data
-    r->gadgetInfosetData_.clear();
+void MCCRResolver::updateGadget(GadgetGame *newGadget) {
+    gadget_ = newGadget;
+
+    double playInfosetReachProb = updateGadgetInfosetData();
+    updateGadgetBiasingProbs(playInfosetReachProb);
+}
+
+double MCCRResolver::updateGadgetInfosetData() {
+    gadgetInfosetData_.clear();
 
     const auto &summary = gadget_->summary_;
     const auto numGadgetHistories = summary.topmostHistories.size();
@@ -94,33 +104,38 @@ void MCCRAlgorithm::updateGadget() {
     for (int i = 0; i < numGadgetHistories; ++i) {
         const auto &h = summary.topmostHistories.at(i);
         const auto infoset = h->getAOHAugInfSet(gadget_->viewingPlayer_);
-        r->gadgetInfosetData_.emplace(infoset, CFRData::InfosetData(2, HistoriesUpdating));
+        gadgetInfosetData_.emplace(infoset, CFRData::InfosetData(2, HistoriesUpdating));
 
-        if ((*playInfoset_)->getAOids() == h->getAOids(gadget_->resolvingPlayer_)) {
-            playInfosetReachProb += gadgetRoot_->chanceProbForAction(i);
+        if (gadget_->targetAOH_->getAOids() == h->getAOids(gadget_->resolvingPlayer_)) {
+            playInfosetReachProb += gadget_->chanceProbForAction(i);
         }
     }
+    return playInfosetReachProb;
+}
 
-    // store root biased probabilities: it is a
-    //   epsilon-convex of uniform and (delta-convex of current infoset and subgame)
-    //    ^ make sure non-zero             ^ make sure we make targetting of current IS
+// Store root biased probabilities: it is a
+//   epsilon-convex of uniform and (delta-convex of current infoset and subgame)
+//    ^ make sure non-zero             ^ make sure we make targetting of current IS
+void MCCRResolver::updateGadgetBiasingProbs(double playInfosetReachProb) {
+    const auto &summary = gadget_->summary_;
+    const auto numGadgetHistories = summary.topmostHistories.size();
     const double p_unif = 1. / numGadgetHistories;
-    r->gadgetBsum_ = 0.0;
+
+    gadgetBsum_ = 0.0;
     for (int i = 0; i < numGadgetHistories; ++i) {
         const auto h = summary.topmostHistories.at(i);
         // todo: take another look at this
         // @formatter:off
-        double p = r->explore(p_unif, r->bias(
-            ((*playInfoset_)->getAOids() == h->getAOids(gadget_->resolvingPlayer_))
-              ? gadgetRoot_->chanceProbForAction(i) / playInfosetReachProb
+        double p = explore(p_unif, bias(
+            (gadget_->targetAOH_->getAOids() == h->getAOids(gadget_->resolvingPlayer_))
+              ? gadget_->chanceProbForAction(i) / playInfosetReachProb
               : 0,
-            gadgetRoot_->chanceProbForAction(i))
+            gadget_->chanceProbForAction(i))
         );
         // @formatter:on
-        r->gadgetChanceProbs_.at(i) = p;
-        r->gadgetBsum_ += p;
+        gadgetChanceProbs_.at(i) = p;
+        gadgetBsum_ += p;
     }
-
 }
 
 double MCCRResolver::handleChanceNode(const shared_ptr<EFGNode> &h, double rm_h_pl, double rm_h_opp,
