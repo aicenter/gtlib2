@@ -61,7 +61,7 @@ bool playForMilliseconds(GamePlayingAlgorithm &alg,
         auto duration = duration_cast<microseconds>(t2 - t1).count();
         budgetUs -= duration;
     }
-    if (budgetUs < -1000) LOG_WARN("Budget missed by " << -1*budgetUs/1000. << " ms")
+    if (budgetUs < -1000) LOG_WARN("Budget missed by " << -1 * budgetUs / 1000. << " ms")
 
     return state != GiveUp;
 }
@@ -108,6 +108,8 @@ vector<double> playMatch(const Domain &domain,
                          BudgetType simulationType,
                          unsigned long matchSeed) {
 
+#define LOG_PLAYER(pl, msg) LOG_INFO(CLI::set_color(CLI::Color(pl+2)) << msg << CLI::set_color())
+
     assert(algorithmInitializers.size() == preplayBudget.size() &&
         preplayBudget.size() == moveBudget.size());
 
@@ -116,11 +118,11 @@ vector<double> playMatch(const Domain &domain,
     auto continuePlay = vector<bool>(numAlgs, true);
 
     for (int i = 0; i < numAlgs; ++i) {
-        LOG_INFO("Initializing Player " << i)
+        LOG_PLAYER(i, "Initializing player " << i)
         algs[i] = algorithmInitializers[i](domain, Player(i));
     }
     for (int i = 0; i < numAlgs; ++i) {
-        LOG_INFO("Preplay for player " << i)
+        LOG_PLAYER(i, "Player " << i << " is thinking in preplay")
         continuePlay[i] = playForBudget(*algs[i], nullopt, preplayBudget[i], simulationType);
     }
 
@@ -135,7 +137,7 @@ vector<double> playMatch(const Domain &domain,
         switch (node->type_) {
             case ChanceNode:
                 playerAction = pickRandom(*node, generator);
-                LOG_INFO("Chance picked action " << playerAction)
+                LOG_PLAYER(2, "Chance picked action " << playerAction)
                 break;
 
             case PlayerNode: {
@@ -143,7 +145,7 @@ vector<double> playMatch(const Domain &domain,
                 Player pl = node->getPlayer();
 
                 if (continuePlay[pl]) {
-                    LOG_INFO("Player " << int(pl) << " is thinking...")
+                    LOG_PLAYER(pl, "Player " << int(pl) << " is thinking...")
                     continuePlay[pl] = playForBudget(*algs[pl], infoset,
                                                      moveBudget[pl], simulationType);
                 }
@@ -155,7 +157,7 @@ vector<double> playMatch(const Domain &domain,
                     else probs = *maybeProbs;
                 }
                 if (!continuePlay[pl]) {
-                    LOG_INFO("Player " << int(pl) << " gave up!")
+                    LOG_PLAYER(pl, "Player " << int(pl) << " gave up!")
                     probs = ProbDistribution(actions.size(), 1. / actions.size());
                 }
 
@@ -165,7 +167,8 @@ vector<double> playMatch(const Domain &domain,
                 assert(fabs(1.0 - sumProbs) < 1e-9);
 
                 playerAction = pickRandom(probs, generator);
-                LOG_INFO("Player " << int(pl) << " picked action " << playerAction << " from distr " << probs)
+                LOG_PLAYER(pl, "Player " << int(pl) << " picked action " << playerAction
+                                         << " from distr " << probs)
                 break;
             }
 
