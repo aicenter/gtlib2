@@ -198,6 +198,7 @@ double OOSAlgorithm::handleTerminalNode(const shared_ptr<EFGNode> &h,
                                         Player exploringPl) {
     s_z_all_ = bias(bs_h_all, us_h_all);
     u_z_ = h->getUtilities()[exploringPl];
+    assert(!isnan(u_z_) && !isinf(u_z_));
     return u_z_;
 }
 
@@ -230,6 +231,7 @@ double OOSAlgorithm::handleChanceNode(const shared_ptr<EFGNode> &h,
         u_h += probs[action->getId()] * baseline(h, action->getId());
     }
 
+    assert(!isnan(u_h) && !isinf(u_h));
     return u_h;
 }
 
@@ -262,6 +264,7 @@ double OOSAlgorithm::handlePlayerNode(const shared_ptr<EFGNode> &h,
     else
         updateInfosetAcc(h, data, rm_h_opp * us_h_cn / s_h_all);
 
+    assert(!isnan(u_h) && !isinf(u_h));
     return u_h;
 }
 
@@ -273,6 +276,9 @@ PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
                                                    const shared_ptr<AOH> &infoset,
                                                    Player exploringPl) {
     assert(h->type_ == PlayerNode);
+    assert(!isnan(rm_h_pl) && !isnan(rm_h_opp) && !isnan(bs_h_all) && !isnan(us_h_all)
+               && !isnan(us_h_cn));
+
     const bool exploringMoveInNode = h->getPlayer() == exploringPl;
     calcRMProbs(data.regrets, &rmProbs_, cfg_.approxRegretMatching);
 
@@ -310,18 +316,22 @@ PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
     const double u_x = (u_ha - baseline(h, ai)) / s_ha_all + baseline(h, ai);
     u_h += u_x * rm_ha_all;
 
+    assert(!isnan(rm_ha_all) && !isnan(u_h) && !isnan(u_x));
     return PlayerNodeOutcome(ai, rm_ha_all, u_h, u_x);
 }
 
 PlayerNodeOutcome OOSAlgorithm::incrementallyBuildTree(const shared_ptr<EFGNode> &h,
                                                        const vector<shared_ptr<Action>> &actions,
                                                        double s_h_all, Player exploringPl) {
+    assert(!isnan(s_h_all));
+
     const auto[ai, leaf] = selectLeaf(h, actions);
     const double rm_ha_all = 1.0 / actions.size();
     u_z_ = leaf.utilities[exploringPl];
     rm_zh_all_ = leaf.reachProb(); // "* rm_ha_all" will be added at the bottom
     s_z_all_ = s_h_all * leaf.reachProb() * rm_ha_all;
 
+    assert(!isnan(rm_ha_all) && !isnan(u_z_) && !isnan(s_z_all_));
     return PlayerNodeOutcome(ai, rm_ha_all, u_z_, u_z_);
 }
 
@@ -469,6 +479,7 @@ void OOSAlgorithm::updateInfosetAcc(const shared_ptr<EFGNode> &h, CFRData::Infos
 void OOSAlgorithm::updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exploringPl,
                                         CFRData::InfosetData &data, int ai,
                                         double u_x, double u_h, double w) {
+    assert(!isnan(u_x) && !isnan(u_h) && !isnan(w));
 
     auto &reg = data.regrets;
 

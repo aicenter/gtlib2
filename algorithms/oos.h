@@ -49,10 +49,14 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
     struct Baseline {
         double nominator = 0.;
         double denominator = 1.;
-        inline double value() const { return nominator / denominator; }
+        inline double value() const {
+            double v = nominator / denominator;
+            assert(!isnan(v));
+            assert(!isinf(v));
+        }
         inline void reset() {
-            nominator = 0;
-            denominator = 0;
+            nominator = 0.;
+            denominator = 1.;
         }
     };
 

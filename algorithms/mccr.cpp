@@ -41,7 +41,7 @@ PlayControl MCCRAlgorithm::preplayIteration(const shared_ptr<EFGNode> &rootNode)
     return ContinueImproving;
 }
 
-PlayControl MCCRAlgorithm::resolveIteration(const shared_ptr<GadgetRootNode> &rootNode,
+PlayControl MCCRAlgorithm::resolveIteration(const shared_ptr<GadgetRootNode> &gadgetRoot,
                                             const shared_ptr<AOH> &currentInfoset) {
     const auto &r = resolver_;
     // Since CR has called resolve iteration, we have gadget at our disposal.
@@ -63,7 +63,7 @@ PlayControl MCCRAlgorithm::resolveIteration(const shared_ptr<GadgetRootNode> &ro
             r->isBiasedIteration_ = r->dist_(r->generator_) <= r->cfg_.targetBiasing;
             r->isBelowTargetIS_ = false;
 
-            r->iteration(rootNode, 1.0, 1.0, compensation, compensation, 1.0, exploringPl);
+            r->iteration(gadgetRoot, 1.0, 1.0, compensation, compensation, 1.0, exploringPl);
             ++r->stats_.rootVisits;
         }
     }

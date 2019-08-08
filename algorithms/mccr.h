@@ -101,7 +101,7 @@ class MCCRAlgorithm: public ContinualResolving {
 
     void solveEntireGame(int preplayBudget, int resolveBudget, BudgetType type) override;
     PlayControl preplayIteration(const shared_ptr<EFGNode> &rootNode) override;
-    PlayControl resolveIteration(const shared_ptr<GadgetRootNode> &rootNode,
+    PlayControl resolveIteration(const shared_ptr<GadgetRootNode> &gadgetRoot,
                                  const shared_ptr<AOH> &currentInfoset) override;
 
 };
