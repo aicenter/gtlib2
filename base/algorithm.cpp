@@ -34,7 +34,7 @@ using std::chrono::microseconds;
 
 bool playForBudget(GamePlayingAlgorithm &alg,
                    const optional<shared_ptr<AOH>> &currentInfoset,
-                   long budgetValue, BudgetType type) {
+                   unsigned int budgetValue, BudgetType type) {
 
     switch (type) {
         case BudgetTime:
@@ -48,7 +48,7 @@ bool playForBudget(GamePlayingAlgorithm &alg,
 
 bool playForMilliseconds(GamePlayingAlgorithm &alg,
                          const optional<shared_ptr<AOH>> &currentInfoset,
-                         long budgetMs) {
+                         unsigned int budgetMs) {
 
     PlayControl state = ContinueImproving;
     bool continueImproving = true;
@@ -68,7 +68,7 @@ bool playForMilliseconds(GamePlayingAlgorithm &alg,
 
 bool playForIterations(GamePlayingAlgorithm &alg,
                        const optional<shared_ptr<AOH>> &currentInfoset,
-                       long budgetIters) {
+                       unsigned int budgetIters) {
 
     PlayControl state = ContinueImproving;
     bool continueImproving = true;
@@ -103,8 +103,8 @@ FixedActionPlayer::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
 
 vector<double> playMatch(const Domain &domain,
                          vector<PreparedAlgorithm> algorithmInitializers,
-                         vector<int> preplayBudget,
-                         vector<int> moveBudget,
+                         vector<unsigned int> preplayBudget,
+                         vector<unsigned int> moveBudget,
                          BudgetType simulationType,
                          unsigned long matchSeed) {
 

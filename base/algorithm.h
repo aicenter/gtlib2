@@ -90,7 +90,7 @@ enum BudgetType { BudgetTime, BudgetIterations };
  */
 bool playForBudget(GamePlayingAlgorithm &alg,
                    const optional<shared_ptr<AOH>> &currentInfoset,
-                   long budgetValue, BudgetType type);
+                   unsigned int budgetValue, BudgetType type);
 
 /**
  * Run iterations of given algorithm for a given number of iterations.
@@ -98,14 +98,14 @@ bool playForBudget(GamePlayingAlgorithm &alg,
  */
 bool playForIterations(GamePlayingAlgorithm &alg,
                        const optional<shared_ptr<AOH>> &currentInfoset,
-                       long budgetIters);
+                       unsigned int budgetIters);
 /**
  * Run iterations of given algorithm for a given time budget in microseconds.
  * @return whether algorithm decided to continue (true) or give up (false)
  */
 bool playForMilliseconds(GamePlayingAlgorithm &alg,
                          const optional<shared_ptr<AOH>> &currentInfoset,
-                         long budgetMs);
+                         unsigned int budgetMs);
 
 /**
  * Random player gives up right away, and the rest of the match is played uniformly randomly.
@@ -158,9 +158,9 @@ struct AlgorithmWithData {
  * @endcode
  */
 vector<double> playMatch(const Domain &domain,
-                         vector <PreparedAlgorithm> algorithmInitializers,
-                         vector<int> preplayBudget,
-                         vector<int> moveBudget,
+                         vector<PreparedAlgorithm> algorithmInitializers,
+                         vector<unsigned int> preplayBudget,
+                         vector<unsigned int> moveBudget,
                          BudgetType simulationType,
                          unsigned long matchSeed);
 

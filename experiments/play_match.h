@@ -28,8 +28,8 @@ namespace GTLib2::CLI {
 
 void Command_PlayMatch(args::Subparser &parser) {
     args::Group group(parser, "Algorithms to play");
-    args::ValueFlagList<int> preplayBudget(group, "ms", "Budget in preplay", {"preplay"});
-    args::ValueFlagList<int> moveBudget(group, "ms", "Budget per move", {"move"});
+    args::ValueFlagList<unsigned int> preplayBudget(group, "ms", "Budget in preplay", {"preplay"});
+    args::ValueFlagList<unsigned int> moveBudget(group, "ms", "Budget per move", {"move"});
     args::Group budgetType(group, "Budget type:", args::Group::Validators::Xor);
     args::Flag time(budgetType, "time", "", {"time"});
     args::Flag iterations(budgetType, "iterations", "", {"iterations", "iters"});
