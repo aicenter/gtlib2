@@ -108,7 +108,7 @@ vector<double> playMatch(const Domain &domain,
                          BudgetType simulationType,
                          unsigned long matchSeed) {
 
-#define LOG_PLAYER(pl, msg) LOG_INFO(CLI::set_color(CLI::Color(pl+2)) << msg << CLI::set_color())
+#define LOG_PLAYER(pl, msg) LOG_INFO(CLI::set_color(CLI::Color(pl+6)) << msg << CLI::set_color())
 
     assert(algorithmInitializers.size() == preplayBudget.size() &&
         preplayBudget.size() == moveBudget.size());

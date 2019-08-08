@@ -44,13 +44,21 @@ args::ValueFlagList<std::string> algcfg(arguments,
                                         {'c', "algcfg"},
                                         {"settings/cfr.json", "settings/cfr.json"});
 args::ValueFlag<unsigned int> log_level(arguments, "",
-                                        "Logging level", {'l', "log_level"}, GTLib2::CLI::LOGLEVEL_INFO);
+                                        "Logging level", {'l', "log_level"},
+#ifdef NDEBUG
+                                        GTLib2::CLI::LOGLEVEL_DEBUG
+#else
+                                        GTLib2::CLI::LOGLEVEL_INFO
+#endif
+);
+args::Flag log_thread(arguments, "", "Should logging print thread number?", {"log_thread"}, false);
 
 }
 
 void initializeParser(args::Subparser &parser) {
     parser.Parse();
     GTLib2::CLI::log_level = args::get(args::log_level);
+    GTLib2::CLI::log_thread = args::get(args::log_thread);
 }
 
 #endif // GTLIB2_GLOBAL_ARGSH

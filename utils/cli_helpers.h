@@ -162,6 +162,10 @@ std::unique_ptr<GTLib2::AlgorithmWithData> constructAlgWithData(const GTLib2::Do
     };
 
     std::fstream fs(settingFile, std::fstream::in);
+    if(!fs) {
+        LOG_ERROR("Could not open " << settingFile);
+        exit(1);
+    }
     cereal::JSONInputArchive deserialize(fs);
 
     // @formatter:off

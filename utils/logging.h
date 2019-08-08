@@ -40,11 +40,8 @@ constexpr unsigned int LOGLEVEL_NOTSET = 0;
 /**
  * Levels of logging (inspired by python)
  */
-#ifndef NDEBUG
 inline unsigned int log_level = LOGLEVEL_DEBUG;
-#else
-unsigned int log_level = LOGLEVEL_INFO;
-#endif
+inline bool log_thread = false;
 
 inline auto lastMeasure = std::chrono::system_clock::now();
 inline auto time_diff() {
@@ -77,7 +74,6 @@ enum Color {
     BLACK, RED, GREEN,
     YELLOW, BLUE, MAGENTA,
     CYAN, GRAY, WHITE
-
 };
 
 inline static std::string set_color(Color foreground = NONE, Color background = NONE) {
@@ -96,16 +92,25 @@ inline static std::string set_color(Color foreground = NONE, Color background = 
     s << "m";
     return s.str();
 }
+inline std::string thread() {
+    if (CLI::log_thread) {
+        std::stringstream ss;
+        ss << "[thread-" << std::this_thread::get_id() << "]";
+        return ss.str();
+    } else {
+        return "";
+    }
+}
 
 //@formatter:off
 #define LOG_TIME_DIFF    CLI::time_diff()
-#define LOG_THREAD       std::this_thread::get_id()
+#define LOG_THREAD       CLI::thread()
 
-#define LOG_DEBUG(x)     if(CLI::log_level <= CLI::LOGLEVEL_DEBUG)    { cerr << CLI::set_color(CLI::GRAY) << "[DEBUG][thread-" << LOG_THREAD << "] " << LOG_TIME_DIFF << " | " << x << CLI::set_color() << endl; }
-#define LOG_INFO(x)      if(CLI::log_level <= CLI::LOGLEVEL_INFO)     { cerr << CLI::set_color(CLI::WHITE) << "[INFO ][thread-" << LOG_THREAD << "] " << LOG_TIME_DIFF << " | " << x << CLI::set_color() << endl; }
-#define LOG_WARN(x)      if(CLI::log_level <= CLI::LOGLEVEL_WARNING)  { cerr << CLI::set_color(CLI::GREEN) << "[WARN ][thread-" << LOG_THREAD << "] " << LOG_TIME_DIFF << " | " << x << CLI::set_color() << endl; }
-#define LOG_ERROR(x)     if(CLI::log_level <= CLI::LOGLEVEL_ERROR)    { cerr << CLI::set_color(CLI::RED) << "[ERROR][thread-" << LOG_THREAD << "] " << LOG_TIME_DIFF << " | " << x << CLI::set_color() << endl; }
-#define LOG_CRITICAL(x)  if(CLI::log_level <= CLI::LOGLEVEL_CRITICAL) { cerr << CLI::set_color(CLI::RED, CLI::GRAY) << "[CRIT ][thread-" << LOG_THREAD << "] " << LOG_TIME_DIFF << " | " << x << CLI::set_color() << endl; }
+#define LOG_DEBUG(x)     if(CLI::log_level <= CLI::LOGLEVEL_DEBUG)    { cerr << CLI::set_color(CLI::GRAY)           << "[DEBUG]" << LOG_THREAD << " " << LOG_TIME_DIFF << " | " << x << CLI::set_color() << endl; }
+#define LOG_INFO(x)      if(CLI::log_level <= CLI::LOGLEVEL_INFO)     { cerr << CLI::set_color(CLI::WHITE)          << "[INFO ]" << LOG_THREAD << " " << LOG_TIME_DIFF << " | " << x << CLI::set_color() << endl; }
+#define LOG_WARN(x)      if(CLI::log_level <= CLI::LOGLEVEL_WARNING)  { cerr << CLI::set_color(CLI::GREEN)          << "[WARN ]" << LOG_THREAD << " " << LOG_TIME_DIFF << " | " << x << CLI::set_color() << endl; }
+#define LOG_ERROR(x)     if(CLI::log_level <= CLI::LOGLEVEL_ERROR)    { cerr << CLI::set_color(CLI::RED)            << "[ERROR]" << LOG_THREAD << " " << LOG_TIME_DIFF << " | " << x << CLI::set_color() << endl; }
+#define LOG_CRITICAL(x)  if(CLI::log_level <= CLI::LOGLEVEL_CRITICAL) { cerr << CLI::set_color(CLI::RED, CLI::GRAY) << "[CRIT ]" << LOG_THREAD << " " << LOG_TIME_DIFF << " | " << x << CLI::set_color() << endl; }
 //@formatter:on
 
 }

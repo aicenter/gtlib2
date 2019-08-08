@@ -69,7 +69,7 @@ void Command_PlayMatch(args::Subparser &parser) {
     LOG_INFO("Preplay: " << pb)
     LOG_INFO("Per move: " << mb)
     LOG_INFO("Budget: " << (time ? "time" : "iterations"))
-    LOG_INFO("Seed: " << seedValue)
+    LOG_INFO("Match seed: " << seedValue)
     LOG_INFO("------------------------")
 
     cout << playMatch(*domain, {instance1->prepare(), instance2->prepare()},
