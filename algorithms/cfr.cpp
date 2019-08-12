@@ -36,14 +36,10 @@ CFRAlgorithm::CFRAlgorithm(const Domain &domain,
     settings_(settings) {}
 
 PlayControl CFRAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
-    if (currentInfoset == nullopt) {
-        if (cache_.isCompletelyBuilt()) return StopImproving;
-        cache_.buildTree();
-        return StopImproving;
-    }
+    if (currentInfoset == PLAY_FROM_ROOT && !cache_.isCompletelyBuilt()) cache_.buildTree();
 
     // the tree has been built before, we must have this infoset in memory
-    assert(!cache_.getNodesFor(*currentInfoset).empty());
+    assert(currentInfoset == PLAY_FROM_ROOT || !cache_.getNodesFor(*currentInfoset).empty());
 
     runIteration(cache_.getRootNode(), array<double, 3>{1., 1., 1.}, Player(0));
     delayedApplyRegretUpdates();

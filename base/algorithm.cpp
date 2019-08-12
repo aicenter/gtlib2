@@ -123,7 +123,7 @@ vector<double> playMatch(const Domain &domain,
     }
     for (int i = 0; i < numAlgs; ++i) {
         LOG_PLAYER(i, "Player " << i << " is thinking in preplay")
-        continuePlay[i] = playForBudget(*algs[i], nullopt, preplayBudget[i], simulationType);
+        continuePlay[i] = playForBudget(*algs[i], PLAY_FROM_ROOT, preplayBudget[i], simulationType);
     }
 
     auto generator = std::mt19937(matchSeed);

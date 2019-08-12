@@ -316,7 +316,7 @@ class PublicStateCache: public virtual EFGCache {
 
 class StrategyCache {
  public:
-    virtual ProbDistribution strategyFor(const shared_ptr<AOH> &currentInfoset) = 0;
+    virtual optional <ProbDistribution> strategyFor(const shared_ptr<AOH> &currentInfoset) = 0;
 };
 
 /**

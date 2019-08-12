@@ -85,8 +85,7 @@ class ContinualResolving: public GamePlayingAlgorithm {
     virtual void solveEntireGame(int preplayBudget, int resolveBudget, BudgetType type) {
         cache_.buildTree();
 
-        const auto noInfoset = nullopt;
-        playForBudget(*this, noInfoset, preplayBudget, type);
+        playForBudget(*this, PLAY_FROM_ROOT, preplayBudget, type);
 
         NodeCallback<PublicState> resolveAtPublicState = [&](const shared_ptr<PublicState> &ps) {
             // todo:

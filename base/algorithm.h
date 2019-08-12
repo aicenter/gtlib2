@@ -81,6 +81,8 @@ class GamePlayingAlgorithm {
 
 enum BudgetType { BudgetTime, BudgetIterations };
 
+#define PLAY_FROM_ROOT nullopt
+
 /**
  * Run iterations of given algorithm for a given budget value and type.
  *

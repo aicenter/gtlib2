@@ -44,7 +44,7 @@ void Command_PlayMatch(args::Subparser &parser) {
         exit(1);
     }
     const auto cfgs = args::get(args::algcfg);
-    if (algs.size() != 2) {
+    if (cfgs.size() != 2) {
         LOG_ERROR("Two algorithm configs must be specified!")
         exit(1);
     }
@@ -54,12 +54,12 @@ void Command_PlayMatch(args::Subparser &parser) {
     const auto instance2 = constructAlgWithData(*domain, algs.at(1), cfgs.at(1));
 
     auto pb = args::get(preplayBudget);
-    if (pb.size() == 1) pb = vector<int>(2, pb.at(0));
-    if (pb.size() == 0) pb = vector<int>(2, 1000);
+    if (pb.size() == 1) pb = vector<unsigned int>(2, pb.at(0));
+    if (pb.size() == 0) pb = vector<unsigned int>(2, 1000);
 
     auto mb = args::get(moveBudget);
-    if (mb.size() == 1) mb = vector<int>(2, mb.at(0));
-    if (mb.size() == 0) mb = vector<int>(2, 1000);
+    if (mb.size() == 1) mb = vector<unsigned int>(2, mb.at(0));
+    if (mb.size() == 0) mb = vector<unsigned int>(2, 1000);
 
     const auto seedValue = seed ? args::get(seed) : 0;
 

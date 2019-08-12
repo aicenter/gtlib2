@@ -121,7 +121,8 @@ class CFRData: public virtual InfosetCache,
 
     unordered_map<shared_ptr<AOH>, InfosetData> infosetData;
 
-    inline ProbDistribution strategyFor(const shared_ptr<AOH> &currentInfoset) override {
+    inline optional <ProbDistribution> strategyFor(const shared_ptr<AOH> &currentInfoset) override {
+        if(infosetData.find(currentInfoset) == infosetData.end()) return nullopt;
         return calcAvgProbs(infosetData.at(currentInfoset).avgStratAccumulator);
     }
 
