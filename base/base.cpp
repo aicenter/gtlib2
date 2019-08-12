@@ -73,13 +73,9 @@ bool AOH::operator==(const InformationSet &rhs) const {
 }
 
 string AOH::toString() const {
-    string s = "Player: " + to_string(player_) + ",  init observation:" +
-        to_string(aoh_.front().observation) + ", hash value: " +
-        to_string(hash_) + "\n";
-    for (const auto &ao : aoh_) {
-        s += "Action: " + to_string(ao.action) + ", Obs: " + to_string(ao.observation) + " | ";
-    }
-    return s;
+    std::stringstream ss;
+    ss << " Pl" << int(player_) << " " << aoh_;
+    return ss.str();
 }
 
 bool ActionSequence::operator==(const ActionSequence &rhs) const {
