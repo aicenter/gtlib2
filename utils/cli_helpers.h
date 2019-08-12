@@ -37,6 +37,8 @@
 
 #include "domains/goofSpiel.h"
 #include "domains/oshiZumo.h"
+#include "domains/genericPoker.h"
+#include "domains/liarsDice.h"
 #include "domains/randomGame.h"
 #include "domains/simple_games.h"
 
@@ -101,6 +103,9 @@ unique_ptr<Domain> constructDomain(const string &description) {
         {"IIGS_4", [ ](vector<string> p) { return GoofSpielDomain::IIGS(4); }},
         {"IIGS_5", [ ](vector<string> p) { return GoofSpielDomain::IIGS(5); }},
         {"IIGS_6", [ ](vector<string> p) { return GoofSpielDomain::IIGS(6); }},
+        {"IIGS_13", [ ](vector<string> p) { return GoofSpielDomain::IIGS(13); }},
+        {"IIGS_small", [ ](vector<string> p) { return GoofSpielDomain::IIGS(5); }},
+        {"IIGS_large", [ ](vector<string> p) { return GoofSpielDomain::IIGS(13); }},
         {"GS",     [&](vector<string> p) { return parseGoofspiel(p, GoofSpielVariant::CompleteObservations); }},
         {"GS_2",   [ ](vector<string> p) { return GoofSpielDomain::GS(2); }},
         {"GS_3",   [ ](vector<string> p) { return GoofSpielDomain::GS(3); }},
@@ -123,6 +128,14 @@ unique_ptr<Domain> constructDomain(const string &description) {
         {"RPS",    [ ](vector<string> p) { return make_unique<RPSDomain>(); }},
         {"BRPS",   [ ](vector<string> p) { return make_unique<BiasedRPSDomain>(stod(p.at(0))); }},
         {"PD",     [ ](vector<string> p) { return make_unique<PrisonnersDilemmaDomain>(); }},
+        {"GP_322221", [ ](vector<string> p) { return make_unique<GenericPokerDomain>(3,2,2,2,2,1); }},
+        {"GP_464441", [ ](vector<string> p) { return make_unique<GenericPokerDomain>(4,6,4,4,4,1); }},
+        {"GP_small", [ ](vector<string> p) { return make_unique<GenericPokerDomain>(3,2,2,2,2,1); }},
+        {"GP_large", [ ](vector<string> p) { return make_unique<GenericPokerDomain>(4,6,4,4,4,1); }},
+        {"LD_116", [ ](vector<string> p) { return make_unique<LiarsDiceDomain>(vector<int>{1, 1}, 6); }},
+        {"LD_226", [ ](vector<string> p) { return make_unique<LiarsDiceDomain>(vector<int>{2, 2}, 6); }},
+        {"LD_small", [ ](vector<string> p) { return make_unique<LiarsDiceDomain>(vector<int>{1, 1}, 6); }},
+        {"LD_large", [ ](vector<string> p) { return make_unique<LiarsDiceDomain>(vector<int>{2, 2}, 6); }},
     };
     // @formatter:on
 
@@ -162,7 +175,7 @@ std::unique_ptr<GTLib2::AlgorithmWithData> constructAlgWithData(const GTLib2::Do
     };
 
     std::fstream fs(settingFile, std::fstream::in);
-    if(!fs) {
+    if (!fs) {
         LOG_ERROR("Could not open " << settingFile);
         exit(1);
     }
