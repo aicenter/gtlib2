@@ -30,16 +30,15 @@
 
 namespace GTLib2::CLI {
 
+// Levels of logging (inspired by python)
 constexpr unsigned int LOGLEVEL_CRITICAL = 50;
 constexpr unsigned int LOGLEVEL_ERROR = 40;
 constexpr unsigned int LOGLEVEL_WARNING = 30;
 constexpr unsigned int LOGLEVEL_INFO = 20;
 constexpr unsigned int LOGLEVEL_DEBUG = 10;
+constexpr unsigned int LOGLEVEL_VERBOSE = 5;
 constexpr unsigned int LOGLEVEL_NOTSET = 0;
 
-/**
- * Levels of logging (inspired by python)
- */
 inline unsigned int log_level = LOGLEVEL_DEBUG;
 inline bool log_thread = false;
 
@@ -106,6 +105,7 @@ inline std::string thread() {
 #define LOG_TIME_DIFF    CLI::time_diff()
 #define LOG_THREAD       CLI::thread()
 
+#define LOG_VERBOSE(x)   if(CLI::log_level <= CLI::LOGLEVEL_VERBOSE)  { cerr << CLI::set_color(CLI::GRAY)           << "[VERBS]" << LOG_THREAD << " " << LOG_TIME_DIFF << " | " << x << CLI::set_color() << endl; }
 #define LOG_DEBUG(x)     if(CLI::log_level <= CLI::LOGLEVEL_DEBUG)    { cerr << CLI::set_color(CLI::GRAY)           << "[DEBUG]" << LOG_THREAD << " " << LOG_TIME_DIFF << " | " << x << CLI::set_color() << endl; }
 #define LOG_INFO(x)      if(CLI::log_level <= CLI::LOGLEVEL_INFO)     { cerr << CLI::set_color(CLI::WHITE)          << "[INFO ]" << LOG_THREAD << " " << LOG_TIME_DIFF << " | " << x << CLI::set_color() << endl; }
 #define LOG_WARN(x)      if(CLI::log_level <= CLI::LOGLEVEL_WARNING)  { cerr << CLI::set_color(CLI::GREEN)          << "[WARN ]" << LOG_THREAD << " " << LOG_TIME_DIFF << " | " << x << CLI::set_color() << endl; }
