@@ -111,6 +111,11 @@ class EFGNode {
     inline explicit EFGNode(vector<double> utilities) :
         EFGNode(TerminalNode, NO_PLAYER, move(utilities)) {}
 
+    inline EFGNode(const EFGNode& other) :
+        type_(other.type_),
+        currentPlayer_(other.currentPlayer_),
+        utilities_(other.utilities_) {}
+
  public:
     virtual EFGNodeSpecialization getSpecialization() const = 0;
 

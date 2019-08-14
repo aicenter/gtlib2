@@ -47,6 +47,13 @@ class FOG2EFGNode: public Node<FOG2EFGNode>,
                          vector<PlayerAction> roundActions,
                          unsigned int stateDepth);
 
+    inline FOG2EFGNode(const FOG2EFGNode &other) :
+        Node<FOG2EFGNode>(other), EFGNode(other),
+        stateDepth_(other.stateDepth_), incomingAction_(other.incomingAction_),
+        lastOutcome_(other.lastOutcome_), outcomeDist_(other.outcomeDist_),
+        remainingRoundPlayers_(other.remainingRoundPlayers_), roundActions_(other.roundActions_),
+        cumRewards_(other.cumRewards_) {}
+
     // EFGNode
     inline EFGNodeSpecialization getSpecialization() const override { return NoSpecialization; }
     inline shared_ptr<EFGNode const> getParent() const override { return parent_; }
