@@ -78,53 +78,6 @@ class ContinualResolving: public GamePlayingAlgorithm {
         gadgetRoot_ = gadget_->getRootNode();
     }
 
-    /**
-     * Run resolving in each public state.
-     * Current infoset at public state is taken randomly.
-     */
-    virtual void solveEntireGame(int preplayBudget, int resolveBudget, BudgetType type) {
-        cache_.buildTree();
-
-        playForBudget(*this, PLAY_FROM_ROOT, preplayBudget, type);
-
-        NodeCallback<PublicState> resolveAtPublicState = [&](const shared_ptr<PublicState> &ps) {
-            // todo:
-            auto infosets = cache_.getInfosetsForPubStatePlayer(ps, playingPlayer_);
-            const shared_ptr<AOH> anInfoset = *infosets.begin(); // todo: random enough? :)
-            playForBudget(*this, anInfoset, resolveBudget, type);
-        };
-        treeWalk<PublicState>(
-            cache_.getRootPublicState(), resolveAtPublicState,
-            [&](const shared_ptr<PublicState> &node) { return cntPsChildren(node); },
-            [&](const shared_ptr<PublicState> &node, EdgeId index) { return expandPs(node, index); }
-        );
-    }
-
-    inline unsigned int cntPsChildren(const shared_ptr<PublicState> &parent) {
-        // todo: inefficient but gets jobs done -- we have fully built caches
-        auto cnt = 0;
-        for (const auto &[pubState, nodes] :  cache_.getPublicState2nodes()) {
-            if (pubState->getDepth() == parent->getDepth() + 1
-                && isCompatible(parent->getHistory(), pubState->getHistory()))
-                cnt++;
-        }
-        return cnt;
-    }
-
-    inline shared_ptr<PublicState> expandPs(const shared_ptr<PublicState> &parent, EdgeId index) {
-        // todo: inefficient but gets jobs done -- we have fully built caches
-        vector<shared_ptr<PublicState>> children;
-        for (const auto &[pubState, nodes] :  cache_.getPublicState2nodes()) {
-            if (pubState->getDepth() == parent->getDepth() + 1
-                && isCompatible(parent->getHistory(), pubState->getHistory())) {
-                children.push_back(pubState);
-            }
-        }
-        std::sort(children.begin(), children.end());
-        return children.at(index);
-    }
-
-
     virtual PlayControl preplayIteration(const shared_ptr<EFGNode> &rootNode) = 0;
     virtual PlayControl resolveIteration(const shared_ptr<GadgetRootNode> &rootNode,
                                          const shared_ptr<AOH> &currentInfoset) = 0;

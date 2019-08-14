@@ -68,27 +68,27 @@ class ExampleCR: public ContinualResolving {
     }
 };
 
-TEST(ContinualResolving, ResolverStepsThroughPublicStates) {
-    auto rps = RPSDomain();
-    auto iigs = GoofSpielDomain::IIGS(4);
-    auto domains = vector<Domain *>{&rps, iigs.get()};
-
-    for (auto d : domains) {
-        auto root = createRootEFGNode(*d);
-
-        auto cache = OOSData(*d);
-        auto cr = ExampleCR(*d, Player(0), cache);
-        cr.solveEntireGame(1, 1, BudgetIterations); // todo: solving only for "owner" of ps?
-
-        for (const auto &[is, nodes] : cache.getInfoset2NodeMapping()) {
-            const auto aodepth = is->getAOids().size();
-            const auto aHistory = *nodes.begin();
-            const auto numActions = aHistory->countAvailableActions();
-            if (aHistory->type_ == PlayerNode && is->getPlayer() == aHistory->getPlayer())
-                EXPECT_EQ(cache.infosetData.at(is).avgStratAccumulator.at(aodepth % numActions),
-                          1.0);
-        }
-    }
-}
+//TEST(ContinualResolving, ResolverStepsThroughPublicStates) {
+//    auto rps = RPSDomain();
+//    auto iigs = GoofSpielDomain::IIGS(4);
+//    auto domains = vector<Domain *>{&rps, iigs.get()};
+//
+//    for (auto d : domains) {
+//        auto root = createRootEFGNode(*d);
+//
+//        auto cache = OOSData(*d);
+//        auto cr = ExampleCR(*d, Player(0), cache);
+//        cr.solveEntireGame(1, 1, BudgetIterations); // todo: solving only for "owner" of ps?
+//
+//        for (const auto &[is, nodes] : cache.getInfoset2NodeMapping()) {
+//            const auto aodepth = is->getAOids().size();
+//            const auto aHistory = *nodes.begin();
+//            const auto numActions = aHistory->countAvailableActions();
+//            if (aHistory->type_ == PlayerNode && is->getPlayer() == aHistory->getPlayer())
+//                EXPECT_EQ(cache.infosetData.at(is).avgStratAccumulator.at(aodepth % numActions),
+//                          1.0);
+//        }
+//    }
+//}
 
 }

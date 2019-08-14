@@ -71,13 +71,6 @@ PlayControl MCCRAlgorithm::resolveIteration(const shared_ptr<GadgetRootNode> &ga
     return ContinueImproving;
 }
 
-void MCCRAlgorithm::solveEntireGame(int preplayBudget, int resolveBudget, BudgetType type) {
-    if (resolver_->cfg_.targetBiasing == 0.)
-        ContinualResolving::solveEntireGame(preplayBudget, resolveBudget, type);
-    else
-        assert(false); // todo: cfg_.targetBiasing > 0 need to go through infosets, not public states!
-}
-
 void MCCRAlgorithm::updateGadget() {
     ContinualResolving::updateGadget();
     resolver_->updateGadget(gadget_.get());

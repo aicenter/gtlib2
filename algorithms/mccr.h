@@ -97,9 +97,11 @@ class MCCRAlgorithm: public ContinualResolving {
           cfg_(settings) {}
     ~MCCRAlgorithm() override = default;
 
+    const OOSData & getCache() { return cache_; }
+    const OOSSettings & getSettings() { return cfg_; }
+
     void updateGadget() override;
 
-    void solveEntireGame(int preplayBudget, int resolveBudget, BudgetType type) override;
     PlayControl preplayIteration(const shared_ptr<EFGNode> &rootNode) override;
     PlayControl resolveIteration(const shared_ptr<GadgetRootNode> &gadgetRoot,
                                  const shared_ptr<AOH> &currentInfoset) override;
