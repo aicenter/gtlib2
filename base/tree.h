@@ -47,11 +47,10 @@ class Node {
     // Root node constructor
     inline Node() : Node(nullptr, nullopt) {}
 
-    inline Node(const Node &other) {
-        parent_ = other.parent_;
-        history_ = other.history_;
-        hashNode_ = other.hashNode_;
-    }
+    inline Node(const Node &other) :
+        parent_(other.parent_),
+        history_(other.history_),
+        hashNode_(other.hashNode_) {}
 
     virtual ~Node() = default;
 

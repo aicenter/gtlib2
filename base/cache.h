@@ -66,6 +66,14 @@ class EFGCache {
 
     virtual ~EFGCache() = default;
 
+    inline EFGCache(const EFGCache &other) :
+        rootNode_(other.rootNode_),
+        nodesChildren_(other.nodesChildren_),
+        domain_(other.domain_),
+        builtForest_(other.builtForest_) {
+        addCallback([&](const shared_ptr<EFGNode> &n) { this->createNode(n); });
+    }
+
     /**
      * Check if cache contains all the children for given node (after following any action).
      */
@@ -186,6 +194,13 @@ class InfosetCache: public virtual EFGCache {
         this->createAugInfosets(getRootNode());
     }
 
+    inline explicit InfosetCache(const InfosetCache &other) :
+        EFGCache(other) {
+        addCallback([&](const shared_ptr<EFGNode> &n) { this->createAugInfosets(n); });
+        node2infosets_ = other.node2infosets_;
+        infoset2nodes_ = other.infoset2nodes_;
+    }
+
     inline bool hasInfoset(const shared_ptr<AOH> &augInfoset) {
         return infoset2nodes_.find(augInfoset) != infoset2nodes_.end();
     }
@@ -254,6 +269,14 @@ class PublicStateCache: public virtual EFGCache {
     inline explicit PublicStateCache(const Domain &domain) : EFGCache(domain) {
         addCallback([&](const shared_ptr<EFGNode> &n) { this->createPublicState(n); });
         this->createPublicState(getRootNode());
+    }
+
+    inline PublicStateCache(const PublicStateCache &other) : EFGCache(other) {
+        addCallback([&](const shared_ptr<EFGNode> &n) { this->createPublicState(n); });
+        node2publicState_ = other.node2publicState_ ;
+        publicState2nodes_ = other.publicState2nodes_ ;
+        infoset2publicState_ = other.infoset2publicState_ ;
+        publicState2infosets_ = other.publicState2infosets_ ;
     }
 
     inline bool hasPublicState(const shared_ptr<PublicState> &pubState) {

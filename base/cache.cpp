@@ -145,7 +145,7 @@ void EFGCache::buildTree() {
 void InfosetCache::createAugInfosets(const shared_ptr<EFGNode> &node) {
     vector<shared_ptr<AOH>> infosets;
 
-    for (Player pl = 0; pl < GAME_MAX_PLAYERS; pl++) {
+    for (Player pl = 0; pl < 2; pl++) {
         auto infoset = node->getAOHAugInfSet(pl);
         auto maybeInfoset = infoset2nodes_.find(infoset);
 
@@ -160,7 +160,7 @@ void InfosetCache::createAugInfosets(const shared_ptr<EFGNode> &node) {
             maybeInfoset->second.push_back(node);
         }
     }
-    assert (infosets.size() == GAME_MAX_PLAYERS);
+    assert (infosets.size() == 2);
     node2infosets_.emplace(node, infosets);
 }
 

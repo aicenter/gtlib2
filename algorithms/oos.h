@@ -42,6 +42,15 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
         this->createOOSBaselineData(getRootNode());
     }
 
+    inline OOSData(const OOSData& other) :
+        EFGCache(other),
+        InfosetCache(other),
+        CFRData(other),
+        PublicStateCache(other) {
+        addCallback([&](const shared_ptr<EFGNode> &n) { this->createOOSBaselineData(n); });
+        baselineValues = other.baselineValues;
+    }
+
     inline double getBaselineFor(const shared_ptr<EFGNode> h, ActionId action, Player exploringPl) {
         return baselineValues.at(h).value() * (exploringPl == Player(0) ? 1 : -1);
     }

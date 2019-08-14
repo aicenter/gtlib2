@@ -88,6 +88,14 @@ class CFRData: public virtual InfosetCache,
         this->createCFRInfosetData(getRootNode());
     }
 
+    inline CFRData(const CFRData& other) :
+        EFGCache(other),
+        InfosetCache(other) {
+            addCallback([&](const shared_ptr<EFGNode> &n) { this->createCFRInfosetData(n); });
+            infosetData = other.infosetData;
+            updatingPolicy_ = other.updatingPolicy_;
+        }
+
     struct InfosetData {
         vector<double> regrets;
         vector<double> avgStratAccumulator;
