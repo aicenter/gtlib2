@@ -44,14 +44,14 @@ namespace GTLib2::algorithms {
 using domains::GoofSpielDomain;
 using domains::RPSDomain;
 
-TEST(MCCR, ResolveDomain) {
-    auto d = GoofSpielDomain::IIGS(4);
-    auto root = createRootEFGNode(*d);
-    auto cache = OOSData(*d);
-    auto cr = MCCRAlgorithm(*d, Player(0), cache, MCCRSettings());
-    cr.solveEntireGame(1000, 1000, BudgetIterations);
-
-    cout << "expl " << calcExploitability(*d, getAverageStrategy(cache)) << endl;
-}
+//TEST(MCCR, ResolveDomain) {
+//    auto d = GoofSpielDomain::IIGS(4);
+//    auto root = createRootEFGNode(*d);
+//    auto cache = OOSData(*d);
+//    auto cr = MCCRAlgorithm(*d, Player(0), cache, MCCRSettings());
+//    cr.solveEntireGame(1000, 1000, BudgetIterations);
+//
+//    cout << "expl " << calcExploitability(*d, getAverageStrategy(cache)) << endl;
+//}
 
 }
