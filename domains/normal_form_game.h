@@ -36,7 +36,7 @@ struct NFGSettings {
         dimensions(move(dimensions_)),
         numPlayers(numPlayers_),
         actionNames(move(actionNames_)) {
-#if NDEBUG
+#ifndef NDEBUG
         // check that each utility has value for each player
         for (const auto &playerUtils : utilities) assert(playerUtils.size() == numPlayers);
 #endif

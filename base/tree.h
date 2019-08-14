@@ -148,7 +148,29 @@ void treeWalk(const shared_ptr <Node> &node,
 //treeWalkDFS
 //treeWalkBFS
 
+template<class Node>
+using Tree = unordered_map <shared_ptr<Node>, vector<shared_ptr < Node>>>;
 
+template<class Node>
+void copyTree(const Tree<Node> &origTree,
+              const shared_ptr <Node> &origParent,
+              Tree<Node> &newTree,
+              const shared_ptr <Node> &newParent) {
+
+    auto it = origTree.find(origParent);
+    if (it == origTree.end()) return; // nothing to copy
+
+    vector<shared_ptr<Node>> origChildren = it->second;
+    vector<shared_ptr<Node>> newChildren = vector<shared_ptr<Node>>(origChildren.size(), nullptr);
+
+    for (int i = 0; i < origChildren.size(); ++i) {
+        const auto &origChild = origChildren.at(i);
+        if (origChild == nullptr) continue;
+
+        newChildren.at(i) = origChild->clone(newParent);
+        copyTree(origTree, origChild, newTree, newChildren.at(i));
+    }
+}
 
 }
 

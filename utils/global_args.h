@@ -45,7 +45,7 @@ args::ValueFlagList<std::string> algcfg(arguments,
                                         {"settings/cfr.json", "settings/cfr.json"});
 args::ValueFlag<unsigned int> log_level(arguments, "",
                                         "Logging level", {'l', "log_level"},
-#ifdef NDEBUG
+#ifndef NDEBUG
                                         GTLib2::CLI::LOGLEVEL_DEBUG
 #else
                                         GTLib2::CLI::LOGLEVEL_INFO

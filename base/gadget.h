@@ -41,7 +41,7 @@ struct PublicStateSummary {
           topmostHistories(move(_topmostHistories)),
           topmostHistoriesReachProbs(move(_topmostHistoriesReachProbs)),
           expectedValues(move(_expectedValues)) {
-#ifdef NDEBUG
+#ifndef NDEBUG
         for (const auto &h : topmostHistories) {
             assert(h->getPubObsIds() == publicState->getHistory());
         }
