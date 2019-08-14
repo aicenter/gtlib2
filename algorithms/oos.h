@@ -115,7 +115,7 @@ struct OOSSettings {
     enum SamplingBlock { OutcomeSampling, ExternalSampling };
     enum AccumulatorWeighting { UniformAccWeighting, LinearAccWeighting, XLogXAccWeighting };
     enum RegretMatching { RegretMatchingNormal, RegretMatchingPlus };
-    enum Targeting { InfosetTargeting, PublicStateTargeting };
+    enum Targeting { NoTargeting, InfosetTargeting, PublicStateTargeting };
     enum PlayStrategy { PlayUsingAvgStrategy, PlayUsingRMStrategy };
     enum SamplingScheme { EpsilonOnPolicySampling, UniformSampling };
     enum AvgStrategyComputation { StochasticallyWeightedAveraging, LazyWeightedAveraging };
@@ -374,7 +374,7 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
     double s_z_all_ = -1;
     double u_z_ = 0.0;
 
-#define OOS_MAX_ACTIONS 1000
+    constexpr static int OOS_MAX_ACTIONS = 1000;
 
     // Careful! Mutable data structures
     // (values will change throughout the traversal of the tree) based on current state!!!

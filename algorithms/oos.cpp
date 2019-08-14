@@ -29,6 +29,11 @@ namespace GTLib2::algorithms {
 
 bool Targetor::updateCurrentPosition(const optional<shared_ptr<AOH>> &infoset,
                                      const optional<shared_ptr<PublicState>> &pubState) {
+    if(targeting_ == OOSSettings::Targeting::NoTargeting) {
+        weightingFactor_ = 1.0;
+        return true;
+    }
+
     if (!infoset) {
         weightingFactor_ = 1.0;
         return true;
@@ -105,6 +110,8 @@ bool Targetor::isAllowedAction(const shared_ptr<EFGNode> &h, const shared_ptr<Ac
         case OOSSettings::PublicStateTargeting:
             assert(false); // todo: finish public state targeting
             return false;
+        case OOSSettings::NoTargeting:
+            return true;
         default:
             assert(false); // unrecognized option!
     }
@@ -121,9 +128,8 @@ PlayControl OOSAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &curr
                        ? optional(cache_.getPublicStateFor(*playInfoset_))
                        : nullopt;
 
-    if (!targetor_.updateCurrentPosition(playInfoset_, playPublicState_)) {
+    if (!targetor_.updateCurrentPosition(playInfoset_, playPublicState_))
         return GiveUp;
-    }
 
     for (int t = 0; t < cfg_.batchSize; ++t) {
         for (int exploringPl = 0; exploringPl < 2; ++exploringPl) {
