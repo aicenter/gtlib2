@@ -267,6 +267,7 @@ set(SOURCE_FILES
         external/cereal/macros.hpp
         # experiments
         experiments/benchmark_cfr.h
+        experiments/calc_expl.h
         experiments/export_domain.h
         experiments/export_ring.h
         experiments/cfr_regrets.h

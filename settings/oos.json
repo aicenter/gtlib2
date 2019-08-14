@@ -9,7 +9,7 @@
     "avgStrategyComputation": 0,
     "baseline": 0,
     "exploration": 0.6,
-    "targetBiasing": 0.0,
+    "targetBiasing": 0.2,
     "approxRegretMatching": 0.001,
     "batchSize": 1,
     "seed": 0

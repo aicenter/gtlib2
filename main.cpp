@@ -23,6 +23,7 @@
 
 // All the possible commands
 #include "experiments/benchmark_cfr.h"
+#include "experiments/calc_expl.h"
 #include "experiments/export_domain.h"
 #include "experiments/export_ring.h"
 #include "experiments/cfr_regrets.h"
@@ -43,6 +44,9 @@ int main(int argc, const char **argv) {
                                 "Calculate run time of CFR on IIGS-5.", &Command_BenchmarkCFR);
     args::Command play_match(utils, "play_match",
                              "Play match given preplay and per-move time.", &Command_PlayMatch);
+    args::Command calc_expl(utils, "calc_expl",
+                            "Calc exploitability of alg strategy "
+                            "given preplay and per-move time.", &Command_CalcExpl);
 
     // ------ experiments -------
     args::Group experiments(parser, "commands (experiments)");
