@@ -41,6 +41,7 @@
 #include "domains/liarsDice.h"
 #include "domains/randomGame.h"
 #include "domains/simple_games.h"
+#include "domains/kriegspiel.h"
 
 namespace GTLib2::CLI {
 using namespace domains;
@@ -97,45 +98,46 @@ unique_ptr<Domain> constructDomain(const string &description) {
 
     // @formatter:off
     unordered_map<string, function<unique_ptr<Domain>(vector<string>)>> domainsTable = {
-        {"IIGS",   [&](vector<string> p) { return parseGoofspiel(p, GoofSpielVariant::IncompleteObservations); }},
-        {"IIGS_2", [ ](vector<string> p) { return GoofSpielDomain::IIGS(2); }},
-        {"IIGS_3", [ ](vector<string> p) { return GoofSpielDomain::IIGS(3); }},
-        {"IIGS_4", [ ](vector<string> p) { return GoofSpielDomain::IIGS(4); }},
-        {"IIGS_5", [ ](vector<string> p) { return GoofSpielDomain::IIGS(5); }},
-        {"IIGS_6", [ ](vector<string> p) { return GoofSpielDomain::IIGS(6); }},
-        {"IIGS_13", [ ](vector<string> p) { return GoofSpielDomain::IIGS(13); }},
+        {"IIGS",       [&](vector<string> p) { return parseGoofspiel(p, GoofSpielVariant::IncompleteObservations); }},
+        {"IIGS_2",     [ ](vector<string> p) { return GoofSpielDomain::IIGS(2); }},
+        {"IIGS_3",     [ ](vector<string> p) { return GoofSpielDomain::IIGS(3); }},
+        {"IIGS_4",     [ ](vector<string> p) { return GoofSpielDomain::IIGS(4); }},
+        {"IIGS_5",     [ ](vector<string> p) { return GoofSpielDomain::IIGS(5); }},
+        {"IIGS_6",     [ ](vector<string> p) { return GoofSpielDomain::IIGS(6); }},
+        {"IIGS_13",    [ ](vector<string> p) { return GoofSpielDomain::IIGS(13); }},
         {"IIGS_small", [ ](vector<string> p) { return GoofSpielDomain::IIGS(5); }},
         {"IIGS_large", [ ](vector<string> p) { return GoofSpielDomain::IIGS(13); }},
-        {"GS",     [&](vector<string> p) { return parseGoofspiel(p, GoofSpielVariant::CompleteObservations); }},
-        {"GS_2",   [ ](vector<string> p) { return GoofSpielDomain::GS(2); }},
-        {"GS_3",   [ ](vector<string> p) { return GoofSpielDomain::GS(3); }},
-        {"GS_4",   [ ](vector<string> p) { return GoofSpielDomain::GS(4); }},
-        {"GS_5",   [ ](vector<string> p) { return GoofSpielDomain::GS(5); }},
-        {"GS_6",   [ ](vector<string> p) { return GoofSpielDomain::GS(6); }},
-        {"IIOZ",   [&](vector<string> p) { return parseOshizumo(p, OshiZumoVariant::IncompleteObservation); }},
-        {"IIOZ_2", [ ](vector<string> p) { return OshiZumoDomain::IIOZ(2); }},
-        {"IIOZ_3", [ ](vector<string> p) { return OshiZumoDomain::IIOZ(3); }},
-        {"IIOZ_4", [ ](vector<string> p) { return OshiZumoDomain::IIOZ(4); }},
-        {"IIOZ_5", [ ](vector<string> p) { return OshiZumoDomain::IIOZ(5); }},
-        {"IIOZ_6", [ ](vector<string> p) { return OshiZumoDomain::IIOZ(6); }},
-        {"0Z",     [&](vector<string> p) { return parseOshizumo(p, OshiZumoVariant::CompleteObservation); }},
-        {"0Z_2",   [ ](vector<string> p) { return OshiZumoDomain::OZ(2); }},
-        {"0Z_3",   [ ](vector<string> p) { return OshiZumoDomain::OZ(3); }},
-        {"0Z_4",   [ ](vector<string> p) { return OshiZumoDomain::OZ(4); }},
-        {"0Z_5",   [ ](vector<string> p) { return OshiZumoDomain::OZ(5); }},
-        {"0Z_6",   [ ](vector<string> p) { return OshiZumoDomain::OZ(6); }},
-        {"MP",     [ ](vector<string> p) { return make_unique<MatchingPenniesDomain>(); }},
-        {"RPS",    [ ](vector<string> p) { return make_unique<RPSDomain>(); }},
-        {"BRPS",   [ ](vector<string> p) { return make_unique<BiasedRPSDomain>(stod(p.at(0))); }},
-        {"PD",     [ ](vector<string> p) { return make_unique<PrisonnersDilemmaDomain>(); }},
-        {"GP_322221", [ ](vector<string> p) { return make_unique<GenericPokerDomain>(3,2,2,2,2,1); }},
-        {"GP_464441", [ ](vector<string> p) { return make_unique<GenericPokerDomain>(4,6,4,4,4,1); }},
-        {"GP_small", [ ](vector<string> p) { return make_unique<GenericPokerDomain>(3,2,2,2,2,1); }},
-        {"GP_large", [ ](vector<string> p) { return make_unique<GenericPokerDomain>(4,6,4,4,4,1); }},
-        {"LD_116", [ ](vector<string> p) { return make_unique<LiarsDiceDomain>(vector<int>{1, 1}, 6); }},
-        {"LD_226", [ ](vector<string> p) { return make_unique<LiarsDiceDomain>(vector<int>{2, 2}, 6); }},
-        {"LD_small", [ ](vector<string> p) { return make_unique<LiarsDiceDomain>(vector<int>{1, 1}, 6); }},
-        {"LD_large", [ ](vector<string> p) { return make_unique<LiarsDiceDomain>(vector<int>{2, 2}, 6); }},
+        {"GS",         [&](vector<string> p) { return parseGoofspiel(p, GoofSpielVariant::CompleteObservations); }},
+        {"GS_2",       [ ](vector<string> p) { return GoofSpielDomain::GS(2); }},
+        {"GS_3",       [ ](vector<string> p) { return GoofSpielDomain::GS(3); }},
+        {"GS_4",       [ ](vector<string> p) { return GoofSpielDomain::GS(4); }},
+        {"GS_5",       [ ](vector<string> p) { return GoofSpielDomain::GS(5); }},
+        {"GS_6",       [ ](vector<string> p) { return GoofSpielDomain::GS(6); }},
+        {"IIOZ",       [&](vector<string> p) { return parseOshizumo(p, OshiZumoVariant::IncompleteObservation); }},
+        {"IIOZ_2",     [ ](vector<string> p) { return OshiZumoDomain::IIOZ(2); }},
+        {"IIOZ_3",     [ ](vector<string> p) { return OshiZumoDomain::IIOZ(3); }},
+        {"IIOZ_4",     [ ](vector<string> p) { return OshiZumoDomain::IIOZ(4); }},
+        {"IIOZ_5",     [ ](vector<string> p) { return OshiZumoDomain::IIOZ(5); }},
+        {"IIOZ_6",     [ ](vector<string> p) { return OshiZumoDomain::IIOZ(6); }},
+        {"0Z",         [&](vector<string> p) { return parseOshizumo(p, OshiZumoVariant::CompleteObservation); }},
+        {"0Z_2",       [ ](vector<string> p) { return OshiZumoDomain::OZ(2); }},
+        {"0Z_3",       [ ](vector<string> p) { return OshiZumoDomain::OZ(3); }},
+        {"0Z_4",       [ ](vector<string> p) { return OshiZumoDomain::OZ(4); }},
+        {"0Z_5",       [ ](vector<string> p) { return OshiZumoDomain::OZ(5); }},
+        {"0Z_6",       [ ](vector<string> p) { return OshiZumoDomain::OZ(6); }},
+        {"MP",         [ ](vector<string> p) { return make_unique<MatchingPenniesDomain>(); }},
+        {"RPS",        [ ](vector<string> p) { return make_unique<RPSDomain>(); }},
+        {"BRPS",       [ ](vector<string> p) { return make_unique<BiasedRPSDomain>(stod(p.at(0))); }},
+        {"PD",         [ ](vector<string> p) { return make_unique<PrisonnersDilemmaDomain>(); }},
+        {"GP_322221",  [ ](vector<string> p) { return make_unique<GenericPokerDomain>(3,2,2,2,2,1); }},
+        {"GP_464441",  [ ](vector<string> p) { return make_unique<GenericPokerDomain>(4,6,4,4,4,1); }},
+        {"GP_small",   [ ](vector<string> p) { return make_unique<GenericPokerDomain>(3,2,2,2,2,1); }},
+        {"GP_large",   [ ](vector<string> p) { return make_unique<GenericPokerDomain>(4,6,4,4,4,1); }},
+        {"LD_116",     [ ](vector<string> p) { return make_unique<LiarsDiceDomain>(vector<int>{1, 1}, 6); }},
+        {"LD_226",     [ ](vector<string> p) { return make_unique<LiarsDiceDomain>(vector<int>{2, 2}, 6); }},
+        {"LD_small",   [ ](vector<string> p) { return make_unique<LiarsDiceDomain>(vector<int>{1, 1}, 6); }},
+        {"LD_large",   [ ](vector<string> p) { return make_unique<LiarsDiceDomain>(vector<int>{2, 2}, 6); }},
+        {"KS",         [ ](vector<string> p) { return make_unique<KriegspielDomain>(50, 50, chess::BOARD::STANDARD); }},
     };
     // @formatter:on
 
@@ -151,27 +153,22 @@ std::unique_ptr<GTLib2::AlgorithmWithData> constructAlgWithData(const GTLib2::Do
         CFRSettings cfg;
         inline WrapperCFR(const Domain &d, CFRSettings _cfg) :
             data(CFRData(d, _cfg.cfrUpdating)), cfg(_cfg) {}
-        PreparedAlgorithm prepare() override {
-            return createInitializer<CFRAlgorithm>(data, cfg);
-        }
+        PreparedAlgorithm prepare() override { return createInitializer<CFRAlgorithm>(data, cfg); }
     };
     struct WrapperOOS: AlgorithmWithData {
         OOSData data;
         OOSSettings cfg;
-        inline WrapperOOS(const Domain &d, OOSSettings _cfg) :
-            data(OOSData(d)), cfg(_cfg) {}
-        PreparedAlgorithm prepare() override {
-            return createInitializer<OOSAlgorithm>(data, cfg);
-        }
+        inline WrapperOOS(const Domain &d, OOSSettings _cfg) : data(OOSData(d)), cfg(_cfg) {}
+        PreparedAlgorithm prepare() override { return createInitializer<OOSAlgorithm>(data, cfg); }
     };
     struct WrapperMCCR: AlgorithmWithData {
         OOSData data;
         MCCRSettings cfg;
-        inline WrapperMCCR(const Domain &d, MCCRSettings _cfg) :
-            data(OOSData(d)), cfg(_cfg) {}
-        PreparedAlgorithm prepare() override {
-            return createInitializer<MCCRAlgorithm>(data, cfg);
-        }
+        inline WrapperMCCR(const Domain &d, MCCRSettings _cfg) : data(OOSData(d)), cfg(_cfg) {}
+        PreparedAlgorithm prepare() override { return createInitializer<MCCRAlgorithm>(data, cfg); }
+    };
+    struct WrapperRND: AlgorithmWithData {
+        PreparedAlgorithm prepare() override { return createInitializer<RandomPlayer>(); }
     };
 
     std::fstream fs(settingFile, std::fstream::in);
@@ -198,6 +195,7 @@ std::unique_ptr<GTLib2::AlgorithmWithData> constructAlgWithData(const GTLib2::Do
             deserialize(settings);
             return make_unique<WrapperMCCR>(d, settings);
         }},
+        {"RND",   [&]() { return make_unique<WrapperRND>(); }},
     };
     // @formatter:on
 
