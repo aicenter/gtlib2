@@ -166,7 +166,6 @@ vector<double> playMatch(const Domain &domain,
                          BudgetType simulationType,
                          unsigned long matchSeed);
 
-
 }  // namespace GTLib2
 
 

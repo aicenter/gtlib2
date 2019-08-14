@@ -31,6 +31,8 @@ double calcExploitability(const Domain &domain, const StrategyProfile &profile) 
     const auto bestResp1 = bestResponseTo(profile[1], Player(0), domain).value;
     const double expl = (bestResp0 + bestResp1) / (2 * domain.getMaxUtility());
 
+    LOG_DEBUG("BR_pl1(strategy0) " << bestResp0)
+    LOG_DEBUG("BR_pl0(strategy1) " << bestResp1)
     assert(expl <= 1.0);
     assert(expl >= 0.0);
     return expl;
@@ -45,6 +47,7 @@ double calcExploitability(const Domain &domain, const BehavioralStrategy &strat,
     const auto bestRespValue = bestResponseTo(strat, opponent(pl), domain).value;
     const double expl = (gameValue + bestRespValue) / domain.getMaxUtility();
 
+    LOG_DEBUG("BR_pl"<<opponent(pl)<<"(strategy"<<pl<<") " << bestRespValue)
     assert(expl <= 1.0);
     assert(expl >= 0.0);
     return expl;

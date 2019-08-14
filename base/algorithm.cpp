@@ -129,7 +129,7 @@ vector<double> playMatch(const Domain &domain,
     auto generator = std::mt19937(matchSeed);
 
     shared_ptr<EFGNode> node = createRootEFGNode(domain.getRootStatesDistribution());
-//    node->
+
     while (node->type_ != TerminalNode) {
         int playerAction;
         auto actions = node->availableActions();
@@ -169,6 +169,7 @@ vector<double> playMatch(const Domain &domain,
                 playerAction = pickRandom(probs, generator);
                 LOG_PLAYER(pl, "Player " << int(pl) << " picked action " << playerAction
                                          << " from distr " << probs)
+                LOG_INFO("Action description: " << *actions[playerAction])
                 break;
             }
 
@@ -180,6 +181,7 @@ vector<double> playMatch(const Domain &domain,
         }
 
         node = node->performAction(actions[playerAction]);
+        LOG_INFO("State description: \n" << dynamic_pointer_cast<FOG2EFGNode>(node)->getState()->toString())
     }
 
     return node->getUtilities();

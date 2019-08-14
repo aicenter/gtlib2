@@ -75,6 +75,11 @@ class PublicState: public Node<PublicState> {
 
     const vector<ActionId> &getHistory() const { return history_; };
 
+    inline friend std::ostream & operator<<(std::ostream &ss, const PublicState &a) {
+        ss << a.history_;
+        return ss;
+    }
+
 //    const shared_ptr<Observation> incomingObservation_;
 //    unsigned int countChildren() const override { return 0; };
 //    const shared_ptr <PublicState> getChildAt(EdgeId index) const override { return nullptr; };
