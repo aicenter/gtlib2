@@ -287,6 +287,10 @@ PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
 
     const bool exploringMoveInNode = h->getPlayer() == exploringPl;
     calcRMProbs(data.regrets, &rmProbs_, cfg_.approxRegretMatching);
+#ifndef NDEBUG
+    if(cfg_.approxRegretMatching > 0)
+        for (int i = 0; i < data.regrets.size(); ++i) assert(rmProbs_[i] > 0);
+#endif
 
     const auto&[biasApplicableActions, bsum] = calcBiasing(h, actions, bs_h_all);
     const auto ai = exploringMoveInNode
@@ -361,6 +365,11 @@ pair<int, double> OOSAlgorithm::calcBiasing(const shared_ptr<EFGNode> &h,
             bsum += rmProbs_[i];
             ++biasApplicableActions;
         } else (*pBiasedProbs_)[i] = -0.0; // negative zeros denote the banned actions
+    }
+
+    if (bsum == 0) { // if there is now way how to get to the target
+        pBiasedProbs_ = &rmProbs_;
+        return make_pair(actions.size(), 1.0);
     }
 
     return make_pair(biasApplicableActions, bsum);
