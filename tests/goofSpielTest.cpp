@@ -43,18 +43,18 @@ using algorithms::playOnlyAction;
 
 // @formatter:off
 GoofSpielDomain testDomainsGoofSpiel[] = { // NOLINT(cert-err58-cpp)
-    GoofSpielDomain({ variant:  CompleteObservations,   numCards: 1, fixChanceCards: false, chanceCards: {}}),
-    GoofSpielDomain({ variant:  CompleteObservations,   numCards: 2, fixChanceCards: false, chanceCards: {}}),
-    GoofSpielDomain({ variant:  CompleteObservations,   numCards: 3, fixChanceCards: false, chanceCards: {}}),
-    GoofSpielDomain({ variant:  CompleteObservations,   numCards: 1, fixChanceCards: true,  chanceCards: {}}),
-    GoofSpielDomain({ variant:  CompleteObservations,   numCards: 2, fixChanceCards: true,  chanceCards: {}}),
-    GoofSpielDomain({ variant:  CompleteObservations,   numCards: 3, fixChanceCards: true,  chanceCards: {}}),
-    GoofSpielDomain({ variant:  IncompleteObservations, numCards: 1, fixChanceCards: false, chanceCards: {}}),
-    GoofSpielDomain({ variant:  IncompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}}),
-    GoofSpielDomain({ variant:  IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}}),
-    GoofSpielDomain({ variant:  IncompleteObservations, numCards: 1, fixChanceCards: true,  chanceCards: {}}),
-    GoofSpielDomain({ variant:  IncompleteObservations, numCards: 2, fixChanceCards: true,  chanceCards: {}}),
-    GoofSpielDomain({ variant:  IncompleteObservations, numCards: 3, fixChanceCards: true,  chanceCards: {}}),
+    GoofSpielDomain({ .variant =   CompleteObservations,   .numCards =  1, .fixChanceCards =  false, .chanceCards =  {}}),
+    GoofSpielDomain({ .variant =   CompleteObservations,   .numCards =  2, .fixChanceCards =  false, .chanceCards =  {}}),
+    GoofSpielDomain({ .variant =   CompleteObservations,   .numCards =  3, .fixChanceCards =  false, .chanceCards =  {}}),
+    GoofSpielDomain({ .variant =   CompleteObservations,   .numCards =  1, .fixChanceCards =  true,  .chanceCards =  {}}),
+    GoofSpielDomain({ .variant =   CompleteObservations,   .numCards =  2, .fixChanceCards =  true,  .chanceCards =  {}}),
+    GoofSpielDomain({ .variant =   CompleteObservations,   .numCards =  3, .fixChanceCards =  true,  .chanceCards =  {}}),
+    GoofSpielDomain({ .variant =   IncompleteObservations, .numCards =  1, .fixChanceCards =  false, .chanceCards =  {}}),
+    GoofSpielDomain({ .variant =   IncompleteObservations, .numCards =  2, .fixChanceCards =  false, .chanceCards =  {}}),
+    GoofSpielDomain({ .variant =   IncompleteObservations, .numCards =  3, .fixChanceCards =  false, .chanceCards =  {}}),
+    GoofSpielDomain({ .variant =   IncompleteObservations, .numCards =  1, .fixChanceCards =  true,  .chanceCards =  {}}),
+    GoofSpielDomain({ .variant =   IncompleteObservations, .numCards =  2, .fixChanceCards =  true,  .chanceCards =  {}}),
+    GoofSpielDomain({ .variant =   IncompleteObservations, .numCards =  3, .fixChanceCards =  true,  .chanceCards =  {}}),
 };
 // @formatter:on
 
@@ -183,18 +183,18 @@ TEST(Goofspiel, BuildGameTreeAndCheckSizes) {
 
 TEST(Goofspiel, checkBinaryUtilities) {
     auto binary = GoofSpielDomain({
-                                      variant:  CompleteObservations,
-                                      numCards: 3,
-                                      fixChanceCards: false,
-                                      chanceCards: {},
-                                      binaryTerminalRewards: true
+                                      .variant =   CompleteObservations,
+                                      .numCards =  3,
+                                      .fixChanceCards =  false,
+                                      .chanceCards =  {},
+                                      .binaryTerminalRewards =  true
                                   });
     auto nonBinary = GoofSpielDomain({
-                                         variant:  IncompleteObservations,
-                                         numCards: 3,
-                                         fixChanceCards: false,
-                                         chanceCards: {},
-                                         binaryTerminalRewards: false
+                                         .variant =   IncompleteObservations,
+                                         .numCards =  3,
+                                         .fixChanceCards =  false,
+                                         .chanceCards =  {},
+                                         .binaryTerminalRewards =  false
                                      });
 
     int numViolations;

@@ -919,3 +919,5 @@ _deps
 
 # Project config
 BuildConfiguration.txt
+
+myfile\.dot

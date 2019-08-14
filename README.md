@@ -12,6 +12,7 @@ Currently contains implementations of:
     - Pursuit-evasion
     - Random games
     - Rhode island poker
+    - Stratego
     
 - Algorithms:
     - Best response calculation

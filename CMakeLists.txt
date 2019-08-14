@@ -25,11 +25,11 @@ set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-Wgnu-designator -fsanitize=address")
 set(CMAKE_CXX_FLAGS_RELEASE "-m64 -msse2 -O3 -ffast-math -DNDEBUG")
 
 # link pthread library
-#set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-#find_package(Threads REQUIRED)
-#if (CMAKE_USE_PTHREADS_INIT)
-#    set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-pthread")
-#endif ()
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+find_package(Threads REQUIRED)
+if (CMAKE_USE_PTHREADS_INIT)
+    set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-pthread")
+endif ()
 
 # add google test
 add_subdirectory(external/googletest)
@@ -206,6 +206,7 @@ set(SOURCE_FILES
         domains/RhodeIslandPoker.h domains/RhodeIslandPoker.cpp
         domains/oshiZumo.h domains/oshiZumo.cpp
         domains/randomGame.h domains/randomGame.cpp
+        domains/stratego.h domains/stratego.cpp
         # LPSolvers
         LPsolvers/AbstractLPSolver.h
         LPsolvers/LPSolver.h
@@ -275,6 +276,7 @@ set(SOURCE_FILES
         )
 
 set(TEST_FILES
+        tests/strategoTest.cpp
         tests/domainsTest.h tests/domainsTest.cpp
         tests/algorithmTest.cpp
         tests/bestResponseTest.cpp
