@@ -121,16 +121,24 @@ class StrategoMoveAction: public Action {
     const int boardWidth_;
 };
 
-
-class StrategoObservation: public Observation {
- public:
-    inline StrategoObservation() :
-        Observation(), startPos_(0), endPos_(0), startCell_(0), endCell_(0) {}
-    StrategoObservation(int startPos, int endPos, Rank startCell, Rank endCell);
+class StrategoMoveObservation: public Observation {
+public:
+    inline StrategoMoveObservation() :
+            Observation(), startPos_(0), endPos_(0), startCell_(0), endCell_(0) {}
+    StrategoMoveObservation(const int startPos,const int endPos, const Rank startCell,const Rank endCell);
     const int startPos_;
     const int endPos_;
     const Rank startCell_;
     const Rank endCell_;
+};
+
+class StrategoSetupObservation: public Observation {
+ public:
+    inline StrategoSetupObservation() :
+        Observation(), setupID_(0), playerID_(0) {}
+    StrategoSetupObservation(const int setupID, const int playerID);
+    const int setupID_;
+    const int playerID_;
 };
 
 class StrategoState: public State {

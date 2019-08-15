@@ -26,15 +26,23 @@
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
 namespace GTLib2::domains {
-
-// startpos/endpos < 512
-unsigned int encodeObservation(int startPos, int endPos, CellState startCell, CellState endCell) {
-    // 32 bits total
-    // max sizes of stratego boards are 10x10 = 100, so pos < 8bits = 256
-    return (startPos << 24)
-        | (endPos << 16)
+unsigned int encodeMoveObservation(int startPos, int endPos, CellState startCell, CellState endCell) {
+    // 30 bits total
+    // max sizes of stratego boards are 10x10 = 100, so pos < 7 bits = 128
+    return (startPos << 22)
+        | (endPos << 15)
         | (startCell << 8) // 8 bits
         | endCell; // 8 bits
+}
+
+
+// startpos/endpos < 512
+unsigned int encodeSetupObservation(int setupid, int playerID) {
+    // 32 bits total
+    //setupid up to 28 bits
+    return (3 << 30)
+            | (playerID << 28)
+            | setupid; // 28 bits
 }
 
 int maxMovesWithoutAttack(int h, int w) {
@@ -119,21 +127,28 @@ vector<CellState> StrategoSettings::generateBoard() {
     return board;
 }
 
-StrategoObservation::StrategoObservation(const int startPos, const int endPos,
+
+    StrategoSetupObservation::StrategoSetupObservation(const int setupID, const int playerID)
+        : Observation(),
+          setupID_(setupID), playerID_(playerID) {
+    id_ = encodeSetupObservation(setupID_, playerID_);
+}
+
+StrategoMoveObservation::StrategoMoveObservation(const int startPos, const int endPos,
                                          const Rank startCell, const Rank endCell)
     : Observation(),
       startPos_(startPos), endPos_(endPos),
       startCell_(startCell), endCell_(endCell) {
 
     assert(startPos + endPos > 0);
-    id_ = encodeObservation(startPos_, endPos_, startCell_, endCell_);
+    id_ = encodeMoveObservation(startPos_, endPos_, startCell_, endCell_);
 }
 
 
 StrategoDomain::StrategoDomain(StrategoSettings settings) :
     Domain(maxMovesWithoutAttack(settings.boardHeight, settings.boardWidth)
                * settings.figures.size() * 2, 2, true,
-           make_shared<Action>(), make_shared<StrategoObservation>()),
+           make_shared<Action>(), make_shared<Observation>()),
     emptyBoard_(settings.generateBoard()),
     startFigures_(settings.figures),
     boardWidth_(settings.boardWidth),
@@ -190,7 +205,7 @@ unsigned long StrategoState::countAvailableActionsFor(Player player) const {
     if (isSetupState_) {
         return fact(stratDomain->startFigures_.size());
     }
-
+    //todo: add scouts (move to more than one field)
     int count = 0;
     for (int i = 0; i < boardState_.size(); i++) {
         if (!isPlayers(boardState_[i], player)
@@ -220,7 +235,7 @@ shared_ptr<Action> StrategoState::getActionByID(const Player player, ActionId ac
 
         return make_shared<Action>();
     }
-
+    //todo: add scouts (move to more than one field)
     for (int i = 0; i < boardState_.size(); i++) {
         if (!isPlayers(boardState_[i], player)
             || getRank(boardState_[i]) == BOMB
@@ -262,7 +277,7 @@ vector<shared_ptr<Action>> StrategoState::getAvailableActionsFor(const Player pl
         } while (next_permutation(comb.begin(), comb.end()));
         return actions;
     }
-
+    //todo: add scouts (move to more than one field)
     for (int i = 0; i < boardState_.size(); i++) {
         if (!isPlayers(boardState_[i], player)
             || getRank(boardState_[i]) == BOMB
@@ -326,7 +341,9 @@ StrategoState::performSetupAction(const vector<shared_ptr<Action>> &actions) con
 
     const auto newState = make_shared<StrategoState>(stratDomain, board, false, false, 0, 0);
     const auto &noObs = stratDomain->getNoObservation();
-    const auto newOutcome = Outcome(newState, {noObs, noObs}, noObs, {0, 0});
+    const auto pl0obs =  make_shared<StrategoSetupObservation>(actionpl0.getId(),0);
+    const auto pl1obs =  make_shared<StrategoSetupObservation>(actionpl1.getId(),0);
+    const auto newOutcome = Outcome(newState, {pl0obs, pl1obs}, noObs, {0, 0});
 
     return OutcomeDistribution{OutcomeEntry(newOutcome)};
 }
@@ -404,7 +421,7 @@ StrategoState::performMoveAction(const vector<shared_ptr<Action>> &actions) cons
     const vector<double> newRewards = {(pl0won ? 1.0 : 0.0) + (pl1won ? (-1.0) : 0.0),
                                        (pl1won ? 1.0 : 0.0) + (pl0won ? (-1.0) : 0.0)};
 
-    shared_ptr<StrategoObservation> obs = make_shared<StrategoObservation>(
+    shared_ptr<StrategoMoveObservation> obs = make_shared<StrategoMoveObservation>(
         action.startPos, action.endPos,
         endCell == EMPTY ? EMPTY : startCell, // do not reveal rank if moving to empty cell
         endCell); // reveal rank if it wasn't empty

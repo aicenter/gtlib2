@@ -27,8 +27,32 @@
 #include "experiments/cfr_regrets.h"
 
 #include <iostream>
+#include <algorithms/MCTS/ISMCTS.h>
+#include <algorithms/MCTS/CPWISMCTS.h>
+#include <domains/goofSpiel.h>
 
 int main(int argc, const char **argv) {
+
+        auto fact = make_shared<UCTSelectorFactory>(sqrt(2));
+        int a = 0;
+    ISMSTCSettings s = {.useBelief = true, .fact_ = std::static_pointer_cast<SelectorFactory>(fact), .randomSeed = 123};
+    PreparedAlgorithm firstAction = createInitializer<CPWISMCTS>(s);
+    PreparedAlgorithm lastAction = createInitializer<RandomPlayer>();
+
+    GTLib2::domains::GoofSpielSettings settings
+            ({variant:  GTLib2::domains::IncompleteObservations, numCards: 3, fixChanceCards: false});
+//    settings.shuffleChanceCards(2);
+    GoofSpielDomain domain(settings);
+    vector<double> actualUtilities = playMatch(
+            domain, vector<PreparedAlgorithm>{firstAction, lastAction},
+            vector<int>{10000, 10000}, vector<int>{100, 100}, BudgetIterations, 0);
+
+//    GTLib2::domains::StrategoSettings settings = {3,2,{},{'1', '2'}};
+//    GTLib2::domains::StrategoDomain domain(settings);
+//    vector<double> actualUtilities = playMatch(
+//            domain, vector<PreparedAlgorithm>{firstAction, lastAction},
+//            vector<int>{1000, 1000}, vector<int>{10, 10}, BudgetIterations, 0);
+
     args::ArgumentParser parser("Command runner for GTLib2");
     args::CompletionFlag completion(parser, {"complete"}); // bash completion
     args::GlobalOptions globals(parser, args::arguments);

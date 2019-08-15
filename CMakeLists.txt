@@ -177,6 +177,12 @@ set(SOURCE_FILES
         algorithms/stats.h algorithms/stats.cpp
         algorithms/strategy.cpp algorithms/strategy.h
         algorithms/utility.h algorithms/utility.cpp
+        algorithms/MCTS/ISMCTS.h algorithms/MCTS/ISMCTS.cpp
+        algorithms/MCTS/CPWISMCTS.h algorithms/MCTS/CPWISMCTS.cpp
+        algorithms/MCTS/selectors/selector.h
+        algorithms/MCTS/selectors/selectorFactory.h
+        algorithms/MCTS/selectors/UCTSelector.cpp algorithms/MCTS/selectors/UCTSelector.h
+        algorithms/MCTS/selectors/UCTSelectorFactory.h  algorithms/MCTS/selectors/UCTSelectorFactory.cpp
         # base
         base/algorithm.cpp base/algorithm.h
         base/base.h base/base.cpp
