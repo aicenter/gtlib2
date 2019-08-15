@@ -25,11 +25,11 @@ set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-Wgnu-designator -fsanitize=address")
 set(CMAKE_CXX_FLAGS_RELEASE "-m64 -msse2 -O3 -ffast-math -DNDEBUG")
 
 # link pthread library
-set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-find_package(Threads REQUIRED)
-if (CMAKE_USE_PTHREADS_INIT)
-    set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-pthread")
-endif ()
+#set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+#find_package(Threads REQUIRED)
+#if (CMAKE_USE_PTHREADS_INIT)
+#    set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-pthread")
+#endif ()
 
 # add google test
 add_subdirectory(external/googletest)
