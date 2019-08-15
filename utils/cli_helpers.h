@@ -42,6 +42,7 @@
 #include "domains/randomGame.h"
 #include "domains/simple_games.h"
 #include "domains/kriegspiel.h"
+#include "domains/stratego.h"
 
 namespace GTLib2::CLI {
 using namespace domains;
@@ -137,6 +138,12 @@ unique_ptr<Domain> constructDomain(const string &description) {
         {"LD_226",     [ ](vector<string> p) { return make_unique<LiarsDiceDomain>(vector<int>{2, 2}, 6); }},
         {"LD_small",   [ ](vector<string> p) { return make_unique<LiarsDiceDomain>(vector<int>{1, 1}, 6); }},
         {"LD_large",   [ ](vector<string> p) { return make_unique<LiarsDiceDomain>(vector<int>{2, 2}, 6); }},
+        {"STRAT2x2",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{2,2,{},{'1', '2'}}); }},
+        {"STRAT2x3",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{2,3,{},{'1', '2', '3'}});}},
+        {"STRAT3x2",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{3,2,{},{'1', '2'}});}},
+        {"STRAT3x3",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{3,3,{{1,1,1,1}},{'1', '2', '3'}});}},
+        {"STRAT6x6",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{6,6,{{2,2,2,2}}, {'B','4','3','3','2','2', '2','1','1','1','1','F'}});}},
+        {"STRAT10x10", [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{10,10, {{3,5,2,2}, {7,5,2,2}}}); }},
         {"KS",         [ ](vector<string> p) { return make_unique<KriegspielDomain>(50, 50, chess::BOARD::STANDARD); }},
     };
     // @formatter:on
