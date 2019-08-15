@@ -251,6 +251,24 @@ class EFGNode {
         return utilities_;
     }
 
+    inline friend std::ostream & operator<<(std::ostream &ss, const EFGNode &n) {
+        switch (n.type_) {
+            case ChanceNode:
+                ss << "C";
+                break;
+            case PlayerNode:
+                ss << "P" << int(n.getPlayer());
+                break;
+            case TerminalNode:
+                ss << "T" << n.getUtilities();
+                break;
+            default:
+                unreachable("unrecognized option!");
+        }
+        ss << " " << n.getHistory();
+        return ss;
+    }
+
     const EFGNodeType type_;
  protected:
     const Player currentPlayer_;

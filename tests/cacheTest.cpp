@@ -25,6 +25,7 @@
 
 #include "domains/matching_pennies.h"
 #include "domains/goofSpiel.h"
+#include "domains/randomGame.h"
 
 #include "gtest/gtest.h"
 
@@ -264,7 +265,8 @@ TEST(Cache, PublicStateCacheGetInfosets) {
 
     // infoset for player 1 contains the two nodes
     shared_ptr<AOH> actualInfoset = aNode->getAOHInfSet();
-    shared_ptr<AOH> expectedInfoset = *cache.getInfosetsForPubStatePlayer(pubState, Player(1)).begin();
+    shared_ptr<AOH>
+        expectedInfoset = *cache.getInfosetsForPubStatePlayer(pubState, Player(1)).begin();
     EXPECT_NE(expectedInfoset, actualInfoset);
     EXPECT_EQ(*expectedInfoset, *actualInfoset);
 
@@ -319,5 +321,41 @@ TEST(Cache, PublicStateCacheGetInfosetsLarge) {
 //        EXPECT_EQ(obs->roundResult_, GoofspielRoundOutcome::PL0_DRAW);
 //    }
 }
+
+TEST(Cache, CollectInformationSetsForBothPlayers) {
+    auto rg = *GoofSpielDomain::IIGS(2);
+    auto rootNode = createRootEFGNode(rg);
+    InfosetCache cache(rg);
+    cache.buildTree();
+    auto leader = Player(1);
+    auto follower = Player(0);
+    unordered_map<shared_ptr<InformationSet>, int> leader_is2idx;
+    unordered_map<shared_ptr<InformationSet>, int> follower_is2idx;
+    int leader_idx = 0;
+    int follower_idx = 0;
+    for (const auto &[infoset, nodes]: cache.getInfoset2NodeMapping()) {
+        cout << *infoset << ": \n";
+        for(auto &node:nodes) {
+            cout << "\t" << *node << "\n";
+        }
+        cout << endl;
+    }
+
+    for (const auto &[infoset, nodes]: cache.getInfoset2NodeMapping()) {
+        if (nodes.at(0)->type_ != PlayerNode) continue;
+        if (infoset->getPlayer() == leader && nodes.at(0)->getPlayer() == leader) {
+            leader_is2idx[infoset] = leader_idx;
+            leader_idx += nodes.at(0)->countAvailableActions();
+        }
+        if (infoset->getPlayer() == follower && nodes.at(0)->getPlayer() == follower) {
+            follower_is2idx[infoset] = follower_idx ;
+            follower_idx  += nodes.at(0)->countAvailableActions();
+        }
+    }
+
+    EXPECT_EQ(leader_is2idx.size(), 5);
+    EXPECT_EQ(follower_is2idx.size(), 5);
+}
+
 
 }  // namespace GTLib2
