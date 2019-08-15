@@ -64,13 +64,13 @@ EFGChildNodes &EFGCache::getCachedNode(const shared_ptr<EFGNode> &node) {
             processNode(rootNode_);
 
             // createNode must append to nodesChildren
-            return nodesChildren_[node];
+            return nodesChildren_.at(node);
         }
 
         assert(false); // not found even in root nodes :/
     }
 
-    return nodesChildren_[node];
+    return nodesChildren_.at(node);
 }
 
 
@@ -80,13 +80,12 @@ EFGCache::getChildFor(const shared_ptr<EFGNode> &node, const shared_ptr<Action> 
 
     // fetch from cache if possible
     const auto actionId = action->getId();
-    if (nodes.size() >= actionId && nodes[actionId]) return nodes[actionId];
+    if (nodes.size() >= actionId && nodes.at(actionId)) return nodes[actionId];
 
     // create new nodes and save them to cache
     assert(nodes.size() > actionId);
-    auto childNode = node->performAction(action);
-    nodes[actionId] = childNode;
-    this->processNode(childNode);
+    nodes[actionId] = node->performAction(action);
+    this->processNode(nodes[actionId]);
 
     return nodes[actionId];
 }

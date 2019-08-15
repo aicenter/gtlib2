@@ -50,7 +50,7 @@ inline shared_ptr<ExampleNode> nodeChildExpander<ExampleNode>(const shared_ptr<E
     return make_shared<ExampleNode>(node->shared_from_this(), index);
 }
 
-TEST(Tree, TreeWalkBinary) {
+TEST(Tree, WalkBinaryTree) {
     std::stringstream ss;
     auto callback = [&](shared_ptr<ExampleNode> node) { ss << node->toString() << "\n"; };
     auto rootNode = make_shared<ExampleNode>(nullptr, nullopt);

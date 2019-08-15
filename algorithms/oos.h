@@ -62,6 +62,7 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
             double v = nominator / denominator;
             assert(!isnan(v));
             assert(!isinf(v));
+            return v;
         }
         inline void reset() {
             nominator = 0.;
