@@ -72,7 +72,7 @@ shared_ptr<EFGNode> FOG2EFGNode::performAction(const shared_ptr<Action> &action)
         case TerminalNode:
             assert(false); // Cannot perform any actions in terminal node!
         default:
-            assert(false); // Unrecognized node type!
+            unreachable("unrecognized option!");
     }
 }
 
@@ -180,7 +180,7 @@ unsigned long FOG2EFGNode::countAvailableActions() const {
         case TerminalNode:
             return 0;
         default:
-            assert(false); // Unrecognized node type!
+            unreachable("unrecognized option!");
     }
 }
 
@@ -193,7 +193,7 @@ vector<shared_ptr<Action>> FOG2EFGNode::availableActions() const {
         case TerminalNode:
             assert(false); // Not defined for terminal nodes!
         default:
-            assert(false); // Unrecognized node type!
+            unreachable("unrecognized option!");
     }
 }
 
@@ -298,7 +298,7 @@ const shared_ptr<FOG2EFGNode> FOG2EFGNode::getChildAt(EdgeId index) const {
         case TerminalNode:
             assert(false); // Cannot perform any actions in terminal node!
         default:
-            assert(false); // Unrecognized node type!
+            unreachable("unrecognized option!");
     }
 }
 

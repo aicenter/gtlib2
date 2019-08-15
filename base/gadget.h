@@ -24,6 +24,10 @@
 
 #include "base/efg.h"
 
+#pragma GCC diagnostic push
+// there are bunch of methods in gadget which do not have implementations, and should not be called
+#pragma GCC diagnostic ignored "-Wreturn-type"
+
 namespace GTLib2 {
 
 
@@ -288,6 +292,8 @@ class GadgetTerminalNode: public EFGNode {
             && EFGNode::operator==(rhs);
     }
 };
+
+#pragma GCC diagnostic pop
 
 }
 

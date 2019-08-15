@@ -89,7 +89,7 @@ inline string getShape(const shared_ptr<EFGNode> &node) {
         case TerminalNode:
             return "square";
         default:
-            assert(false); // unrecognized option!
+            unreachable("unrecognized option!");
     }
 }
 
@@ -102,7 +102,7 @@ inline string getColor(const shared_ptr<EFGNode> &node) {
         case TerminalNode:
             return "#888888";
         default:
-            assert(false); // unrecognized option!
+            unreachable("unrecognized option!");
     }
 }
 

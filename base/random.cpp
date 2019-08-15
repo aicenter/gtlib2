@@ -67,7 +67,7 @@ int pickRandom(const EFGNode &node, std::mt19937 &generator) {
         case TerminalNode:
             assert(false); // No actions!
         default:
-            assert(false); // unrecognized option!
+            unreachable("unrecognized option!");
     }
 }
 

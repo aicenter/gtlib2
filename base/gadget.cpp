@@ -80,10 +80,10 @@ double GadgetGame::chanceProbForAction(const ActionId &action) const {
             return reach[resolvingPlayer_] * reach[2] / pubStateReach_;
         case UNSAFE_RESOLVING:
             return reach[0] * reach[1] * reach[2] / pubStateReach_;
-        case MAX_MARGIN:
+        case MAX_MARGIN: // todo:
             assert(false);
         default:
-            assert(false);
+            unreachable("unrecognized option!");
     }
 }
 
@@ -102,9 +102,9 @@ shared_ptr<EFGNode> GadgetRootNode::performAction(const shared_ptr<Action> &acti
         case UNSAFE_RESOLVING:
             return underlyingNode;
         case MAX_MARGIN:
-            assert(false);
+            assert(false); // todo:
         default:
-            assert(false);
+            unreachable("unrecognized option!");
     }
 }
 
@@ -117,7 +117,7 @@ shared_ptr<EFGNode> GadgetInnerNode::performAction(const shared_ptr<Action> &act
             return make_shared<GadgetTerminalNode>(shared_from_this(), vector<double>{v, -v});
         }
         default:
-            assert(false); // unrecognized option!
+            unreachable("unrecognized option!");
     }
 }
 

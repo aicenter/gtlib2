@@ -244,7 +244,7 @@ ExpectedUtility calcExpectedUtility(CFRData &cache, const shared_ptr<EFGNode> &n
         case TerminalNode:
             return ExpectedUtility(node->getUtilities()[pl], node->getUtilities()[pl]);
         default:
-            assert(false); // unrecognized option!
+            unreachable("unrecognized option!");
     }
 
 }

@@ -38,7 +38,7 @@ boardInfo BoardFactory::create(BOARD b, GTLib2::domains::KriegspielState *s) {
         case SILVERMAN4BY4:
             return createSilverman4x4(s);
         default:
-            assert(false); // unrecognized option!
+            unreachable("unrecognized option!");
     }
 }
 
@@ -358,7 +358,7 @@ FenBoardFactory::createPiece(char &c, int x, int y, GTLib2::domains::KriegspielS
             return p;
         }
         default:
-            assert(false); // unrecognized option!
+            unreachable("unrecognized option!");
     }
 }
 

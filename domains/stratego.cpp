@@ -245,7 +245,7 @@ shared_ptr<Action> StrategoState::getActionByID(const Player player, ActionId ac
         }
     }
 
-    assert(false); // action id out of range!
+    unreachable("action id out of range!");
 }
 
 vector<shared_ptr<Action>> StrategoState::getAvailableActionsFor(const Player player) const {

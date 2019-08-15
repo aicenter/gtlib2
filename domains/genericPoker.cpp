@@ -48,7 +48,7 @@ string GenericPokerAction::toString() const {
         case Fold:
             return "Fold";
         default:
-            assert(false); // unrecognized option!
+            unreachable("unrecognized option!");
     }
 }
 
@@ -68,7 +68,7 @@ string GenericPokerObservation::toString() const {
         case Fold:
             return "Fold";
         default:
-            assert(false); // unrecognized option!
+            unreachable("unrecognized option!");
     }
 }
 

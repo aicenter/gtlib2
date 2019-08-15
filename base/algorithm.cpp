@@ -42,7 +42,7 @@ bool playForBudget(GamePlayingAlgorithm &alg,
         case BudgetIterations:
             return playForIterations(alg, currentInfoset, budgetValue);
         default:
-            assert(false); // unrecognized type!
+            unreachable("unrecognized option!");
     }
 }
 

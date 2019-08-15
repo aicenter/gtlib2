@@ -113,7 +113,7 @@ bool Targetor::isAllowedAction(const shared_ptr<EFGNode> &h, const shared_ptr<Ac
         case OOSSettings::NoTargeting:
             return true;
         default:
-            assert(false); // unrecognized option!
+            unreachable("unrecognized option!");
     }
 }
 
@@ -156,7 +156,7 @@ OOSAlgorithm::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
         case OOSSettings::PlayUsingRMStrategy:
             return calcRMProbs(strategyData.regrets);
         default:
-            assert(false); // unrecognized option!
+            unreachable("unrecognized option!");
     }
 }
 
@@ -195,7 +195,7 @@ double OOSAlgorithm::iteration(const shared_ptr<EFGNode> &h,
 
             return handlePlayerNode(h, rm_h_pl, rm_h_opp, bs_h_all, us_h_all, us_h_cn, exploringPl);
         default:
-            assert(false); // unrecognized type!
+            unreachable("unrecognized option!");
     }
 }
 
@@ -521,6 +521,5 @@ void OOSAlgorithm::updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exp
 }
 
 
-#undef baseline
 
 }  // namespace GTLib2
