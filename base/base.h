@@ -481,53 +481,6 @@ MAKE_HASHABLE(GTLib2::State)
 MAKE_HASHABLE(GTLib2::Outcome)
 MAKE_HASHABLE(GTLib2::ActionSequence)
 
-namespace std { // NOLINT(cert-dcl58-cpp)
-
-template<typename T>
-std::ostream &operator<<(std::ostream &ss, const vector<T> &arr) {
-    ss << "[";
-    for (int i = 0; i < arr.size(); ++i) {
-        if (i == 0) ss << arr.at(i);
-        else ss << ", " << arr.at(i);
-    }
-    ss << "]";
-    return ss;
-}
-
-template<typename K, typename V>
-std::ostream &operator<<(std::ostream &ss, const unordered_map<K, V> &map) {
-    bool addNewLine = map.size() > 4;
-    ss << "{";
-    if(addNewLine) ss << endl;
-    bool first=true;
-    for (const auto &[k,v] : map) {
-        if(!first && !addNewLine) ss << ", ";
-        ss << k << ": " << v;
-        first=false;
-        if(addNewLine) ss << endl;
-    }
-    ss << "}";
-    return ss;
-}
-
-template<typename K, typename V>
-std::ostream &operator<<(std::ostream &ss, const unordered_map<shared_ptr<K>, V> &map) {
-    bool addNewLine = map.size() > 4;
-    ss << "{";
-    if(addNewLine) ss << endl;
-    bool first=true;
-    for (const auto &[k,v] : map) {
-        if(!first && !addNewLine) ss << ", ";
-        ss << *k << ": " << v;
-        first=false;
-        if(addNewLine) ss << endl;
-    }
-    ss << "}";
-    return ss;
-}
-
-}  // namespace std
-
 
 #endif  // BASE_BASE_H_
 
