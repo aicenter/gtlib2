@@ -147,7 +147,7 @@ TEST(OOS, PlayMatchInSmallDomain) {
          {0, 1, 0, 0}, {0, 1, 0, 0}}, // move
     };
 
-    for (int i = 0; i < 3; ++i) {
+    for (unsigned int i = 0; i < 3; ++i) {
         auto data0 = OOSData(*domain);
         data0.buildTree();
         auto data1 = OOSData(*domain);
