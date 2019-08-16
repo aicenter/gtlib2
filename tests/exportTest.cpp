@@ -40,7 +40,7 @@ TEST(Export, GambitSmallDomain) {
     exportGambit(mp, gambit_os);
 
     string expectedGambit =
-        R"(EFG 2 R "N6GTLib27domains21MatchingPenniesDomainE" { "Pl0" "Pl1" })" "\n"
+        R"(EFG 2 R "" { "Pl0" "Pl1" })" "\n"
         R"("")" "\n"
         R"(p "" 1 1 "" { "Heads" "Tails" } 0)" "\n"
         R"( p "" 2 2 "" { "Heads" "Tails" } 0)" "\n"

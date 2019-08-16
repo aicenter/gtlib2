@@ -77,6 +77,10 @@ void playOnlyAction(ActionProbDistribution &dist, const shared_ptr<Action> &acti
     dist[action] = 1.0;
 }
 
+ProbDistribution playUniformly(unsigned long numActions) {
+    return ProbDistribution(numActions, 1. / numActions);
+}
+
 ActionProbDistribution mapDistribution(const ProbDistribution &dist,
                                        const vector<shared_ptr<Action>> &actions) {
     assert(dist.size() == actions.size());
@@ -85,6 +89,34 @@ ActionProbDistribution mapDistribution(const ProbDistribution &dist,
         actionDist[actions[i]] = dist[i];
     }
     return actionDist;
+}
+array<double, 3> calcReachProbs(const shared_ptr<EFGNode> &h, StrategyCache *cache) {
+    array<double, 3> reaches = {1., 1., 1.};
+    EFGNode const *current = h.get();
+    while (current->getParent() != nullptr) {
+        EFGNode const *parent = current->getParent().get();
+        ActionId incomingId = current->getHistory().back();
+
+        switch (parent->type_) {
+            case ChanceNode:
+                reaches[2] *= parent->chanceProbForAction(incomingId);
+                break;
+            case PlayerNode: {
+                // todo: more efficient computation, we need it only @ incomingId
+                auto probs = cache->strategyFor(parent->getAOHInfSet());
+                double p = probs ? (*probs).at(incomingId) : 1. / parent->countAvailableActions();
+                reaches[parent->getPlayer()] *= p;
+                break;
+            }
+            case TerminalNode:
+                assert(false); // cannot encounter terminal node while traversing up!
+            default:
+                assert(false); // unrecognized option!
+        }
+
+        current = parent;
+    }
+    return reaches;
 }
 
 }  // namespace GTLib2

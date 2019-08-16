@@ -72,9 +72,19 @@ void playOnlyAction(ProbDistribution &dist, unsigned long actionIdx);
  */
 void playOnlyAction(ActionProbDistribution &dist, const shared_ptr<Action> &action);
 
+/**
+ * Play uniformly over n actions
+ */
+ProbDistribution playUniformly(unsigned long numActions);
+
 
 ActionProbDistribution mapDistribution(const ProbDistribution &dist,
                                        const vector<shared_ptr<Action>> &actions);
+
+/**
+ * Calculate reach probabilities for each player
+ */
+array<double, 3> calcReachProbs(const shared_ptr<EFGNode> &h, StrategyCache* cache);
 
 }  // namespace GTLib2
 

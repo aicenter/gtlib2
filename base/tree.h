@@ -47,11 +47,10 @@ class Node {
     // Root node constructor
     inline Node() : Node(nullptr, nullopt) {}
 
-    inline Node(const Node &other) {
-        parent_ = other.parent_;
-        history_ = other.history_;
-        hashNode_ = other.hashNode_;
-    }
+    inline Node(const Node &other) :
+        parent_(other.parent_),
+        history_(other.history_),
+        hashNode_(other.hashNode_) {}
 
     virtual ~Node() = default;
 
@@ -79,17 +78,17 @@ class Node {
 };
 
 template<class Node>
-using NodeCallback = function<void(shared_ptr < Node > )>;
+using NodeCallback = function<void(const shared_ptr < Node > &)>;
 
 template<class Node>
-using NodeChildCnt = function<unsigned int(shared_ptr < Node > )>;
+using NodeChildCnt = function<unsigned int(const shared_ptr < Node > &)>;
 template<class Node>
-unsigned int nodeChildCnt(shared_ptr < Node >);
+unsigned int nodeChildCnt(const shared_ptr < Node > &);
 
 template<class Node>
-using NodeChildExpander = function<shared_ptr<Node>(shared_ptr<Node>, EdgeId)>;
+using NodeChildExpander = function<shared_ptr<Node>(const shared_ptr < Node > &, EdgeId)>;
 template<class Node>
-shared_ptr<Node> nodeChildExpander(shared_ptr<Node>, EdgeId);
+shared_ptr <Node> nodeChildExpander(const shared_ptr <Node> &, EdgeId);
 
 /**
  * Call supplied function at each node of the tree, including leaves,
@@ -99,7 +98,8 @@ template<class Node>
 void treeWalk(const shared_ptr <Node> &node, const NodeCallback<Node> &callback) {
     callback(node);
     for (EdgeId i = 0; i < nodeChildCnt<Node>(node); ++i) {
-        treeWalk(nodeChildExpander<Node>(node, i), callback);
+        auto nextNode = nodeChildExpander<Node>(node, i);
+        treeWalk(nextNode, callback);
     }
 }
 
@@ -120,7 +120,8 @@ bool treeWalk(const shared_ptr <Node> &node,
 
     bool entireTreeWalked = true;
     for (EdgeId i = 0; i < cntChildren(node); ++i) {
-        entireTreeWalked = treeWalk(childAt(node, i), callback, cntChildren, childAt, maxDepth)
+        auto nextNode = childAt(node, i);
+        entireTreeWalked = treeWalk(nextNode, callback, cntChildren, childAt, maxDepth)
             && entireTreeWalked;
     }
     return entireTreeWalked;
@@ -137,7 +138,8 @@ void treeWalk(const shared_ptr <Node> &node,
               const NodeChildExpander<Node> &childAt) {
     callback(node);
     for (EdgeId i = 0; i < cntChildren(node); ++i) {
-        treeWalk(childAt(node, i), callback, cntChildren, childAt);
+        auto nextNode = childAt(node, i);
+        treeWalk(nextNode, callback, cntChildren, childAt);
     }
 }
 
@@ -146,7 +148,29 @@ void treeWalk(const shared_ptr <Node> &node,
 //treeWalkDFS
 //treeWalkBFS
 
+template<class Node>
+using Tree = unordered_map <shared_ptr<Node>, vector<shared_ptr < Node>>>;
 
+template<class Node>
+void copyTree(const Tree<Node> &origTree,
+              const shared_ptr <Node> &origParent,
+              Tree<Node> &newTree,
+              const shared_ptr <Node> &newParent) {
+
+    auto it = origTree.find(origParent);
+    if (it == origTree.end()) return; // nothing to copy
+
+    vector<shared_ptr<Node>> origChildren = it->second;
+    vector<shared_ptr<Node>> newChildren = vector<shared_ptr<Node>>(origChildren.size(), nullptr);
+
+    for (int i = 0; i < origChildren.size(); ++i) {
+        const auto &origChild = origChildren.at(i);
+        if (origChild == nullptr) continue;
+
+        newChildren.at(i) = origChild->clone(newParent);
+        copyTree(origTree, origChild, newTree, newChildren.at(i));
+    }
+}
 
 }
 

@@ -64,13 +64,13 @@ EFGChildNodes &EFGCache::getCachedNode(const shared_ptr<EFGNode> &node) {
             processNode(rootNode_);
 
             // createNode must append to nodesChildren
-            return nodesChildren_[node];
+            return nodesChildren_.at(node);
         }
 
         assert(false); // not found even in root nodes :/
     }
 
-    return nodesChildren_[node];
+    return nodesChildren_.at(node);
 }
 
 
@@ -80,13 +80,12 @@ EFGCache::getChildFor(const shared_ptr<EFGNode> &node, const shared_ptr<Action> 
 
     // fetch from cache if possible
     const auto actionId = action->getId();
-    if (nodes.size() >= actionId && nodes[actionId]) return nodes[actionId];
+    if (nodes.size() >= actionId && nodes.at(actionId)) return nodes[actionId];
 
     // create new nodes and save them to cache
     assert(nodes.size() > actionId);
-    auto childNode = node->performAction(action);
-    nodes[actionId] = childNode;
-    this->processNode(childNode);
+    nodes[actionId] = node->performAction(action);
+    this->processNode(nodes[actionId]);
 
     return nodes[actionId];
 }
@@ -137,6 +136,7 @@ void EFGCache::buildTree(int maxEfgDepth) {
 }
 
 void EFGCache::buildTree() {
+    LOG_DEBUG("Building tree")
     treeWalk(*this, [](shared_ptr<EFGNode> _) {});
     builtForest_ = true;
 }
@@ -144,7 +144,7 @@ void EFGCache::buildTree() {
 void InfosetCache::createAugInfosets(const shared_ptr<EFGNode> &node) {
     vector<shared_ptr<AOH>> infosets;
 
-    for (Player pl = 0; pl < GAME_MAX_PLAYERS; pl++) {
+    for (Player pl = 0; pl < 2; pl++) {
         auto infoset = node->getAOHAugInfSet(pl);
         auto maybeInfoset = infoset2nodes_.find(infoset);
 
@@ -159,7 +159,7 @@ void InfosetCache::createAugInfosets(const shared_ptr<EFGNode> &node) {
             maybeInfoset->second.push_back(node);
         }
     }
-    assert (infosets.size() == GAME_MAX_PLAYERS);
+    assert (infosets.size() == 2);
     node2infosets_.emplace(node, infosets);
 }
 

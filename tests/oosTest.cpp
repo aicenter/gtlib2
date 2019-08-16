@@ -105,7 +105,7 @@ TEST(OOS, CheckExploitabilityInSmallDomain) {
     cout << endl;
     double prevIters = 1.0;
     for (const auto iters: utils::log10Range(1, 1e4, 5)) {
-        const auto timems = utils::benchmark([&]() {
+        const auto timems = utils::benchmarkRuntime([&]() {
             for (int i = 0; i < (iters - prevIters); ++i) oos.runPlayIteration(nullopt);
         });
         const auto actualExploitability = calcExploitability(*domain, getAverageStrategy(data));
@@ -147,7 +147,7 @@ TEST(OOS, PlayMatchInSmallDomain) {
          {0, 1, 0, 0}, {0, 1, 0, 0}}, // move
     };
 
-    for (int i = 0; i < 3; ++i) {
+    for (unsigned int i = 0; i < 3; ++i) {
         auto data0 = OOSData(*domain);
         data0.buildTree();
         auto data1 = OOSData(*domain);
@@ -175,15 +175,15 @@ TEST(OOS, PlayManyMatches) {
         0, 0, 1, 0,
     };
 
-    for (int i = 0; i < 100; ++i) {
+    for (int seed = 0; seed < 100; ++seed) {
         auto data0 = OOSData(*domain);
         auto data1 = OOSData(*domain);
         vector<PreparedAlgorithm> algs = {
             createInitializer<OOSAlgorithm>(data0, settings),
             createInitializer<OOSAlgorithm>(data1, settings)
         };
-        auto r = expectedRewards[i];
-        auto actualOutcome = playMatch(*domain, algs, {10, 10}, {5, 5}, BudgetIterations, i);
+        auto r = expectedRewards[seed];
+        auto actualOutcome = playMatch(*domain, algs, {10, 10}, {5, 5}, BudgetIterations, seed);
         auto expectedOutcome = vector<double>{r, -r};
         EXPECT_EQ(expectedOutcome, actualOutcome);
     }

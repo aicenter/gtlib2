@@ -27,12 +27,11 @@
 
 #include "base/includes.h"
 #include "base/hashing.h"
+#include "external/cereal/cereal.hpp"
 #include "utils/utils.h"
+#include "utils/logging.h"
 
 namespace GTLib2 {
-
-// Maximum number of players we consider at any game
-#define GAME_MAX_PLAYERS 2
 
 class Action;
 class Observation;
@@ -129,6 +128,10 @@ class Action {
     inline ActionId getId() const { return id_; };
     inline virtual HashType getHash() const { return id_; };
     inline virtual bool operator==(const Action &that) const { return id_ == that.id_; };
+    inline friend std::ostream & operator<<(std::ostream &ss, const Action &a) {
+        ss << a.toString();
+        return ss;
+    }
 
  protected:
     const ActionId id_ = NO_ACTION;
@@ -169,6 +172,10 @@ class Observation {
     inline ObservationId getId() const { return id_; };
     inline virtual const HashType getHash() const { return id_; };
     inline virtual bool operator==(const Observation &that) const { return id_ == that.id_; };
+    inline friend std::ostream & operator<<(std::ostream &ss, const Observation &o) {
+        ss << o.toString();
+        return ss;
+    }
 
  protected:
     // we do not set it const, as computation of it can be non-trivial
@@ -191,7 +198,7 @@ struct ActionObservationIds {
     bool operator==(const ActionObservationIds &rhs) const;
     bool operator!=(const ActionObservationIds &rhs) const;
     const HashType getHash() const { return hashCombine(132456456, action, observation); }
-    inline friend std::ostream & operator<<(std::ostream &ss, ActionObservationIds &ids) {
+    inline friend std::ostream & operator<<(std::ostream &ss, const ActionObservationIds &ids) {
         ss << (ids.action == NO_ACTION ? "NoA" : to_string(ids.action)) << " ";
         ss << (ids.observation == NO_OBSERVATION ? "NoOb" : to_string(ids.observation));
         return ss;
@@ -264,6 +271,10 @@ class InformationSet {
     inline bool operator!=(const InformationSet &rhs) const { return !(rhs == *this); };
     virtual HashType getHash() const = 0;
     virtual string toString() const = 0;
+    friend inline std::ostream &operator<<(std::ostream &ss, InformationSet &infoset) {
+        ss << infoset.toString();
+        return ss;
+    }
 };
 
 /**
@@ -281,7 +292,6 @@ class AOH: public InformationSet {
  public:
     AOH(Player player, const vector<ActionObservationIds> &aoHistory);
 
-    inline unsigned long getSize() const { return aoh_.size(); }
     inline HashType getHash() const final { return hash_; }
     bool operator==(const InformationSet &rhs) const override;
 
@@ -474,13 +484,45 @@ MAKE_HASHABLE(GTLib2::ActionSequence)
 namespace std { // NOLINT(cert-dcl58-cpp)
 
 template<typename T>
-std::ostream &operator<<(std::ostream &ss, vector<T> arr) {
+std::ostream &operator<<(std::ostream &ss, const vector<T> &arr) {
     ss << "[";
     for (int i = 0; i < arr.size(); ++i) {
-        if (i == 0) ss << arr[i];
-        else ss << ", " << arr[i];
+        if (i == 0) ss << arr.at(i);
+        else ss << ", " << arr.at(i);
     }
     ss << "]";
+    return ss;
+}
+
+template<typename K, typename V>
+std::ostream &operator<<(std::ostream &ss, const unordered_map<K, V> &map) {
+    bool addNewLine = map.size() > 4;
+    ss << "{";
+    if(addNewLine) ss << endl;
+    bool first=true;
+    for (const auto &[k,v] : map) {
+        if(!first && !addNewLine) ss << ", ";
+        ss << k << ": " << v;
+        first=false;
+        if(addNewLine) ss << endl;
+    }
+    ss << "}";
+    return ss;
+}
+
+template<typename K, typename V>
+std::ostream &operator<<(std::ostream &ss, const unordered_map<shared_ptr<K>, V> &map) {
+    bool addNewLine = map.size() > 4;
+    ss << "{";
+    if(addNewLine) ss << endl;
+    bool first=true;
+    for (const auto &[k,v] : map) {
+        if(!first && !addNewLine) ss << ", ";
+        ss << *k << ": " << v;
+        first=false;
+        if(addNewLine) ss << endl;
+    }
+    ss << "}";
     return ss;
 }
 

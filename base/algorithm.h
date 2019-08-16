@@ -81,6 +81,8 @@ class GamePlayingAlgorithm {
 
 enum BudgetType { BudgetTime, BudgetIterations };
 
+#define PLAY_FROM_ROOT nullopt
+
 /**
  * Run iterations of given algorithm for a given budget value and type.
  *
@@ -88,24 +90,24 @@ enum BudgetType { BudgetTime, BudgetIterations };
  *
  * @return whether algorithm decided to continue (true) or give up (false)
  */
-bool playForBudget(unique_ptr<GamePlayingAlgorithm> &alg,
+bool playForBudget(GamePlayingAlgorithm &alg,
                    const optional<shared_ptr<AOH>> &currentInfoset,
-                   long budgetValue, BudgetType type);
+                   unsigned int budgetValue, BudgetType type);
 
 /**
  * Run iterations of given algorithm for a given number of iterations.
  * @return whether algorithm decided to continue (true) or give up (false)
  */
-bool playForIterations(unique_ptr<GamePlayingAlgorithm> &alg,
+bool playForIterations(GamePlayingAlgorithm &alg,
                        const optional<shared_ptr<AOH>> &currentInfoset,
-                       long budgetIters);
+                       unsigned int budgetIters);
 /**
  * Run iterations of given algorithm for a given time budget in microseconds.
  * @return whether algorithm decided to continue (true) or give up (false)
  */
-bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
+bool playForMilliseconds(GamePlayingAlgorithm &alg,
                          const optional<shared_ptr<AOH>> &currentInfoset,
-                         long budgetUs);
+                         unsigned int budgetMs);
 
 /**
  * Random player gives up right away, and the rest of the match is played uniformly randomly.
@@ -144,6 +146,10 @@ PreparedAlgorithm createInitializer(Args &... args) {
     };
 }
 
+struct AlgorithmWithData {
+    virtual PreparedAlgorithm prepare() = 0;
+};
+
 /**
  * Play match between given algorithms, for a given preplay budget and another budget for each move.
  * Return terminal utilities for each algorithm.
@@ -154,12 +160,11 @@ PreparedAlgorithm createInitializer(Args &... args) {
  * @endcode
  */
 vector<double> playMatch(const Domain &domain,
-                         vector <PreparedAlgorithm> algorithmInitializers,
-                         vector<int> preplayBudget,
-                         vector<int> moveBudget,
+                         vector<PreparedAlgorithm> algorithmInitializers,
+                         vector<unsigned int> preplayBudget,
+                         vector<unsigned int> moveBudget,
                          BudgetType simulationType,
                          unsigned long matchSeed);
-
 
 }  // namespace GTLib2
 

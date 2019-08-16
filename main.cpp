@@ -23,39 +23,42 @@
 
 // All the possible commands
 #include "experiments/benchmark_cfr.h"
+#include "experiments/calc_expl.h"
 #include "experiments/export_domain.h"
+#include "experiments/export_ring.h"
 #include "experiments/cfr_regrets.h"
+#include "experiments/play_match.h"
 
 #include <iostream>
 #include <algorithms/MCTS/ISMCTS.h>
 #include <algorithms/MCTS/CPWISMCTS.h>
 #include <domains/goofSpiel.h>
-
 int main(int argc, const char **argv) {
+    using namespace GTLib2;
+    using namespace GTLib2::CLI;
 
         auto fact = make_shared<UCTSelectorFactory>(sqrt(2));
-        int a = 0;
     ISMSTCSettings s = {.useBelief = true, .fact_ = std::static_pointer_cast<SelectorFactory>(fact), .randomSeed = 123};
     PreparedAlgorithm firstAction = createInitializer<CPWISMCTS>(s);
-    PreparedAlgorithm lastAction = createInitializer<RandomPlayer>();
+    PreparedAlgorithm lastAction = createInitializer<ISMCTS>(s);
 
     GTLib2::domains::GoofSpielSettings settings
-            ({variant:  GTLib2::domains::IncompleteObservations, numCards: 3, fixChanceCards: false});
-//    settings.shuffleChanceCards(2);
+            ({variant:  GTLib2::domains::IncompleteObservations, numCards: 5, fixChanceCards: true});
+    settings.shuffleChanceCards(12);
     GoofSpielDomain domain(settings);
     vector<double> actualUtilities = playMatch(
             domain, vector<PreparedAlgorithm>{firstAction, lastAction},
-            vector<int>{10000, 10000}, vector<int>{100, 100}, BudgetIterations, 0);
+            vector<unsigned int>{10000, 10000}, vector<unsigned int>{100, 100}, BudgetIterations, 0);
 
-//    GTLib2::domains::StrategoSettings settings = {3,2,{},{'1', '2'}};
+//    GTLib2::domains::StrategoSettings settings = {};
 //    GTLib2::domains::StrategoDomain domain(settings);
 //    vector<double> actualUtilities = playMatch(
 //            domain, vector<PreparedAlgorithm>{firstAction, lastAction},
-//            vector<int>{1000, 1000}, vector<int>{10, 10}, BudgetIterations, 0);
+//            vector<unsigned int>{10000, 10000}, vector<unsigned int>{10, 10}, BudgetIterations, 0);
 
     args::ArgumentParser parser("Command runner for GTLib2");
     args::CompletionFlag completion(parser, {"complete"}); // bash completion
-    args::GlobalOptions globals(parser, args::arguments);
+    args::GlobalOptions globals(parser, args::arguments); // add global args
 
     // --------- utils ----------
     args::Group utils(parser, "commands (utils)");
@@ -63,14 +66,23 @@ int main(int argc, const char **argv) {
                                 "Export domain to gambit or graphviz", &Command_ExportDomain);
     args::Command benchmark_cfr(utils, "benchmark_cfr",
                                 "Calculate run time of CFR on IIGS-5.", &Command_BenchmarkCFR);
+    args::Command play_match(utils, "play_match",
+                             "Play match given preplay and per-move time.", &Command_PlayMatch);
+    args::Command calc_expl(utils, "calc_expl",
+                            "Calc exploitability of alg strategy "
+                            "given preplay and per-move time.", &Command_CalcExpl);
 
     // ------ experiments -------
     args::Group experiments(parser, "commands (experiments)");
     args::Command cfr_regrets(experiments, "cfr_regrets",
                               "Calculate regrets and strategies in CFR", &Command_CFRRegrets);
+    args::Command export_ring(experiments, "export_ring",
+                              "Export leaf utilities of EFG as a color ring", &Command_ExportRing);
 
     try {
         parser.ParseCLI(argc, argv);
+        if (args::get(args::run_time))
+            LOG_INFO("Total runtime of the command " << time_diff(runStartTime))
     }
     catch (const args::Help &) {
         std::cout << parser;

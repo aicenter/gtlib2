@@ -47,6 +47,11 @@ struct CFRSettings {
     AccumulatorWeighting accumulatorWeighting = UniformAccWeighting;
     RegretMatching regretMatching = RegretMatchingNormal;
     CFRUpdating cfrUpdating = HistoriesUpdating;
+
+    template<class Archive>
+    void serialize(Archive &archive) {
+        archive(accumulatorWeighting, regretMatching, cfrUpdating);
+    }
 };
 
 
@@ -83,6 +88,14 @@ class CFRData: public virtual InfosetCache,
         this->createCFRInfosetData(getRootNode());
     }
 
+    inline CFRData(const CFRData& other) :
+        EFGCache(other),
+        InfosetCache(other) {
+            addCallback([&](const shared_ptr<EFGNode> &n) { this->createCFRInfosetData(n); });
+            infosetData = other.infosetData;
+            updatingPolicy_ = other.updatingPolicy_;
+        }
+
     struct InfosetData {
         vector<double> regrets;
         vector<double> avgStratAccumulator;
@@ -105,11 +118,19 @@ class CFRData: public virtual InfosetCache,
             if (updatingPolicy == HistoriesUpdating) regretUpdates = vector<double>(0);
             else regretUpdates = vector<double>(numActions, 0.);
         }
+
+        void reset() {
+            std::fill(regrets.begin(), regrets.end(), 0.);
+            std::fill(avgStratAccumulator.begin(), avgStratAccumulator.end(), 0.);
+            std::fill(regretUpdates.begin(), regretUpdates.end(), 0.);
+            numUpdates = 0;
+        }
     };
 
     unordered_map<shared_ptr<AOH>, InfosetData> infosetData;
 
-    inline ProbDistribution strategyFor(const shared_ptr<AOH> &currentInfoset) override {
+    inline optional <ProbDistribution> strategyFor(const shared_ptr<AOH> &currentInfoset) override {
+        if(infosetData.find(currentInfoset) == infosetData.end()) return nullopt;
         return calcAvgProbs(infosetData.at(currentInfoset).avgStratAccumulator);
     }
 
@@ -142,8 +163,8 @@ constexpr int CHANCE_PLAYER = 2;
 class CFRAlgorithm: public GamePlayingAlgorithm {
  public:
     CFRAlgorithm(const Domain &domain,
-                 CFRData &cache,
                  Player playingPlayer,
+                 CFRData &cache,
                  CFRSettings settings);
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
     optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override;

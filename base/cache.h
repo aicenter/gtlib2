@@ -64,6 +64,16 @@ class EFGCache {
         this->createNode(rootNode_);
     }
 
+    virtual ~EFGCache() = default;
+
+    inline EFGCache(const EFGCache &other) :
+        rootNode_(other.rootNode_),
+        nodesChildren_(other.nodesChildren_),
+        domain_(other.domain_),
+        builtForest_(other.builtForest_) {
+        addCallback([&](const shared_ptr<EFGNode> &n) { this->createNode(n); });
+    }
+
     /**
      * Check if cache contains all the children for given node (after following any action).
      */
@@ -184,6 +194,13 @@ class InfosetCache: public virtual EFGCache {
         this->createAugInfosets(getRootNode());
     }
 
+    inline explicit InfosetCache(const InfosetCache &other) :
+        EFGCache(other) {
+        addCallback([&](const shared_ptr<EFGNode> &n) { this->createAugInfosets(n); });
+        node2infosets_ = other.node2infosets_;
+        infoset2nodes_ = other.infoset2nodes_;
+    }
+
     inline bool hasInfoset(const shared_ptr<AOH> &augInfoset) {
         return infoset2nodes_.find(augInfoset) != infoset2nodes_.end();
     }
@@ -238,7 +255,6 @@ class InfosetCache: public virtual EFGCache {
  * Add caching of public states and their respective augmented information sets and nodes.
  */
 class PublicStateCache: public virtual EFGCache {
-
     /**
       * Many EFGNodes can belong to one public state.
       * Many infosets can belong to one public state.
@@ -255,13 +271,21 @@ class PublicStateCache: public virtual EFGCache {
         this->createPublicState(getRootNode());
     }
 
+    inline PublicStateCache(const PublicStateCache &other) : EFGCache(other) {
+        addCallback([&](const shared_ptr<EFGNode> &n) { this->createPublicState(n); });
+        node2publicState_ = other.node2publicState_ ;
+        publicState2nodes_ = other.publicState2nodes_ ;
+        infoset2publicState_ = other.infoset2publicState_ ;
+        publicState2infosets_ = other.publicState2infosets_ ;
+    }
+
     inline bool hasPublicState(const shared_ptr<PublicState> &pubState) {
         return publicState2nodes_.find(pubState) != publicState2nodes_.end();
     }
-    inline bool hasPublicState(const shared_ptr<EFGNode> &node) {
+    inline bool hasPublicStateFor(const shared_ptr<EFGNode> &node) {
         return node2publicState_.find(node) != node2publicState_.end();
     }
-    inline bool hasPublicState(const shared_ptr<AOH> &infoset) {
+    inline bool hasPublicStateFor(const shared_ptr<AOH> &infoset) {
         return infoset2publicState_.find(infoset) != infoset2publicState_.end();
     }
 
@@ -275,7 +299,7 @@ class PublicStateCache: public virtual EFGCache {
 
 
     inline const unordered_set<shared_ptr<EFGNode>> &
-    getNodesFor(const shared_ptr<PublicState> &state) {
+    getNodesForPubState(const shared_ptr<PublicState> &state) {
         return publicState2nodes_.at(state);
     }
 
@@ -284,8 +308,8 @@ class PublicStateCache: public virtual EFGCache {
         return publicState2infosets_.at(pubState);
     }
 
-    inline unordered_set<shared_ptr<AOH>> getInfosetsFor(const shared_ptr<PublicState> &pubState,
-                                                         Player pl) {
+    inline unordered_set<shared_ptr<AOH>>
+    getInfosetsForPubStatePlayer(const shared_ptr<PublicState> &pubState, Player pl) {
         const auto &infosets = publicState2infosets_.at(pubState);
         auto filteredSet = unordered_set<shared_ptr<AOH>>(infosets.size() / 2);
         for (const auto &infoset : infosets) {
@@ -294,6 +318,15 @@ class PublicStateCache: public virtual EFGCache {
             }
         }
         return filteredSet;
+    }
+
+    const shared_ptr<PublicState> &getRootPublicState() {
+        return node2publicState_.at(getRootNode());
+    }
+
+    const unordered_map<shared_ptr<PublicState>, unordered_set<shared_ptr<EFGNode>>> &
+    getPublicState2nodes() {
+        return publicState2nodes_;
     }
 
     inline unsigned long countPublicStates() {
@@ -306,7 +339,7 @@ class PublicStateCache: public virtual EFGCache {
 
 class StrategyCache {
  public:
-    virtual ProbDistribution strategyFor(const shared_ptr<AOH> &currentInfoset) = 0;
+    virtual optional <ProbDistribution> strategyFor(const shared_ptr<AOH> &currentInfoset) = 0;
 };
 
 /**

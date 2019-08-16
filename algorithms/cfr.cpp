@@ -28,22 +28,18 @@
 namespace GTLib2::algorithms {
 
 CFRAlgorithm::CFRAlgorithm(const Domain &domain,
-                           CFRData &cache,
                            Player playingPlayer,
+                           CFRData &cache,
                            CFRSettings settings) :
     GamePlayingAlgorithm(domain, playingPlayer),
     cache_(cache),
     settings_(settings) {}
 
 PlayControl CFRAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
-    if (currentInfoset == nullopt) {
-        if (cache_.isCompletelyBuilt()) return StopImproving;
-        cache_.buildTree();
-        return StopImproving;
-    }
+    if (currentInfoset == PLAY_FROM_ROOT && !cache_.isCompletelyBuilt()) cache_.buildTree();
 
     // the tree has been built before, we must have this infoset in memory
-    assert(!cache_.getNodesFor(*currentInfoset).empty());
+    assert(currentInfoset == PLAY_FROM_ROOT || !cache_.getNodesFor(*currentInfoset).empty());
 
     runIteration(cache_.getRootNode(), array<double, 3>{1., 1., 1.}, Player(0));
     delayedApplyRegretUpdates();
@@ -248,7 +244,7 @@ ExpectedUtility calcExpectedUtility(CFRData &cache, const shared_ptr<EFGNode> &n
         case TerminalNode:
             return ExpectedUtility(node->getUtilities()[pl], node->getUtilities()[pl]);
         default:
-            assert(false); // unrecognized option!
+            unreachable("unrecognized option!");
     }
 
 }

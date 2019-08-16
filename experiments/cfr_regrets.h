@@ -23,13 +23,15 @@
 #ifndef GTLIB2_CFR_REGRETS_H
 #define GTLIB2_CFR_REGRETS_H
 
-#include "utils/global_args.h"
+#include "utils/cli_helpers.h"
 #include "algorithms/cfr.h"
 
+namespace GTLib2::CLI {
+
 void Command_CFRRegrets(args::Subparser &parser) {
-    args::PositionalList<double>
-        regrets(parser, "REGRETS", "initial regrets at the root", {0., 0.});
-    parser.Parse(); // always include this line in command
+    args::PositionalList<double> regrets(parser, "REGRETS",
+                                         "initial regrets at the root", {0., 0.});
+    initializeParser(parser); // always include this line in command
 
     unique_ptr<Domain> domain = constructDomain(args::get(args::domain));
 
@@ -47,7 +49,7 @@ void Command_CFRRegrets(args::Subparser &parser) {
     assert(rootData.regrets.size() == args::get(regrets).size());
     rootData.regrets = args::get(regrets);
 
-    CFRAlgorithm cfr(*domain, data, Player(0), settings);
+    CFRAlgorithm cfr(*domain, Player(0), data, settings);
 
     cout << "reg0,reg1,sigma_curr0,sigma_avg0" << endl;
     for (int i = 0; i < 1000; ++i) {
@@ -64,5 +66,6 @@ void Command_CFRRegrets(args::Subparser &parser) {
     }
 }
 
+}
 
 #endif //GTLIB2_CFR_REGRETS_H

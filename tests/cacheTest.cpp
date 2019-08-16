@@ -25,6 +25,7 @@
 
 #include "domains/matching_pennies.h"
 #include "domains/goofSpiel.h"
+#include "domains/randomGame.h"
 
 #include "gtest/gtest.h"
 
@@ -259,12 +260,13 @@ TEST(Cache, PublicStateCacheGetInfosets) {
     shared_ptr<EFGNode> bNode = childNodes[1];
     auto children = unordered_set<shared_ptr<EFGNode>>{aNode, bNode};
     auto pubState = cache.getPublicStateFor(aNode);
-    EXPECT_EQ(cache.getNodesFor(pubState).size(), 2);
-    EXPECT_EQ(cache.getNodesFor(pubState), children);
+    EXPECT_EQ(cache.getNodesForPubState(pubState).size(), 2);
+    EXPECT_EQ(cache.getNodesForPubState(pubState), children);
 
     // infoset for player 1 contains the two nodes
     shared_ptr<AOH> actualInfoset = aNode->getAOHInfSet();
-    shared_ptr<AOH> expectedInfoset = *cache.getInfosetsFor(pubState, Player(1)).begin();
+    shared_ptr<AOH>
+        expectedInfoset = *cache.getInfosetsForPubStatePlayer(pubState, Player(1)).begin();
     EXPECT_NE(expectedInfoset, actualInfoset);
     EXPECT_EQ(*expectedInfoset, *actualInfoset);
 
@@ -273,7 +275,7 @@ TEST(Cache, PublicStateCacheGetInfosets) {
         *aNode->getAOHAugInfSet(Player(0)),
         *bNode->getAOHAugInfSet(Player(0)),
     };
-    auto cachedInfosets = cache.getInfosetsFor(pubState, Player(0));
+    auto cachedInfosets = cache.getInfosetsForPubStatePlayer(pubState, Player(0));
     auto it = cachedInfosets.begin();
     const AOH &x = *(*std::next(it, 0));
     const AOH &y = *(*std::next(it, 1));
@@ -300,14 +302,14 @@ TEST(Cache, PublicStateCacheGetInfosetsLarge) {
     // eNode == draw outcome 3 times in a row
 
     auto pubState = cache.getPublicStateFor(eNode);
-    cout << cache.getNodesFor(pubState).size() << " ";
-    EXPECT_EQ(cache.getNodesFor(pubState).size(), 24); // 3! * 4
+    cout << cache.getNodesForPubState(pubState).size() << " ";
+    EXPECT_EQ(cache.getNodesForPubState(pubState).size(), 24); // 3! * 4
 
-    auto expectedInfosets = cache.getInfosetsFor(pubState, Player(0));
+    auto expectedInfosets = cache.getInfosetsForPubStatePlayer(pubState, Player(0));
     cout << expectedInfosets.size() << " ";
     EXPECT_EQ(expectedInfosets.size(), 24);
 
-    expectedInfosets = cache.getInfosetsFor(pubState, Player(1));
+    expectedInfosets = cache.getInfosetsForPubStatePlayer(pubState, Player(1));
     cout << expectedInfosets.size() << " ";
     EXPECT_EQ(expectedInfosets.size(), 12);
 
@@ -319,5 +321,41 @@ TEST(Cache, PublicStateCacheGetInfosetsLarge) {
 //        EXPECT_EQ(obs->roundResult_, GoofspielRoundOutcome::PL0_DRAW);
 //    }
 }
+
+TEST(Cache, CollectInformationSetsForBothPlayers) {
+    auto rg = *GoofSpielDomain::IIGS(2);
+    auto rootNode = createRootEFGNode(rg);
+    InfosetCache cache(rg);
+    cache.buildTree();
+    auto leader = Player(1);
+    auto follower = Player(0);
+    unordered_map<shared_ptr<InformationSet>, int> leader_is2idx;
+    unordered_map<shared_ptr<InformationSet>, int> follower_is2idx;
+    int leader_idx = 0;
+    int follower_idx = 0;
+    for (const auto &[infoset, nodes]: cache.getInfoset2NodeMapping()) {
+        cout << *infoset << ": \n";
+        for(auto &node:nodes) {
+            cout << "\t" << *node << "\n";
+        }
+        cout << endl;
+    }
+
+    for (const auto &[infoset, nodes]: cache.getInfoset2NodeMapping()) {
+        if (nodes.at(0)->type_ != PlayerNode) continue;
+        if (infoset->getPlayer() == leader && nodes.at(0)->getPlayer() == leader) {
+            leader_is2idx[infoset] = leader_idx;
+            leader_idx += nodes.at(0)->countAvailableActions();
+        }
+        if (infoset->getPlayer() == follower && nodes.at(0)->getPlayer() == follower) {
+            follower_is2idx[infoset] = follower_idx ;
+            follower_idx  += nodes.at(0)->countAvailableActions();
+        }
+    }
+
+    EXPECT_EQ(leader_is2idx.size(), 5);
+    EXPECT_EQ(follower_is2idx.size(), 5);
+}
+
 
 }  // namespace GTLib2

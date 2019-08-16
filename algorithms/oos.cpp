@@ -29,6 +29,11 @@ namespace GTLib2::algorithms {
 
 bool Targetor::updateCurrentPosition(const optional<shared_ptr<AOH>> &infoset,
                                      const optional<shared_ptr<PublicState>> &pubState) {
+    if(targeting_ == OOSSettings::Targeting::NoTargeting) {
+        weightingFactor_ = 1.0;
+        return true;
+    }
+
     if (!infoset) {
         weightingFactor_ = 1.0;
         return true;
@@ -105,8 +110,10 @@ bool Targetor::isAllowedAction(const shared_ptr<EFGNode> &h, const shared_ptr<Ac
         case OOSSettings::PublicStateTargeting:
             assert(false); // todo: finish public state targeting
             return false;
+        case OOSSettings::NoTargeting:
+            return true;
         default:
-            assert(false); // unrecognized option!
+            unreachable("unrecognized option!");
     }
 }
 
@@ -117,18 +124,18 @@ PlayControl OOSAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &curr
     if (currentInfoset && !cache_.hasInfoset(*currentInfoset)) return GiveUp;
 
     playInfoset_ = currentInfoset;
-    playPublicState_ = playInfoset_ && cache_.hasPublicState(*playInfoset_)
+    playPublicState_ = playInfoset_ && cache_.hasPublicStateFor(*playInfoset_)
                        ? optional(cache_.getPublicStateFor(*playInfoset_))
                        : nullopt;
 
-    if (!targetor_.updateCurrentPosition(playInfoset_, playPublicState_)) {
+    if (!targetor_.updateCurrentPosition(playInfoset_, playPublicState_))
         return GiveUp;
-    }
 
     for (int t = 0; t < cfg_.batchSize; ++t) {
         for (int exploringPl = 0; exploringPl < 2; ++exploringPl) {
             isBiasedIteration_ = dist_(generator_) <= cfg_.targetBiasing;
-            isBelowTargetIS_ = currentInfoset == nullopt || (*currentInfoset)->getSize() == 0;
+            isBelowTargetIS_ = currentInfoset == nullopt
+                || (*currentInfoset)->getAOids().size() == 0;
 
             rootIteration(1 / targetor_.compensateTargeting(), Player(exploringPl));
         }
@@ -149,7 +156,7 @@ OOSAlgorithm::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
         case OOSSettings::PlayUsingRMStrategy:
             return calcRMProbs(strategyData.regrets);
         default:
-            assert(false); // unrecognized option!
+            unreachable("unrecognized option!");
     }
 }
 
@@ -173,11 +180,22 @@ double OOSAlgorithm::iteration(const shared_ptr<EFGNode> &h,
         case ChanceNode:
             return handleChanceNode(h, rm_h_pl, rm_h_opp, bs_h_all, us_h_all, us_h_cn, exploringPl);
         case PlayerNode:
-            if (h->getAOHInfSet() == playInfoset_) ++stats_.infosetVisits;
-            if (h->getPublicState() == playPublicState_) ++stats_.pubStateVisits;
+            if (h->getSpecialization() == NoSpecialization) {
+                // do not generate unncessary objects (AOH/PublicState), just compare ids
+
+                if (playInfoset_
+                    && h->getAOids(h->getPlayer()) == (*playInfoset_)->getAOids()
+                    && (*playInfoset_)->getPlayer() == h->getPlayer())
+                    ++stats_.infosetVisits;
+
+                if (playPublicState_
+                    && h->getPubObsIds() == (*playPublicState_)->getHistory())
+                    ++stats_.pubStateVisits;
+            }
+
             return handlePlayerNode(h, rm_h_pl, rm_h_opp, bs_h_all, us_h_all, us_h_cn, exploringPl);
         default:
-            assert(false); // unrecognized type!
+            unreachable("unrecognized option!");
     }
 }
 
@@ -186,6 +204,7 @@ double OOSAlgorithm::handleTerminalNode(const shared_ptr<EFGNode> &h,
                                         Player exploringPl) {
     s_z_all_ = bias(bs_h_all, us_h_all);
     u_z_ = h->getUtilities()[exploringPl];
+    assert(!isnan(u_z_) && !isinf(u_z_));
     return u_z_;
 }
 
@@ -218,6 +237,7 @@ double OOSAlgorithm::handleChanceNode(const shared_ptr<EFGNode> &h,
         u_h += probs[action->getId()] * baseline(h, action->getId());
     }
 
+    assert(!isnan(u_h) && !isinf(u_h));
     return u_h;
 }
 
@@ -250,6 +270,7 @@ double OOSAlgorithm::handlePlayerNode(const shared_ptr<EFGNode> &h,
     else
         updateInfosetAcc(h, data, rm_h_opp * us_h_cn / s_h_all);
 
+    assert(!isnan(u_h) && !isinf(u_h));
     return u_h;
 }
 
@@ -261,8 +282,15 @@ PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
                                                    const shared_ptr<AOH> &infoset,
                                                    Player exploringPl) {
     assert(h->type_ == PlayerNode);
+    assert(!isnan(rm_h_pl) && !isnan(rm_h_opp) && !isnan(bs_h_all) && !isnan(us_h_all)
+               && !isnan(us_h_cn));
+
     const bool exploringMoveInNode = h->getPlayer() == exploringPl;
     calcRMProbs(data.regrets, &rmProbs_, cfg_.approxRegretMatching);
+#ifndef NDEBUG
+    if(cfg_.approxRegretMatching > 0)
+        for (int i = 0; i < data.regrets.size(); ++i) assert(rmProbs_[i] > 0);
+#endif
 
     const auto&[biasApplicableActions, bsum] = calcBiasing(h, actions, bs_h_all);
     const auto ai = exploringMoveInNode
@@ -298,18 +326,22 @@ PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
     const double u_x = (u_ha - baseline(h, ai)) / s_ha_all + baseline(h, ai);
     u_h += u_x * rm_ha_all;
 
+    assert(!isnan(rm_ha_all) && !isnan(u_h) && !isnan(u_x));
     return PlayerNodeOutcome(ai, rm_ha_all, u_h, u_x);
 }
 
 PlayerNodeOutcome OOSAlgorithm::incrementallyBuildTree(const shared_ptr<EFGNode> &h,
                                                        const vector<shared_ptr<Action>> &actions,
                                                        double s_h_all, Player exploringPl) {
+    assert(!isnan(s_h_all));
+
     const auto[ai, leaf] = selectLeaf(h, actions);
     const double rm_ha_all = 1.0 / actions.size();
     u_z_ = leaf.utilities[exploringPl];
     rm_zh_all_ = leaf.reachProb(); // "* rm_ha_all" will be added at the bottom
     s_z_all_ = s_h_all * leaf.reachProb() * rm_ha_all;
 
+    assert(!isnan(rm_ha_all) && !isnan(u_z_) && !isnan(s_z_all_));
     return PlayerNodeOutcome(ai, rm_ha_all, u_z_, u_z_);
 }
 
@@ -333,6 +365,11 @@ pair<int, double> OOSAlgorithm::calcBiasing(const shared_ptr<EFGNode> &h,
             bsum += rmProbs_[i];
             ++biasApplicableActions;
         } else (*pBiasedProbs_)[i] = -0.0; // negative zeros denote the banned actions
+    }
+
+    if (bsum == 0) { // if there is now way how to get to the target
+        pBiasedProbs_ = &rmProbs_;
+        return make_pair(actions.size(), 1.0);
     }
 
     return make_pair(biasApplicableActions, bsum);
@@ -389,8 +426,8 @@ void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
     // updateVal we get is for the exploring player
     u_h *= exploringPl == Player(0) ? 1 : -1;
 
-    const auto &baselineIdx = cache_.baselineValues_.find(h);
-    assert(baselineIdx != cache_.baselineValues_.end());
+    const auto &baselineIdx = cache_.baselineValues.find(h);
+    assert(baselineIdx != cache_.baselineValues.end());
     auto baseline = baselineIdx->second;
 
     double a = 0.0, b = 0.0;
@@ -457,6 +494,7 @@ void OOSAlgorithm::updateInfosetAcc(const shared_ptr<EFGNode> &h, CFRData::Infos
 void OOSAlgorithm::updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exploringPl,
                                         CFRData::InfosetData &data, int ai,
                                         double u_x, double u_h, double w) {
+    assert(!isnan(u_x) && !isnan(u_h) && !isnan(w));
 
     auto &reg = data.regrets;
 
@@ -483,6 +521,5 @@ void OOSAlgorithm::updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exp
 }
 
 
-#undef baseline
 
 }  // namespace GTLib2

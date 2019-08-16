@@ -277,4 +277,13 @@ struct Escaped {
     >::type
 
 
+#ifndef NDEBUG
+#define unreachable(MSG) \
+  (assert(0 && MSG), abort())
+#else
+#define unreachable(MSG) \
+  (std::fprintf(stderr, "UNREACHABLE executed at %s:%d\n", __FILE__, __LINE__), abort())
+#endif
+
+
 #endif  // UTILS_UTILS_H_

@@ -49,6 +49,8 @@ using std::cout;
 using std::dynamic_pointer_cast;
 using std::endl;
 using std::function;
+using std::isnan;
+using std::isinf;
 using std::make_pair;
 using std::make_shared;
 using std::make_unique;

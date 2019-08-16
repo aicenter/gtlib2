@@ -75,6 +75,11 @@ class PublicState: public Node<PublicState> {
 
     const vector<ActionId> &getHistory() const { return history_; };
 
+    inline friend std::ostream & operator<<(std::ostream &ss, const PublicState &a) {
+        ss << a.history_;
+        return ss;
+    }
+
 //    const shared_ptr<Observation> incomingObservation_;
 //    unsigned int countChildren() const override { return 0; };
 //    const shared_ptr <PublicState> getChildAt(EdgeId index) const override { return nullptr; };
@@ -90,7 +95,7 @@ class PublicState: public Node<PublicState> {
  * we can have various implementation of EFGNode (for example GadgetNode)
  */
 class EFGNode {
- public:
+ protected:
     inline explicit EFGNode(const EFGNodeType type,
                             const Player currentPlayer,
                             vector<double> utilities) :
@@ -106,6 +111,12 @@ class EFGNode {
     inline explicit EFGNode(vector<double> utilities) :
         EFGNode(TerminalNode, NO_PLAYER, move(utilities)) {}
 
+    inline EFGNode(const EFGNode& other) :
+        type_(other.type_),
+        currentPlayer_(other.currentPlayer_),
+        utilities_(other.utilities_) {}
+
+ public:
     virtual EFGNodeSpecialization getSpecialization() const = 0;
 
     /**
@@ -174,6 +185,12 @@ class EFGNode {
 
     virtual const vector<ActionId> &getHistory() const = 0;
 
+    inline const ActionId getLastActionId() const {
+        const auto &h = getHistory();
+        assert(!h.empty());
+        return h.at(h.size()-1);
+    }
+
     virtual double getProbabilityOfActionSeq(Player player,
                                              const BehavioralStrategy &strat) const = 0; // todo: remove
     virtual shared_ptr<ActionSequence>
@@ -232,6 +249,24 @@ class EFGNode {
     inline vector<double> getUtilities() const {
         assert(type_ == TerminalNode);
         return utilities_;
+    }
+
+    inline friend std::ostream & operator<<(std::ostream &ss, const EFGNode &n) {
+        switch (n.type_) {
+            case ChanceNode:
+                ss << "C";
+                break;
+            case PlayerNode:
+                ss << "P" << int(n.getPlayer());
+                break;
+            case TerminalNode:
+                ss << "T" << n.getUtilities();
+                break;
+            default:
+                unreachable("unrecognized option!");
+        }
+        ss << " " << n.getHistory();
+        return ss;
     }
 
     const EFGNodeType type_;

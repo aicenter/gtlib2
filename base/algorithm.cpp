@@ -32,47 +32,48 @@ using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::microseconds;
 
-bool playForBudget(unique_ptr<GamePlayingAlgorithm> &alg,
+bool playForBudget(GamePlayingAlgorithm &alg,
                    const optional<shared_ptr<AOH>> &currentInfoset,
-                   long budgetValue, BudgetType type) {
+                   unsigned int budgetValue, BudgetType type) {
 
     switch (type) {
         case BudgetTime:
-            return playForMicroseconds(alg, currentInfoset, budgetValue);
+            return playForMilliseconds(alg, currentInfoset, budgetValue);
         case BudgetIterations:
             return playForIterations(alg, currentInfoset, budgetValue);
         default:
-            assert(false); // unrecognized type!
+            unreachable("unrecognized option!");
     }
 }
 
-bool playForMicroseconds(unique_ptr<GamePlayingAlgorithm> &alg,
+bool playForMilliseconds(GamePlayingAlgorithm &alg,
                          const optional<shared_ptr<AOH>> &currentInfoset,
-                         long budgetUs) {
+                         unsigned int budgetMs) {
 
     PlayControl state = ContinueImproving;
     bool continueImproving = true;
+    long budgetUs = budgetMs * 1000;
     while (budgetUs > 0 && continueImproving) {
         high_resolution_clock::time_point t1 = high_resolution_clock::now();
-        state = alg->runPlayIteration(currentInfoset);
+        state = alg.runPlayIteration(currentInfoset);
         if (state == StopImproving || state == GiveUp) continueImproving = false;
         high_resolution_clock::time_point t2 = high_resolution_clock::now();
         auto duration = duration_cast<microseconds>(t2 - t1).count();
         budgetUs -= duration;
     }
-    if (budgetUs < -100) cerr << "Budget missed by " << budgetUs << " us\n";
+    if (budgetUs < -1000) LOG_WARN("Budget missed by " << -1 * budgetUs / 1000. << " ms")
 
     return state != GiveUp;
 }
 
-bool playForIterations(unique_ptr<GamePlayingAlgorithm> &alg,
+bool playForIterations(GamePlayingAlgorithm &alg,
                        const optional<shared_ptr<AOH>> &currentInfoset,
-                       long budgetIters) {
+                       unsigned int budgetIters) {
 
     PlayControl state = ContinueImproving;
     bool continueImproving = true;
     while (budgetIters > 0 && continueImproving) {
-        state = alg->runPlayIteration(currentInfoset);
+        state = alg.runPlayIteration(currentInfoset);
         if (state == StopImproving || state == GiveUp) continueImproving = false;
         budgetIters--;
     }
@@ -101,11 +102,13 @@ FixedActionPlayer::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
 }
 
 vector<double> playMatch(const Domain &domain,
-                         vector <PreparedAlgorithm> algorithmInitializers,
-                         vector<int> preplayBudget,
-                         vector<int> moveBudget,
+                         vector<PreparedAlgorithm> algorithmInitializers,
+                         vector<unsigned int> preplayBudget,
+                         vector<unsigned int> moveBudget,
                          BudgetType simulationType,
                          unsigned long matchSeed) {
+
+#define LOG_PLAYER(pl, msg) LOG_INFO(CLI::set_color(CLI::Color(pl+6)) << msg << CLI::set_color())
 
     assert(algorithmInitializers.size() == preplayBudget.size() &&
         preplayBudget.size() == moveBudget.size());
@@ -115,16 +118,18 @@ vector<double> playMatch(const Domain &domain,
     auto continuePlay = vector<bool>(numAlgs, true);
 
     for (int i = 0; i < numAlgs; ++i) {
+        LOG_PLAYER(i, "Initializing player " << i)
         algs[i] = algorithmInitializers[i](domain, Player(i));
     }
     for (int i = 0; i < numAlgs; ++i) {
-        continuePlay[i] = playForBudget(algs[i], nullopt, preplayBudget[i], simulationType);
+        LOG_PLAYER(i, "Player " << i << " is thinking in preplay")
+        continuePlay[i] = playForBudget(*algs[i], PLAY_FROM_ROOT, preplayBudget[i], simulationType);
     }
 
     auto generator = std::mt19937(matchSeed);
 
     shared_ptr<EFGNode> node = createRootEFGNode(domain.getRootStatesDistribution());
-//    node->
+
     while (node->type_ != TerminalNode) {
         int playerAction;
         auto actions = node->availableActions();
@@ -132,15 +137,18 @@ vector<double> playMatch(const Domain &domain,
         switch (node->type_) {
             case ChanceNode:
                 playerAction = pickRandom(*node, generator);
+                LOG_PLAYER(2, "Chance picked action " << playerAction)
                 break;
 
             case PlayerNode: {
                 auto infoset = node->getAOHInfSet();
                 Player pl = node->getPlayer();
 
-                if (continuePlay[pl])
-                    continuePlay[pl] = playForBudget(algs[pl], infoset,
+                if (continuePlay[pl]) {
+                    LOG_PLAYER(pl, "Player " << int(pl) << " is thinking...")
+                    continuePlay[pl] = playForBudget(*algs[pl], infoset,
                                                      moveBudget[pl], simulationType);
+                }
 
                 ProbDistribution probs;
                 if (continuePlay[pl]) {
@@ -149,7 +157,7 @@ vector<double> playMatch(const Domain &domain,
                     else probs = *maybeProbs;
                 }
                 if (!continuePlay[pl]) {
-                    cerr << "Player " << int(pl) << " gave up!" << endl;
+                    LOG_PLAYER(pl, "Player " << int(pl) << " gave up!")
                     probs = ProbDistribution(actions.size(), 1. / actions.size());
                 }
 
@@ -159,6 +167,9 @@ vector<double> playMatch(const Domain &domain,
                 assert(fabs(1.0 - sumProbs) < 1e-9);
 
                 playerAction = pickRandom(probs, generator);
+                LOG_PLAYER(pl, "Player " << int(pl) << " picked action " << playerAction
+                                         << " from distr " << probs)
+                LOG_INFO("Action description: " << *actions[playerAction])
                 break;
             }
 
@@ -170,6 +181,7 @@ vector<double> playMatch(const Domain &domain,
         }
 
         node = node->performAction(actions[playerAction]);
+        LOG_INFO("State description: \n" << dynamic_pointer_cast<FOG2EFGNode>(node)->getState()->toString())
     }
 
     return node->getUtilities();

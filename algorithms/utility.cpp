@@ -66,7 +66,7 @@ vector<double> computeUtilitiesTwoPlayerGame(const Domain &domain,
                 return node->getUtilities();
 
             default:
-                assert(false); // unrecognized option!
+                unreachable("unrecognized option!");
         }
     };
 

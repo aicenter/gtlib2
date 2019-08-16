@@ -149,4 +149,48 @@ TEST(Common, CompatibilityOfAOids) {
     //@formatter:on
 }
 
+TEST(Common, CompatibilityOfIds) {
+    typedef ActionId a;
+    //@formatter:off
+    // both empty seq
+    EXPECT_TRUE (isCompatible<a>(  {},               {} ));
+
+    // one empty seq
+    EXPECT_TRUE (isCompatible<a>(  {},               {a{1}}   ));
+    EXPECT_TRUE (isCompatible<a>(  {},               {a{1}, a{2}}   ));
+    EXPECT_TRUE (isCompatible<a>(  {a{1}},           {} ));
+    EXPECT_TRUE (isCompatible<a>(  {a{1}, a{2}},     {} ));
+
+    // both non-empty seq
+    EXPECT_TRUE (isCompatible<a>(  {a{1}},           {a{1}} ));
+    EXPECT_FALSE(isCompatible<a>(  {a{1}},           {a{2}} ));
+    EXPECT_TRUE (isCompatible<a>(  {a{1}},           {a{1}, a{2}} ));
+    EXPECT_FALSE(isCompatible<a>(  {a{1}},           {a{2}, a{1}} ));
+    //@formatter:on
+}
+
+TEST(Common, Extensibility) {
+    typedef ActionId a;
+    //@formatter:off
+    // both empty seq
+    EXPECT_FALSE (isExtension<a>(  {},               {} ));
+
+    // one empty seq
+    EXPECT_TRUE (isExtension<a>(  {},               {a{1}}   ));
+    EXPECT_TRUE (isExtension<a>(  {},               {a{1}, a{2}}   ));
+    EXPECT_FALSE(isExtension<a>(  {a{1}},           {} ));
+    EXPECT_FALSE(isExtension<a>(  {a{1}, a{2}},     {} ));
+
+    // both non-empty seq
+    EXPECT_FALSE(isExtension<a>(  {a{1}},           {a{1}} ));
+    EXPECT_FALSE(isExtension<a>(  {a{1}},           {a{2}} ));
+    EXPECT_TRUE (isExtension<a>(  {a{1}},           {a{1}, a{2}} ));
+    EXPECT_FALSE(isExtension<a>(  {a{1}},           {a{2}, a{1}} ));
+    EXPECT_TRUE (isExtension<a>(  {a{1}},           {a{1}, a{2}, a{3}} ));
+    EXPECT_TRUE (isExtension<a>(  {a{1}, a{2}},     {a{1}, a{2}, a{3}} ));
+    EXPECT_FALSE(isExtension<a>(  {a{1}, a{2}},     {a{1}, a{3}}));
+    //@formatter:on
+}
+
+
 }

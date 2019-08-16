@@ -1,0 +1,7 @@
+{
+  "CFRSettings": {
+    "accumulatorWeighting": 0,
+    "regretMatching": 0,
+    "cfrUpdating": 0
+  }
+}

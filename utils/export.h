@@ -24,6 +24,7 @@
 #define GTLIB2_EXPORT_H
 
 #include "base/base.h"
+#include "base/efg.h"
 #include <fstream>
 
 namespace GTLib2::utils {
@@ -32,6 +33,8 @@ void exportGraphViz(const Domain &domain, const string &fileToSave);
 void exportGraphViz(const Domain &domain, std::ostream &fs);
 void exportGambit(const Domain &domain, const string &fileToSave);
 void exportGambit(const Domain &domain, std::ostream &fs);
+
+void exportGambit(const shared_ptr<EFGNode>& node, std::ostream &fs);
 
 }
 

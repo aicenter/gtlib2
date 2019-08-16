@@ -47,7 +47,6 @@ class FixedSamplingOOS: public OOSAlgorithm {
         moveIdx_ = 0;
         assert(stats_.rootVisits < samples_.size());
         OOSAlgorithm::rootIteration(compensation, exploringPl);
-//        cerr << endl;
     }
 
     pair <ActionId, RandomLeafOutcome> selectLeaf(const shared_ptr <EFGNode> &start,
