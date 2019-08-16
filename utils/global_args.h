@@ -28,15 +28,15 @@
 // Specify all global CLI arguments here
 namespace args {
 
-args::Group arguments("global arguments");
+args::Group arguments("Global arguments");
 
 args::ValueFlag<std::string> domain(arguments,
                                     "DOMAIN",
-                                    "Domain name to use, see constructDomain function for details.",
+                                    "See constructDomain()",
                                     {'d', "domain"}, "IIGS_3");
 args::ValueFlagList<std::string> alg(arguments,
                                      "ALG_NAME",
-                                     "Algorithms to run",
+                                     "See constructAlgWithData()",
                                      {'a', "alg"}, {"CFR", "CFR"});
 args::ValueFlagList<std::string> algcfg(arguments,
                                         "CFG_PATH",
@@ -44,21 +44,30 @@ args::ValueFlagList<std::string> algcfg(arguments,
                                         {'c', "algcfg"},
                                         {"settings/cfr.json", "settings/cfr.json"});
 args::ValueFlag<unsigned int> log_level(arguments, "",
-                                        "Logging level", {'l', "log_level"},
+                                        "Logging level (see logging.h)",
+                                        {'l', "log_level"},
 #ifndef NDEBUG
                                         GTLib2::CLI::LOGLEVEL_DEBUG
 #else
                                         GTLib2::CLI::LOGLEVEL_INFO
 #endif
 );
-args::Flag log_thread(arguments, "", "Should logging print thread number?", {"log_thread"}, false);
+args::Flag log_thread(arguments, "", "Print thread number in logs", {"log_thread"}, false);
 
+args::ValueFlag<std::string> tag(arguments, "TAG", "Tag to add before any std output", {'t', "tag"}, "");
+
+args::Flag run_time(arguments, "", "Measure runtime of command", {'r', "run_time"}, false);
 }
 
 void initializeParser(args::Subparser &parser) {
     parser.Parse();
     GTLib2::CLI::log_level = args::get(args::log_level);
     GTLib2::CLI::log_thread = args::get(args::log_thread);
+
+    auto tag = args::get(args::tag);
+    if(tag.length() > 0) std::cout << tag << ",";
+
+    GTLib2::CLI::runStartTime = std::chrono::system_clock::now();
 }
 
 #endif // GTLIB2_GLOBAL_ARGSH

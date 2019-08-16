@@ -30,6 +30,7 @@
 #include "experiments/play_match.h"
 
 int main(int argc, const char **argv) {
+    using namespace GTLib2;
     using namespace GTLib2::CLI;
 
     args::ArgumentParser parser("Command runner for GTLib2");
@@ -57,6 +58,8 @@ int main(int argc, const char **argv) {
 
     try {
         parser.ParseCLI(argc, argv);
+        if (args::get(args::run_time))
+            LOG_INFO("Total runtime of the command " << time_diff(runStartTime))
     }
     catch (const args::Help &) {
         std::cout << parser;

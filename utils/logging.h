@@ -42,14 +42,16 @@ constexpr unsigned int LOGLEVEL_NOTSET = 0;
 inline unsigned int log_level = LOGLEVEL_DEBUG;
 inline bool log_thread = false;
 
-inline auto lastMeasure = std::chrono::system_clock::now();
-inline auto time_diff() {
+inline auto runStartTime = std::chrono::system_clock::now();
+inline auto lastLogMeasure = std::chrono::system_clock::now();
+
+inline auto time_diff(std::chrono::system_clock::time_point &lastTime) {
     using namespace std::chrono;
     using std::to_string;
 
     auto now = system_clock::now();
-    auto diff = duration_cast<microseconds>(now - lastMeasure).count();
-    lastMeasure = now;
+    auto diff = duration_cast<microseconds>(now - lastTime).count();
+    lastTime = now;
 
     std::stringstream ss;
     ss.fill(' ');
@@ -102,7 +104,7 @@ inline std::string thread() {
 }
 
 //@formatter:off
-#define LOG_TIME_DIFF    CLI::time_diff()
+#define LOG_TIME_DIFF    CLI::time_diff(CLI::lastLogMeasure)
 #define LOG_THREAD       CLI::thread()
 
 #define LOG_VALUE(x)     cerr << __FILE__ << ":" << __LINE__ << " |  " << #x"=" << x << std::endl;
