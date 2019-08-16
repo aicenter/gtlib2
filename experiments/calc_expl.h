@@ -61,8 +61,8 @@ StrategyProfile OOS_AverageStrategy(Domain &domain, const string &cfg,
     OOSData targetData = oos->getCache();
     targetData.buildTree();
 
+    LOG_DEBUG("Exploitability after preplay")
     auto expl = calcExploitability(domain, getAverageStrategy(targetData));
-    LOG_DEBUG("Exploitability after preplay: " << expl)
 
     function<void(shared_ptr<EFGNode>)> traverse = [&](const shared_ptr<EFGNode> &node) -> void {
         if (node->type_ == PlayerNode) {
@@ -153,8 +153,8 @@ StrategyProfile MCCR_AverageStrategy(Domain &domain, const string &cfg,
 
     OOSData preplayData = mccr->getCache();
     preplayData.buildTree();
-    auto expl = calcExploitability(domain, getAverageStrategy(preplayData));
-    LOG_INFO("Exploitability after preplay: " << expl)
+    LOG_INFO("Exploitability after preplay")
+    calcExploitability(domain, getAverageStrategy(preplayData));
 
     StrategyProfile profile;
     for (Player traversingPlayer = 0; traversingPlayer < 2; ++traversingPlayer) {
@@ -214,7 +214,7 @@ StrategyProfile MCCR_AverageStrategy(Domain &domain, const string &cfg,
         auto avgStratForPlayer = getAverageStrategy(targetData);
         auto expl_partial = calcExploitability(domain, avgStratForPlayer);
 
-        LOG_INFO("Exploitability after resolving for player" << int(traversingPlayer) << " " << expl_partial);
+        LOG_INFO("Exploitability after resolving for player" << int(traversingPlayer))
         profile.emplace_back(avgStratForPlayer.at(traversingPlayer));
     }
 
@@ -252,6 +252,19 @@ void Command_CalcExpl(args::Subparser &parser) {
     const auto alg = algs.at(0);
     const auto cfg = cfgs.at(0);
 
+    if (args::get(args::tag_header)) {
+        cout << "preplay" << ",";
+        cout << "move" << ",";
+        cout << "budget" << ",";
+        cout << "expl";
+        throw args::Header();
+    }
+    if (args::get(args::tag)) {
+        cout << pb << ",";
+        cout << mb << ",";
+        cout << (time ? "time" : "iterations") << ",";
+    }
+
     LOG_INFO("Running expl computation on domain: " << domain->getInfo())
     LOG_INFO("Algorithm: " << alg)
     LOG_INFO("Config file: " << cfg)
@@ -275,7 +288,7 @@ void Command_CalcExpl(args::Subparser &parser) {
     }
 
     LOG_DEBUG("Calculating exploitability")
-    cout << calcExploitability(*domain, profile) << endl;
+    cout << calcExploitability(*domain, profile).expl << endl;
 }
 
 }

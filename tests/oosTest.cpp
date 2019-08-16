@@ -108,16 +108,16 @@ TEST(OOS, CheckExploitabilityInSmallDomain) {
         const auto timems = utils::benchmarkRuntime([&]() {
             for (int i = 0; i < (iters - prevIters); ++i) oos.runPlayIteration(nullopt);
         });
-        const auto actualExploitability = calcExploitability(*domain, getAverageStrategy(data));
+        const auto actualExpl = calcExploitability(*domain, getAverageStrategy(data)).expl;
 
         cout << floor(iters) << " "
              << floor(iters - prevIters) << " "
              << "[" << timems << "ms]: "
-             << actualExploitability << endl;
+             << actualExpl << endl;
         prevIters = iters;
 
         EXPECT_LE(fabs(floor(pow(10, j)) - floor(iters)), 1e-5);
-        EXPECT_LE(fabs(expectedExploitabilities[j++] - actualExploitability), 1e-5);
+        EXPECT_LE(fabs(expectedExploitabilities[j++] - actualExpl), 1e-5);
     }
 }
 
