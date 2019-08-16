@@ -116,6 +116,7 @@ class GoofSpielObservation: public Observation {
     const int player0LastCard_;
     const int player1LastCard_;
     const GoofspielRoundOutcome roundResult_;
+    string toString() const override;
 };
 
 

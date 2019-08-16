@@ -28,8 +28,8 @@ namespace GTLib2::CLI {
 
 void Command_PlayMatch(args::Subparser &parser) {
     args::Group group(parser, "Algorithms to play");
-    args::ValueFlagList<unsigned int> preplayBudget(group, "ms", "Budget in preplay", {"preplay"});
-    args::ValueFlagList<unsigned int> moveBudget(group, "ms", "Budget per move", {"move"});
+    args::ValueFlagList<unsigned int> preplayBudget(group, "ms", "Budget in preplay", {"preplay"}, {1000});
+    args::ValueFlagList<unsigned int> moveBudget(group, "ms", "Budget per move", {"move"}, {1000});
     args::Group budgetType(group, "Budget type:", args::Group::Validators::Xor);
     args::Flag time(budgetType, "time", "", {"time"});
     args::Flag iterations(budgetType, "iterations", "", {"iterations", "iters"});
@@ -63,17 +63,33 @@ void Command_PlayMatch(args::Subparser &parser) {
 
     const auto seedValue = seed ? args::get(seed) : 0;
 
-    LOG_INFO("Running match on domain: " << domain->getInfo())
-    LOG_INFO("Algorithms: " << algs)
-    LOG_INFO("Config files: " << cfgs)
-    LOG_INFO("Preplay: " << pb)
-    LOG_INFO("Per move: " << mb)
-    LOG_INFO("Budget: " << (time ? "time" : "iterations"))
-    LOG_INFO("Match seed: " << seedValue)
-    LOG_INFO("------------------------")
+    if (args::get(args::tag_header)) {
+        for (int i = 0; i < pb.size(); ++i) cout << "preplay" << i << ",";
+        for (int i = 0; i < mb.size(); ++i) cout << "move" << i << ",";
+        cout << "budget" << ",";
+        cout << "seed" << ",";
+        cout << "outcome0,outcome1" << endl;
+        throw args::Header();
+    }
+    if (args::get(args::tag)) {
+        for (int i = 0; i < pb.size(); ++i) cout << pb.at(i) << ",";
+        for (int i = 0; i < mb.size(); ++i) cout << mb.at(i) << ",";
+        cout << (time ? "time" : "iterations") << ",";
+        cout << seedValue << ",";
+    }
 
-    cout << playMatch(*domain, {instance1->prepare(), instance2->prepare()},
-                      pb, mb, time ? BudgetTime : BudgetIterations, seedValue) << endl;
+    LOG_INFO("Running match on domain: \n\n" << (Indented{domain->getInfo(), 8}) << "\n")
+    LOG_INFO("Algorithms:   " << algs)
+    LOG_INFO("Config files: " << cfgs)
+    LOG_INFO("Preplay:      " << pb)
+    LOG_INFO("Per move:     " << mb)
+    LOG_INFO("Budget:       " << (time ? "time" : "iterations"))
+    LOG_INFO("Match seed:   " << seedValue)
+    LOG_INFO("--------------------------------------")
+
+    const auto utilities = playMatch(*domain, {instance1->prepare(), instance2->prepare()},
+                                     pb, mb, time ? BudgetTime : BudgetIterations, seedValue);
+    cout << utilities.at(0) << "," << utilities.at(1) << endl;
 }
 
 }

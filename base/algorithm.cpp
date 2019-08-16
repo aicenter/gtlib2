@@ -116,36 +116,56 @@ vector<double> playMatch(const Domain &domain,
     unsigned long numAlgs = algorithmInitializers.size();
     auto algs = vector<unique_ptr<GamePlayingAlgorithm>>(numAlgs);
     auto continuePlay = vector<bool>(numAlgs, true);
+    auto givenUpMove = vector<int>(numAlgs, -1);
 
     for (int i = 0; i < numAlgs; ++i) {
         LOG_PLAYER(i, "Initializing player " << i)
         algs[i] = algorithmInitializers[i](domain, Player(i));
     }
     for (int i = 0; i < numAlgs; ++i) {
-        LOG_PLAYER(i, "Player " << i << " is thinking in preplay")
+        LOG_PLAYER(i, "Player " << i << " is thinking in preplay for " << preplayBudget[i]
+                                << (simulationType == BudgetTime ? " ms" : " iterations"))
         continuePlay[i] = playForBudget(*algs[i], PLAY_FROM_ROOT, preplayBudget[i], simulationType);
+        if (!continuePlay[i]) givenUpMove[i] = 0;
     }
 
     auto generator = std::mt19937(matchSeed);
 
     shared_ptr<EFGNode> node = createRootEFGNode(domain.getRootStatesDistribution());
+    LOG_INFO("--------------------------------------")
+    if (node->type_ != ChanceNode)
+        LOG_INFO("Root state description: \n\n"
+                     << (Indented{dynamic_pointer_cast<FOG2EFGNode>(node)->getState()->toString(),
+                                  8}))
 
+    auto playerMoveCnt = vector<int>(numAlgs, 0);
+    double reachProbChance = 1.0;
+    auto reachProbPlayers = vector<double>(numAlgs, 1.0);
     while (node->type_ != TerminalNode) {
         int playerAction;
         auto actions = node->availableActions();
 
         switch (node->type_) {
-            case ChanceNode:
+            case ChanceNode: {
                 playerAction = pickRandom(*node, generator);
-                LOG_PLAYER(2, "Chance picked action " << playerAction)
+                const auto probs = node->chanceProbs();
+                LOG_PLAYER(2, "Chance picked p[" << playerAction << "]=" << probs[playerAction]
+                                                 << " from p="
+                                                 << (Either{probs.size() < 10, probs, "(too many)"}))
+                LOG_INFO("Selected action is: " << *actions[playerAction])
                 break;
+            }
 
             case PlayerNode: {
                 auto infoset = node->getAOHInfSet();
                 Player pl = node->getPlayer();
+                playerMoveCnt[pl]++;
 
                 if (continuePlay[pl]) {
-                    LOG_PLAYER(pl, "Player " << int(pl) << " is thinking...")
+                    LOG_PLAYER(pl, "Player " << int(pl) << " is thinking in move #"
+                                             << playerMoveCnt[pl] << " for " << moveBudget[pl]
+                                             << (simulationType == BudgetTime ? " ms"
+                                                                              : " iterations"))
                     continuePlay[pl] = playForBudget(*algs[pl], infoset,
                                                      moveBudget[pl], simulationType);
                 }
@@ -157,7 +177,9 @@ vector<double> playMatch(const Domain &domain,
                     else probs = *maybeProbs;
                 }
                 if (!continuePlay[pl]) {
-                    LOG_PLAYER(pl, "Player " << int(pl) << " gave up!")
+                    if (givenUpMove[pl] == -1) givenUpMove[pl] = playerMoveCnt[pl];
+                    LOG_PLAYER(pl, "Player " << int(pl) << " has given up, so plays "
+                                             << "randomly in move #" << playerMoveCnt[pl])
                     probs = ProbDistribution(actions.size(), 1. / actions.size());
                 }
 
@@ -167,22 +189,37 @@ vector<double> playMatch(const Domain &domain,
                 assert(fabs(1.0 - sumProbs) < 1e-9);
 
                 playerAction = pickRandom(probs, generator);
-                LOG_PLAYER(pl, "Player " << int(pl) << " picked action " << playerAction
-                                         << " from distr " << probs)
-                LOG_INFO("Action description: " << *actions[playerAction])
+                reachProbPlayers[pl] *= probs[playerAction];
+
+                LOG_PLAYER(pl, "Player " << int(pl) << " picked p[" << playerAction
+                                         << "]=" << probs[playerAction] << " from p="
+                                         << (Either{probs.size() < 10, probs, "(too many)"}))
+                LOG_INFO("Selected action is: " << *actions[playerAction])
                 break;
             }
 
             case TerminalNode:
-                assert(false); // unreachable
-                break;
+                unreachable("this shouldn't happen");
             default:
-                assert(false); // unrecognized option!
+                unreachable("unrecognized option!");
         }
 
         node = node->performAction(actions[playerAction]);
-        LOG_INFO("State description: \n" << dynamic_pointer_cast<FOG2EFGNode>(node)->getState()->toString())
+        const auto fogNode = dynamic_pointer_cast<FOG2EFGNode>(node);
+        const auto newState = fogNode->getState();
+        LOG_INFO("--------------------------------------")
+        LOG_INFO("State description: \n\n" << (Indented{newState->toString(), 8}))
+        fogNode->describeNewOutcome();
     }
+
+    LOG_INFO("--------------------------------------")
+    LOG_INFO("GAME IS OVER!")
+    LOG_INFO("Terminal node reached is " << node->getHistory())
+    LOG_INFO("Probability of reaching this node is:")
+    LOG_INFO("   chance:  " << reachProbChance)
+    LOG_INFO("   players: " << reachProbPlayers)
+    LOG_INFO("Players have given up after move (-1 they didnt): " << givenUpMove)
+    LOG_INFO("Players receive utility: " << node->getUtilities())
 
     return node->getUtilities();
 }

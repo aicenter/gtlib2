@@ -22,8 +22,10 @@
 #ifndef GTLIB2_GLOBAL_ARGSH
 #define GTLIB2_GLOBAL_ARGSH
 
+#include "base/includes.h"
 #include "utils/args.hpp"
 #include "utils/logging.h"
+#include "utils/utils.h"
 
 // Specify all global CLI arguments here
 namespace args {
@@ -37,35 +39,45 @@ args::ValueFlag<std::string> domain(arguments,
 args::ValueFlagList<std::string> alg(arguments,
                                      "ALG_NAME",
                                      "See constructAlgWithData()",
-                                     {'a', "alg"}, {"CFR", "CFR"});
+                                     {'a', "alg"}, {"RND", "RND"});
 args::ValueFlagList<std::string> algcfg(arguments,
                                         "CFG_PATH",
                                         "Config files to use",
-                                        {'c', "algcfg"},
-                                        {"settings/cfr.json", "settings/cfr.json"});
+                                        {'c', "algcfg"}, {"", ""});
 args::ValueFlag<unsigned int> log_level(arguments, "",
                                         "Logging level (see logging.h)",
                                         {'l', "log_level"},
 #ifndef NDEBUG
-                                        GTLib2::CLI::LOGLEVEL_DEBUG
+    GTLib2::CLI::LOGLEVEL_DEBUG
 #else
                                         GTLib2::CLI::LOGLEVEL_INFO
 #endif
 );
 args::Flag log_thread(arguments, "", "Print thread number in logs", {"log_thread"}, false);
 
-args::ValueFlag<std::string> tag(arguments, "TAG", "Tag to add before any std output", {'t', "tag"}, "");
+args::Flag tag(arguments, "", "Print params to stdout (CSV-like)", {'t', "tag"}, false);
+args::Flag tag_header(arguments, "", "Print header to stdout (CSV-like)", {"tag_header"}, false);
+
+struct Header {};
 
 args::Flag run_time(arguments, "", "Measure runtime of command", {'r', "run_time"}, false);
 }
 
 void initializeParser(args::Subparser &parser) {
     parser.Parse();
-    GTLib2::CLI::log_level = args::get(args::log_level);
-    GTLib2::CLI::log_thread = args::get(args::log_thread);
+    using namespace GTLib2;
+    CLI::log_level = args::get(args::log_level);
+    CLI::log_thread = args::get(args::log_thread);
 
-    auto tag = args::get(args::tag);
-    if(tag.length() > 0) std::cout << tag << ",";
+    if (args::get(args::tag_header)) {
+        cout << "domain" << ",";
+        for (int i = 0; i < args::get(args::alg).size(); ++i) cout << "alg" << i << ",";
+        for (int i = 0; i < args::get(args::algcfg).size(); ++i) cout << "algcfg" << i << ",";
+    } else if (args::get(args::tag)) {
+        cout << args::get(args::domain) << ",";
+        for (auto &alg : args::get(args::alg)) cout << alg << ",";
+        for (auto &algcfg : args::get(args::algcfg)) cout << algcfg << ",";
+    }
 
     GTLib2::CLI::runStartTime = std::chrono::system_clock::now();
 }

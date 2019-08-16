@@ -66,7 +66,8 @@ class FOG2EFGNode: public Node<FOG2EFGNode>,
     ProbDistribution chanceProbs() const override;
     vector<ActionObservationIds> getAOids(Player player) const override;
     vector<ObservationId> getPubObsIds() const override;
-    double getProbabilityOfActionSeq(Player player, const BehavioralStrategy &strat) const override; // todo: remove
+    double getProbabilityOfActionSeq(Player player,
+                                     const BehavioralStrategy &strat) const override; // todo: remove
     shared_ptr<ActionSequence> getActionsSeqOfPlayer(Player player) const override; // todo: remove
     inline const vector<ActionId> &getHistory() const override { return history_; }
     inline HashType getHash() const override { return Node::getHash(); }
@@ -76,6 +77,15 @@ class FOG2EFGNode: public Node<FOG2EFGNode>,
     const shared_ptr<State> getState() const { return lastOutcome_->state; }
     inline unsigned int stateDepth() const { return stateDepth_; }
     inline bool operator==(const FOG2EFGNode &rhs) const { return Node::operator==(rhs); }
+
+    inline void describeNewOutcome() {
+        if(hasNewOutcome()) {
+            LOG_INFO("New public  obs: " << *lastOutcome_->publicObservation)
+            LOG_INFO("New private obs for Pl0: " << *lastOutcome_->privateObservations.at(0))
+            LOG_INFO("New private obs for Pl1: " << *lastOutcome_->privateObservations.at(1))
+            LOG_INFO("New rewards: " << lastOutcome_->rewards)
+        }
+    }
 
  private:
     shared_ptr<FOG2EFGNode> performChanceAction(const shared_ptr<Action> &action) const;
@@ -119,7 +129,8 @@ inline unsigned int nodeChildCnt<EFGNode>(const shared_ptr<EFGNode> &node) {
     return node->countAvailableActions();
 }
 template<>
-inline shared_ptr<EFGNode> nodeChildExpander<EFGNode>(const shared_ptr<EFGNode> &node, EdgeId index) {
+inline shared_ptr<EFGNode>
+nodeChildExpander<EFGNode>(const shared_ptr<EFGNode> &node, EdgeId index) {
     return node->performAction(node->availableActions().at(index));
 }
 template<>
@@ -127,7 +138,8 @@ inline unsigned int nodeChildCnt<FOG2EFGNode>(const shared_ptr<FOG2EFGNode> &nod
     return node->countAvailableActions();
 }
 template<>
-inline shared_ptr<FOG2EFGNode> nodeChildExpander<FOG2EFGNode>(const shared_ptr<FOG2EFGNode> &node, EdgeId index) {
+inline shared_ptr<FOG2EFGNode>
+nodeChildExpander<FOG2EFGNode>(const shared_ptr<FOG2EFGNode> &node, EdgeId index) {
     return node->getChildAt(index);
 }
 
@@ -139,7 +151,6 @@ inline void treeWalk(const Domain &domain, const NodeCallback<FOG2EFGNode> &func
     auto rootNode = dynamic_pointer_cast<FOG2EFGNode>(createRootEFGNode(domain));
     treeWalk(rootNode, function);
 }
-
 
 }
 

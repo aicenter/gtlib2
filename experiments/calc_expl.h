@@ -256,7 +256,7 @@ void Command_CalcExpl(args::Subparser &parser) {
         cout << "preplay" << ",";
         cout << "move" << ",";
         cout << "budget" << ",";
-        cout << "expl";
+        cout << "expl" << endl;
         throw args::Header();
     }
     if (args::get(args::tag)) {

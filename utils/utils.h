@@ -182,18 +182,50 @@ struct Escaped {
     friend inline std::ostream& operator<<(std::ostream& os, const Escaped& e) {
         for(const char &c : e.str) {
             switch (c) {
-                case '\a':  os << "\\a"; break;
-                case '\b':  os << "\\b"; break;
-                case '\f':  os << "\\f"; break;
-                case '\n':  os << "\\n"; break;
-                case '\r':  os << "\\r"; break;
-                case '\t':  os << "\\t"; break;
-                case '\v':  os << "\\v"; break;
+                case '\a':  os << '\a'; break;
+                case '\b':  os << '\b'; break;
+                case '\f':  os << '\f'; break;
+                case '\n':  os << '\n'; break;
+                case '\r':  os << '\r'; break;
+                case '\t':  os << '\t'; break;
+                case '\v':  os << '\v'; break;
                 case '\\':  os << "\\\\"; break;
                 case '\'':  os << "\\'"; break;
                 case '\"':  os << "\\\""; break;
                 case '\?':  os << "\\\?"; break;
                 default: os << c;
+            }
+        }
+        return os;
+    }
+};
+
+template<typename A, typename B>
+struct Either {
+    bool cond;
+    const A& a;
+    const B& b;
+    Either(bool cond, const A& a, const B&b) : cond(cond), a(a), b(b) {}
+
+    friend inline std::ostream& operator<<(std::ostream& os, const Either& e) {
+        if(e.cond) os << e.a;
+        else os << e.b;
+        return os;
+    }
+};
+
+struct Indented {
+    string str;
+    int times;
+
+    friend inline std::ostream& operator<<(std::ostream& os, const Indented& e) {
+        for (int i = 0; i < e.times; ++i) os << ' ';
+        for(const char &c : e.str) {
+            if(c == '\n') {
+                os << '\n';
+                for (int i = 0; i < e.times; ++i) os << ' ';
+            } else {
+                os << c;
             }
         }
         return os;
