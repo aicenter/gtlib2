@@ -182,11 +182,16 @@ set(SOURCE_FILES
         algorithms/strategy.cpp algorithms/strategy.h
         algorithms/utility.h algorithms/utility.cpp
         algorithms/MCTS/ISMCTS.h algorithms/MCTS/ISMCTS.cpp
-        algorithms/MCTS/CPWISMCTS.h algorithms/MCTS/CPWISMCTS.cpp
+        algorithms/MCTS/CPW_ISMCTS.h algorithms/MCTS/CPW_ISMCTS.cpp
         algorithms/MCTS/selectors/selector.h
         algorithms/MCTS/selectors/selectorFactory.h
         algorithms/MCTS/selectors/UCTSelector.cpp algorithms/MCTS/selectors/UCTSelector.h
         algorithms/MCTS/selectors/UCTSelectorFactory.h  algorithms/MCTS/selectors/UCTSelectorFactory.cpp
+        algorithms/MCTS/selectors/RMSelector.cpp algorithms/MCTS/selectors/RMSelector.h
+        algorithms/MCTS/selectors/RMSelectorFactory.h  algorithms/MCTS/selectors/RMSelectorFactory.cpp
+        algorithms/MCTS/selectors/Exp3Selector.cpp algorithms/MCTS/selectors/Exp3Selector.h
+        algorithms/MCTS/selectors/Exp3LSelector.cpp algorithms/MCTS/selectors/Exp3LSelector.h
+        algorithms/MCTS/selectors/Exp3SelectorFactory.h  algorithms/MCTS/selectors/Exp3SelectorFactory.cpp
         # base
         base/algorithm.cpp base/algorithm.h
         base/base.h base/base.cpp

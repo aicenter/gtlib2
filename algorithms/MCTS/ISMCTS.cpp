@@ -21,7 +21,7 @@
 
 #include "ISMCTS.h"
 
-namespace GTLib2 {
+namespace GTLib2::algorithms {
 
     PlayControl ISMCTS::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
         if (giveUp_) return GiveUp;
@@ -58,25 +58,26 @@ namespace GTLib2 {
     double ISMCTS::handlePlayerNode(const shared_ptr<EFGNode> &h) {
         auto infoset = h->getAOHInfSet();
         auto selectorPtr = infosetSelectors_.find(infoset);
-        shared_ptr<Selector> selector;
+        Selector * selector;
         int actionIndex;
-        double retValue;
+        double simulationResult;
         if (selectorPtr == infosetSelectors_.end())
         {
-            selector = config_.fact_->createSelector(h->availableActions());
-            infosetSelectors_[infoset] = selector;
+//            selector = ;
+            infosetSelectors_.emplace(infoset, config_.fact_->createSelector(h->availableActions()));
+            selector = infosetSelectors_[infoset].get();
             actionIndex = selector->select();
-            retValue = simulate(h);
+            simulationResult = simulate(h);
         } else {
-            selector = selectorPtr->second;
+            selector = selectorPtr->second.get();
             actionIndex = selector->select();
             shared_ptr<Action> selectedAction = h->availableActions()[actionIndex];
             auto child = h->performAction(selectedAction);
-            retValue = iteration(child);
+            simulationResult = iteration(child);
         }
         int sign = h->getPlayer() == playingPlayer_ ? 1 : -1;
-        selector->update(actionIndex, sign*retValue);
-        return retValue;
+        selector->update(actionIndex, sign * simulationResult);
+        return simulationResult;
     }
 
     double ISMCTS::simulate(const shared_ptr<EFGNode> &h)

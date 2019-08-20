@@ -19,10 +19,10 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "CPWISMCTS.h"
+#include "CPW_ISMCTS.h"
 
-namespace GTLib2 {
-    PlayControl CPWISMCTS::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
+namespace GTLib2::algorithms {
+    PlayControl CPW_ISMCTS::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
         if (giveUp_)
             return GiveUp;
         if (currentInfoset == nullopt)
@@ -37,7 +37,7 @@ namespace GTLib2 {
         if (nodes == nodesMap_.end())
             return GiveUp;
         if (currentInfoset_ != *currentInfoset) setCurrentInfoset(*currentInfoset);
-        int nodeIndex = Selector::getRandomNumber(0, nodes->second.size() - 1, generator_);
+        int nodeIndex = pickRandomNumber(0, nodes->second.size() - 1, generator_);
         if (config_.useBelief) {
             for (int i=0; i<1+100*belief_[nodeIndex]; i++){
                 auto n = nodes->second[nodeIndex];
@@ -49,7 +49,7 @@ namespace GTLib2 {
         return ContinueImproving;
     }
 
-    double CPWISMCTS::handlePlayerNode(const shared_ptr<EFGNode> &h){
+    double CPW_ISMCTS::handlePlayerNode(const shared_ptr<EFGNode> &h){
         auto it = nodesMap_.find(h->getAOHInfSet());
         if (it == nodesMap_.end()) nodesMap_[h->getAOHInfSet()] = {h};
         else {
@@ -67,7 +67,7 @@ namespace GTLib2 {
         return ISMCTS::handlePlayerNode(h);
     }
 
-    void CPWISMCTS::setCurrentInfoset(const shared_ptr<AOH> &newInfoset) {
+    void CPW_ISMCTS::setCurrentInfoset(const shared_ptr<AOH> &newInfoset) {
         if (config_.useBelief)
         {
             if (currentInfoset_ == nullptr)
@@ -114,8 +114,8 @@ namespace GTLib2 {
         currentInfoset_ = newInfoset;
     }
 
-    void CPWISMCTS::fillBelief(const shared_ptr <EFGNode> &currentNode, const shared_ptr <AOH> &newInfoset,
-                               const double prob, vector<shared_ptr<EFGNode>> newNodes)
+    void CPW_ISMCTS::fillBelief(const shared_ptr <EFGNode> &currentNode, const shared_ptr <AOH> &newInfoset,
+                                const double prob, vector<shared_ptr<EFGNode>> newNodes)
     {
         if (currentNode->type_ == PlayerNode)
         {
@@ -133,7 +133,7 @@ namespace GTLib2 {
                     i++;
                 }
                 //assert (false);
-                return;
+                return; // reached undiscovered node in newInfoset
             }
             if (!algorithms::isAOCompatible(currentNode->getAOids(newInfoset->getPlayer()), newInfoset->getAOids()))
                 return;
@@ -156,41 +156,4 @@ namespace GTLib2 {
             }
         }
     }
-
-//    int fillBelief(shared_ptr<EFGNode> &oldNode, const shared_ptr<AOH> &newInfoset, double oldNodeBelief, int nextPos) {
-//
-////        return isAOCompatible(currentInfoset_->getAOids(),
-////                              h->performAction(action)->getAOids(currentInfoset_->getPlayer()));
-//
-//        if (newInfoset == oldNode->getAOHInfSet()) {
-//            belief_[nextPos]=oldNodeBelief;
-//            return nextPos+1;
-//        }
-//
-//        if (oldNode->getPlayer() == newInfoset->getPlayer()){//searching player's node
-//            if (oldNode->getAOHInfSet()->getAOids().size() != newInfoset->getAOids().size() - 1) return nextPos; //this is after opponent's move out of current IS
-//            auto child = oldNode->performAction(oldNode->availableActions()[newInfoset->getAOids().end()->action]);
-//            if (child == nullptr) return nextPos;//running out of the tree in memory, alternativly, we could add the nodes to the tree
-//            if (child->type_ == TerminalNode) return nextPos;//if based on unknown information the last players action leads to a leaf
-//            return fillBelief(child, newInfoset, oldNodeBelief, nextPos);
-//        } else if (oldNode->type_ == ChanceNode){ //is current player is the environment????
-//            int i=nextPos;
-//            for (int j = 0; j < oldNode->availableActions().size(); j++){
-//                auto child = oldNode->performAction(oldNode->availableActions()[j]);
-//                if (child->type_ != TerminalNode)
-//                    i = fillBelief(child, newInfoset, oldNodeBelief * oldNode->chanceProbForAction(oldNode->availableActions()[j]), i);
-//            }
-//            return i;
-//        } else {//opponent's move
-//            auto distribution = infosetSelectors_.find(oldNode->getAOHInfSet())->second->getActionsProbDistribution();
-//
-//            int i=nextPos;
-//            for (int j = 0; j < oldNode->availableActions().size(); j++){
-//                auto child = oldNode->performAction(oldNode->availableActions()[j]);
-//                if (child != nullptr && child->type_ != TerminalNode)
-//                    i = fillBelief(child, newInfoset, oldNodeBelief * distribution[j], i);
-//            }
-//            return i;
-//        }
-//    }
 }

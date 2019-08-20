@@ -108,9 +108,9 @@ bool AbstractPiece::hasMoved() const {
         return this->moved;
     } else {
         if (this->getColor() == WHITE) {
-            return this->position.y == 2;
+            return this->position.y != 1;
         } else {
-            return this->position.y == this->board->getYSize() - 2;
+            return this->position.y != this->board->getYSize() - 1;
         }
     }
 }
@@ -269,7 +269,7 @@ void Pawn::updateMoves() {
     Square moveForward(this->position.x, ycut);
     moves->push_back(moveForward);
 
-    if (!this->moved) {
+    if (!this->hasMoved()) {
         Square moveByTwo
             (this->position.x, this->color == WHITE ? this->position.y + 2 : this->position.y - 2);
         moves->push_back(moveByTwo);
@@ -995,7 +995,6 @@ bool KriegspielState::makeMove(KriegspielAction *a) {
                 }
             }
         }
-
         if (p->getKind() == chess::KING && abs(a->movingFrom().x - pos.x) > 1) {
             this->castle(a);
         }
@@ -1077,7 +1076,7 @@ OutcomeDistribution KriegspielState::performActions(
     shared_ptr<KriegspielState> s;
     int nextMove = this->playerOnTheMove;
     Square enPassSquare(-1, -1);
-    KriegspielAction *a = a1 ? a1 : a2;
+    KriegspielAction *a = playerOnTheMove == 0 ? a1 : a2;
     shared_ptr<vector<shared_ptr<AbstractPiece>>> pieces = this->copyPieces();
     shared_ptr<vector<shared_ptr<KriegspielAction>>> history = this->copyMoveHistory();
     shared_ptr<vector<shared_ptr<KriegspielAction>>> attemptedmoves = this->copyAttemptedMoves();

@@ -27,13 +27,13 @@
 
 #include "UCTSelectorFactory.h"
 
-namespace GTLib2 {
+namespace GTLib2::algorithms {
     class UCTSelector : public Selector {
 public:
     UCTSelector(vector<shared_ptr<Action>> actions, UCTSelectorFactory * fact) : fact_(fact) {
-        actions_ = std::move(actions); values_ = vector<double>(actions_.size()); visits_ = vector<int>(actions_.size());}
-    UCTSelector(int N, UCTSelectorFactory * fact) : fact_(fact) {
-        values_ = vector<double>(N); visits_ = vector<int>(N);}
+        values_ = vector<double>(actions.size()); visits_ = vector<int>(actions.size());}
+    UCTSelector(int actionsNumber, UCTSelectorFactory * fact) : fact_(fact) {
+        values_ = vector<double>(actionsNumber); visits_ = vector<int>(actionsNumber);}
 
     int select() override;
     void update(int ai, double value) override;
@@ -42,7 +42,7 @@ private:
     UCTSelectorFactory * fact_;
     vector<double > values_;
     vector<int> visits_;
-    int n = 0;
+    int totalVisits = 0;
 
     double getBestRateIndex();
 

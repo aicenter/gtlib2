@@ -21,15 +21,15 @@
 
 #include "UCTSelector.h"
 #include "UCTSelectorFactory.h"
-namespace GTLib2 {
+namespace GTLib2::algorithms {
 
-    shared_ptr<Selector> UCTSelectorFactory::createSelector(int N) {
+    unique_ptr<Selector> UCTSelectorFactory::createSelector(int actionsNumber) {
         generator_ = std::mt19937();
-        return make_shared<UCTSelector>(N, this);
+        return make_unique<UCTSelector>(actionsNumber, this);
     }
 
-    shared_ptr<Selector> UCTSelectorFactory::createSelector(vector<shared_ptr<Action>> actions) {
-        return make_shared<UCTSelector>(actions, this);
+    unique_ptr<Selector> UCTSelectorFactory::createSelector(vector<shared_ptr<Action>> actions) {
+        return make_unique<UCTSelector>(actions, this);
     }
 
     std::mt19937 UCTSelectorFactory::getRandom() {

@@ -19,10 +19,11 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <base/random.h>
 #include "UCTSelector.h"
-namespace GTLib2 {
+namespace GTLib2::algorithms {
 void UCTSelector::update(int ai, double value) {
-    n++;
+    totalVisits++;
     visits_[ai]++;
     if (visits_[ai] == 1) {
         values_[ai] = value;
@@ -38,11 +39,11 @@ double getUCBRate(double v, int ni, int n, double c)
 
 double UCTSelector::getBestRateIndex()
 {
-    double bestVal = getUCBRate(values_[0], visits_[0], n, fact_->c);
+    double bestVal = getUCBRate(values_[0], visits_[0], totalVisits, fact_->c);
     int bestIdx = 0;
 
     for (int i = 1; i < values_.size(); i++) {
-        double curVal = getUCBRate(values_[i], visits_[i], n, fact_->c);
+        double curVal = getUCBRate(values_[i], visits_[i], totalVisits, fact_->c);
 
         if (curVal > bestVal) {
             bestVal = curVal;
@@ -56,16 +57,16 @@ double UCTSelector::getBestRateIndex()
     {
         int count = 0;
         for (int i = 0; i < values_.size(); i++) {
-            double curVal = getUCBRate(values_[i], visits_[i], n, fact_->c);
+            double curVal = getUCBRate(values_[i], visits_[i], totalVisits, fact_->c);
             if (curVal > bestVal - eps) count++;
         }
         return count;
     }
 
 int UCTSelector::select() {
-    if (n < values_.size())
+    if (totalVisits < values_.size())
     {
-        int j = getRandomNumber(1, values_.size() - n, fact_->getRandom());
+        int j = pickRandomNumber(1, values_.size() - totalVisits, fact_->getRandom());
         int i = -1;
 
         while (j > 0) {
@@ -77,12 +78,12 @@ int UCTSelector::select() {
     }
     double epsilon = 0.01;
     double bestIndex = getBestRateIndex();
-    double bestVal = getUCBRate(values_[bestIndex], visits_[bestIndex], n, fact_->c);
+    double bestVal = getUCBRate(values_[bestIndex], visits_[bestIndex], totalVisits, fact_->c);
     int bestCount = getBestRateCount(epsilon, bestVal);
-    int index = getRandomNumber(0, bestCount - 1, fact_->getRandom());
+    int index = pickRandomNumber(0, bestCount - 1, fact_->getRandom());
 
     for (int i = 0; i < values_.size(); i++) {
-        double curVal = getUCBRate(values_[i], visits_[i], n, fact_->c);
+        double curVal = getUCBRate(values_[i], visits_[i], totalVisits, fact_->c);
 
         if (curVal >= bestVal - epsilon) {
             if (index == 0)
@@ -94,9 +95,9 @@ int UCTSelector::select() {
 }
 
     ProbDistribution UCTSelector::getActionsProbDistribution() {
-        ProbDistribution probs = vector<double>(actions_.size());
+        ProbDistribution probs = vector<double>(visits_.size());
         for (int i = 0; i < visits_.size(); i++) {
-            probs[i] = visits_[i]*1.0/n;
+            probs[i] = visits_[i] * 1.0 / totalVisits;
         }
         return probs;
     }

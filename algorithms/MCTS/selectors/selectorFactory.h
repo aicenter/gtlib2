@@ -22,12 +22,12 @@
 #ifndef GTLIB2_SELECTORFACTORY_H
 #define GTLIB2_SELECTORFACTORY_H
 #include "selector.h"
-namespace GTLib2 {
+namespace GTLib2::algorithms {
 class SelectorFactory {
 public:
-    virtual shared_ptr<Selector> createSelector(vector<shared_ptr<Action>> actions) = 0;
+    virtual unique_ptr<Selector> createSelector(vector<shared_ptr<Action>> actions) = 0;
 
-    virtual shared_ptr<Selector> createSelector(int N) = 0;
+    virtual unique_ptr<Selector> createSelector(int actionsNumber) = 0;
 
     virtual std::mt19937 getRandom() = 0;
 };

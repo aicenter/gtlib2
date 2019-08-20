@@ -58,7 +58,7 @@ inline auto time_diff(std::chrono::system_clock::time_point &lastTime) {
     ss.precision(1);
     ss << std::setw(5) << std::fixed;
     if (diff > 1000000 * 60) {
-        ss << diff / 1000000. * 60 << "min";
+        ss << diff / 1000000. / 60 << "min";
     } else if (diff > 1000000) {
         ss << diff / 1000000. << " s";
     } else if (diff > 1000) {

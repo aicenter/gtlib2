@@ -24,15 +24,15 @@
 #include "selectorFactory.h"
 
 
-namespace GTLib2 {
+namespace GTLib2::algorithms {
 class UCTSelectorFactory : public SelectorFactory {
 public:
     double c;
     explicit UCTSelectorFactory(double c, std::mt19937 random): c(c), generator_(random) {};
     explicit UCTSelectorFactory(double c, int seed): c(c) {generator_ = std::mt19937(seed);};
     explicit UCTSelectorFactory(double c): c(c) {generator_ = std::mt19937();};
-    shared_ptr<Selector> createSelector(int N) override;
-    shared_ptr<Selector> createSelector(vector<shared_ptr<Action>> actions) override;
+    unique_ptr<Selector> createSelector(int actionsNumber) override;
+    unique_ptr<Selector> createSelector(vector<shared_ptr<Action>> actions) override;
     std::mt19937 getRandom() override;
 private:
     std::mt19937 generator_;

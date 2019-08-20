@@ -218,7 +218,7 @@ TEST(Domain, ZeroSumGame) {
 
 //TEST(Domain, CheckEFGNodeStateEqualityConsistency) {
 //    for (auto domain : testDomains) {
-//        cout << "\nchecking " << domain->getInfo() << "\n";
+//        cout << "\nchecking " << domain->getInfo() << "\totalVisits";
 //        EXPECT_TRUE(isEFGNodeAndStateConsistent(*domain));
 //    }
 //}

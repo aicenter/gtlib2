@@ -23,7 +23,7 @@
 #define GTLIB2_SELECTOR_H
 #include "base/base.h"
 
-namespace GTLib2 {
+namespace GTLib2::algorithms {
 
 class Selector {
 public:
@@ -32,16 +32,10 @@ public:
 
     virtual void update(int ai, double value) = 0;
 
-    static int getRandomNumber(int min, int max, std::mt19937 rand)
-    {
-        std::uniform_int_distribution<int> uid(min,max);
-        return uid(rand);
-    }
-
     virtual ProbDistribution getActionsProbDistribution() = 0;
 
-protected:
-    vector<shared_ptr<Action>> actions_;
+//protected:
+    //vector<shared_ptr<Action>> actions_;
 };
 
 }

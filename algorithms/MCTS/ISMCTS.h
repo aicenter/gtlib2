@@ -25,10 +25,10 @@
 #include "selectors/UCTSelector.h"
 #include "base/random.h"
 
-namespace GTLib2 {
-struct ISMSTCSettings{
+namespace GTLib2::algorithms {
+struct ISMCTSSettings{
     shared_ptr<SelectorFactory> fact_;
-    unsigned long batchSize = 1;
+    //unsigned long batchSize = 1;
 
     bool useBelief = false;
 
@@ -37,11 +37,9 @@ struct ISMSTCSettings{
 
 class ISMCTS : public GamePlayingAlgorithm {
 public:
-    explicit ISMCTS(const Domain &domain, Player playingPlayer, ISMSTCSettings config) :
-        GamePlayingAlgorithm(domain, playingPlayer), config_(config) {
+    explicit ISMCTS(const Domain &domain, Player playingPlayer, ISMCTSSettings config) :
+        GamePlayingAlgorithm(domain, playingPlayer), config_(config), rootNode_(createRootEFGNode(domain)) {
         generator_ = std::mt19937(config.randomSeed);
-        rootNode_ = createRootEFGNode(domain.getRootStatesDistribution());
-        //currentInfoset_ = rootNode_->getAOHInfSet();
         belief_ = {1.0};
     };
 
@@ -51,10 +49,10 @@ public:
     virtual void setCurrentInfoset(const shared_ptr<AOH> &newInfoset);
 
 protected:
-    ISMSTCSettings config_;
+    const ISMCTSSettings config_;
     std::mt19937 generator_;
-    unordered_map<shared_ptr<AOH>, shared_ptr<Selector>> infosetSelectors_;
-    shared_ptr<EFGNode> rootNode_;
+    unordered_map<shared_ptr<AOH>, unique_ptr<Selector>> infosetSelectors_;
+    const shared_ptr<EFGNode> rootNode_;
     shared_ptr<AOH> currentInfoset_;
     vector<double> belief_;
     bool giveUp_ = false;

@@ -31,24 +31,24 @@
 
 #include <iostream>
 #include <algorithms/MCTS/ISMCTS.h>
-#include <algorithms/MCTS/CPWISMCTS.h>
+#include <algorithms/MCTS/CPW_ISMCTS.h>
 #include <domains/goofSpiel.h>
 int main(int argc, const char **argv) {
     using namespace GTLib2;
     using namespace GTLib2::CLI;
 
-        auto fact = make_shared<UCTSelectorFactory>(sqrt(2));
-    ISMSTCSettings s = {.useBelief = true, .fact_ = std::static_pointer_cast<SelectorFactory>(fact), .randomSeed = 123};
-    PreparedAlgorithm firstAction = createInitializer<CPWISMCTS>(s);
-    PreparedAlgorithm lastAction = createInitializer<ISMCTS>(s);
-
-    GTLib2::domains::GoofSpielSettings settings
-            ({variant:  GTLib2::domains::IncompleteObservations, numCards: 5, fixChanceCards: true});
-    settings.shuffleChanceCards(12);
-    GoofSpielDomain domain(settings);
-    vector<double> actualUtilities = playMatch(
-            domain, vector<PreparedAlgorithm>{firstAction, lastAction},
-            vector<unsigned int>{10000, 10000}, vector<unsigned int>{100, 100}, BudgetIterations, 0);
+//        auto fact = make_shared<UCTSelectorFactory>(sqrt(2));
+//    ISMCTSSettings s = {.useBelief = true, .fact_ = std::static_pointer_cast<SelectorFactory>(fact), .randomSeed = 1};
+//    PreparedAlgorithm firstAction = createInitializer<CPW_ISMCTS>(s);
+//    PreparedAlgorithm lastAction = createInitializer<ISMCTS>(s);
+//
+//    GTLib2::domains::GoofSpielSettings settings
+//            ({variant:  GTLib2::domains::IncompleteObservations, numCards: 15, fixChanceCards: true});
+//    settings.shuffleChanceCards(12);
+//    GoofSpielDomain domain(settings);
+//    vector<double> actualUtilities = playMatch(
+//            domain, vector<PreparedAlgorithm>{firstAction, lastAction},
+//            vector<unsigned int>{10000, 10000}, vector<unsigned int>{1000, 1000}, BudgetTime, 0);
 
 //    GTLib2::domains::StrategoSettings settings = {};
 //    GTLib2::domains::StrategoDomain domain(settings);

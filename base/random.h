@@ -30,6 +30,12 @@ namespace GTLib2 {
 
 extern std::uniform_real_distribution<double> uniformDist;
 
+static int pickRandomNumber(int min, int max, std::mt19937 rand)
+{
+    std::uniform_int_distribution<int> uid(min,max);
+    return uid(rand);
+}
+
 /**
  * Return index of which event should be picked according to given probability distribution
  */
