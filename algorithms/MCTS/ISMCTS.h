@@ -27,35 +27,71 @@
 
 namespace GTLib2::algorithms {
 struct ISMCTSSettings{
+    /**
+     * fact_ describes which of selectors will be used to choose action at current infoset. Following selectors are implemented:
+     * - UCTSelector (Upper-bound Confidence for Trees)
+     * - RMSelector (Regret Matching)
+     * - Exp3Selector
+     * - Exp3LSelector
+     */
     shared_ptr<SelectorFactory> fact_;
-    //unsigned long batchSize = 1;
 
+    /**
+     * IMPORTANT NOTES
+     *
+     * 1) If useBelief = true and budget is counted in iterations,
+     *      1 iterate of budget becomes up to 101 iterations of algorithm, according to probability of selected node.
+     *
+     * 2) useBelief DOES NOT AFFECT usual ISMCTS algorithm, only CPW_ISMCTS, as it requires IS -> nodes map.
+     *
+     * When useBelief = true, if current infoset contains multiple number of nodes,
+     * after the choosing randomly a node to iterate, algorithm makes up to 101 iterations,
+     * according to the probability of the selected node (n = 1 + prob*100).
+     * If there is only one node in the infoset, it will be iterated 101 times.
+     *
+     * Probability of the node counted as a multiplication of all probabilities,
+     * that lead from the previous infoset to the current node.
+     * If there are multiple ways from the old infoset to the node, they are summed.
+     * In the end, probabilities for all nodes are normalized (see setCurrentInfoset and fillBelief at CPW_ISMCTS).
+     */
     bool useBelief = false;
 
     unsigned long randomSeed = 0;
 };
-
+/**
+ * Information Set Monte Carlo Tree Search algorithm (ISMCTS) is based on the MCTS algorithm,
+ * with a changes that allow it to work with imperfect information games.
+ *
+ * Algorithm is described in "Information Set Monte Carlo Tree Search" paper (Cowling, Powley and Whitehouse, 2012)
+ * and improved in "Monte Carlo Tree Search in Imperfect-Information Games" doctoral thesis by Viliam Lisý.
+ *
+ * Just like the MCTS, algorithm has following steps: selection, expansion, simulation and backpropagation.
+ * Unlike the MCTS, the ISMCTS tree consists of the information sets,
+ * which are the unions of the nodes with the same action-observation histories.
+ *
+ * In this algorithm, in every iteration the tree search starts from the root of the tree,
+ * no matter of the current state of the games. It allows the algorithm not to store the map IS -> nodes.
+ * The downside is that this algorithm is more likely to reach undiscovered infoset.
+ *
+ * The more advanced version - CPW_ISMCTS - iterates the tree down from the current infoset.
+ * Using belief makes this algorithm even more consistent against non-random strategies.
+ */
 class ISMCTS : public GamePlayingAlgorithm {
 public:
-    explicit ISMCTS(const Domain &domain, Player playingPlayer, ISMCTSSettings config) :
+    explicit ISMCTS(const Domain &domain, Player playingPlayer, const ISMCTSSettings& config) :
         GamePlayingAlgorithm(domain, playingPlayer), config_(config), rootNode_(createRootEFGNode(domain)) {
+        assert (!config_.useBelief); // useBelief does not affect this algorithm
         generator_ = std::mt19937(config.randomSeed);
-        belief_ = {1.0};
     };
 
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
     optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override;
-
-    virtual void setCurrentInfoset(const shared_ptr<AOH> &newInfoset);
 
 protected:
     const ISMCTSSettings config_;
     std::mt19937 generator_;
     unordered_map<shared_ptr<AOH>, unique_ptr<Selector>> infosetSelectors_;
     const shared_ptr<EFGNode> rootNode_;
-    shared_ptr<AOH> currentInfoset_;
-    vector<double> belief_;
-    bool giveUp_ = false;
 
 
     virtual double iteration(const shared_ptr <EFGNode> &h);

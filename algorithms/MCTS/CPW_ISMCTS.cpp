@@ -33,14 +33,14 @@ namespace GTLib2::algorithms {
         }
         if (infosetSelectors_.find(*currentInfoset)  == infosetSelectors_.end())
             return GiveUp;
-        auto nodes = nodesMap_.find(*currentInfoset);
+        const auto nodes = nodesMap_.find(*currentInfoset);
         if (nodes == nodesMap_.end())
             return GiveUp;
         if (currentInfoset_ != *currentInfoset) setCurrentInfoset(*currentInfoset);
-        int nodeIndex = pickRandomNumber(0, nodes->second.size() - 1, generator_);
+        const int nodeIndex = pickRandomNumber(0, nodes->second.size() - 1, generator_);
         if (config_.useBelief) {
             for (int i=0; i<1+100*belief_[nodeIndex]; i++){
-                auto n = nodes->second[nodeIndex];
+                const auto n = nodes->second[nodeIndex];
                 iteration(n);
             }
         } else {
@@ -50,19 +50,19 @@ namespace GTLib2::algorithms {
     }
 
     double CPW_ISMCTS::handlePlayerNode(const shared_ptr<EFGNode> &h){
-        auto it = nodesMap_.find(h->getAOHInfSet());
+        const auto it = nodesMap_.find(h->getAOHInfSet());
         if (it == nodesMap_.end()) nodesMap_[h->getAOHInfSet()] = {h};
         else {
-            auto v = nodesMap_[h->getAOHInfSet()];
-            bool f = false;
-            for (auto const &vi: v)
+            const auto nodes = nodesMap_[h->getAOHInfSet()];
+            bool flag = false;
+            for (auto const &node: nodes)
             {
-                if (*vi == *h) {
-                    f = true;
+                if (*node == *h) {
+                    flag = true;
                     break;
                 }
             }
-            if (!f) nodesMap_[h->getAOHInfSet()].push_back(h);
+            if (!flag) nodesMap_[h->getAOHInfSet()].push_back(h);
         }
         return ISMCTS::handlePlayerNode(h);
     }
@@ -70,18 +70,16 @@ namespace GTLib2::algorithms {
     void CPW_ISMCTS::setCurrentInfoset(const shared_ptr<AOH> &newInfoset) {
         if (config_.useBelief)
         {
+            const auto newNodesIt = nodesMap_.find(newInfoset);
             if (currentInfoset_ == nullptr)
             {
-                currentInfoset_ = newInfoset;
-                auto newNodesIt = nodesMap_.find(newInfoset);
                 if (newNodesIt == nodesMap_.end())
                 {
                     // unexplored IS reached
-                    currentInfoset_ = newInfoset;
                     giveUp_ = true;
                     return;
                 }
-                auto newNodes = newNodesIt->second;
+                const auto newNodes = newNodesIt->second;
                 belief_ = vector<double>(newNodes.size());
                 fillBelief(rootNode_, newInfoset, 1, newNodes);
                 double sum=0;
@@ -90,17 +88,16 @@ namespace GTLib2::algorithms {
                 currentInfoset_ = newInfoset;
                 return;
             }
-            auto oldBelief = belief_;
-            auto oldNodesIt = nodesMap_.find(currentInfoset_);
-            auto newNodesIt = nodesMap_.find(newInfoset);
+            const auto oldBelief = belief_;
+            const auto oldNodesIt = nodesMap_.find(currentInfoset_);
             if (oldNodesIt == nodesMap_.end() || newNodesIt == nodesMap_.end())
             {
                 // unexplored IS reached
                 giveUp_ = true;
                 return;
             }
-            auto oldNodes = oldNodesIt->second;
-            auto newNodes = newNodesIt->second;
+            const auto oldNodes = oldNodesIt->second;
+            const auto newNodes = newNodesIt->second;
             belief_ = vector<double>(newNodes.size());
             for (int i=0; i<oldNodes.size(); i++){
                 fillBelief(oldNodes[i], newInfoset, oldBelief[i], newNodes);
@@ -119,7 +116,7 @@ namespace GTLib2::algorithms {
     {
         if (currentNode->type_ == PlayerNode)
         {
-            auto currentInfoset = currentNode->getAOHInfSet();
+            const auto currentInfoset = currentNode->getAOHInfSet();
             if (*currentInfoset == *newInfoset)
             {
                 int i = 0;
@@ -132,18 +129,17 @@ namespace GTLib2::algorithms {
                     }
                     i++;
                 }
-                //assert (false);
                 return; // reached undiscovered node in newInfoset
             }
             if (!algorithms::isAOCompatible(currentNode->getAOids(newInfoset->getPlayer()), newInfoset->getAOids()))
                 return;
-            auto it = infosetSelectors_.find(currentInfoset);
+            const auto it = infosetSelectors_.find(currentInfoset);
             if (it == infosetSelectors_.end())
                 return;
-            auto distribution = it->second->getActionsProbDistribution();
+            const auto distribution = it->second->getActionsProbDistribution();
             for (int i = 0; i < currentNode->availableActions().size(); i++)
             {
-                auto action = currentNode->availableActions()[i];
+                const auto action = currentNode->availableActions()[i];
                 fillBelief(currentNode->performAction(action), newInfoset, prob * distribution[i], newNodes);
             }
         }
@@ -151,7 +147,7 @@ namespace GTLib2::algorithms {
         {
             for (int i = 0; i < currentNode->availableActions().size(); i++)
             {
-                auto action = currentNode->availableActions()[i];
+                const auto action = currentNode->availableActions()[i];
                 fillBelief(currentNode->performAction(action), newInfoset,prob * currentNode->chanceProbForAction(action), newNodes);
             }
         }

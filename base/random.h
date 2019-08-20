@@ -36,6 +36,11 @@ static int pickRandomNumber(int min, int max, std::mt19937 rand)
     return uid(rand);
 }
 
+static int pickRandomDouble(std::mt19937 rand)
+{
+    return uniformDist(rand);
+}
+
 /**
  * Return index of which event should be picked according to given probability distribution
  */

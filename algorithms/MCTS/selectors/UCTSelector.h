@@ -30,7 +30,7 @@
 namespace GTLib2::algorithms {
     class UCTSelector : public Selector {
 public:
-    UCTSelector(vector<shared_ptr<Action>> actions, UCTSelectorFactory * fact) : fact_(fact) {
+    UCTSelector(const vector<shared_ptr<Action>>& actions, UCTSelectorFactory * fact) : fact_(fact) {
         values_ = vector<double>(actions.size()); visits_ = vector<int>(actions.size());}
     UCTSelector(int actionsNumber, UCTSelectorFactory * fact) : fact_(fact) {
         values_ = vector<double>(actionsNumber); visits_ = vector<int>(actionsNumber);}

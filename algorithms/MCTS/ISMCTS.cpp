@@ -24,9 +24,8 @@
 namespace GTLib2::algorithms {
 
     PlayControl ISMCTS::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
-        if (giveUp_) return GiveUp;
-        if ((currentInfoset != nullopt) && (infosetSelectors_.find(*currentInfoset)  == infosetSelectors_.end())) return GiveUp;
-        if (currentInfoset_ != *currentInfoset) setCurrentInfoset(*currentInfoset);
+        if ((currentInfoset != nullopt) && (infosetSelectors_.find(*currentInfoset)  == infosetSelectors_.end()))
+            return GiveUp; // unexplored IS reached
         iteration(rootNode_);
         return ContinueImproving;
     }
@@ -40,7 +39,7 @@ namespace GTLib2::algorithms {
             case PlayerNode:
                 return handlePlayerNode(h);
             default:
-                assert(false); // unrecognized type!
+                assert(false);
         }
     }
 
@@ -49,21 +48,20 @@ namespace GTLib2::algorithms {
     }
 
     double ISMCTS::handleChanceNode(const shared_ptr<EFGNode> &h) {
-        int selectedIndex = pickRandom((*h), generator_);
-        shared_ptr<Action> selectedAction = h->availableActions()[selectedIndex];
-        auto child = h->performAction(selectedAction);
+        const int selectedIndex = pickRandom((*h), generator_);
+        const shared_ptr<Action> selectedAction = h->availableActions()[selectedIndex];
+        const auto child = h->performAction(selectedAction);
         return iteration(child);
     }
 
     double ISMCTS::handlePlayerNode(const shared_ptr<EFGNode> &h) {
-        auto infoset = h->getAOHInfSet();
-        auto selectorPtr = infosetSelectors_.find(infoset);
+        const auto infoset = h->getAOHInfSet();
+        const auto selectorPtr = infosetSelectors_.find(infoset);
         Selector * selector;
         int actionIndex;
         double simulationResult;
         if (selectorPtr == infosetSelectors_.end())
         {
-//            selector = ;
             infosetSelectors_.emplace(infoset, config_.fact_->createSelector(h->availableActions()));
             selector = infosetSelectors_[infoset].get();
             actionIndex = selector->select();
@@ -72,10 +70,10 @@ namespace GTLib2::algorithms {
             selector = selectorPtr->second.get();
             actionIndex = selector->select();
             shared_ptr<Action> selectedAction = h->availableActions()[actionIndex];
-            auto child = h->performAction(selectedAction);
+            const auto child = h->performAction(selectedAction);
             simulationResult = iteration(child);
         }
-        int sign = h->getPlayer() == playingPlayer_ ? 1 : -1;
+        const int sign = h->getPlayer() == playingPlayer_ ? 1 : -1;
         selector->update(actionIndex, sign * simulationResult);
         return simulationResult;
     }
@@ -85,20 +83,15 @@ namespace GTLib2::algorithms {
         shared_ptr<EFGNode> currentNode = h;
         while (currentNode->type_ != TerminalNode)
         {
-            int selectedIndex = pickRandom((*currentNode), generator_);
+            const int selectedIndex = pickRandom((*currentNode), generator_);
             shared_ptr<Action> selectedAction = currentNode->availableActions()[selectedIndex];
             currentNode = currentNode->performAction(selectedAction);
         }
         return currentNode->getUtilities()[playingPlayer_];
     }
 
-    void ISMCTS::setCurrentInfoset(const shared_ptr<AOH> &newInfoset) {
-
-        currentInfoset_ = newInfoset;
-    }
-
     optional<ProbDistribution> ISMCTS::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
-        auto selectorPtr = infosetSelectors_.find(currentInfoset_);
+        const auto selectorPtr = infosetSelectors_.find(currentInfoset);
         if (selectorPtr != infosetSelectors_.end()) {
             return selectorPtr->second->getActionsProbDistribution();
         }

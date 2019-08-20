@@ -23,46 +23,36 @@
 #define GTLIB2_CPW_ISMCTS_H
 
 #include "ISMCTS.h"
+
+#include <utility>
 #include "algorithms/common.h"
 
-
-
-
-//auto fact = make_shared<UCTSelectorFactory>(sqrt(2));
-//int a = 0;
-//ISMCTSSettings s = {.useBelief = true, .fact_ = std::static_pointer_cast<SelectorFactory>(fact), .randomSeed = 123};
-//PreparedAlgorithm firstAction = createInitializer<ISMCTS>(s);
-//PreparedAlgorithm lastAction = createInitializer<RandomPlayer>();
-//
-//GTLib2::domains::GoofSpielSettings settings
-//        ({variant:  GTLib2::domains::IncompleteObservations, numCards: 3, fixChanceCards: false});
-////    settings.shuffleChanceCards(2);
-//GoofSpielDomain domain(settings);
-//vector<double> actualUtilities = playMatch(
-//        domain, vector<PreparedAlgorithm>{firstAction, lastAction},
-//        vector<int>{10000, 10000}, vector<int>{100, 100}, BudgetIterations, 0);
-//
-////    GTLib2::domains::StrategoSettings settings = {3,2,{},{'1', '2'}};
-////    GTLib2::domains::StrategoDomain domain(settings);
-////    vector<double> actualUtilities = playMatch(
-////            domain, vector<PreparedAlgorithm>{firstAction, lastAction},
-////            vector<int>{1000, 1000}, vector<int>{10, 10}, BudgetIterations, 0);
-
-
-
+/**
+ * CPW_ISMCTS (Cowling, Powley and Whitehouse Information Set Monte Carlo Tree Search) algorithm.
+ * Unlike the ISMCTS, iterates the tree down from the current infoset,
+ * but requires IS -> nodes map to be stored.
+ * Using belief makes this algorithm even more consistent against non-random strategies.
+ */
 namespace GTLib2::algorithms {
 class CPW_ISMCTS : public ISMCTS {
 public:
-    explicit CPW_ISMCTS(const Domain &domain, Player playingPlayer, ISMCTSSettings config) : ISMCTS(domain, playingPlayer, config) {};
+    explicit CPW_ISMCTS(const Domain &domain, Player playingPlayer, ISMCTSSettings config) :
+        ISMCTS(domain, playingPlayer, std::move(config)), belief_({1.0}) {};
+
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
 
 private:
     unordered_map<shared_ptr<AOH>, vector<shared_ptr<EFGNode>>> nodesMap_;
+    shared_ptr<AOH> currentInfoset_;
+    bool giveUp_ = false;
+    vector<double> belief_;
+
+
     double handlePlayerNode(const shared_ptr<EFGNode> &h) override;
 
-    void setCurrentInfoset(const shared_ptr <AOH> &newInfoset) override;
+    void setCurrentInfoset(const shared_ptr <AOH> &newInfoset);
 
-    void fillBelief(const shared_ptr <EFGNode> &currentNode, const shared_ptr <AOH> &newInfoset, const double prob, vector<shared_ptr<EFGNode>> newNodes);
+    void fillBelief(const shared_ptr <EFGNode> &currentNode, const shared_ptr <AOH> &newInfoset, double prob, vector<shared_ptr<EFGNode>> newNodes);
 };
 }
 

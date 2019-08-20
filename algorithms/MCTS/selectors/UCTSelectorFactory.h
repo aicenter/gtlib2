@@ -27,7 +27,7 @@
 namespace GTLib2::algorithms {
 class UCTSelectorFactory : public SelectorFactory {
 public:
-    double c;
+    const double c;
     explicit UCTSelectorFactory(double c, std::mt19937 random): c(c), generator_(random) {};
     explicit UCTSelectorFactory(double c, int seed): c(c) {generator_ = std::mt19937(seed);};
     explicit UCTSelectorFactory(double c): c(c) {generator_ = std::mt19937();};
