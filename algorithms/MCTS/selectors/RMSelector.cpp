@@ -52,7 +52,7 @@ namespace GTLib2::algorithms {
     }
 
     ProbDistribution RMSelector::getActionsProbDistribution() {
-        return actionMeanProbability;
+        return actionProbability;
     }
 
     void RMSelector::updateProb() {

@@ -73,6 +73,7 @@ namespace GTLib2::algorithms {
             const auto child = h->performAction(selectedAction);
             simulationResult = iteration(child);
         }
+        //simulationResult = simulationResult == 0 ? 0 : (simulationResult > 0 ? 1 : -1);
         const int sign = h->getPlayer() == playingPlayer_ ? 1 : -1;
         selector->update(actionIndex, sign * simulationResult);
         return simulationResult;

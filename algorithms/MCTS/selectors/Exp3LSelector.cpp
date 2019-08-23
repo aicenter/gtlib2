@@ -59,6 +59,6 @@ namespace GTLib2::algorithms {
     }
 
     ProbDistribution Exp3LSelector::getActionsProbDistribution() {
-        return actionMeanProbability_;
+        return actionProbability_;
     }
 }

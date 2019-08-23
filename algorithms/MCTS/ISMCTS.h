@@ -56,7 +56,7 @@ struct ISMCTSSettings{
      */
     bool useBelief = false;
 
-    unsigned long randomSeed = 0;
+    int randomSeed = 0;
 };
 /**
  * Information Set Monte Carlo Tree Search algorithm (ISMCTS) is based on the MCTS algorithm,
@@ -80,7 +80,6 @@ class ISMCTS : public GamePlayingAlgorithm {
 public:
     explicit ISMCTS(const Domain &domain, Player playingPlayer, const ISMCTSSettings& config) :
         GamePlayingAlgorithm(domain, playingPlayer), config_(config), rootNode_(createRootEFGNode(domain)) {
-        assert (!config_.useBelief); // useBelief does not affect this algorithm
         generator_ = std::mt19937(config.randomSeed);
     };
 

@@ -36,7 +36,7 @@ static int pickRandomNumber(int min, int max, std::mt19937 rand)
     return uid(rand);
 }
 
-static int pickRandomDouble(std::mt19937 rand)
+static double pickRandomDouble(std::mt19937 rand)
 {
     return uniformDist(rand);
 }
