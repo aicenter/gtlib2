@@ -1025,8 +1025,8 @@ vector<double> KriegspielState::checkGameOver() const {
                 isDraw = false;
         }
         if (isDraw) {
-            rewards[chess::WHITE] = 0.5;
-            rewards[chess::BLACK] = 0.5;
+            rewards[chess::WHITE] = 0;
+            rewards[chess::BLACK] = 0;
             return rewards;
         }
     }
@@ -1041,22 +1041,22 @@ vector<double> KriegspielState::checkGameOver() const {
 
     if (isCheck == this->playerOnTheMove) {
         if (!hasMoves[this->playerOnTheMove]) {
-            rewards[this->playerOnTheMove] = 0;
+            rewards[this->playerOnTheMove] = -1;
             rewards[chess::invertColor(this->playerOnTheMove)] = 1;
         } else if (this->moveHistory->size() == this->legalMaxDepth) {
-            rewards[chess::WHITE] = 0.5;
-            rewards[chess::BLACK] = 0.5;
+            rewards[chess::WHITE] = 0;
+            rewards[chess::BLACK] = 0;
         } else if (this->moveHistory->size() + this->attemptedMoveHistory->size()
             == domain_->getMaxStateDepth()) {
-            rewards[chess::WHITE] = 0.5;
-            rewards[chess::BLACK] = 0.5;
+            rewards[chess::WHITE] = 0;
+            rewards[chess::BLACK] = 0;
         }
     } else if (!hasMoves[this->playerOnTheMove]) {
-        rewards[chess::WHITE] = 0.5;
-        rewards[chess::BLACK] = 0.5;
+        rewards[chess::WHITE] = 0;
+        rewards[chess::BLACK] = 0;
     } else if (this->moveHistory->size() == this->legalMaxDepth) {
-        rewards[chess::WHITE] = 0.5;
-        rewards[chess::BLACK] = 0.5;
+        rewards[chess::WHITE] = 0;
+        rewards[chess::BLACK] = 0;
     }
 
     return rewards;

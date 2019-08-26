@@ -40,8 +40,9 @@ TEST(Kriegspiel, stability) {
         std::mt19937 gen = std::mt19937(i);
         RandomLeafOutcome r = pickRandomLeaf(e, gen);
         sum += r.utilities[0];
+        assert(r.utilities[0] + r.utilities[1] == 0);
     }
-    EXPECT_EQ(sum, 29);
+    EXPECT_EQ(sum, 13);
 }
 
 TEST(Kriegspiel, pinning) {
