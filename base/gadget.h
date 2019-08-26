@@ -135,10 +135,10 @@ class GadgetRootNode: public EFGNode,
     inline unsigned int efgDepth() const override { return 0; }
 
     inline vector<ActionObservationIds> getAOids(Player player) const override {
-        assert(false); // do not try to build ao out of gadget root
+        unreachable("do not try to build ao out of gadget root");
     }
     inline vector<ObservationId> getPubObsIds() const override {
-        assert(false); // do not try to build public state out of gadget
+        unreachable("do not try to build public state out of gadget");
     }
     inline const vector<ActionId> &getHistory() const override { return history_; }
     inline double getProbabilityOfActionSeq(Player player, const BehavioralStrategy &strat)
@@ -165,7 +165,7 @@ class GadgetAction: public Action {
     string toString() const override {
         if (id_ == 0) return "Follow";
         if (id_ == 1) return "Terminate";
-        assert(false);
+        unreachable("no such action");
     }
 };
 
@@ -202,14 +202,14 @@ class GadgetInnerNode: public EFGNode,
     }
 
     inline double chanceProbForAction(const ActionId &action) const override {
-        assert(false); // not a chance node!
+        unreachable("not a chance node!");
     }
 
     inline double chanceProbForAction(const shared_ptr<Action> &action) const override {
-        assert(false); // not a chance node!
+        unreachable("not a chance node!");
     }
     inline ProbDistribution chanceProbs() const override {
-        assert(false); // not a chance node!
+        unreachable("not a chance node!");
     }
     inline shared_ptr<const EFGNode> getParent() const override { return parent_; }
     inline unsigned int efgDepth() const override { return 1; }
@@ -217,7 +217,7 @@ class GadgetInnerNode: public EFGNode,
         return viewingPlAOIds_;
     }
     inline vector<ObservationId> getPubObsIds() const override {
-        assert(false); // do not try to build public state out of gadget
+        unreachable("do not try to build public state out of gadget");
     }
     inline const vector<ActionId> &getHistory() const override { return history_; }
     inline double getProbabilityOfActionSeq(Player player, const BehavioralStrategy &strat)
@@ -250,32 +250,32 @@ class GadgetTerminalNode: public EFGNode {
     inline unsigned long countAvailableActions() const override { return 0; }
 
     inline vector<shared_ptr<Action>> availableActions() const override {
-        assert(false); // terminal node!
+        unreachable("terminal node!");
     }
 
     inline shared_ptr<EFGNode> performAction(const shared_ptr<Action> &action) const override {
-        assert(false); // terminal node!
+        unreachable("terminal node!");
     }
 
     inline double chanceProbForAction(const ActionId &action) const override {
-        assert(false); // terminal node!
+        unreachable("terminal node!");
     }
 
     inline double chanceProbForAction(const shared_ptr<Action> &action) const override {
-        assert(false); // terminal node!
+        unreachable("terminal node!");
     }
 
     inline ProbDistribution chanceProbs() const override {
-        assert(false); // terminal node!
+        unreachable("terminal node!");
     }
     inline shared_ptr<const EFGNode> getParent() const override { return parent_; }
     inline unsigned int efgDepth() const override { return 2; }
 
     inline vector<ActionObservationIds> getAOids(Player player) const override {
-        assert(false); // terminal node!
+        unreachable("terminal node!");
     }
     inline vector<ObservationId> getPubObsIds() const override {
-        assert(false); // do not try to build public state out of gadget
+        unreachable("do not try to build public state out of gadget");
     }
     inline const vector<ActionId> &getHistory() const override { return history_; }
     inline double getProbabilityOfActionSeq(Player player, const BehavioralStrategy &strat)

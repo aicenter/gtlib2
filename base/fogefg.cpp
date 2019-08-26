@@ -70,7 +70,7 @@ shared_ptr<EFGNode> FOG2EFGNode::performAction(const shared_ptr<Action> &action)
         case PlayerNode:
             return performPlayerAction(action);
         case TerminalNode:
-            assert(false); // Cannot perform any actions in terminal node!
+            unreachable("Cannot perform any actions in terminal node!");
         default:
             unreachable("unrecognized option!");
     }
@@ -191,7 +191,7 @@ vector<shared_ptr<Action>> FOG2EFGNode::availableActions() const {
         case ChanceNode:
             return createChanceActions();
         case TerminalNode:
-            assert(false); // Not defined for terminal nodes!
+            unreachable("Not defined for terminal nodes!");
         default:
             unreachable("unrecognized option!");
     }
@@ -258,11 +258,11 @@ vector<ActionObservationIds> FOG2EFGNode::getAOids(Player player) const {
             break;
 
         case TerminalNode:
-            assert(false); // parent cannot be terminal!
+            unreachable("parent cannot be terminal!");
             break;
 
         default:
-            assert(false); // unrecognized option
+            unreachable("unrecognized option");
     }
 
     // Prevent agent getting some information by appending "no information" :-)
@@ -296,7 +296,7 @@ const shared_ptr<FOG2EFGNode> FOG2EFGNode::getChildAt(EdgeId index) const {
         case PlayerNode:
             return performPlayerAction(action);
         case TerminalNode:
-            assert(false); // Cannot perform any actions in terminal node!
+            unreachable("Cannot perform any actions in terminal node!");
         default:
             unreachable("unrecognized option!");
     }

@@ -65,7 +65,7 @@ int pickRandom(const EFGNode &node, std::mt19937 &generator) {
         case PlayerNode:
             return pickUniform(node.countAvailableActions(), generator);
         case TerminalNode:
-            assert(false); // No actions!
+            unreachable("No actions!");
         default:
             unreachable("unrecognized option!");
     }
@@ -92,9 +92,9 @@ RandomLeafOutcome pickRandomLeaf(const std::shared_ptr<EFGNode> &start, std::mt1
                 out.playerReachProbs[h->getPlayer()] *= 1.0 / actions.size();
                 break;
             case TerminalNode:
-                assert(false);
+                unreachable("terminal node!");
             default:
-                assert(false); // unrecognized option!
+                unreachable("unrecognized option!");
         }
 
         h = h->performAction(actions[ai]);
@@ -117,9 +117,9 @@ RandomLeafOutcome pickRandomLeaf(const std::shared_ptr<EFGNode> &start,
             out.playerReachProbs[start->getPlayer()] *= 1.0 / start->countAvailableActions();
             break;
         case TerminalNode:
-            assert(false);
+            unreachable("terminal node!");
         default:
-            assert(false); // unrecognized option!
+            unreachable("unrecognized option!");
     }
 
     return out;

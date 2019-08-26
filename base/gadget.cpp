@@ -37,9 +37,9 @@ double GadgetGame::computePubStateReach() {
                 pubStateReach += h[0] * h[1] * h[2];
             break;
         case MAX_MARGIN:
-            assert(false);
+            unreachable("not implemented");
         default:
-            assert(false);
+            unreachable("unrecognized option");
     }
     return pubStateReach;
 }
@@ -81,7 +81,7 @@ double GadgetGame::chanceProbForAction(const ActionId &action) const {
         case UNSAFE_RESOLVING:
             return reach[0] * reach[1] * reach[2] / pubStateReach_;
         case MAX_MARGIN: // todo:
-            assert(false);
+            unreachable("not implemented");
         default:
             unreachable("unrecognized option!");
     }
@@ -102,7 +102,7 @@ shared_ptr<EFGNode> GadgetRootNode::performAction(const shared_ptr<Action> &acti
         case UNSAFE_RESOLVING:
             return underlyingNode;
         case MAX_MARGIN:
-            assert(false); // todo:
+            unreachable("todo:");
         default:
             unreachable("unrecognized option!");
     }

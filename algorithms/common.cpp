@@ -115,7 +115,7 @@ vector<shared_ptr<EFGNode>> getAllNodesInInfoset(const shared_ptr<AOH> &infoset,
             case TerminalNode:
                 return;
             default:
-                assert(false); // unrecognized option!
+                unreachable("unrecognized option!");
         }
     };
 

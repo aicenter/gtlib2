@@ -73,9 +73,9 @@ pair<double, double> Targetor::updateWeighting(const shared_ptr<EFGNode> &h,
             break;
         }
         case TerminalNode:
-            assert(false); // no need to update weighting for terminal nodes!
+            unreachable("no need to update weighting for terminal nodes!");
         default:
-            assert(false); // unrecognized option!
+            unreachable("unrecognized option!");
     }
 
     for (const auto &action: actions) {
@@ -108,7 +108,7 @@ bool Targetor::isAllowedAction(const shared_ptr<EFGNode> &h, const shared_ptr<Ac
             return isAOCompatible(currentInfoset_->getAOids(),
                                   h->performAction(action)->getAOids(currentInfoset_->getPlayer()));
         case OOSSettings::PublicStateTargeting:
-            assert(false); // todo: finish public state targeting
+            unreachable("todo: finish public state targeting");
             return false;
         case OOSSettings::NoTargeting:
             return true;
@@ -450,9 +450,9 @@ void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
         case OOSSettings::NoBaseline: // nothing to do
             break;
         case OOSSettings::OracleBaseline:
-            assert(false); // todo:
+            unreachable("todo:");
         default:
-            assert(false); // unrecognized option!
+            unreachable("unrecognized option!");
     }
 
     baseline.nominator += a;
@@ -473,7 +473,7 @@ void OOSAlgorithm::updateInfosetAcc(const shared_ptr<EFGNode> &h, CFRData::Infos
             w = (stats_.terminalsVisits + 1) * log10(stats_.terminalsVisits + 1);
             break;
         default:
-            assert(false); // unrecognized option!
+            unreachable("unrecognized option!");
     }
 
     switch (cfg_.avgStrategyComputation) {
@@ -485,9 +485,9 @@ void OOSAlgorithm::updateInfosetAcc(const shared_ptr<EFGNode> &h, CFRData::Infos
             }
             break;
         case OOSSettings::LazyWeightedAveraging:
-            assert(false);  // todo: implement
+            unreachable("todo: implement");
         default:
-            assert(false);  // unrecognized option!
+            unreachable("unrecognized option!");
     }
 }
 
@@ -516,7 +516,7 @@ void OOSAlgorithm::updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exp
             }
             break;
         default:
-            assert(false); // unrecognized option!
+            unreachable("unrecognized option!");
     }
 }
 

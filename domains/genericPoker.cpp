@@ -295,7 +295,7 @@ GenericPokerState::performActions(const vector<shared_ptr<Action>> &actions) con
             break;
 
         default:
-            assert(false); // unrecognized option!
+            unreachable("unrecognized option!");
     }
 
     double newPot = pot_ + currentBet;

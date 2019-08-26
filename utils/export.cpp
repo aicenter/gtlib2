@@ -230,7 +230,7 @@ void exportGambit(const shared_ptr<EFGNode>& node, std::ostream &fs) {
             }
 
             default:
-                assert(false); // unrecognized option!
+                unreachable("unrecognized option!");
         }
     };
 

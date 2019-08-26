@@ -109,9 +109,9 @@ array<double, 3> calcReachProbs(const shared_ptr<EFGNode> &h, StrategyCache *cac
                 break;
             }
             case TerminalNode:
-                assert(false); // cannot encounter terminal node while traversing up!
+                unreachable("cannot encounter terminal node while traversing up!");
             default:
-                assert(false); // unrecognized option!
+                unreachable("unrecognized option!");
         }
 
         current = parent;

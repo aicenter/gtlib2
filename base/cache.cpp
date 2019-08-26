@@ -67,7 +67,7 @@ EFGChildNodes &EFGCache::getCachedNode(const shared_ptr<EFGNode> &node) {
             return nodesChildren_.at(node);
         }
 
-        assert(false); // not found even in root nodes :/
+        unreachable("not found even in root nodes :/");
     }
 
     return nodesChildren_.at(node);

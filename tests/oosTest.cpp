@@ -67,9 +67,9 @@ FixedSamplingOOS::selectLeaf(const shared_ptr<EFGNode> &start,
                 out.playerReachProbs[h->getPlayer()] *= 1.0 / actions.size();
                 break;
             case TerminalNode:
-                assert(false);
+                unreachable("terminal node!");
             default:
-                assert(false); // unrecognized option!
+                unreachable("unrecognized option!");
         }
 
         h = h->performAction(actions[ai]);
