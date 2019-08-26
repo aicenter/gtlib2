@@ -49,8 +49,6 @@ private:
     vector<double> actionMeanProbability;
         /** Cumulative regret estimate. */
     vector<double> regretEstimate;
-        /** Current time step. */
-    int timeStep=1;
 
     void updateProb();
 };

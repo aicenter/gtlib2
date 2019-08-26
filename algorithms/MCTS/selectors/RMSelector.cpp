@@ -48,7 +48,6 @@ void RMSelector::update(ActionId ai, double value) {
     for (int i=0; i < regretEstimate.size(); i++){
         regretEstimate[i] -= v;
     }
-    timeStep++;
 }
 
 ProbDistribution RMSelector::getActionsProbDistribution() {
