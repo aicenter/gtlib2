@@ -27,26 +27,25 @@
 namespace GTLib2::algorithms {
 class Exp3Selector : public Selector {
 public:
-    Exp3Selector(const vector<shared_ptr<Action>>& actions, Exp3SelectorFactory * fact) : fact_(fact), gamma_(fact->gamma) {
+    Exp3Selector(const vector<shared_ptr<Action>>& actions, const Exp3SelectorFactory * fact) : fact_(fact) {
         actionProbability_ = vector<double>(actions.size());
         actionMeanProbability_ = vector<double>(actions.size());
         rewards_ = vector<double>(actions.size());}
-    Exp3Selector(int actionsNumber, Exp3SelectorFactory * fact) : fact_(fact), gamma_(fact->gamma) {
+    Exp3Selector(int actionsNumber, const Exp3SelectorFactory * fact) : fact_(fact) {
         actionProbability_ = vector<double>(actionsNumber);
         actionMeanProbability_ = vector<double>(actionsNumber);
         rewards_ = vector<double>(actionsNumber);}
-    int select() override;
-    void update(int ai, double value) override;
+    ActionId select() override;
+    void update(ActionId ai, double value) override;
     ProbDistribution getActionsProbDistribution() override ;
 private:
-    Exp3SelectorFactory * fact_;
+    const Exp3SelectorFactory * fact_;
     /** Current probability of playing this action. */
-    vector<double> actionProbability_;
+    ProbDistribution actionProbability_;
     /** Mean strategy. */
     vector<double> actionMeanProbability_;
     /** Cumulative reward. */
     vector<double> rewards_;
-    const double gamma_;
 
     void updateProb();
 };

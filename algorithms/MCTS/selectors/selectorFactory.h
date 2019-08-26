@@ -25,11 +25,11 @@
 namespace GTLib2::algorithms {
 class SelectorFactory {
 public:
-    virtual unique_ptr<Selector> createSelector(vector<shared_ptr<Action>> actions) = 0;
+    virtual unique_ptr<Selector> createSelector(vector<shared_ptr<Action>> actions) const = 0;
 
-    virtual unique_ptr<Selector> createSelector(int actionsNumber) = 0;
+    virtual unique_ptr<Selector> createSelector(int actionsNumber) const = 0;
 
-    virtual std::mt19937 getRandom() = 0;
+    virtual std::mt19937 getRandom() const = 0;
 };
 }
 #endif //GTLIB2_SELECTORFACTORY_H

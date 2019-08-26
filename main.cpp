@@ -29,10 +29,6 @@
 #include "experiments/cfr_regrets.h"
 #include "experiments/play_match.h"
 
-#include <iostream>
-#include <algorithms/MCTS/ISMCTS.h>
-#include <algorithms/MCTS/CPW_ISMCTS.h>
-#include <domains/goofSpiel.h>
 int main(int argc, const char **argv) {
     using namespace GTLib2;
     using namespace GTLib2::CLI;

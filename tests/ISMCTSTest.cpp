@@ -42,10 +42,10 @@ namespace GTLib2::algorithms {
                     createInitializer<CPW_ISMCTS>(settings0),
                     createInitializer<CPW_ISMCTS>(settings1)
             };
-            auto actualOutcome = playMatch(domain, algs, {50, 500}, {5, 50}, BudgetIterations, seed);
+            auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
             rewards[seed] = actualOutcome[0];
         }
-        const double expsumm = 18; // useBelief is better
+        const double expsumm = 17; // useBelief is better
         double summ = 0;
         for (auto r : rewards)summ += r;
         EXPECT_EQ(summ, expsumm);
@@ -70,7 +70,7 @@ namespace GTLib2::algorithms {
             auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
             rewards[seed] = actualOutcome[0];
         }
-        const double expsumm = -208; //very bad
+        const double expsumm = -190; //very bad
         double summ = 0;
         for (auto r : rewards)summ += r;
         EXPECT_EQ(summ, expsumm);
@@ -95,7 +95,7 @@ namespace GTLib2::algorithms {
             auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
             rewards[seed] = actualOutcome[0];
         }
-        const double expsumm = -198; // very bad
+        const double expsumm = -199; // very bad
         double summ = 0;
         for (auto r : rewards) summ += r;
         EXPECT_EQ(summ, expsumm);
@@ -120,7 +120,7 @@ namespace GTLib2::algorithms {
             auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
             rewards[seed] = actualOutcome[0];
         }
-        const double expsumm = -198; // same => storeExploration makes no diff
+        const double expsumm = -199; // same => storeExploration makes no diff
         double summ = 0;
         for (auto r : rewards)summ += r;
         EXPECT_EQ(summ, expsumm);
@@ -145,7 +145,7 @@ namespace GTLib2::algorithms {
             auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
             rewards[seed] = actualOutcome[0];
         }
-        const double expsumm = -203; // very bad
+        const double expsumm = -178; // very bad
         double summ = 0;
         for (auto r : rewards)summ += r;
         EXPECT_EQ(summ, expsumm);
@@ -196,7 +196,7 @@ namespace GTLib2::algorithms {
         const double expsumm = 508; // CPW is better
         double summ = 0;
         for (auto r : rewards)summ += r;
-        EXPECT_EQ(summ, expsumm);
+         EXPECT_EQ(summ, expsumm);
     }
 }
 

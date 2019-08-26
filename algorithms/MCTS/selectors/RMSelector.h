@@ -29,29 +29,28 @@
 namespace GTLib2::algorithms {
 class RMSelector : public Selector  {
 public:
-    RMSelector(const vector<shared_ptr<Action>>& actions, RMSelectorFactory * fact) : fact_(fact), gamma(fact->gamma) {
+    RMSelector(const vector<shared_ptr<Action>>& actions, const RMSelectorFactory * fact) : fact_(fact) {
         actionProbability = vector<double>(actions.size());
         actionMeanProbability = vector<double>(actions.size());
         regretEstimate = vector<double>(actions.size());}
-    RMSelector(int actionsNumber, RMSelectorFactory * fact) : fact_(fact), gamma(fact->gamma) {
+    RMSelector(int actionsNumber, const RMSelectorFactory * fact) : fact_(fact) {
         actionProbability = vector<double>(actionsNumber);
         actionMeanProbability = vector<double>(actionsNumber);
         regretEstimate = vector<double>(actionsNumber);}
 
-    int select() override;
-    void update(int ai, double value) override;
+    ActionId select() override;
+    void update(ActionId ai, double value) override;
     ProbDistribution getActionsProbDistribution() override ;
 
 private:
-    RMSelectorFactory * fact_;
+    const RMSelectorFactory * fact_;
     /** Current probability of playing this action. */
-    vector<double> actionProbability;
+    ProbDistribution actionProbability;
     vector<double> actionMeanProbability;
         /** Cumulative regret estimate. */
     vector<double> regretEstimate;
         /** Current time step. */
     int timeStep=1;
-    const double gamma;
 
     void updateProb();
 };

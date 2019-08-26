@@ -24,20 +24,19 @@
 #include "RMSelectorFactory.h"
 
 namespace GTLib2::algorithms {
-    unique_ptr<Selector> RMSelectorFactory::createSelector(int actionsNumber) {
-        generator_ = std::mt19937();
+    unique_ptr<Selector> RMSelectorFactory::createSelector(int actionsNumber) const {
         return make_unique<RMSelector>(actionsNumber, this);
     }
 
-    unique_ptr<Selector> RMSelectorFactory::createSelector(vector<shared_ptr<Action>> actions) {
+    unique_ptr<Selector> RMSelectorFactory::createSelector(vector<shared_ptr<Action>> actions) const {
         return make_unique<RMSelector>(actions, this);
     }
 
-    std::mt19937 RMSelectorFactory::getRandom() {
+    std::mt19937 RMSelectorFactory::getRandom() const {
         return generator_;
     }
 
-    double RMSelectorFactory::normalizeValue(double value) {
+    double RMSelectorFactory::normalizeValue(double value) const {
         assert (minUtility_ <= value + 1e-5 && value <= maxUtility_ + 1e-5);
         return (value - minUtility_) / (maxUtility_ - minUtility_);
     }

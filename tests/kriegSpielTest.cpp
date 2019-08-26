@@ -19,6 +19,7 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <base/random.h>
 #include "base/base.h"
 #include "domains/kriegspiel.h"
 
@@ -29,6 +30,19 @@ namespace GTLib2::domains {
 
 using namespace chess;
 
+TEST(Kriegspiel, stability) {
+    domains::KriegspielDomain d(1000, 1000, BOARD::STANDARD);
+    shared_ptr<State> s = d.getRootStatesDistribution()[0].outcome.state;
+    auto ks = dynamic_cast<domains::KriegspielState *>(s.get());
+    auto e = createRootEFGNode(d);
+    int sum = 0;
+    for (int i = 0; i < 100; i++) {
+        std::mt19937 gen = std::mt19937(i);
+        RandomLeafOutcome r = pickRandomLeaf(e, gen);
+        sum += r.utilities[0];
+    }
+    EXPECT_EQ(sum, 29);
+}
 
 TEST(Kriegspiel, pinning) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);

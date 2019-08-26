@@ -49,11 +49,11 @@ public:
         minUtility_(minUtility), maxUtility_(maxUtility), gamma(gamma), useExp3L(useExp3L)
             {generator_ = std::mt19937(0);}
 
-    unique_ptr<Selector> createSelector(int actionsNumber) override;
-    unique_ptr<Selector> createSelector(vector<shared_ptr<Action>> actions) override;
-    std::mt19937 getRandom() override;
+    unique_ptr<Selector> createSelector(int actionsNumber) const override;
+    unique_ptr<Selector> createSelector(vector<shared_ptr<Action>> actions) const override;
+    std::mt19937 getRandom() const override;
 
-    double normalizeValue(double value);
+    double normalizeValue(double value) const;
 private:
     std::mt19937 generator_;
     const double minUtility_;

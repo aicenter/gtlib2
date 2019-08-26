@@ -28,26 +28,16 @@
 namespace GTLib2::algorithms {
 struct ISMCTSSettings{
     /**
-     * fact_ describes which of selectors will be used to choose action at current infoset. Following selectors are implemented:
-     * - UCTSelector (Upper-bound Confidence for Trees)
-     * - RMSelector (Regret Matching)
-     * - Exp3Selector
-     * - Exp3LSelector
+     * fact_ describes which of selectors will be used to choose action at current infoset.
      */
     shared_ptr<SelectorFactory> fact_;
 
     /**
      * IMPORTANT NOTES
      *
-     * 1) If useBelief = true and budget is counted in iterations,
-     *      1 iterate of budget becomes up to 101 iterations of algorithm, according to probability of selected node.
+     * useBelief DOES NOT AFFECT usual ISMCTS algorithm, only CPW_ISMCTS, as it requires IS -> nodes map.
      *
-     * 2) useBelief DOES NOT AFFECT usual ISMCTS algorithm, only CPW_ISMCTS, as it requires IS -> nodes map.
-     *
-     * When useBelief = true, if current infoset contains multiple number of nodes,
-     * after the choosing randomly a node to iterate, algorithm makes up to 101 iterations,
-     * according to the probability of the selected node (n = 1 + prob*100).
-     * If there is only one node in the infoset, it will be iterated 101 times.
+     * When useBelief = true, a node to be iterated is selected according to the probability distribution.
      *
      * Probability of the node counted as a multiplication of all probabilities,
      * that lead from the previous infoset to the current node.
@@ -60,21 +50,23 @@ struct ISMCTSSettings{
 };
 /**
  * Information Set Monte Carlo Tree Search algorithm (ISMCTS) is based on the MCTS algorithm,
- * with a changes that allow it to work with imperfect information games.
+ * with a change that allows it to work with imperfect information games.
  *
  * Algorithm is described in "Information Set Monte Carlo Tree Search" paper (Cowling, Powley and Whitehouse, 2012)
  * and improved in "Monte Carlo Tree Search in Imperfect-Information Games" doctoral thesis by Viliam Lisý.
  *
  * Just like the MCTS, algorithm has following steps: selection, expansion, simulation and backpropagation.
  * Unlike the MCTS, the ISMCTS tree consists of the information sets,
- * which are the unions of the nodes with the same action-observation histories.
+ * which are the sets of the nodes with the same action-observation histories.
  *
  * In this algorithm, in every iteration the tree search starts from the root of the tree,
- * no matter of the current state of the games. It allows the algorithm not to store the map IS -> nodes.
+ * no matter of the current state of the game. It allows the algorithm not to store the map IS -> nodes.
  * The downside is that this algorithm is more likely to reach undiscovered infoset.
+ * When this happens, it will "give up", and play next moves uniformly randomly.
  *
  * The more advanced version - CPW_ISMCTS - iterates the tree down from the current infoset.
- * Using belief makes this algorithm even more consistent against non-random strategies.
+ * Using belief (reach probabilities over histories in current infoset) makes this algorithm
+ * even more consistent against non-random strategies.
  */
 class ISMCTS : public GamePlayingAlgorithm {
 public:

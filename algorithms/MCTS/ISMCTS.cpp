@@ -39,7 +39,7 @@ namespace GTLib2::algorithms {
             case PlayerNode:
                 return handlePlayerNode(h);
             default:
-                assert(false);
+                unreachable("unrecognized option!");
         }
     }
 
@@ -48,7 +48,7 @@ namespace GTLib2::algorithms {
     }
 
     double ISMCTS::handleChanceNode(const shared_ptr<EFGNode> &h) {
-        const int selectedIndex = pickRandom((*h), generator_);
+        const int selectedIndex = pickRandom(*h, generator_);
         const shared_ptr<Action> selectedAction = h->availableActions()[selectedIndex];
         const auto child = h->performAction(selectedAction);
         return iteration(child);
@@ -73,7 +73,6 @@ namespace GTLib2::algorithms {
             const auto child = h->performAction(selectedAction);
             simulationResult = iteration(child);
         }
-        //simulationResult = simulationResult == 0 ? 0 : (simulationResult > 0 ? 1 : -1);
         const int sign = h->getPlayer() == playingPlayer_ ? 1 : -1;
         selector->update(actionIndex, sign * simulationResult);
         return simulationResult;

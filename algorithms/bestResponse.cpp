@@ -49,7 +49,7 @@ const StrategyValue &_bestResponse(const BehavioralStrategy &opoStrat,
         assert(nodeValue <= domain.getMaxUtility());
         assert(nodeValue >= domain.getMinUtility());
         auto[it, result] = cache.emplace(node, StrategyValue(BehavioralStrategy(), nodeValue));
-//        cout << node->getHistory() << " ::  " << node->getUtilities() << " :: " << it->second.value << "\totalVisits";
+//        cout << node->getHistory() << " ::  " << node->getUtilities() << " :: " << it->second.value << "\n";
         return it->second;
     }
 

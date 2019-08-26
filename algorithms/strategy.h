@@ -39,6 +39,19 @@ inline double getActionProb(const ActionProbDistribution &dist, const shared_ptr
     return dist.at(action);
 }
 
+
+inline ProbDistribution normalizeProbability(vector<double> probabilities) {
+    ProbDistribution normProbs = vector<double>(probabilities.size());
+    double sum = 0;
+    for (int i = 0; i < probabilities.size(); i++) {
+        sum += probabilities[i];
+    }
+    for (int i = 0; i < probabilities.size(); i++) {
+        normProbs[i] = probabilities[i] / sum;
+    }
+    return normProbs;
+}
+
 struct StrategyValue {
     BehavioralStrategy strategy;
     double value; // at root node for player 0

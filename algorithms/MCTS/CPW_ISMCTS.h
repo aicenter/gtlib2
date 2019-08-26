@@ -31,7 +31,8 @@
  * CPW_ISMCTS (Cowling, Powley and Whitehouse Information Set Monte Carlo Tree Search) algorithm.
  * Unlike the ISMCTS, iterates the tree down from the current infoset,
  * but requires IS -> nodes map to be stored.
- * Using belief makes this algorithm even more consistent against non-random strategies.
+ * Using belief (reach probabilities over histories in current infoset) makes this algorithm
+ * even more consistent against non-random strategies.
  */
 namespace GTLib2::algorithms {
 class CPW_ISMCTS : public ISMCTS {
@@ -44,15 +45,14 @@ public:
 private:
     unordered_map<shared_ptr<AOH>, vector<shared_ptr<EFGNode>>> nodesMap_;
     shared_ptr<AOH> currentInfoset_;
-    bool giveUp_ = false;
-    vector<double> belief_;
+    ProbDistribution belief_;
 
 
     double handlePlayerNode(const shared_ptr<EFGNode> &h) override;
 
     void setCurrentInfoset(const shared_ptr <AOH> &newInfoset);
 
-    void fillBelief(const shared_ptr <EFGNode> &currentNode, const shared_ptr <AOH> &newInfoset, double prob, vector<shared_ptr<EFGNode>> newNodes);
+    void fillBelief(const shared_ptr <EFGNode> &currentNode, const shared_ptr <AOH> &newInfoset, double reachProbability, const vector<shared_ptr<EFGNode>> &newNodes);
 };
 }
 

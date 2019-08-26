@@ -27,29 +27,28 @@
 namespace GTLib2::algorithms {
 class Exp3LSelector : public Selector {
 public:
-    Exp3LSelector(const vector<shared_ptr<Action>>& actions, Exp3SelectorFactory * fact) : fact_(fact), gamma_(fact->gamma), actionsNumber_(actions.size()), lnActionsNumber_(log(actions.size())) {
+    Exp3LSelector(const vector<shared_ptr<Action>>& actions, const Exp3SelectorFactory * fact) : fact_(fact), actionsNumber_(actions.size()), lnActionsNumber_(log(actions.size())) {
         actionProbability_ = vector<double>(actions.size());
         std::fill(actionProbability_.begin(), actionProbability_.end(), 1.0 / actionsNumber_);
         actionMeanProbability_ = vector<double>(actions.size());
         rewards_ = vector<double>(actions.size());}
-    Exp3LSelector(int actionsNumber, Exp3SelectorFactory * fact) : fact_(fact), gamma_(fact->gamma), actionsNumber_(actionsNumber), lnActionsNumber_(log(actionsNumber)) {
+    Exp3LSelector(int actionsNumber, const Exp3SelectorFactory * fact) : fact_(fact), actionsNumber_(actionsNumber), lnActionsNumber_(log(actionsNumber)) {
         actionProbability_ = vector<double>(actionsNumber);
         std::fill(actionProbability_.begin(), actionProbability_.end(), 1.0 / actionsNumber_);
         actionMeanProbability_ = vector<double>(actionsNumber);
         rewards_ = vector<double>(actionsNumber);}
-    int select() override;
-    void update(int ai, double value) override;
+    ActionId select() override;
+    void update(ActionId ai, double value) override;
     ProbDistribution getActionsProbDistribution() override ;
 
 private:
-    Exp3SelectorFactory * fact_;
+    const Exp3SelectorFactory * fact_;
     /** Current probability of playing this action. */
-    vector<double> actionProbability_;
+    ProbDistribution actionProbability_;
     /** Mean strategy. */
     vector<double> actionMeanProbability_;
     /** Cumulative reward. */
     vector<double> rewards_;
-    const double gamma_;
     /** Current iteration */
     int currentIteration_ = 0;
     const int actionsNumber_;

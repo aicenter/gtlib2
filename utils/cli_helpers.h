@@ -145,7 +145,7 @@ unique_ptr<Domain> constructDomain(const string &description) {
         {"STRAT3x3",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{3,3,{{1,1,1,1}},{'1', '2', '3'}});}},
         {"STRAT6x6",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{6,6,{{2,2,2,2}}, {'B','4','3','3','2','2', '2','1','1','1','1','F'}});}},
         {"STRAT10x10", [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{10,10, {{3,5,2,2}, {7,5,2,2}}}); }},
-        {"KS",         [ ](vector<string> p) { return make_unique<KriegspielDomain>(100, 100, chess::BOARD::STANDARD); }},
+        {"KS",         [ ](vector<string> p) { return make_unique<KriegspielDomain>(1000, 1000, chess::BOARD::STANDARD); }},
     };
     // @formatter:on
 

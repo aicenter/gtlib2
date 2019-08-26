@@ -108,7 +108,7 @@ bool AbstractPiece::hasMoved() const {
         return this->moved;
     } else {
         if (this->getColor() == WHITE) {
-            return this->position.y != 1;
+            return this->position.y != 2;
         } else {
             return this->position.y != this->board->getYSize() - 1;
         }
@@ -1076,7 +1076,7 @@ OutcomeDistribution KriegspielState::performActions(
     shared_ptr<KriegspielState> s;
     int nextMove = this->playerOnTheMove;
     Square enPassSquare(-1, -1);
-    KriegspielAction *a = playerOnTheMove == 0 ? a1 : a2;
+    KriegspielAction *a = a1->getMove().first != nullptr ? a1 : a2;
     shared_ptr<vector<shared_ptr<AbstractPiece>>> pieces = this->copyPieces();
     shared_ptr<vector<shared_ptr<KriegspielAction>>> history = this->copyMoveHistory();
     shared_ptr<vector<shared_ptr<KriegspielAction>>> attemptedmoves = this->copyAttemptedMoves();

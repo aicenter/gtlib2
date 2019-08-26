@@ -30,17 +30,17 @@
 namespace GTLib2::algorithms {
     class UCTSelector : public Selector {
 public:
-    UCTSelector(const vector<shared_ptr<Action>>& actions, UCTSelectorFactory * fact) : fact_(fact) {
+    UCTSelector(const vector<shared_ptr<Action>>& actions, const UCTSelectorFactory * fact) : fact_(fact) {
         values_ = vector<double>(actions.size()); visits_ = vector<int>(actions.size());}
-    UCTSelector(int actionsNumber, UCTSelectorFactory * fact) : fact_(fact) {
+    UCTSelector(int actionsNumber, const UCTSelectorFactory * fact) : fact_(fact) {
         values_ = vector<double>(actionsNumber); visits_ = vector<int>(actionsNumber);}
 
-    int select() override;
-    void update(int ai, double value) override;
+        ActionId select() override;
+    void update(ActionId ai, double value) override;
     ProbDistribution getActionsProbDistribution() override ;
 private:
-    UCTSelectorFactory * fact_;
-    vector<double > values_;
+    const UCTSelectorFactory * fact_;
+    vector<double> values_;
     vector<int> visits_;
     int totalVisits = 0;
 

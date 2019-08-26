@@ -20,45 +20,44 @@
 */
 
 #include <base/random.h>
+#include <algorithms/strategy.h>
 #include "Exp3LSelector.h"
 
 namespace GTLib2::algorithms {
 
-    void Exp3LSelector::updateProb() {
-        for (int i=0; i < actionsNumber_; i++) {
-            double denom = 1;
-            for (int j=0 ; j < actionsNumber_; j++) {
-                if (i != j) denom += exp(-sqrt(lnActionsNumber_ / (currentIteration_*actionsNumber_)) * (rewards_[j] - rewards_[i]));
-            }
-            const double cp = (1 / denom);
-            actionProbability_[i] = cp;
-            actionMeanProbability_[i]+=cp;
+void Exp3LSelector::updateProb() {
+    for (int i=0; i < actionsNumber_; i++) {
+        double denom = 1;
+        for (int j=0 ; j < actionsNumber_; j++) {
+            if (i != j) denom += exp(-sqrt(lnActionsNumber_ / (currentIteration_*actionsNumber_)) * (rewards_[j] - rewards_[i]));
+        }
+        const double cp = (1 / denom);
+        actionProbability_[i] = cp;
+        actionMeanProbability_[i]+=cp;
+    }
+}
+
+ActionId Exp3LSelector::select() {
+    if (currentIteration_>0) updateProb();
+
+    double rand = pickRandomDouble(fact_->getRandom());
+
+    for (int i=0; i<actionsNumber_; i++) {
+        if (rand > actionProbability_[i]) {
+            rand -= actionProbability_[i];
+        } else {
+            return i;
         }
     }
+    unreachable("no action selected!");
+}
 
-    int Exp3LSelector::select() {
-        if (currentIteration_>0) updateProb();
+void Exp3LSelector::update(ActionId ai, double value) {
+    rewards_[ai] += (1 - fact_->normalizeValue(value)) / actionProbability_[ai];
+    currentIteration_++;
+}
 
-        double rand = pickRandomDouble(fact_->getRandom());
-
-        for (int i=0; i<actionsNumber_; i++) {
-            if (rand > actionProbability_[i]) {
-                rand -= actionProbability_[i];
-            } else {
-                return i;
-            }
-        }
-
-        assert (false);
-        return -1;
-    }
-
-    void Exp3LSelector::update(int ai, double value) {
-        rewards_[ai] += (1 - fact_->normalizeValue(value)) / actionProbability_[ai];
-        currentIteration_++;
-    }
-
-    ProbDistribution Exp3LSelector::getActionsProbDistribution() {
-        return actionProbability_;
-    }
+ProbDistribution Exp3LSelector::getActionsProbDistribution() {
+    return normalizeProbability(actionMeanProbability_);
+}
 }
