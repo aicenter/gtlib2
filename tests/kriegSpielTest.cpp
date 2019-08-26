@@ -32,17 +32,15 @@ using namespace chess;
 
 TEST(Kriegspiel, stability) {
     domains::KriegspielDomain d(1000, 1000, BOARD::STANDARD);
-    shared_ptr<State> s = d.getRootStatesDistribution()[0].outcome.state;
-    auto ks = dynamic_cast<domains::KriegspielState *>(s.get());
-    auto e = createRootEFGNode(d);
-    int sum = 0;
-    for (int i = 0; i < 100; i++) {
+    auto rootNode = createRootEFGNode(d);
+    auto expectedOutcomes = array<double, 10>{0, 0, 1, 0, 0, 1, 0, 1, 0, 0};
+
+    for (int i = 0; i < 10; i++) {
         std::mt19937 gen = std::mt19937(i);
-        RandomLeafOutcome r = pickRandomLeaf(e, gen);
-        sum += r.utilities[0];
-        assert(r.utilities[0] + r.utilities[1] == 0);
+        RandomLeafOutcome r = pickRandomLeaf(rootNode, gen);
+        EXPECT_EQ(r.utilities[0] + r.utilities[1], 0);
+        EXPECT_EQ(r.utilities[0], expectedOutcomes[i]);
     }
-    EXPECT_EQ(sum, 13);
 }
 
 TEST(Kriegspiel, pinning) {
@@ -101,8 +99,8 @@ TEST(Kriegspiel, enPassant) {
     Square sq(5, 3);
     auto newBlackPawn = newBoard->getPiecesOfColorAndKind(1, PAWN)[0];
     EXPECT_NE(std::find(newBlackPawn->getAllValidMoves()->begin(),
-                          newBlackPawn->getAllValidMoves()->end(),
-                          sq), newBlackPawn->getAllValidMoves()->end());
+                        newBlackPawn->getAllValidMoves()->end(),
+                        sq), newBlackPawn->getAllValidMoves()->end());
 
     //make the en passant cut and check figure has been cut
     v.clear();
@@ -472,7 +470,7 @@ TEST(Kriegspiel, gameOverWin) {
 
     Outcome newState = ks->performActions(v)[0].outcome;
     EXPECT_EQ(newState.rewards[0], 1);
-    EXPECT_EQ(newState.rewards[1], 0);
+    EXPECT_EQ(newState.rewards[1], -1);
 }
 
 TEST(Kriegspiel, gameOverDraw) {
@@ -506,8 +504,8 @@ TEST(Kriegspiel, gameOverDraw) {
 
     Outcome newState = ks->performActions(v)[0].outcome;
     //after Rh8 there should be only 3 pieces left - the black rook is cut
-    EXPECT_EQ(newState.rewards[0], 0.5);
-    EXPECT_EQ(newState.rewards[1], 0.5);
+    EXPECT_EQ(newState.rewards[0], 0);
+    EXPECT_EQ(newState.rewards[1], 0);
 }
 
 TEST(Kriegspiel, PAWNPromotion) {
@@ -686,7 +684,7 @@ TEST(Kriegspiel, randomGameOver) {
 
     Outcome newState = ks->performActions(v)[0].outcome;
 
-    EXPECT_EQ(newState.rewards[0], 0);
+    EXPECT_EQ(newState.rewards[0], -1);
     EXPECT_EQ(newState.rewards[1], 1);
 }
 
@@ -726,8 +724,8 @@ TEST(Kriegspiel, piercingProtection) {
 
     Outcome newState = ks->performActions(v)[0].outcome;
 
-    EXPECT_EQ(newState.rewards[0], 0.5);
-    EXPECT_EQ(newState.rewards[1], 0.5);
+    EXPECT_EQ(newState.rewards[0], 0);
+    EXPECT_EQ(newState.rewards[1], 0);
 }
 
 TEST(Kriegspiel, gameOverTest) {
@@ -774,7 +772,7 @@ TEST(Kriegspiel, gameOverTest) {
     Outcome lastsState = lastBoard->performActions(v)[0].outcome;
 
     EXPECT_EQ(lastsState.rewards[0], 1);
-    EXPECT_EQ(lastsState.rewards[1], 0);
+    EXPECT_EQ(lastsState.rewards[1], -1);
 }
 
 }
