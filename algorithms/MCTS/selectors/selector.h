@@ -26,7 +26,7 @@
 namespace GTLib2::algorithms {
 
 class Selector {
-public:
+ public:
 
     virtual ~Selector() = default;
     virtual ActionId select() = 0;

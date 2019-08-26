@@ -25,24 +25,28 @@
 #include "Exp3SelectorFactory.h"
 
 namespace GTLib2::algorithms {
-class Exp3LSelector : public Selector {
-public:
-    Exp3LSelector(const vector<shared_ptr<Action>>& actions, const Exp3SelectorFactory * fact) : fact_(fact), actionsNumber_(actions.size()), lnActionsNumber_(log(actions.size())) {
+class Exp3LSelector: public Selector {
+ public:
+    Exp3LSelector(const vector<shared_ptr<Action>> &actions, const Exp3SelectorFactory *fact)
+        : fact_(fact), actionsNumber_(actions.size()), lnActionsNumber_(log(actions.size())) {
         actionProbability_ = vector<double>(actions.size());
         std::fill(actionProbability_.begin(), actionProbability_.end(), 1.0 / actionsNumber_);
         actionMeanProbability_ = vector<double>(actions.size());
-        rewards_ = vector<double>(actions.size());}
-    Exp3LSelector(int actionsNumber, const Exp3SelectorFactory * fact) : fact_(fact), actionsNumber_(actionsNumber), lnActionsNumber_(log(actionsNumber)) {
+        rewards_ = vector<double>(actions.size());
+    }
+    Exp3LSelector(int actionsNumber, const Exp3SelectorFactory *fact)
+        : fact_(fact), actionsNumber_(actionsNumber), lnActionsNumber_(log(actionsNumber)) {
         actionProbability_ = vector<double>(actionsNumber);
         std::fill(actionProbability_.begin(), actionProbability_.end(), 1.0 / actionsNumber_);
         actionMeanProbability_ = vector<double>(actionsNumber);
-        rewards_ = vector<double>(actionsNumber);}
+        rewards_ = vector<double>(actionsNumber);
+    }
     ActionId select() override;
     void update(ActionId ai, double value) override;
-    ProbDistribution getActionsProbDistribution() override ;
+    ProbDistribution getActionsProbDistribution() override;
 
-private:
-    const Exp3SelectorFactory * fact_;
+ private:
+    const Exp3SelectorFactory *fact_;
     /** Current probability of playing this action. */
     ProbDistribution actionProbability_;
     /** Mean strategy. */

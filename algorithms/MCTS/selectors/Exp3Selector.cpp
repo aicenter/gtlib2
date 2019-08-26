@@ -27,14 +27,14 @@ namespace GTLib2::algorithms {
 
 void Exp3Selector::updateProb() {
     const int K = rewards_.size();
-    for (int i=0; i < K; i++) {
+    for (int i = 0; i < K; i++) {
         double denom = 1;
-        for (int j=0 ; j < K; j++) {
+        for (int j = 0; j < K; j++) {
             if (i != j) denom += exp((fact_->gamma / K) * (rewards_[j] - rewards_[i]));
         }
         const double cp = (1 / denom);
         actionProbability_[i] = (1 - fact_->gamma) * cp + fact_->gamma / K;
-        if (fact_->storeExploration) actionMeanProbability_[i]+=actionProbability_[i];
+        if (fact_->storeExploration) actionMeanProbability_[i] += actionProbability_[i];
         else actionMeanProbability_[i] += cp;
     }
 }
@@ -42,7 +42,7 @@ void Exp3Selector::updateProb() {
 ActionId Exp3Selector::select() {
     updateProb();
     double rand = pickRandomDouble(fact_->getRandom());
-    for (int i=0; i<actionProbability_.size(); i++) {
+    for (int i = 0; i < actionProbability_.size(); i++) {
         if (rand > actionProbability_[i]) {
             rand -= actionProbability_[i];
         } else {

@@ -28,9 +28,10 @@ namespace GTLib2::algorithms {
 
 ActionId RMSelector::select() {
     updateProb();
+    const auto numActions = actionProbability.size();
     double rand = pickRandomDouble(fact_->getRandom());
-    for (int i=0; i < actionProbability.size(); i++) {
-        const double pa = (1-fact_->gamma) * actionProbability[i] + fact_->gamma / actionProbability.size();
+    for (int i = 0; i < numActions; i++) {
+        const double pa = (1 - fact_->gamma) * actionProbability[i] + fact_->gamma / numActions;
 
         if (rand > pa) {
             rand -= pa;
@@ -43,9 +44,10 @@ ActionId RMSelector::select() {
 
 void RMSelector::update(ActionId ai, double value) {
     const double v = fact_->normalizeValue(value);
-    const double pa = (1-fact_->gamma) * actionProbability[ai] + fact_->gamma / actionProbability.size();
+    const double pa = (1 - fact_->gamma) * actionProbability[ai]
+        + fact_->gamma / actionProbability.size();
     regretEstimate[ai] += v / pa;
-    for (int i=0; i < regretEstimate.size(); i++){
+    for (int i = 0; i < regretEstimate.size(); i++) {
         regretEstimate[i] -= v;
     }
 }
@@ -59,11 +61,14 @@ void RMSelector::updateProb() {
     double R = 0;
     for (double ri : regretEstimate) R += (ri > 0 ? ri : 0);
 
-    if (R <= 0){
+    if (R <= 0) {
         std::fill(actionProbability.begin(), actionProbability.end(), 1.0 / K);
     } else {
-        for (int i=0; i < actionProbability.size(); i++) actionProbability[i] = (regretEstimate[i] > 0 ? regretEstimate[i] / R : 0);
+        for (int i = 0; i < actionProbability.size(); i++)
+            actionProbability[i] = (regretEstimate[i] > 0 ? regretEstimate[i] / R : 0);
     }
-    for (int i=0; i < actionProbability.size(); i++) actionMeanProbability[i] += actionProbability[i];
+
+    for (int i = 0; i < actionProbability.size(); i++)
+        actionMeanProbability[i] += actionProbability[i];
 }
 }

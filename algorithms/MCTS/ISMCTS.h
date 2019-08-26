@@ -26,7 +26,8 @@
 #include "base/random.h"
 
 namespace GTLib2::algorithms {
-struct ISMCTSSettings{
+
+struct ISMCTSSettings {
     /**
      * fact_ describes which of selectors will be used to choose action at current infoset.
      */
@@ -48,6 +49,7 @@ struct ISMCTSSettings{
 
     int randomSeed = 0;
 };
+
 /**
  * Information Set Monte Carlo Tree Search algorithm (ISMCTS) is based on the MCTS algorithm,
  * with a change that allows it to work with imperfect information games.
@@ -68,33 +70,31 @@ struct ISMCTSSettings{
  * Using belief (reach probabilities over histories in current infoset) makes this algorithm
  * even more consistent against non-random strategies.
  */
-class ISMCTS : public GamePlayingAlgorithm {
-public:
-    explicit ISMCTS(const Domain &domain, Player playingPlayer, const ISMCTSSettings& config) :
-        GamePlayingAlgorithm(domain, playingPlayer), config_(config), rootNode_(createRootEFGNode(domain)) {
+class ISMCTS: public GamePlayingAlgorithm {
+ public:
+    explicit ISMCTS(const Domain &domain, Player playingPlayer, const ISMCTSSettings &config) :
+        GamePlayingAlgorithm(domain, playingPlayer), config_(config),
+        rootNode_(createRootEFGNode(domain)) {
         generator_ = std::mt19937(config.randomSeed);
     };
 
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
     optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override;
 
-protected:
+ protected:
     const ISMCTSSettings config_;
     std::mt19937 generator_;
     unordered_map<shared_ptr<AOH>, unique_ptr<Selector>> infosetSelectors_;
     const shared_ptr<EFGNode> rootNode_;
 
+    virtual double iteration(const shared_ptr<EFGNode> &h);
+    double handleTerminalNode(const shared_ptr<EFGNode> &h);
+    double handleChanceNode(const shared_ptr<EFGNode> &h);
+    virtual double handlePlayerNode(const shared_ptr<EFGNode> &h);
 
-    virtual double iteration(const shared_ptr <EFGNode> &h);
-
-    double handleTerminalNode(const shared_ptr <EFGNode> &h);
-
-    double handleChanceNode(const shared_ptr <EFGNode> &h);
-
-    virtual double handlePlayerNode(const shared_ptr <EFGNode> &h);
-
-    double simulate(const shared_ptr <EFGNode> &h);
+    double simulate(const shared_ptr<EFGNode> &h);
 };
+
 }
 
 #endif //GTLIB2_ISMCTS_H

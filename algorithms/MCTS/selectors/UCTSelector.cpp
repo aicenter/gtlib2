@@ -32,13 +32,11 @@ void UCTSelector::update(ActionId ai, double value) {
     }
 }
 
-double getUCBRate(double v, int ni, int n, double c)
-{
+double getUCBRate(double v, int ni, int n, double c) {
     return v + c * sqrt(log(n) / ni);
 }
 
-double UCTSelector::getBestRateIndex()
-{
+double UCTSelector::getBestRateIndex() {
     double bestVal = getUCBRate(values_[0], visits_[0], totalVisits, fact_->c);
     int bestIdx = 0;
 
@@ -53,8 +51,7 @@ double UCTSelector::getBestRateIndex()
     return bestIdx;
 }
 
-int UCTSelector::getBestRateCount(double eps, double bestVal)
-{
+int UCTSelector::getBestRateCount(double eps, double bestVal) {
     int count = 0;
     for (int i = 0; i < values_.size(); i++) {
         double curVal = getUCBRate(values_[i], visits_[i], totalVisits, fact_->c);
@@ -64,8 +61,7 @@ int UCTSelector::getBestRateCount(double eps, double bestVal)
 }
 
 ActionId UCTSelector::select() {
-    if (totalVisits < values_.size())
-    {
+    if (totalVisits < values_.size()) {
         int j = pickRandomNumber(1, values_.size() - totalVisits, fact_->getRandom());
         int i = -1;
 
@@ -78,7 +74,8 @@ ActionId UCTSelector::select() {
     }
     const double epsilon = 0.01;
     const double bestIndex = getBestRateIndex();
-    const double bestVal = getUCBRate(values_[bestIndex], visits_[bestIndex], totalVisits, fact_->c);
+    const double bestVal = getUCBRate(values_[bestIndex], visits_[bestIndex],
+                                      totalVisits, fact_->c);
     const int bestCount = getBestRateCount(epsilon, bestVal);
     int index = pickRandomNumber(0, bestCount - 1, fact_->getRandom());
     // if there is a number of actions with the same value equal to the best, choose a random one

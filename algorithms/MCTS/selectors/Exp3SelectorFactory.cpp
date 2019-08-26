@@ -25,22 +25,22 @@
 
 namespace GTLib2::algorithms {
 
-    unique_ptr<Selector> Exp3SelectorFactory::createSelector(int actionsNumber) const {
-        if (useExp3L) return make_unique<Exp3LSelector>(actionsNumber, this);
-        else return make_unique<Exp3Selector>(actionsNumber, this);
-    }
+unique_ptr<Selector> Exp3SelectorFactory::createSelector(int actionsNumber) const {
+    if (useExp3L) return make_unique<Exp3LSelector>(actionsNumber, this);
+    else return make_unique<Exp3Selector>(actionsNumber, this);
+}
 
-    unique_ptr<Selector> Exp3SelectorFactory::createSelector(vector<shared_ptr<Action>> actions) const {
-        if (useExp3L) return make_unique<Exp3LSelector>(actions, this);
-        else return make_unique<Exp3Selector>(actions, this);
-    }
+unique_ptr<Selector> Exp3SelectorFactory::createSelector(vector<shared_ptr<Action>> actions) const {
+    if (useExp3L) return make_unique<Exp3LSelector>(actions, this);
+    else return make_unique<Exp3Selector>(actions, this);
+}
 
-    std::mt19937 Exp3SelectorFactory::getRandom() const {
-        return generator_;
-    }
+std::mt19937 Exp3SelectorFactory::getRandom() const {
+    return generator_;
+}
 
-    double Exp3SelectorFactory::normalizeValue(double value) const {
-        assert (minUtility_ <= value + 1e-5 && value <= maxUtility_ + 1e-5);
-        return (value - minUtility_) / (maxUtility_ - minUtility_);
-    }
+double Exp3SelectorFactory::normalizeValue(double value) const {
+    assert (minUtility_ <= value + 1e-5 && value <= maxUtility_ + 1e-5);
+    return (value - minUtility_) / (maxUtility_ - minUtility_);
+}
 }

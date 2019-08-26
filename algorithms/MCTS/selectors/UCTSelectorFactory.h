@@ -25,16 +25,17 @@
 
 
 namespace GTLib2::algorithms {
-class UCTSelectorFactory : public SelectorFactory {
-public:
+
+class UCTSelectorFactory: public SelectorFactory {
+ public:
     const double c;
-    explicit UCTSelectorFactory(double c, std::mt19937 random): c(c), generator_(random) {};
-    explicit UCTSelectorFactory(double c, int seed): c(c) {generator_ = std::mt19937(seed);};
-    explicit UCTSelectorFactory(double c): c(c) {generator_ = std::mt19937();};
-    unique_ptr<Selector> createSelector(int actionsNumber) const override ;
+    explicit UCTSelectorFactory(double c, std::mt19937 random) : c(c), generator_(random) {};
+    explicit UCTSelectorFactory(double c, int seed) : c(c) { generator_ = std::mt19937(seed); };
+    explicit UCTSelectorFactory(double c) : c(c) { generator_ = std::mt19937(); };
+    unique_ptr<Selector> createSelector(int actionsNumber) const override;
     unique_ptr<Selector> createSelector(vector<shared_ptr<Action>> actions) const override;
     std::mt19937 getRandom() const override;
-private:
+ private:
     std::mt19937 generator_;
 };
 

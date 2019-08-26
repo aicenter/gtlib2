@@ -24,7 +24,7 @@
 #include "selector.h"
 namespace GTLib2::algorithms {
 class SelectorFactory {
-public:
+ public:
     virtual unique_ptr<Selector> createSelector(vector<shared_ptr<Action>> actions) const = 0;
 
     virtual unique_ptr<Selector> createSelector(int actionsNumber) const = 0;

@@ -22,107 +22,111 @@
 #include "CPW_ISMCTS.h"
 
 namespace GTLib2::algorithms {
-    PlayControl CPW_ISMCTS::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
-        if (currentInfoset == nullopt)
-        {
-            iteration(rootNode_);
-            return ContinueImproving;
-        }
-        if (infosetSelectors_.find(*currentInfoset)  == infosetSelectors_.end())
-            return GiveUp;
-        const auto nodes = nodesMap_.find(*currentInfoset);
-        if (nodes == nodesMap_.end())
-            return GiveUp;
-        if (currentInfoset_ != *currentInfoset) setCurrentInfoset(*currentInfoset);
-        const int nodeIndex = config_.useBelief ?
-            pickRandom(belief_, generator_) : pickRandomNumber(0, nodes->second.size() - 1, generator_);
-        iteration(nodes->second[nodeIndex]);
+
+PlayControl CPW_ISMCTS::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
+    if (currentInfoset == nullopt) {
+        iteration(rootNode_);
         return ContinueImproving;
     }
 
-    double CPW_ISMCTS::handlePlayerNode(const shared_ptr<EFGNode> &h){
-        const auto it = nodesMap_.find(h->getAOHInfSet());
-        if (it == nodesMap_.end()) nodesMap_[h->getAOHInfSet()] = { h };
-        else {
-            const auto nodes = it->second;
-            bool isNodeInMap = false;
-            for (auto const &node: nodes)
-            {
-                if (*node == *h) {
-                    isNodeInMap = true;
-                    break;
+    if (infosetSelectors_.find(*currentInfoset) == infosetSelectors_.end()) return GiveUp;
+
+    const auto nodes = nodesMap_.find(*currentInfoset);
+    if (nodes == nodesMap_.end()) return GiveUp;
+
+    if (currentInfoset_ != *currentInfoset) setCurrentInfoset(*currentInfoset);
+    const int nodeIndex = config_.useBelief
+                          ? pickRandom(belief_, generator_)
+                          : pickRandomNumber(0, nodes->second.size() - 1, generator_);
+    iteration(nodes->second[nodeIndex]);
+
+    return ContinueImproving;
+}
+
+double CPW_ISMCTS::handlePlayerNode(const shared_ptr<EFGNode> &h) {
+    const auto it = nodesMap_.find(h->getAOHInfSet());
+    if (it == nodesMap_.end()) nodesMap_[h->getAOHInfSet()] = {h};
+    else {
+        const auto nodes = it->second;
+        bool isNodeInMap = false;
+        for (auto const &node: nodes) {
+            if (*node == *h) {
+                isNodeInMap = true;
+                break;
+            }
+        }
+        if (!isNodeInMap) nodesMap_[h->getAOHInfSet()].push_back(h);
+    }
+    return ISMCTS::handlePlayerNode(h);
+}
+
+void CPW_ISMCTS::setCurrentInfoset(const shared_ptr<AOH> &newInfoset) {
+    if (config_.useBelief) {
+        const auto newNodesIt = nodesMap_.find(newInfoset);
+        vector<shared_ptr<EFGNode>> oldNodes;
+        if (currentInfoset_ == nullptr) {
+            oldNodes = {rootNode_};
+        } else {
+            oldNodes = nodesMap_.find(currentInfoset_)->second;
+        }
+        const auto oldBelief = belief_;
+        const vector<shared_ptr<EFGNode>> newNodes = newNodesIt->second;
+
+        belief_ = vector<double>(newNodes.size());
+        for (int i = 0; i < oldNodes.size(); i++) {
+            fillBelief(oldNodes[i], newInfoset, oldBelief[i], newNodes);
+        }
+        //normalize belief
+        double sum = 0;
+        for (double d : belief_) sum += d;
+        assert(sum > 0);
+        for (int i = 0; i < belief_.size(); i++) belief_[i] /= sum;
+    }
+    currentInfoset_ = newInfoset;
+}
+
+void CPW_ISMCTS::fillBelief(const shared_ptr<EFGNode> &currentNode,
+                            const shared_ptr<AOH> &newInfoset,
+                            const double reachProbability,
+                            const vector<shared_ptr<EFGNode>> &newNodes) {
+
+    if (currentNode->type_ == PlayerNode) {
+        const auto currentInfoset = currentNode->getAOHInfSet();
+        if (*currentInfoset == *newInfoset) {
+            for (int i = 0; i < newNodes.size(); i++) {
+                auto n = newNodes.at(i);
+                if (*n == *currentNode) {
+                    belief_[i] = reachProbability;
+                    return;
                 }
             }
-            if (!isNodeInMap) nodesMap_[h->getAOHInfSet()].push_back(h);
+
+            return; // reached undiscovered node in newInfoset
         }
-        return ISMCTS::handlePlayerNode(h);
-    }
-
-    void CPW_ISMCTS::setCurrentInfoset(const shared_ptr<AOH> &newInfoset) {
-        if (config_.useBelief)
-        {
-            const auto newNodesIt = nodesMap_.find(newInfoset);
-            vector<shared_ptr<EFGNode>> oldNodes;
-            if (currentInfoset_ == nullptr) {
-                oldNodes = {rootNode_};
-            } else {
-                oldNodes = nodesMap_.find(currentInfoset_)->second;
-            }
-            const auto oldBelief = belief_;
-            const vector<shared_ptr<EFGNode>>  newNodes = newNodesIt->second;
-
-            belief_ = vector<double>(newNodes.size());
-            for (int i=0; i<oldNodes.size(); i++){
-                fillBelief(oldNodes[i], newInfoset, oldBelief[i], newNodes);
-            }
-            //normalize belief
-            double sum=0;
-            for (double d : belief_) sum +=d;
-            assert(sum > 0);
-            for (int i=0;i<belief_.size();i++) belief_[i] /= sum;
-        }
-        currentInfoset_ = newInfoset;
-    }
-
-    void CPW_ISMCTS::fillBelief(const shared_ptr <EFGNode> &currentNode, const shared_ptr <AOH> &newInfoset,
-                                const double reachProbability, const vector<shared_ptr<EFGNode>> &newNodes)
-    {
-        if (currentNode->type_ == PlayerNode)
-        {
-            const auto currentInfoset = currentNode->getAOHInfSet();
-            if (*currentInfoset == *newInfoset)
-            {
-                for (int i = 0; i < newNodes.size(); i++)
-                {
-                    auto n=newNodes.at(i);
-                    if (*n == *currentNode)
-                    {
-                        belief_[i] = reachProbability;
-                        return;
-                    }
-                }
-
-                return; // reached undiscovered node in newInfoset
-            }
-            if (!algorithms::isAOCompatible(currentNode->getAOids(newInfoset->getPlayer()), newInfoset->getAOids()))
-                return;
-            const auto it = infosetSelectors_.find(currentInfoset);
-            if (it == infosetSelectors_.end())
-                return;
-            const auto distribution = it->second->getActionsProbDistribution();
-            for (int i = 0; i < currentNode->availableActions().size(); i++)
-            {
-                const auto action = currentNode->availableActions()[i];
-                fillBelief(currentNode->performAction(action), newInfoset, reachProbability * distribution[i], newNodes);
-            }
-        }
-        if (currentNode->type_ == ChanceNode)
-        {
-            for (int i = 0; i < currentNode->availableActions().size(); i++)
-            {
-                const auto action = currentNode->availableActions()[i];
-                fillBelief(currentNode->performAction(action), newInfoset, reachProbability * currentNode->chanceProbForAction(action), newNodes);
-            }
+        if (!algorithms::isAOCompatible(currentNode->getAOids(newInfoset->getPlayer()),
+                                        newInfoset->getAOids()))
+            return;
+        const auto it = infosetSelectors_.find(currentInfoset);
+        if (it == infosetSelectors_.end())
+            return;
+        const auto distribution = it->second->getActionsProbDistribution();
+        for (int i = 0; i < currentNode->availableActions().size(); i++) {
+            const auto action = currentNode->availableActions()[i];
+            fillBelief(currentNode->performAction(action),
+                       newInfoset,
+                       reachProbability * distribution[i],
+                       newNodes);
         }
     }
+
+    if (currentNode->type_ == ChanceNode) {
+        for (int i = 0; i < currentNode->availableActions().size(); i++) {
+            const auto action = currentNode->availableActions()[i];
+            fillBelief(currentNode->performAction(action),
+                       newInfoset,
+                       reachProbability * currentNode->chanceProbForAction(action),
+                       newNodes);
+        }
+    }
+}
 }

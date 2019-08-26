@@ -27,27 +27,30 @@
 #include "RMSelectorFactory.h"
 
 namespace GTLib2::algorithms {
-class RMSelector : public Selector  {
-public:
-    RMSelector(const vector<shared_ptr<Action>>& actions, const RMSelectorFactory * fact) : fact_(fact) {
+class RMSelector: public Selector {
+ public:
+    RMSelector(const vector<shared_ptr<Action>> &actions, const RMSelectorFactory *fact) : fact_(
+        fact) {
         actionProbability = vector<double>(actions.size());
         actionMeanProbability = vector<double>(actions.size());
-        regretEstimate = vector<double>(actions.size());}
-    RMSelector(int actionsNumber, const RMSelectorFactory * fact) : fact_(fact) {
+        regretEstimate = vector<double>(actions.size());
+    }
+    RMSelector(int actionsNumber, const RMSelectorFactory *fact) : fact_(fact) {
         actionProbability = vector<double>(actionsNumber);
         actionMeanProbability = vector<double>(actionsNumber);
-        regretEstimate = vector<double>(actionsNumber);}
+        regretEstimate = vector<double>(actionsNumber);
+    }
 
     ActionId select() override;
     void update(ActionId ai, double value) override;
-    ProbDistribution getActionsProbDistribution() override ;
+    ProbDistribution getActionsProbDistribution() override;
 
-private:
-    const RMSelectorFactory * fact_;
+ private:
+    const RMSelectorFactory *fact_;
     /** Current probability of playing this action. */
     ProbDistribution actionProbability;
     vector<double> actionMeanProbability;
-        /** Cumulative regret estimate. */
+    /** Cumulative regret estimate. */
     vector<double> regretEstimate;
 
     void updateProb();

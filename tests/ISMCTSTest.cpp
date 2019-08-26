@@ -27,176 +27,178 @@
 #include "gtest/gtest.h"
 
 namespace GTLib2::algorithms {
-    TEST(ISMCTS, UCTTest) {
-        auto rewards = vector<double>(100);
 
-        for (int seed = 0; seed < 100; ++seed) {
-            GTLib2::domains::GoofSpielSettings settings
-                    ({.variant =   GTLib2::domains::IncompleteObservations, .numCards =  5, .fixChanceCards =  true});
-            settings.shuffleChanceCards(seed);
-            domains::GoofSpielDomain domain(settings);
-            auto fact = make_shared<UCTSelectorFactory>(sqrt(2), seed);
-            ISMCTSSettings settings0 = {.fact_ = fact, .randomSeed = seed, .useBelief=true};
-            ISMCTSSettings settings1 = {.fact_ = fact, .randomSeed = seed};
-            vector<PreparedAlgorithm> algs = {
-                    createInitializer<CPW_ISMCTS>(settings0),
-                    createInitializer<CPW_ISMCTS>(settings1)
-            };
-            auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
-            rewards[seed] = actualOutcome[0];
-        }
-        const double expsumm = 17; // useBelief is better
-        double summ = 0;
-        for (auto r : rewards)summ += r;
-        EXPECT_EQ(summ, expsumm);
+TEST(ISMCTS, UCTTest) {
+    auto rewards = vector<double>(100);
+
+    for (int seed = 0; seed < 100; ++seed) {
+        GTLib2::domains::GoofSpielSettings settings
+            ({.variant =   GTLib2::domains::IncompleteObservations, .numCards =  5, .fixChanceCards =  true});
+        settings.shuffleChanceCards(seed);
+        domains::GoofSpielDomain domain(settings);
+        auto fact = make_shared<UCTSelectorFactory>(sqrt(2), seed);
+        ISMCTSSettings settings0 = {.fact_ = fact, .useBelief=true, .randomSeed = seed};
+        ISMCTSSettings settings1 = {.fact_ = fact, .randomSeed = seed};
+        vector<PreparedAlgorithm> algs = {
+            createInitializer<CPW_ISMCTS>(settings0),
+            createInitializer<CPW_ISMCTS>(settings1)
+        };
+        auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
+        rewards[seed] = actualOutcome[0];
     }
+    const double expsumm = 17; // useBelief is better
+    double summ = 0;
+    for (auto r : rewards)summ += r;
+    EXPECT_EQ(summ, expsumm);
+}
 
-    TEST(ISMCTS, RMTest) {
-        auto rewards = vector<double>(100);
+TEST(ISMCTS, RMTest) {
+    auto rewards = vector<double>(100);
 
-        for (int seed = 0; seed < 100; ++seed) {
-            GTLib2::domains::GoofSpielSettings settings
-                    ({.variant =   GTLib2::domains::IncompleteObservations, .numCards =  5, .fixChanceCards =  true});
-            settings.shuffleChanceCards(seed);
-            domains::GoofSpielDomain domain(settings);
-            auto fact0 = make_shared<RMSelectorFactory>(0.2, -14, 14, seed);
-            auto fact1 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
-            ISMCTSSettings settings0 = {.fact_ = fact0, .randomSeed = seed};
-            ISMCTSSettings settings1 = {.fact_ = fact1, .randomSeed = seed};
-            vector<PreparedAlgorithm> algs = {
-                    createInitializer<CPW_ISMCTS>(settings0),
-                    createInitializer<CPW_ISMCTS>(settings1)
-            };
-            auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
-            rewards[seed] = actualOutcome[0];
-        }
-        const double expsumm = -190; //very bad
-        double summ = 0;
-        for (auto r : rewards)summ += r;
-        EXPECT_EQ(summ, expsumm);
+    for (int seed = 0; seed < 100; ++seed) {
+        GTLib2::domains::GoofSpielSettings settings
+            ({.variant =   GTLib2::domains::IncompleteObservations, .numCards =  5, .fixChanceCards =  true});
+        settings.shuffleChanceCards(seed);
+        domains::GoofSpielDomain domain(settings);
+        auto fact0 = make_shared<RMSelectorFactory>(0.2, -14, 14, seed);
+        auto fact1 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
+        ISMCTSSettings settings0 = {.fact_ = fact0, .randomSeed = seed};
+        ISMCTSSettings settings1 = {.fact_ = fact1, .randomSeed = seed};
+        vector<PreparedAlgorithm> algs = {
+            createInitializer<CPW_ISMCTS>(settings0),
+            createInitializer<CPW_ISMCTS>(settings1)
+        };
+        auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
+        rewards[seed] = actualOutcome[0];
     }
+    const double expsumm = -190; //very bad
+    double summ = 0;
+    for (auto r : rewards)summ += r;
+    EXPECT_EQ(summ, expsumm);
+}
 
-    TEST(ISMCTS, Exp3StoreObsTest) {
-        auto rewards = vector<double>(100);
+TEST(ISMCTS, Exp3StoreObsTest) {
+    auto rewards = vector<double>(100);
 
-        for (int seed = 0; seed < 100; ++seed) {
-            GTLib2::domains::GoofSpielSettings settings
-                    ({.variant =   GTLib2::domains::IncompleteObservations, .numCards =  5, .fixChanceCards = true});
-            settings.shuffleChanceCards(seed);
-            domains::GoofSpielDomain domain(settings);
-            auto fact0 = make_shared<Exp3SelectorFactory>(-14, 14, 0.05, true, seed);
-            auto fact1 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
-            ISMCTSSettings settings0 = {.fact_ = fact0, .randomSeed = seed};
-            ISMCTSSettings settings1 = {.fact_ = fact1, .randomSeed = seed};
-            vector<PreparedAlgorithm> algs = {
-                    createInitializer<CPW_ISMCTS>(settings0),
-                    createInitializer<CPW_ISMCTS>(settings1)
-            };
-            auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
-            rewards[seed] = actualOutcome[0];
-        }
-        const double expsumm = -199; // very bad
-        double summ = 0;
-        for (auto r : rewards) summ += r;
-        EXPECT_EQ(summ, expsumm);
+    for (int seed = 0; seed < 100; ++seed) {
+        GTLib2::domains::GoofSpielSettings settings
+            ({.variant =   GTLib2::domains::IncompleteObservations, .numCards =  5, .fixChanceCards = true});
+        settings.shuffleChanceCards(seed);
+        domains::GoofSpielDomain domain(settings);
+        auto fact0 = make_shared<Exp3SelectorFactory>(-14, 14, 0.05, true, seed);
+        auto fact1 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
+        ISMCTSSettings settings0 = {.fact_ = fact0, .randomSeed = seed};
+        ISMCTSSettings settings1 = {.fact_ = fact1, .randomSeed = seed};
+        vector<PreparedAlgorithm> algs = {
+            createInitializer<CPW_ISMCTS>(settings0),
+            createInitializer<CPW_ISMCTS>(settings1)
+        };
+        auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
+        rewards[seed] = actualOutcome[0];
     }
+    const double expsumm = -199; // very bad
+    double summ = 0;
+    for (auto r : rewards) summ += r;
+    EXPECT_EQ(summ, expsumm);
+}
 
-    TEST(ISMCTS, Exp3Test) {
-        auto rewards = vector<double>(100);
+TEST(ISMCTS, Exp3Test) {
+    auto rewards = vector<double>(100);
 
-        for (int seed = 0; seed < 100; ++seed) {
-            GTLib2::domains::GoofSpielSettings settings
-                    ({.variant =  GTLib2::domains::IncompleteObservations, .numCards = 5, .fixChanceCards = true});
-            settings.shuffleChanceCards(seed);
-            domains::GoofSpielDomain domain(settings);
-            auto fact0 = make_shared<Exp3SelectorFactory>(-14, 14, 0.05, false, seed);
-            auto fact1 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
-            ISMCTSSettings settings0 = {.fact_ = fact0, .randomSeed = seed};
-            ISMCTSSettings settings1 = {.fact_ = fact1, .randomSeed = seed};
-            vector<PreparedAlgorithm> algs = {
-                    createInitializer<CPW_ISMCTS>(settings0),
-                    createInitializer<CPW_ISMCTS>(settings1)
-            };
-            auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
-            rewards[seed] = actualOutcome[0];
-        }
-        const double expsumm = -199; // same => storeExploration makes no diff
-        double summ = 0;
-        for (auto r : rewards)summ += r;
-        EXPECT_EQ(summ, expsumm);
+    for (int seed = 0; seed < 100; ++seed) {
+        GTLib2::domains::GoofSpielSettings settings
+            ({.variant =  GTLib2::domains::IncompleteObservations, .numCards = 5, .fixChanceCards = true});
+        settings.shuffleChanceCards(seed);
+        domains::GoofSpielDomain domain(settings);
+        auto fact0 = make_shared<Exp3SelectorFactory>(-14, 14, 0.05, false, seed);
+        auto fact1 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
+        ISMCTSSettings settings0 = {.fact_ = fact0, .randomSeed = seed};
+        ISMCTSSettings settings1 = {.fact_ = fact1, .randomSeed = seed};
+        vector<PreparedAlgorithm> algs = {
+            createInitializer<CPW_ISMCTS>(settings0),
+            createInitializer<CPW_ISMCTS>(settings1)
+        };
+        auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
+        rewards[seed] = actualOutcome[0];
     }
+    const double expsumm = -199; // same => storeExploration makes no diff
+    double summ = 0;
+    for (auto r : rewards)summ += r;
+    EXPECT_EQ(summ, expsumm);
+}
 
-    TEST(ISMCTS, Exp3LTest) {
-        auto rewards = vector<double>(100);
+TEST(ISMCTS, Exp3LTest) {
+    auto rewards = vector<double>(100);
 
-        for (int seed = 0; seed < 100; ++seed) {
-            GTLib2::domains::GoofSpielSettings settings
-                    ({.variant =   GTLib2::domains::IncompleteObservations, .numCards =  5, .fixChanceCards =  true});
-            settings.shuffleChanceCards(seed);
-            domains::GoofSpielDomain domain(settings);
-            auto fact0 = make_shared<Exp3SelectorFactory>(true, -14, 14, 0.05, seed);
-            auto fact1 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
-            ISMCTSSettings settings0 = {.fact_ = fact0, .randomSeed = seed};
-            ISMCTSSettings settings1 = {.fact_ = fact1, .randomSeed = seed};
-            vector<PreparedAlgorithm> algs = {
-                    createInitializer<CPW_ISMCTS>(settings0),
-                    createInitializer<CPW_ISMCTS>(settings1)
-            };
-            auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
-            rewards[seed] = actualOutcome[0];
-        }
-        const double expsumm = -178; // very bad
-        double summ = 0;
-        for (auto r : rewards)summ += r;
-        EXPECT_EQ(summ, expsumm);
+    for (int seed = 0; seed < 100; ++seed) {
+        GTLib2::domains::GoofSpielSettings settings
+            ({.variant =   GTLib2::domains::IncompleteObservations, .numCards =  5, .fixChanceCards =  true});
+        settings.shuffleChanceCards(seed);
+        domains::GoofSpielDomain domain(settings);
+        auto fact0 = make_shared<Exp3SelectorFactory>(true, -14, 14, 0.05, seed);
+        auto fact1 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
+        ISMCTSSettings settings0 = {.fact_ = fact0, .randomSeed = seed};
+        ISMCTSSettings settings1 = {.fact_ = fact1, .randomSeed = seed};
+        vector<PreparedAlgorithm> algs = {
+            createInitializer<CPW_ISMCTS>(settings0),
+            createInitializer<CPW_ISMCTS>(settings1)
+        };
+        auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
+        rewards[seed] = actualOutcome[0];
     }
+    const double expsumm = -178; // very bad
+    double summ = 0;
+    for (auto r : rewards)summ += r;
+    EXPECT_EQ(summ, expsumm);
+}
 
-    TEST(ISMCTS, MidgameTest) {
-        auto rewards = vector<double>(100);
+TEST(ISMCTS, MidgameTest) {
+    auto rewards = vector<double>(100);
 
-        for (int seed = 0; seed < 100; ++seed) {
-            GTLib2::domains::GoofSpielSettings settings
-                    ({.variant =   GTLib2::domains::IncompleteObservations, .numCards =  7, .fixChanceCards =  true});
-            settings.shuffleChanceCards(seed);
-            domains::GoofSpielDomain domain(settings);
-            auto fact = make_shared<UCTSelectorFactory>(sqrt(2), seed);
-            ISMCTSSettings settings0 = {.fact_ = fact, .randomSeed = seed};
-            ISMCTSSettings settings1 = {.fact_ = fact, .randomSeed = seed};
-            vector<PreparedAlgorithm> algs = {
-                    createInitializer<CPW_ISMCTS>(settings0),
-                    createInitializer<ISMCTS>(settings1)
-            };
-            auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
-            rewards[seed] = actualOutcome[0];
-        }
-        const double expsumm = 175; // CPW is better
-        double summ = 0;
-        for (auto r : rewards)summ += r;
-        EXPECT_EQ(summ, expsumm);
+    for (int seed = 0; seed < 100; ++seed) {
+        GTLib2::domains::GoofSpielSettings settings
+            ({.variant =   GTLib2::domains::IncompleteObservations, .numCards =  7, .fixChanceCards =  true});
+        settings.shuffleChanceCards(seed);
+        domains::GoofSpielDomain domain(settings);
+        auto fact = make_shared<UCTSelectorFactory>(sqrt(2), seed);
+        ISMCTSSettings settings0 = {.fact_ = fact, .randomSeed = seed};
+        ISMCTSSettings settings1 = {.fact_ = fact, .randomSeed = seed};
+        vector<PreparedAlgorithm> algs = {
+            createInitializer<CPW_ISMCTS>(settings0),
+            createInitializer<ISMCTS>(settings1)
+        };
+        auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
+        rewards[seed] = actualOutcome[0];
     }
+    const double expsumm = 175; // CPW is better
+    double summ = 0;
+    for (auto r : rewards)summ += r;
+    EXPECT_EQ(summ, expsumm);
+}
 
-    TEST(ISMCTS, BiggameTest) {
-        auto rewards = vector<double>(100);
+TEST(ISMCTS, BiggameTest) {
+    auto rewards = vector<double>(100);
 
-        for (int seed = 0; seed < 100; ++seed) {
-            GTLib2::domains::GoofSpielSettings settings
-                    ({.variant =   GTLib2::domains::IncompleteObservations, .numCards =  10, .fixChanceCards =  true});
-            settings.shuffleChanceCards(seed);
-            domains::GoofSpielDomain domain(settings);
-            auto fact = make_shared<UCTSelectorFactory>(sqrt(2), seed);
-            ISMCTSSettings settings0 = {.fact_ = fact, .randomSeed = seed};
-            ISMCTSSettings settings1 = {.fact_ = fact, .randomSeed = seed};
-            vector<PreparedAlgorithm> algs = {
-                    createInitializer<CPW_ISMCTS>(settings0),
-                    createInitializer<ISMCTS>(settings1)
-            };
-            auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
-            rewards[seed] = actualOutcome[0];
-        }
-        const double expsumm = 508; // CPW is better
-        double summ = 0;
-        for (auto r : rewards)summ += r;
-         EXPECT_EQ(summ, expsumm);
+    for (int seed = 0; seed < 100; ++seed) {
+        GTLib2::domains::GoofSpielSettings settings
+            ({.variant =   GTLib2::domains::IncompleteObservations, .numCards =  10, .fixChanceCards =  true});
+        settings.shuffleChanceCards(seed);
+        domains::GoofSpielDomain domain(settings);
+        auto fact = make_shared<UCTSelectorFactory>(sqrt(2), seed);
+        ISMCTSSettings settings0 = {.fact_ = fact, .randomSeed = seed};
+        ISMCTSSettings settings1 = {.fact_ = fact, .randomSeed = seed};
+        vector<PreparedAlgorithm> algs = {
+            createInitializer<CPW_ISMCTS>(settings0),
+            createInitializer<ISMCTS>(settings1)
+        };
+        auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
+        rewards[seed] = actualOutcome[0];
     }
+    const double expsumm = 508; // CPW is better
+    double summ = 0;
+    for (auto r : rewards)summ += r;
+    EXPECT_EQ(summ, expsumm);
+}
+
 }
 

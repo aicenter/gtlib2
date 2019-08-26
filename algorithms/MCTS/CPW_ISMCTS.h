@@ -35,14 +35,15 @@
  * even more consistent against non-random strategies.
  */
 namespace GTLib2::algorithms {
-class CPW_ISMCTS : public ISMCTS {
-public:
+
+class CPW_ISMCTS: public ISMCTS {
+ public:
     explicit CPW_ISMCTS(const Domain &domain, Player playingPlayer, ISMCTSSettings config) :
         ISMCTS(domain, playingPlayer, std::move(config)), belief_({1.0}) {};
 
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
 
-private:
+ private:
     unordered_map<shared_ptr<AOH>, vector<shared_ptr<EFGNode>>> nodesMap_;
     shared_ptr<AOH> currentInfoset_;
     ProbDistribution belief_;
@@ -50,10 +51,14 @@ private:
 
     double handlePlayerNode(const shared_ptr<EFGNode> &h) override;
 
-    void setCurrentInfoset(const shared_ptr <AOH> &newInfoset);
+    void setCurrentInfoset(const shared_ptr<AOH> &newInfoset);
 
-    void fillBelief(const shared_ptr <EFGNode> &currentNode, const shared_ptr <AOH> &newInfoset, double reachProbability, const vector<shared_ptr<EFGNode>> &newNodes);
+    void fillBelief(const shared_ptr<EFGNode> &currentNode,
+                    const shared_ptr<AOH> &newInfoset,
+                    double reachProbability,
+                    const vector<shared_ptr<EFGNode>> &newNodes);
 };
+
 }
 
 #endif //GTLIB2_CPW_ISMCTS_H

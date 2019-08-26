@@ -28,18 +28,23 @@
 #include "UCTSelectorFactory.h"
 
 namespace GTLib2::algorithms {
-    class UCTSelector : public Selector {
-public:
-    UCTSelector(const vector<shared_ptr<Action>>& actions, const UCTSelectorFactory * fact) : fact_(fact) {
-        values_ = vector<double>(actions.size()); visits_ = vector<int>(actions.size());}
-    UCTSelector(int actionsNumber, const UCTSelectorFactory * fact) : fact_(fact) {
-        values_ = vector<double>(actionsNumber); visits_ = vector<int>(actionsNumber);}
+class UCTSelector: public Selector {
+ public:
+    UCTSelector(const vector<shared_ptr<Action>> &actions, const UCTSelectorFactory *fact)
+        : fact_(fact) {
+        values_ = vector<double>(actions.size());
+        visits_ = vector<int>(actions.size());
+    }
+    UCTSelector(int actionsNumber, const UCTSelectorFactory *fact) : fact_(fact) {
+        values_ = vector<double>(actionsNumber);
+        visits_ = vector<int>(actionsNumber);
+    }
 
-        ActionId select() override;
+    ActionId select() override;
     void update(ActionId ai, double value) override;
-    ProbDistribution getActionsProbDistribution() override ;
-private:
-    const UCTSelectorFactory * fact_;
+    ProbDistribution getActionsProbDistribution() override;
+ private:
+    const UCTSelectorFactory *fact_;
     vector<double> values_;
     vector<int> visits_;
     int totalVisits = 0;

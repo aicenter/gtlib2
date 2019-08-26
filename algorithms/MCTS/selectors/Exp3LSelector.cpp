@@ -26,23 +26,25 @@
 namespace GTLib2::algorithms {
 
 void Exp3LSelector::updateProb() {
-    for (int i=0; i < actionsNumber_; i++) {
+    for (int i = 0; i < actionsNumber_; i++) {
         double denom = 1;
-        for (int j=0 ; j < actionsNumber_; j++) {
-            if (i != j) denom += exp(-sqrt(lnActionsNumber_ / (currentIteration_*actionsNumber_)) * (rewards_[j] - rewards_[i]));
+        for (int j = 0; j < actionsNumber_; j++) {
+            if (i != j)
+                denom += exp(-sqrt(lnActionsNumber_ / (currentIteration_ * actionsNumber_))
+                                 * (rewards_[j] - rewards_[i]));
         }
         const double cp = (1 / denom);
         actionProbability_[i] = cp;
-        actionMeanProbability_[i]+=cp;
+        actionMeanProbability_[i] += cp;
     }
 }
 
 ActionId Exp3LSelector::select() {
-    if (currentIteration_>0) updateProb();
+    if (currentIteration_ > 0) updateProb();
 
     double rand = pickRandomDouble(fact_->getRandom());
 
-    for (int i=0; i<actionsNumber_; i++) {
+    for (int i = 0; i < actionsNumber_; i++) {
         if (rand > actionProbability_[i]) {
             rand -= actionProbability_[i];
         } else {
@@ -60,4 +62,5 @@ void Exp3LSelector::update(ActionId ai, double value) {
 ProbDistribution Exp3LSelector::getActionsProbDistribution() {
     return normalizeProbability(actionMeanProbability_);
 }
+
 }

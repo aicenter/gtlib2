@@ -24,22 +24,30 @@
 #include "selectorFactory.h"
 
 namespace GTLib2::algorithms {
-class RMSelectorFactory : public SelectorFactory {
-public:
+class RMSelectorFactory: public SelectorFactory {
+ public:
     const double gamma = 0.2;
-    explicit RMSelectorFactory(double gamma, double minUtility, double maxUtility, std::mt19937 random): gamma(gamma), minUtility_(minUtility), maxUtility_(maxUtility), generator_(random) {};
-    explicit RMSelectorFactory(double gamma, double minUtility, double maxUtility, int seed): gamma(gamma), minUtility_(minUtility), maxUtility_(maxUtility) { generator_ = std::mt19937(seed);};
-    explicit RMSelectorFactory(double gamma, double minUtility, double maxUtility): gamma(gamma), minUtility_(minUtility), maxUtility_(maxUtility) { generator_ = std::mt19937();};
+    explicit RMSelectorFactory(double gamma, double minUtility, double maxUtility,
+                               std::mt19937 random)
+        : gamma(gamma), minUtility_(minUtility), maxUtility_(maxUtility), generator_(random) {};
+    explicit RMSelectorFactory(double gamma, double minUtility, double maxUtility, int seed)
+        : gamma(gamma), minUtility_(minUtility), maxUtility_(maxUtility) {
+        generator_ = std::mt19937(seed);
+    };
+    explicit RMSelectorFactory(double gamma, double minUtility, double maxUtility)
+        : gamma(gamma), minUtility_(minUtility), maxUtility_(maxUtility) {
+        generator_ = std::mt19937();
+    };
     unique_ptr<Selector> createSelector(int actionsNumber) const override;
     unique_ptr<Selector> createSelector(vector<shared_ptr<Action>> actions) const override;
     std::mt19937 getRandom() const override;
 
     double normalizeValue(double value) const;
 
-private:
+ private:
     std::mt19937 generator_;
-    const double minUtility_=-1;
-    const double maxUtility_=1;
+    const double minUtility_ = -1;
+    const double maxUtility_ = 1;
 };
 }
 
