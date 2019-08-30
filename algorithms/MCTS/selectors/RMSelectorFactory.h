@@ -36,7 +36,7 @@ class RMSelectorFactory: public SelectorFactory {
     };
     explicit RMSelectorFactory(double gamma, double minUtility, double maxUtility)
         : gamma(gamma), minUtility_(minUtility), maxUtility_(maxUtility) {
-        generator_ = std::mt19937();
+        generator_ = std::mt19937(0);
     };
     unique_ptr<Selector> createSelector(int actionsNumber) const override;
     unique_ptr<Selector> createSelector(vector<shared_ptr<Action>> actions) const override;

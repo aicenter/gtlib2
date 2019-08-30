@@ -32,7 +32,7 @@
 int main(int argc, const char **argv) {
     using namespace GTLib2;
     using namespace GTLib2::CLI;
-
+    
     args::ArgumentParser parser("Command runner for GTLib2");
     args::CompletionFlag completion(parser, {"complete"}); // bash completion
     args::GlobalOptions globals(parser, args::arguments); // add global args

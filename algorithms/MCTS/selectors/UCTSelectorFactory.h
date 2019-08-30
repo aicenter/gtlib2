@@ -31,7 +31,7 @@ class UCTSelectorFactory: public SelectorFactory {
     const double c;
     explicit UCTSelectorFactory(double c, std::mt19937 random) : c(c), generator_(random) {};
     explicit UCTSelectorFactory(double c, int seed) : c(c) { generator_ = std::mt19937(seed); };
-    explicit UCTSelectorFactory(double c) : c(c) { generator_ = std::mt19937(); };
+    explicit UCTSelectorFactory(double c) : c(c) { generator_ = std::mt19937(0); };
     unique_ptr<Selector> createSelector(int actionsNumber) const override;
     unique_ptr<Selector> createSelector(vector<shared_ptr<Action>> actions) const override;
     std::mt19937 getRandom() const override;

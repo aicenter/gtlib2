@@ -32,13 +32,14 @@ extern std::uniform_real_distribution<double> uniformDist;
 
 static int pickRandomNumber(int min, int max, std::mt19937 rand)
 {
-    std::uniform_int_distribution<int> uid(min,max);
-    return uid(rand);
+    int res = rand() % (max + 1 - min) + min;
+    return res;
 }
 
 static double pickRandomDouble(std::mt19937 rand)
 {
-    return uniformDist(rand);
+    double d =  uniformDist(rand);
+    return d;
 }
 
 /**
