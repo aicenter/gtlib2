@@ -44,6 +44,14 @@ class Node {
                    || (parent_ != nullptr && incomingEdge != nullopt));
     }
 
+    explicit Node(shared_ptr<Parent const> parent, vector<EdgeId> history) :
+        parent_(move(parent)),
+        history_(move(history)),
+        hashNode_(hashWithSeed(history_.data(), history_.size() * sizeof(EdgeId), 1412914847)) {
+        assert(!parent_ || isExtension(parent_->getHistory(), history_));
+    }
+
+
     // Root node constructor
     inline Node() : Node(nullptr, nullopt) {}
 

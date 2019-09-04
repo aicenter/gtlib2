@@ -144,12 +144,12 @@ class Action {
 constexpr ObservationId NO_OBSERVATION = 0xFFFFFFFF;
 
 /**
- * Special value of observation id, indicating that player made a move (in simultaneos round)
+ * Special value of observation id, indicating that player made a move.
  * 0x0xFFFFFF00 means player 0, 0xFFFFFF01 player 1, etc.
  *
- * Use function observationPlayerMoved for calculating the values.
+ * Use function observationPlayerMove for calculating the values.
  */
-constexpr ObservationId OBSERVATION_PLAYER_MOVED = 0xFFFFFF00;
+constexpr ObservationId OBSERVATION_PLAYER_MOVE = 0xFFFFFFF0;
 
 /**
  * Observation is an abstract class that represents observations, which are identified by their id.
@@ -157,6 +157,8 @@ constexpr ObservationId OBSERVATION_PLAYER_MOVED = 0xFFFFFF00;
  * Different observations must have different ids, the same observations must have the same id.
  *
  * It's up to each domain to guarantee consistency of observation ids.
+ *
+ * Values above 0xFFFFFFF0 are reserved for internal use!
  */
 class Observation {
  public:
@@ -178,13 +180,14 @@ class Observation {
     }
 
  protected:
-    // we do not set it const, as computation of it can be non-trivial
+    // we do not set it const, as computation of id can be non-trivial
     // todo: maybe we should and provide helper function for computation?
     ObservationId id_ = NO_OBSERVATION;
 };
 
-inline ObservationId observationPlayerMoved(Player pl) {
-    return OBSERVATION_PLAYER_MOVED+pl;
+inline ObservationId observationPlayerMove(Player pl) {
+    assert(pl < 14);
+    return OBSERVATION_PLAYER_MOVE+pl;
 }
 
 

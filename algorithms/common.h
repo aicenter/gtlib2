@@ -47,16 +47,6 @@ bool isCompatible(const vector<T> &target, const vector<T> &cmp) {
     return !memcmp(target.data(), cmp.data(), cmpBytes);
 }
 
-template<typename T>
-bool isExtension(const vector<T> &base, const vector<T> &extending) {
-    auto sizeTarget = base.size();
-    auto sizeCmp = extending.size();
-    if(sizeCmp <= sizeTarget) return false;
-
-    size_t cmpBytes = min(sizeTarget, sizeCmp) * sizeof(T);
-    return !memcmp(base.data(), extending.data(), cmpBytes);
-}
-
 vector<shared_ptr<EFGNode>> getAllNodesInInfoset(const shared_ptr<AOH> &infoset,
                                                  const Domain &domain);
 

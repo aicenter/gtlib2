@@ -27,7 +27,7 @@
 #include <vector>
 #include <memory>
 #include <cmath>
-
+#include <string.h>
 
 /**
  * CartProduct returns cartesian product of all items in a vector
@@ -166,6 +166,16 @@ std::vector<T> extend(const std::vector<T>& original, const Ts&... args) {
     for (unsigned int i = 0; i < original.size(); i++) made.push_back(original[i]);
     (made.push_back(args), ...);
     return made;
+}
+
+template<typename T>
+bool isExtension(const vector<T> &base, const vector<T> &extending) {
+    auto sizeTarget = base.size();
+    auto sizeCmp = extending.size();
+    if(sizeCmp <= sizeTarget) return false;
+
+    size_t cmpBytes = min(sizeTarget, sizeCmp) * sizeof(T);
+    return !memcmp(base.data(), extending.data(), cmpBytes);
 }
 
 }  // namespace std
