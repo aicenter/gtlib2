@@ -23,34 +23,38 @@
 
 namespace GTLib2::algorithms {
 
-double calcExploitability(const Domain &domain, const StrategyProfile &profile) {
+Exploitability calcExploitability(const Domain &domain, const StrategyProfile &profile) {
     assert(domain.getNumberOfPlayers() == 2);
     assert(domain.isZeroSum());
 
-    const auto bestResp0 = bestResponseTo(profile[0], Player(1), domain).value;
-    const auto bestResp1 = bestResponseTo(profile[1], Player(0), domain).value;
-    const double expl = (bestResp0 + bestResp1) / (2 * domain.getMaxUtility());
+    const auto maxUtility = domain.getMaxUtility();
+    const auto bestResp0 = bestResponseTo(profile[0], Player(1), domain).value / maxUtility;
+    const auto bestResp1 = bestResponseTo(profile[1], Player(0), domain).value / maxUtility;
+    const double expl = (bestResp0 + bestResp1) / 2;
 
-    LOG_DEBUG("BR_pl1(strategy0) " << bestResp0)
-    LOG_DEBUG("BR_pl0(strategy1) " << bestResp1)
+    LOG_VAL("BR_pl1(strategy0) ", bestResp0)
+    LOG_VAL("BR_pl0(strategy1) ", bestResp1)
+    LOG_VAR(expl)
     assert(expl <= 1.0);
     assert(expl >= 0.0);
-    return expl;
+    return Exploitability{bestResp0, bestResp1, expl};
 }
 
-double calcExploitability(const Domain &domain, const BehavioralStrategy &strat,
-                          Player pl, double gameValue) {
+PlayerExploitability calcExploitability(const Domain &domain, const BehavioralStrategy &strat,
+                                        Player pl, double gameValue) {
     assert(domain.getNumberOfPlayers() == 2);
     assert(domain.isZeroSum());
     assert(pl == Player(0) || pl == Player(1));
 
-    const auto bestRespValue = bestResponseTo(strat, opponent(pl), domain).value;
-    const double expl = (gameValue + bestRespValue) / domain.getMaxUtility();
+    const auto maxUtility = domain.getMaxUtility();
+    const auto bestResp = bestResponseTo(strat, opponent(pl), domain).value / maxUtility;
+    const double expl = (gameValue / maxUtility) + bestResp;
 
-    LOG_DEBUG("BR_pl"<<opponent(pl)<<"(strategy"<<pl<<") " << bestRespValue)
+    LOG_VAL("BR_pl" << opponent(pl) << "(strategy" << pl << ") ", bestResp)
+    LOG_VAR(expl)
     assert(expl <= 1.0);
     assert(expl >= 0.0);
-    return expl;
+    return PlayerExploitability{bestResp, expl};
 }
 
 }

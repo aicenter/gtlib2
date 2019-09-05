@@ -51,6 +51,9 @@ GoofSpielObservation::GoofSpielObservation(int initialNumOfCards,
     id_ = (roundResult_ + 1) // round outcome is 0..2, i.e. 2 bits to shift
         | ((natureCard_ + player0LastCard_ * n + player1LastCard_ * n * n) << 2);
 }
+string GoofSpielObservation::toString() const {
+    return to_string(roundResult_);
+}
 
 void GoofSpielSettings::shuffleChanceCards(unsigned long seed) {
     assert(fixChanceCards);
@@ -292,16 +295,14 @@ vector<Player> GoofSpielState::getPlayers() const {
 }
 
 string GoofSpielState::toString() const {
-    string ret;
+    std::stringstream ss;
     for (int pl = 0; pl < 3; ++pl) {
-        ret.append(((pl < 2) ? "P" + to_string(pl) : "N")
-                       + ": [");
-        for (int card : playedCards_[pl]) {
-            ret.append(to_string(card) + " ");
-        }
-        ret.append("]");
+        ss << ((pl < 2) ? "P" + to_string(pl) +": " : "N:  ");
+        ss << playedCards_[pl];
+
+        ss << endl;
     }
-    return ret;
+    return ss.str();
 }
 
 bool GoofSpielState::operator==(const State &rhs) const {

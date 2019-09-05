@@ -27,7 +27,7 @@
 #include <vector>
 #include <memory>
 #include <cmath>
-
+#include <string.h>
 
 /**
  * CartProduct returns cartesian product of all items in a vector
@@ -168,6 +168,16 @@ std::vector<T> extend(const std::vector<T>& original, const Ts&... args) {
     return made;
 }
 
+template<typename T>
+bool isExtension(const vector<T> &base, const vector<T> &extending) {
+    auto sizeTarget = base.size();
+    auto sizeCmp = extending.size();
+    if(sizeCmp <= sizeTarget) return false;
+
+    size_t cmpBytes = min(sizeTarget, sizeCmp) * sizeof(T);
+    return !memcmp(base.data(), extending.data(), cmpBytes);
+}
+
 }  // namespace std
 
 namespace GTLib2 {
@@ -194,6 +204,38 @@ struct Escaped {
                 case '\"':  os << "\\\""; break;
                 case '\?':  os << "\\\?"; break;
                 default: os << c;
+            }
+        }
+        return os;
+    }
+};
+
+template<typename A, typename B>
+struct Either {
+    bool cond;
+    const A& a;
+    const B& b;
+    Either(bool cond, const A& a, const B&b) : cond(cond), a(a), b(b) {}
+
+    friend inline std::ostream& operator<<(std::ostream& os, const Either& e) {
+        if(e.cond) os << e.a;
+        else os << e.b;
+        return os;
+    }
+};
+
+struct Indented {
+    string str;
+    int times;
+
+    friend inline std::ostream& operator<<(std::ostream& os, const Indented& e) {
+        for (int i = 0; i < e.times; ++i) os << ' ';
+        for(const char &c : e.str) {
+            if(c == '\n') {
+                os << '\n';
+                for (int i = 0; i < e.times; ++i) os << ' ';
+            } else {
+                os << c;
             }
         }
         return os;
@@ -285,5 +327,51 @@ struct Escaped {
   (std::fprintf(stderr, "UNREACHABLE executed at %s:%d\n", __FILE__, __LINE__), abort())
 #endif
 
+namespace std { // NOLINT(cert-dcl58-cpp)
+
+template<typename T>
+std::ostream &operator<<(std::ostream &ss, const vector<T> &arr) {
+    ss << "[";
+    for (int i = 0; i < arr.size(); ++i) {
+        if (i == 0) ss << arr.at(i);
+        else ss << ", " << arr.at(i);
+    }
+    ss << "]";
+    return ss;
+}
+
+template<typename K, typename V>
+std::ostream &operator<<(std::ostream &ss, const unordered_map<K, V> &map) {
+    bool addNewLine = map.size() > 4;
+    ss << "{";
+    if(addNewLine) ss << endl;
+    bool first=true;
+    for (const auto &[k,v] : map) {
+        if(!first && !addNewLine) ss << ", ";
+        ss << k << ": " << v;
+        first=false;
+        if(addNewLine) ss << endl;
+    }
+    ss << "}";
+    return ss;
+}
+
+template<typename K, typename V>
+std::ostream &operator<<(std::ostream &ss, const unordered_map<shared_ptr<K>, V> &map) {
+    bool addNewLine = map.size() > 4;
+    ss << "{";
+    if(addNewLine) ss << endl;
+    bool first=true;
+    for (const auto &[k,v] : map) {
+        if(!first && !addNewLine) ss << ", ";
+        ss << *k << ": " << v;
+        first=false;
+        if(addNewLine) ss << endl;
+    }
+    ss << "}";
+    return ss;
+}
+
+}  // namespace std
 
 #endif  // UTILS_UTILS_H_

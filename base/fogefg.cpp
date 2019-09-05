@@ -21,6 +21,7 @@
 
 
 #include "base/fogefg.h"
+#include "algorithms/common.h"
 
 namespace GTLib2 {
 
@@ -70,7 +71,7 @@ shared_ptr<EFGNode> FOG2EFGNode::performAction(const shared_ptr<Action> &action)
         case PlayerNode:
             return performPlayerAction(action);
         case TerminalNode:
-            assert(false); // Cannot perform any actions in terminal node!
+            unreachable("Cannot perform any actions in terminal node!");
         default:
             unreachable("unrecognized option!");
     }
@@ -191,7 +192,7 @@ vector<shared_ptr<Action>> FOG2EFGNode::availableActions() const {
         case ChanceNode:
             return createChanceActions();
         case TerminalNode:
-            assert(false); // Not defined for terminal nodes!
+            unreachable("Not defined for terminal nodes!");
         default:
             unreachable("unrecognized option!");
     }
@@ -226,51 +227,109 @@ ProbDistribution FOG2EFGNode::chanceProbs() const {
 }
 
 vector<ActionObservationIds> FOG2EFGNode::getAOids(Player player) const {
-    if (!parent_) return vector<ActionObservationIds>{NO_ACTION_OBSERVATION};
+    if (!parent_) {
+        switch (type_) {
+            case ChanceNode:
+                // In a root chance node, nobody knows anything yet.
+                return {NO_ACTION_OBSERVATION};
+            case PlayerNode: {
+                // There was only one chance outcome and that's why player node was constructed
+                // as a root node. However, the opponent might have learned something, which
+                // will be even more refined after the player plays an action, and this is the
+                // reason to add observations here as well, and not just go
+                // with the NO_ACTION_OBSERVATION.
+                //
+                // The second observation of which player makes the initial move must be here
+                // to ensure that when that player makes an action, it will not be written
+                // into the one at index 0, because he didn't make that action when he received
+                // the first observation.
+                const ObservationId initialObs = lastOutcome_->privateObservations[player]->getId();
+                if (getPlayer() == player)
+                    return {
+                        ActionObservationIds{NO_ACTION, initialObs},
+                        ActionObservationIds{NO_ACTION, observationPlayerMove(getPlayer())}
+                    };
+                else
+                    return {ActionObservationIds{NO_ACTION, initialObs}};
+            }
+            case TerminalNode:
+                unreachable("parent cannot be terminal!");
+            default:
+                unreachable("unrecognized option");
+        }
+    }
 
-    ObservationId lastObservation = lastOutcome_->privateObservations[player]->getId();
+    const ObservationId lastObservation = lastOutcome_->privateObservations[player]->getId();
+    const ActionId lastAction = incomingAction_->getId();
     auto aoh = parent_->getAOids(player);
 
     switch (parent_->type_) {
 
-        case ChanceNode: // after chance, we always append private observation
+        case ChanceNode:
+            // After chance node, there is always a new round, so we have new private observations.
+            // However those can be of value NO_OBSERVATION.
+
             if (!parent_->parent_ || parent_->lastOutcome_->state->isPlayerMakingMove(player)) {
+                // Update observation either
+                // - for the root (initial) chance outcomes
+                // - if the player was making a move in the round
                 aoh[aoh.size() - 1].observation = lastObservation;
             } else {
+                // Otherwise append observation, and the player didn't do anything
+                // to get this observation (it was announced)
                 aoh.emplace_back(ActionObservationIds{NO_ACTION, lastObservation});
             }
             break;
 
         case PlayerNode:
-            // There are two possibilities of player node:
+            // There are two cases of player node:
             // - one that continues to the same round
             // - one that continues to the next round
-            //   (because chance node is omitted - only one chance action)
+            //   (because chance node is omitted - there was only one chance action,
+            //    so we skip such a node)
 
             if (parent_->getPlayer() == player) {
-                aoh.emplace_back(ActionObservationIds{incomingAction_->getId(), NO_OBSERVATION});
+                // Give player the action that he actually made.
+                aoh[aoh.size() - 1].action = lastAction;
             } else {
+                // It was opponent's node, so the player didn't do anything,
+                // and didn't get an observation.
                 aoh.emplace_back(NO_ACTION_OBSERVATION);
             }
-            if (parent_->stateDepth_ != stateDepth_) {
+
+            // If it is a new round, update the observation (similarly as for the chance node).
+            // Now even the player who didn't do anything might get an observation
+            // (it was announced), just like in chance node case.
+            if (hasNewOutcome()) {
                 aoh[aoh.size() - 1].observation = lastObservation;
             }
             break;
 
         case TerminalNode:
-            assert(false); // parent cannot be terminal!
-            break;
-
+            unreachable("parent cannot be terminal!");
         default:
-            assert(false); // unrecognized option
+            unreachable("unrecognized option");
     }
 
     // Prevent agent getting some information by appending "no information" :-)
+    // Because we had some cases of appending NO_ACTION_OBSERVATION, if no observation was
+    // actually made, it will be removed here.
+    //
     // Except for the potential root NO_ACTION_OBSERVATION
     //   In this case no one will gain information by "no information",
     //   because it's prefix of every history.
-    //   We do this to ensure that [aoh.size()-1] is always defined.
+    //   We add NO_ACTION_OBSERVATION to root to ensure that [aoh.size()-1] is always defined.
     if (aoh.size() > 1 && aoh[aoh.size() - 1] == NO_ACTION_OBSERVATION) aoh.pop_back();
+
+    // Finally, player always gets observation that it's his move now.
+    // This is done to ensure that infosets and aug infosets do not collide.
+    // In the child nodes the action will be updated, and thus it will get a different AOs.
+    if (type_ == PlayerNode && getPlayer() == player) {
+        aoh.emplace_back(ActionObservationIds{NO_ACTION, observationPlayerMove(player)});
+    }
+
+    // Must always hold, after we made all of the above.
+    assert(algorithms::isAOCompatible(parent_->getAOids(player), aoh));
 
     return aoh;
 }
@@ -279,10 +338,22 @@ vector<ObservationId> FOG2EFGNode::getPubObsIds() const {
     if (!parent_) return vector<ObservationId>{};
 
     auto oh = parent_->getPubObsIds();
-    if (hasNewOutcome() && lastOutcome_->publicObservation->getId() != NO_OBSERVATION)
-        oh.push_back(lastOutcome_->publicObservation->getId());
-    else if (parent_->type_ == PlayerNode)
-        oh.push_back(observationPlayerMoved(parent_->getPlayer()));
+
+    const auto lastObservation = lastOutcome_->publicObservation->getId();
+
+    // Always add new public observation if it occurs
+    if (hasNewOutcome() && lastObservation != NO_OBSERVATION) {
+        oh.push_back(lastObservation);
+    }
+
+    // Add that it's player's move, if it is not player's repeated move
+    // If it is repeated, it means it might be secret.
+    // If it's not secret, it should be revealed via new public observation.
+    if (type_ == PlayerNode &&
+        (parent_->type_ == ChanceNode
+            || (parent_->type_ == PlayerNode && parent_->getPlayer() != getPlayer())
+        ))
+        oh.push_back(observationPlayerMove(getPlayer()));
 
     return oh;
 }
@@ -296,7 +367,7 @@ const shared_ptr<FOG2EFGNode> FOG2EFGNode::getChildAt(EdgeId index) const {
         case PlayerNode:
             return performPlayerAction(action);
         case TerminalNode:
-            assert(false); // Cannot perform any actions in terminal node!
+            unreachable("Cannot perform any actions in terminal node!");
         default:
             unreachable("unrecognized option!");
     }
@@ -349,8 +420,7 @@ shared_ptr<EFGNode> createRootEFGNode(const OutcomeDistribution &rootOutcomes) {
 
     EFGNodeType childType = ChanceNode;
     if (rootState->isTerminal()) {
-        // some weird game where no one plays and players get utility right away
-        childType = TerminalNode;
+        unreachable("some weird game where no one plays and players get utility right away");
     } else if (!rootState->getPlayers().empty()) {
         childType = PlayerNode;
     }

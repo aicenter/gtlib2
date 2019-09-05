@@ -70,8 +70,8 @@ class EFGChanceAction: public Action {
 class PublicState: public Node<PublicState> {
  public:
     inline PublicState() : Node() {}
-    inline PublicState(shared_ptr<PublicState const> parent, ObservationId publicObs) :
-        Node(move(parent), publicObs) {}
+    inline PublicState(shared_ptr<PublicState const> parent, vector<ObservationId> history) :
+        Node(move(parent), history) {}
 
     const vector<ActionId> &getHistory() const { return history_; };
 
@@ -212,7 +212,7 @@ class EFGNode {
             const auto parentPub = getParent()->getPublicState();
             const auto pubHistory = getPubObsIds();
             if (parentPub->getHistory() == pubHistory) return parentPub;
-            return make_shared<PublicState>(parentPub, pubHistory.back());
+            return make_shared<PublicState>(parentPub, pubHistory);
         }
         return make_shared<PublicState>();
     };

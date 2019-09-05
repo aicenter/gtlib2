@@ -170,6 +170,7 @@ TEST(Common, CompatibilityOfIds) {
 }
 
 TEST(Common, Extensibility) {
+    using std::isExtension;
     typedef ActionId a;
     //@formatter:off
     // both empty seq

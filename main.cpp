@@ -69,10 +69,14 @@ int main(int argc, const char **argv) {
         std::cout << e.what();
         return 0;
     }
+    catch (const args::Header &e) {
+        return 0;
+    }
     catch (const args::Error &e) {
         std::cerr << e.what() << std::endl << parser;
         return 1;
     }
+
 
     return 0;
 }

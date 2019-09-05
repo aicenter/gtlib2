@@ -464,7 +464,7 @@ TEST(CFR, CheckExploitabilityInSmallDomain) {
 
     cfr.runIterations(2);
     auto profile = getAverageStrategy(data);
-    EXPECT_LE(std::fabs(0.159173 - calcExploitability(*domain, getAverageStrategy(data))), 0.0001);
+    EXPECT_LE(std::fabs(0.159173 - calcExploitability(*domain, getAverageStrategy(data)).expl), 0.0001);
 }
 
 }  // namespace GTLib2

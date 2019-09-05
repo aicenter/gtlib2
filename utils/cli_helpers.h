@@ -143,18 +143,27 @@ unique_ptr<Domain> constructDomain(const string &description) {
         {"STRAT2x3",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{2,3,{},{'1', '2', '3'}});}},
         {"STRAT3x2",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{3,2,{},{'1', '2'}});}},
         {"STRAT3x3",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{3,3,{{1,1,1,1}},{'1', '2', '3'}});}},
+        {"STRAT4x4",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{4,4,{{1,1,2,2}}, {'3','2','2','1'}});}},
         {"STRAT6x6",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{6,6,{{2,2,2,2}}, {'B','4','3','3','2','2', '2','1','1','1','1','F'}});}},
         {"STRAT10x10", [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{10,10, {{3,5,2,2}, {7,5,2,2}}}); }},
         {"KS",         [ ](vector<string> p) { return make_unique<KriegspielDomain>(1000, 1000, chess::BOARD::STANDARD); }},
     };
     // @formatter:on
 
+    if(domainsTable.find(domain) == domainsTable.end()) {
+        LOG_ERROR("Domain not found: " << domain);
+        LOG_ERROR("List of available domains:")
+        for(const auto &[domain, cb] : domainsTable) {
+            cerr << domain << endl;
+        }
+        abort();
+    }
     return domainsTable.at(domain)(params);
 }
 
 std::unique_ptr<GTLib2::AlgorithmWithData> constructAlgWithData(const GTLib2::Domain &d,
                                                                 const std::string &algName,
-                                                                const std::string &settingFile) {
+                                                                std::string settingFile) {
 
     struct WrapperCFR: AlgorithmWithData {
         CFRData data;
@@ -189,28 +198,31 @@ std::unique_ptr<GTLib2::AlgorithmWithData> constructAlgWithData(const GTLib2::Do
         PreparedAlgorithm prepare() override { return createInitializer<ISMCTS>(cfg); }
     };
 
-    std::fstream fs(settingFile, std::fstream::in);
-    if (!fs) {
-        LOG_ERROR("Could not open " << settingFile);
-        exit(1);
-    }
-    cereal::JSONInputArchive deserialize(fs);
+    std::fstream fs;
+    unique_ptr<cereal::JSONInputArchive> deserialize;
 
     // @formatter:off
+    unordered_map<string, string> configsTable = {
+        {"CFR", "settings/cfr.json"},
+        {"OOS", "settings/oos.json"},
+        {"MCCR", "settings/mccr.json"},
+        {"RND", "settings/rnd.json"},
+    };
+
     unordered_map<string, function<unique_ptr<AlgorithmWithData>()>> algorithmsTable = {
         {"CFR",   [&]() {
             CFRSettings settings;
-            deserialize(settings);
+            (*deserialize)(settings);
             return make_unique<WrapperCFR>(d, settings);
         }},
         {"OOS",   [&]() {
             OOSSettings settings;
-            deserialize(settings);
+            (*deserialize)(settings);
             return make_unique<WrapperOOS>(d, settings);
         }},
         {"MCCR",   [&]() {
             MCCRSettings settings;
-            deserialize(settings);
+            (*deserialize)(settings);
             return make_unique<WrapperMCCR>(d, settings);
         }},
         {"ISMCTS",   [&]() {
@@ -227,6 +239,28 @@ std::unique_ptr<GTLib2::AlgorithmWithData> constructAlgWithData(const GTLib2::Do
     };
     // @formatter:on
 
+    if(algorithmsTable.find(algName) == algorithmsTable.end()) {
+        LOG_ERROR("Algorithm not found: " << algName);
+        LOG_ERROR("List of available algorithms:")
+        for(const auto &[alg, cb] : algorithmsTable) {
+            cerr << alg << endl;
+        }
+        abort();
+    }
+
+    if (settingFile.empty()) {
+        string defaultConfig = configsTable.at(algName);
+        LOG_INFO("No config file was supplied for " << algName << ", using " << defaultConfig)
+        settingFile = defaultConfig;
+    }
+
+    fs.open(settingFile, std::fstream::in);
+    if (!fs) {
+        LOG_ERROR("Could not open " << settingFile)
+        exit(1);
+    }
+
+    deserialize = make_unique<cereal::JSONInputArchive>(fs);
     return algorithmsTable.at(algName)();
 }
 
