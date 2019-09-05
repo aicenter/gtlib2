@@ -20,6 +20,7 @@
 */
 
 
+#include <base/random.h>
 #include "domains/goofSpiel.h"
 
 #pragma clang diagnostic push
@@ -58,9 +59,10 @@ void GoofSpielSettings::shuffleChanceCards(unsigned long seed) {
         std::iota(chanceCards.begin(), chanceCards.end(), 1);
     }
 
-    std::default_random_engine eng{static_cast<std::default_random_engine::result_type>(seed)};
-    std::mt19937 randEng(eng());
-    std::shuffle(chanceCards.begin(), chanceCards.end(), randEng);
+//    std::default_random_engine eng{static_cast<std::default_random_engine::result_type>(seed)};
+//    std::mt19937 randEng(eng());
+    std::mt19937 randEng(seed);
+    shuffleVector(chanceCards, randEng);//std::shuffle(chanceCards.begin(), chanceCards.end(), randEng);
 }
 
 vector<int> GoofSpielSettings::getNatureCards() {
