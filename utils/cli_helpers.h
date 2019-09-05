@@ -34,6 +34,7 @@
 #include "algorithms/cfr.h"
 #include "algorithms/oos.h"
 #include "algorithms/mccr.h"
+#include "algorithms/MCTS/CPW_ISMCTS.h"
 
 #include "domains/goofSpiel.h"
 #include "domains/oshiZumo.h"
@@ -191,6 +192,16 @@ std::unique_ptr<GTLib2::AlgorithmWithData> constructAlgWithData(const GTLib2::Do
     struct WrapperRND: AlgorithmWithData {
         PreparedAlgorithm prepare() override { return createInitializer<RandomPlayer>(); }
     };
+    struct WrapperCPW: AlgorithmWithData {
+        ISMCTSSettings cfg;
+        inline WrapperCPW(const Domain &d, ISMCTSSettings _cfg) : cfg(_cfg) {}
+        PreparedAlgorithm prepare() override { return createInitializer<CPW_ISMCTS>(cfg); }
+    };
+    struct WrapperISMC: AlgorithmWithData {
+        ISMCTSSettings cfg;
+        inline WrapperISMC(const Domain &d, ISMCTSSettings _cfg) : cfg(_cfg) {}
+        PreparedAlgorithm prepare() override { return createInitializer<ISMCTS>(cfg); }
+    };
 
     std::fstream fs;
     unique_ptr<cereal::JSONInputArchive> deserialize;
@@ -218,6 +229,16 @@ std::unique_ptr<GTLib2::AlgorithmWithData> constructAlgWithData(const GTLib2::Do
             MCCRSettings settings;
             (*deserialize)(settings);
             return make_unique<WrapperMCCR>(d, settings);
+        }},
+        {"ISMCTS",   [&]() {
+            auto fact = make_shared<UCTSelectorFactory>(sqrt(2));
+            ISMCTSSettings settings = {.fact_ = std::static_pointer_cast<SelectorFactory>(fact), .randomSeed = 1};
+            return make_unique<WrapperISMC>(d, settings);
+        }},
+        {"CPW",   [&]() {
+            auto fact = make_shared<UCTSelectorFactory>(sqrt(2));
+            ISMCTSSettings settings = {.useBelief = true, .fact_ = std::static_pointer_cast<SelectorFactory>(fact), .randomSeed = 2};
+            return make_unique<WrapperCPW>(d, settings);
         }},
         {"RND",   [&]() { return make_unique<WrapperRND>(); }},
     };
