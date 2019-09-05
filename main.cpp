@@ -22,12 +22,12 @@
 #include "utils/global_args.h"
 
 // All the possible commands
-#include "experiments/benchmark_cfr.h"
-#include "experiments/calc_expl.h"
-#include "experiments/export_domain.h"
-#include "experiments/export_ring.h"
-#include "experiments/cfr_regrets.h"
-#include "experiments/play_match.h"
+#include "cli/benchmark_cfr.h"
+#include "cli/calc_expl.h"
+#include "cli/export_domain.h"
+#include "cli/export_ring.h"
+#include "cli/cfr_regrets.h"
+#include "cli/play_match.h"
 
 int main(int argc, const char **argv) {
     using namespace GTLib2;
@@ -49,11 +49,11 @@ int main(int argc, const char **argv) {
                             "Calc exploitability of alg strategy "
                             "given preplay and per-move time.", &Command_CalcExpl);
 
-    // ------ experiments -------
-    args::Group experiments(parser, "commands (experiments)");
-    args::Command cfr_regrets(experiments, "cfr_regrets",
+    // ------ cli -------
+    args::Group cli(parser, "commands (cli)");
+    args::Command cfr_regrets(cli, "cfr_regrets",
                               "Calculate regrets and strategies in CFR", &Command_CFRRegrets);
-    args::Command export_ring(experiments, "export_ring",
+    args::Command export_ring(cli, "export_ring",
                               "Export leaf utilities of EFG as a color ring", &Command_ExportRing);
 
     try {

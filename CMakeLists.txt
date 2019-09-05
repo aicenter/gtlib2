@@ -266,13 +266,13 @@ set(SOURCE_FILES
         external/cereal/types/forward_list.hpp
         external/cereal/cereal.hpp
         external/cereal/macros.hpp
-        # experiments
-        experiments/benchmark_cfr.h
-        experiments/calc_expl.h
-        experiments/export_domain.h
-        experiments/export_ring.h
-        experiments/cfr_regrets.h
-        experiments/play_match.h
+        # cli
+        cli/benchmark_cfr.h
+        cli/calc_expl.h
+        cli/export_domain.h
+        cli/export_ring.h
+        cli/cfr_regrets.h
+        cli/play_match.h
         )
 
 set(TEST_FILES

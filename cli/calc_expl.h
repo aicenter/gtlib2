@@ -215,6 +215,7 @@ StrategyProfile MCCR_AverageStrategy(Domain &domain, const string &cfg,
         auto expl_partial = calcExploitability(domain, avgStratForPlayer);
 
         LOG_INFO("Exploitability after resolving for player" << int(traversingPlayer))
+        LOG_VAR(expl_partial.expl)
         profile.emplace_back(avgStratForPlayer.at(traversingPlayer));
     }
 
