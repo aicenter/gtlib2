@@ -37,7 +37,7 @@ PlayControl CPW_ISMCTS::runPlayIteration(const optional<shared_ptr<AOH>> &curren
     if (currentInfoset_ != *currentInfoset) setCurrentInfoset(*currentInfoset);
     const int nodeIndex = config_.useBelief
                           ? pickRandom(belief_, generator_)
-                          : pickRandomNumber(0, nodes->second.size() - 1, generator_);
+                          : pickRandomInt(0, nodes->second.size() - 1, generator_);
     iteration(nodes->second[nodeIndex]);
 
     return ContinueImproving;

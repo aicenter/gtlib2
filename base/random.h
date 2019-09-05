@@ -30,7 +30,7 @@ namespace GTLib2 {
 
 extern std::uniform_real_distribution<double> uniformDist;
 
-static int pickRandomNumber(int min, int max, std::mt19937 rand)
+static int pickRandomInt(int min, int max, std::mt19937 rand)
 {
     int res = rand() % (max + 1 - min) + min;
     return res;
@@ -47,7 +47,7 @@ static void shuffleVector(vector<T> & v, std::mt19937 rand)
 {
     for (int i = v.size() - 1; i > -1; i--)
     {
-        int j = pickRandomNumber(0, i, rand);
+        int j = pickRandomInt(0, i, rand);
         std::swap(v[i], v[j]);
     }
 }

@@ -19,6 +19,7 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <base/random.h>
 #include "domains/randomGame.h"
 
 namespace GTLib2::domains {
@@ -92,9 +93,9 @@ unsigned long RandomGameState::countAvailableActionsFor(Player player) const {
     auto RGdomain = dynamic_cast<const RandomGameDomain *>(domain_);
     unsigned long possibleMoves = RGdomain->getMaxBranchingFactor();
     if (!RGdomain->isFixedBranchingFactor()) {
-        std::uniform_int_distribution<long> distribution(2, RGdomain->getMaxBranchingFactor());
+//        std::uniform_int_distribution<long> distribution(2, RGdomain->getMaxBranchingFactor());
         std::mt19937 generator(playerActionSeeds_[player]);
-        possibleMoves = distribution(generator);
+        possibleMoves = pickRandomInt(2, RGdomain->getMaxBranchingFactor(), generator);
     }
     return possibleMoves;
 }
