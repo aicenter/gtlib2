@@ -34,6 +34,7 @@
 #include "algorithms/cfr.h"
 #include "algorithms/oos.h"
 #include "algorithms/mccr.h"
+#include "algorithms/MCTS/CPW_ISMCTS.h"
 
 #include "domains/goofSpiel.h"
 #include "domains/oshiZumo.h"
@@ -145,7 +146,12 @@ unique_ptr<Domain> constructDomain(const string &description) {
         {"STRAT4x4",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{4,4,{{1,1,2,2}}, {'3','2','2','1'}});}},
         {"STRAT6x6",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{6,6,{{2,2,2,2}}, {'B','4','3','3','2','2', '2','1','1','1','1','F'}});}},
         {"STRAT10x10", [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{10,10, {{3,5,2,2}, {7,5,2,2}}}); }},
-        {"KS",         [ ](vector<string> p) { return make_unique<KriegspielDomain>(50, 50, chess::BOARD::STANDARD); }},
+        {"KS",         [ ](vector<string> p) { return make_unique<KriegspielDomain>(1000, 1000, chess::BOARD::STANDARD); }},
+        {"KS_STANDARD",      [ ](vector<string> p) { return make_unique<KriegspielDomain>(1000, 1000, chess::BOARD::STANDARD); }},
+        {"KS_SILVERMAN4BY4", [ ](vector<string> p) { return make_unique<KriegspielDomain>(1000, 1000, chess::BOARD::SILVERMAN4BY4); }},
+        {"KS_MINIMAL3x3",    [ ](vector<string> p) { return make_unique<KriegspielDomain>(1000, 1000, chess::BOARD::MINIMAL3x3); }},
+        {"KS_MICROCHESS",    [ ](vector<string> p) { return make_unique<KriegspielDomain>(1000, 1000, chess::BOARD::MICROCHESS); }},
+        {"KS_DEMICHESS ",    [ ](vector<string> p) { return make_unique<KriegspielDomain>(1000, 1000, chess::BOARD::DEMICHESS ); }},
     };
     // @formatter:on
 
@@ -186,6 +192,16 @@ std::unique_ptr<GTLib2::AlgorithmWithData> constructAlgWithData(const GTLib2::Do
     struct WrapperRND: AlgorithmWithData {
         PreparedAlgorithm prepare() override { return createInitializer<RandomPlayer>(); }
     };
+    struct WrapperCPW: AlgorithmWithData {
+        ISMCTSSettings cfg;
+        inline WrapperCPW(const Domain &d, ISMCTSSettings _cfg) : cfg(_cfg) {}
+        PreparedAlgorithm prepare() override { return createInitializer<CPW_ISMCTS>(cfg); }
+    };
+    struct WrapperISMC: AlgorithmWithData {
+        ISMCTSSettings cfg;
+        inline WrapperISMC(const Domain &d, ISMCTSSettings _cfg) : cfg(_cfg) {}
+        PreparedAlgorithm prepare() override { return createInitializer<ISMCTS>(cfg); }
+    };
 
     std::fstream fs;
     unique_ptr<cereal::JSONInputArchive> deserialize;
@@ -213,6 +229,16 @@ std::unique_ptr<GTLib2::AlgorithmWithData> constructAlgWithData(const GTLib2::Do
             MCCRSettings settings;
             (*deserialize)(settings);
             return make_unique<WrapperMCCR>(d, settings);
+        }},
+        {"ISMCTS",   [&]() {
+            auto fact = make_shared<UCTSelectorFactory>(sqrt(2));
+            ISMCTSSettings settings = {.fact_ = std::static_pointer_cast<SelectorFactory>(fact), .randomSeed = 1};
+            return make_unique<WrapperISMC>(d, settings);
+        }},
+        {"CPW",   [&]() {
+            auto fact = make_shared<UCTSelectorFactory>(sqrt(2));
+            ISMCTSSettings settings = {.useBelief = true, .fact_ = std::static_pointer_cast<SelectorFactory>(fact), .randomSeed = 2};
+            return make_unique<WrapperCPW>(d, settings);
         }},
         {"RND",   [&]() { return make_unique<WrapperRND>(); }},
     };
