@@ -34,7 +34,7 @@ TEST(ISMCTS, UCTTest) {
     for (int seed = 0; seed < 100; ++seed) {
         GTLib2::domains::GoofSpielSettings settings
             ({.variant =   GTLib2::domains::IncompleteObservations, .numCards =  5, .fixChanceCards = true});
-        //settings.shuffleChanceCards(seed);
+        settings.shuffleChanceCards(seed);
         domains::GoofSpielDomain domain(settings);
         auto fact0 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
         auto fact1 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
@@ -47,7 +47,7 @@ TEST(ISMCTS, UCTTest) {
         auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
         rewards[seed] = actualOutcome[0];
     }
-    const double expsumm = -30; // useBelief is better
+    const double expsumm = 49; // useBelief is better
     double summ = 0;
     for (auto r : rewards)summ += r;
     EXPECT_EQ(summ, expsumm);
@@ -59,7 +59,7 @@ TEST(ISMCTS, RMTest) {
     for (int seed = 0; seed < 100; ++seed) {
         GTLib2::domains::GoofSpielSettings settings
             ({.variant =   GTLib2::domains::IncompleteObservations, .numCards =  5, .fixChanceCards =  true});
-        //settings.shuffleChanceCards(seed);
+        settings.shuffleChanceCards(seed);
         domains::GoofSpielDomain domain(settings);
         auto fact0 = make_shared<RMSelectorFactory>(0.2, -14, 14, seed);
         auto fact1 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
@@ -72,7 +72,7 @@ TEST(ISMCTS, RMTest) {
         auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
         rewards[seed] = actualOutcome[0];
     }
-    const double expsumm = -251; //very bad
+    const double expsumm = -218; //very bad
     double summ = 0;
     for (auto r : rewards)summ += r;
     EXPECT_EQ(summ, expsumm);
@@ -84,7 +84,7 @@ TEST(ISMCTS, Exp3StoreObsTest) {
     for (int seed = 0; seed < 100; ++seed) {
         GTLib2::domains::GoofSpielSettings settings
             ({.variant =   GTLib2::domains::IncompleteObservations, .numCards =  5, .fixChanceCards = true});
-        //settings.shuffleChanceCards(seed);
+        settings.shuffleChanceCards(seed);
         domains::GoofSpielDomain domain(settings);
         auto fact0 = make_shared<Exp3SelectorFactory>(-14, 14, 0.05, true, seed);
         auto fact1 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
@@ -97,7 +97,7 @@ TEST(ISMCTS, Exp3StoreObsTest) {
         auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
         rewards[seed] = actualOutcome[0];
     }
-    const double expsumm = -256; // very bad
+    const double expsumm = -213; // very bad
     double summ = 0;
     for (auto r : rewards) summ += r;
     EXPECT_EQ(summ, expsumm);
@@ -109,7 +109,7 @@ TEST(ISMCTS, Exp3Test) {
     for (int seed = 0; seed < 100; ++seed) {
         GTLib2::domains::GoofSpielSettings settings
             ({.variant =  GTLib2::domains::IncompleteObservations, .numCards = 5, .fixChanceCards = true});
-        //settings.shuffleChanceCards(seed);
+        settings.shuffleChanceCards(seed);
         domains::GoofSpielDomain domain(settings);
         auto fact0 = make_shared<Exp3SelectorFactory>(-14, 14, 0.05, false, seed);
         auto fact1 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
@@ -122,7 +122,7 @@ TEST(ISMCTS, Exp3Test) {
         auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
         rewards[seed] = actualOutcome[0];
     }
-    const double expsumm = -256; // same => storeExploration makes no diff
+    const double expsumm = -215; // same => storeExploration makes no diff
     double summ = 0;
     for (auto r : rewards)summ += r;
     EXPECT_EQ(summ, expsumm);
@@ -134,7 +134,7 @@ TEST(ISMCTS, Exp3LTest) {
     for (int seed = 0; seed < 100; ++seed) {
         GTLib2::domains::GoofSpielSettings settings
             ({.variant =   GTLib2::domains::IncompleteObservations, .numCards =  5, .fixChanceCards =  true});
-        //settings.shuffleChanceCards(seed);
+        settings.shuffleChanceCards(seed);
         domains::GoofSpielDomain domain(settings);
         auto fact0 = make_shared<Exp3SelectorFactory>(true, -14, 14, 0.05, seed);
         auto fact1 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
@@ -147,7 +147,7 @@ TEST(ISMCTS, Exp3LTest) {
         auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
         rewards[seed] = actualOutcome[0];
     }
-    const double expsumm = -133; // very bad
+    const double expsumm = -117; // very bad
     double summ = 0;
     for (auto r : rewards)summ += r;
     EXPECT_EQ(summ, expsumm);
@@ -159,7 +159,7 @@ TEST(ISMCTS, MidgameTest) {
     for (int seed = 0; seed < 100; ++seed) {
         GTLib2::domains::GoofSpielSettings settings
             ({.variant =   GTLib2::domains::IncompleteObservations, .numCards =  7, .fixChanceCards =  true});
-        //settings.shuffleChanceCards(seed);
+        settings.shuffleChanceCards(seed);
         domains::GoofSpielDomain domain(settings);
         auto fact0 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
         auto fact1 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
@@ -172,7 +172,7 @@ TEST(ISMCTS, MidgameTest) {
         auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
         rewards[seed] = actualOutcome[0];
     }
-    const double expsumm = 127; // CPW is better
+    const double expsumm = 108; // CPW is better
     double summ = 0;
     for (auto r : rewards)summ += r;
     EXPECT_EQ(summ, expsumm);
@@ -184,7 +184,7 @@ TEST(ISMCTS, BiggameTest) {
     for (int seed = 0; seed < 100; ++seed) {
         GTLib2::domains::GoofSpielSettings settings
             ({.variant =   GTLib2::domains::IncompleteObservations, .numCards =  10, .fixChanceCards =  true});
-        //settings.shuffleChanceCards(seed);
+        settings.shuffleChanceCards(seed);
         domains::GoofSpielDomain domain(settings);
         auto fact0 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
         auto fact1 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
@@ -197,7 +197,7 @@ TEST(ISMCTS, BiggameTest) {
         auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
         rewards[seed] = actualOutcome[0];
     }
-    const double expsumm = 164; // CPW is better
+    const double expsumm = 435; // CPW is better
     double summ = 0;
     for (auto r : rewards)summ += r;
     EXPECT_EQ(summ, expsumm);

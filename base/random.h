@@ -42,6 +42,16 @@ static double pickRandomDouble(std::mt19937 rand)
     return d;
 }
 
+template <class T>
+static void shuffleVector(vector<T> & v, std::mt19937 rand)
+{
+    for (int i = v.size() - 1; i > -1; i--)
+    {
+        int j = pickRandomNumber(0, i, rand);
+        std::swap(v[i], v[j]);
+    }
+}
+
 /**
  * Return index of which event should be picked according to given probability distribution
  */
