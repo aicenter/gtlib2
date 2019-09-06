@@ -49,6 +49,7 @@ TEST(ISMCTS, UCTTest) {
     }
     const double expsumm = 49; // useBelief is better
     double summ = 0;
+    cout << rewards << endl;
     for (auto r : rewards)summ += r;
     EXPECT_EQ(summ, expsumm);
 }

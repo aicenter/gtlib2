@@ -45,7 +45,10 @@ double ISMCTS::iteration(const shared_ptr<EFGNode> &h) {
     }
 }
 
+int cnt = 0;
+
 double ISMCTS::handleTerminalNode(const shared_ptr<EFGNode> &h) {
+    if(playingPlayer_ == 0) cout << cnt++ << " " << h->getUtilities()[0] << endl;
     return h->getUtilities()[playingPlayer_];
 }
 
