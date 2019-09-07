@@ -80,7 +80,8 @@ class FOG2EFGNode: public Node<FOG2EFGNode>,
 
     inline void describeNewOutcome() {
         if(hasNewOutcome()) {
-            LOG_INFO("New public  obs: " << *lastOutcome_->publicObservation)
+            if (lastOutcome_->publicObservation != nullptr) {LOG_INFO("New public  obs: " << *lastOutcome_->publicObservation)}
+            else {LOG_INFO("No public  obs")}
             LOG_INFO("New private obs for Pl0: " << *lastOutcome_->privateObservations.at(0))
             LOG_INFO("New private obs for Pl1: " << *lastOutcome_->privateObservations.at(1))
             LOG_INFO("New rewards: " << lastOutcome_->rewards)

@@ -212,6 +212,8 @@ std::unique_ptr<GTLib2::AlgorithmWithData> constructAlgWithData(const GTLib2::Do
         {"OOS", "settings/oos.json"},
         {"MCCR", "settings/mccr.json"},
         {"RND", "settings/rnd.json"},
+        {"CPW", "settings/cpw.json"},
+        {"ISMCTS", "settings/ismcts.json"},
     };
 
     unordered_map<string, function<unique_ptr<AlgorithmWithData>()>> algorithmsTable = {
