@@ -23,7 +23,7 @@
 #ifndef GTLIB2_CFR_REGRETS_H
 #define GTLIB2_CFR_REGRETS_H
 
-#include "utils/cli_helpers.h"
+#include "cli_helpers.h"
 #include "algorithms/cfr.h"
 
 namespace GTLib2::CLI {

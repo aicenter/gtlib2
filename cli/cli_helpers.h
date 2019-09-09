@@ -25,7 +25,7 @@
 #include <iomanip>
 
 #include "utils/args.hpp"
-#include "utils/global_args.h"
+#include "global_args.h"
 
 #include "base/algorithm.h"
 

@@ -22,7 +22,7 @@
 #ifndef GTLIB2_EXPORT_DOMAIN_H
 #define GTLIB2_EXPORT_DOMAIN_H
 
-#include "utils/cli_helpers.h"
+#include "cli_helpers.h"
 #include "utils/export.h"
 
 namespace GTLib2::CLI {

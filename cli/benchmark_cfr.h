@@ -22,7 +22,7 @@
 #ifndef GTLIB2_BENCHMARK_CFR_H
 #define GTLIB2_BENCHMARK_CFR_H
 
-#include "utils/cli_helpers.h"
+#include "cli_helpers.h"
 
 #include "algorithms/cfr.h"
 #include "domains/goofSpiel.h"

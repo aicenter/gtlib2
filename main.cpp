@@ -19,7 +19,7 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "utils/global_args.h"
+#include "cli/global_args.h"
 
 // All the possible commands
 #include "cli/benchmark_cfr.h"

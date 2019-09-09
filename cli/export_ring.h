@@ -22,10 +22,10 @@
 #ifndef GTLIB2_EXPORT_RING_H
 #define GTLIB2_EXPORT_RING_H
 
-#include "utils/cli_helpers.h"
+#include "cli_helpers.h"
 #include "base/tree.h"
 #include "base/fogefg.h"
-#include "utils/global_args.h"
+#include "global_args.h"
 
 namespace GTLib2::CLI {
 

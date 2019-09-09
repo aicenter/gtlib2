@@ -22,7 +22,7 @@
 #ifndef GTLIB2_EXPERIMENT_CALC_EXPL_H
 #define GTLIB2_EXPERIMENT_CALC_EXPL_H
 
-#include "utils/cli_helpers.h"
+#include "cli_helpers.h"
 #include "algorithms/evaluation.h"
 
 namespace GTLib2::CLI {
