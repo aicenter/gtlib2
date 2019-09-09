@@ -592,7 +592,7 @@ void King::updateMoves() {
             continue;
         }
         shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
-        if (p != nullptr && p->getColor() == this->getColor()) continue;
+        if (p != nullptr && (p->getColor() == this->getColor() || p->getKind() == 'k')) continue;
         this->moves->push_back(newPos);
     }
 
@@ -723,7 +723,7 @@ vector<Square> King::getSquaresAttacked() const {
             continue;
         }
         shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
-        if (p != nullptr) {
+        if (p != nullptr) {// && p->getColor() == this->getColor()
             continue;
         }
         v.push_back(newPos);
@@ -964,6 +964,13 @@ bool KriegspielState::makeMove(KriegspielAction *a) {
 
     if (std::find(p->getAllValidMoves()->begin(), p->getAllValidMoves()->end(), pos)
         != p->getAllValidMoves()->end()) {
+
+        if (p->getKind() == 'k') {
+            auto k2 = this->getPiecesOfColorAndKind(chess::invertColor(p->getColor()), chess::KING)[0];
+            auto attackSquares = k2->getAllMoves();
+            if (std::find(attackSquares->begin(), attackSquares->end(), a->getMove().second) != attackSquares->end())
+                return false;
+        }
         //move valid
         shared_ptr<AbstractPiece> checkCut = this->getPieceOnCoords(pos);
         if (checkCut != nullptr) {
