@@ -27,7 +27,6 @@
 
 #include "base/includes.h"
 #include "base/hashing.h"
-#include "external/cereal/cereal.hpp"
 #include "utils/utils.h"
 #include "utils/logging.h"
 

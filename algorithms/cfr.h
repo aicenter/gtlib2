@@ -42,16 +42,35 @@ enum RegretMatching { RegretMatchingNormal, RegretMatchingPlus };
 enum CFRUpdating { HistoriesUpdating, InfosetsUpdating };
 
 
-struct CFRSettings {
+struct CFRSettings: AlgConfig {
     // todo: CFR+
     AccumulatorWeighting accumulatorWeighting = UniformAccWeighting;
     RegretMatching regretMatching = RegretMatchingNormal;
     CFRUpdating cfrUpdating = HistoriesUpdating;
 
-    template<class Archive>
-    void serialize(Archive &archive) {
-        archive(accumulatorWeighting, regretMatching, cfrUpdating);
+    //@formatter:off
+    void update(const string &k, const string &v) override {
+        if(k == "accumulatorWeighting" && v == "UniformAccWeighting")  accumulatorWeighting = UniformAccWeighting;  else
+        if(k == "accumulatorWeighting" && v == "LinearAccWeighting")  accumulatorWeighting = LinearAccWeighting;   else
+        if(k == "regretMatching"       && v == "RegretMatchingNormal") regretMatching       = RegretMatchingNormal; else
+        if(k == "regretMatching"       && v == "RegretMatchingPlus")  regretMatching       = RegretMatchingPlus;   else
+        if(k == "cfrUpdating"          && v == "HistoriesUpdating")    cfrUpdating          = HistoriesUpdating;    else
+        if(k == "cfrUpdating"          && v == "InfosetsUpdating")    cfrUpdating          = InfosetsUpdating;     else
+        AlgConfig::update(k, v);
     }
+
+    inline string toString() const override {
+        std::stringstream ss;
+        ss << "; CFR" << endl;
+        if(accumulatorWeighting == UniformAccWeighting)   ss << "accumulatorWeighting = UniformAccWeighting"  << endl;
+        if(accumulatorWeighting == LinearAccWeighting )   ss << "accumulatorWeighting = LinearAccWeighting"   << endl;
+        if(regretMatching       == RegretMatchingNormal)  ss << "regretMatching       = RegretMatchingNormal" << endl;
+        if(regretMatching       == RegretMatchingPlus )   ss << "regretMatching       = RegretMatchingPlus"   << endl;
+        if(cfrUpdating          == HistoriesUpdating)     ss << "cfrUpdating          = HistoriesUpdating"    << endl;
+        if(cfrUpdating          == InfosetsUpdating )     ss << "cfrUpdating          = InfosetsUpdating"     << endl;
+        return ss.str();
+    }
+    //@formatter:on
 };
 
 
@@ -88,13 +107,13 @@ class CFRData: public virtual InfosetCache,
         this->createCFRInfosetData(getRootNode());
     }
 
-    inline CFRData(const CFRData& other) :
+    inline CFRData(const CFRData &other) :
         EFGCache(other),
         InfosetCache(other) {
-            addCallback([&](const shared_ptr<EFGNode> &n) { this->createCFRInfosetData(n); });
-            infosetData = other.infosetData;
-            updatingPolicy_ = other.updatingPolicy_;
-        }
+        addCallback([&](const shared_ptr<EFGNode> &n) { this->createCFRInfosetData(n); });
+        infosetData = other.infosetData;
+        updatingPolicy_ = other.updatingPolicy_;
+    }
 
     struct InfosetData {
         vector<double> regrets;
@@ -129,8 +148,8 @@ class CFRData: public virtual InfosetCache,
 
     unordered_map<shared_ptr<AOH>, InfosetData> infosetData;
 
-    inline optional <ProbDistribution> strategyFor(const shared_ptr<AOH> &currentInfoset) override {
-        if(infosetData.find(currentInfoset) == infosetData.end()) return nullopt;
+    inline optional<ProbDistribution> strategyFor(const shared_ptr<AOH> &currentInfoset) override {
+        if (infosetData.find(currentInfoset) == infosetData.end()) return nullopt;
         return calcAvgProbs(infosetData.at(currentInfoset).avgStratAccumulator);
     }
 

@@ -40,6 +40,21 @@ enum PlayControl {
     GiveUp,
 };
 
+struct AlgConfig {
+    inline virtual void update(const string &key, const string &value) {
+        LOG_WARN("The key/value '" << key << "': '" << value << "' cannot be set!")
+    };
+    inline void updateAll(const unordered_map<string, string> &params) {
+        for (const auto &[k, v] : params) update(k, v);
+    };
+    inline virtual string toString() const { return ""; }
+    inline friend std::ostream &operator<<(std::ostream &ss, const AlgConfig &a) {
+        ss << a.toString();
+        return ss;
+    }
+};
+
+
 /**
  * Algorithm that is capable of playing games by being supplied
  * current infoset, domain and for which player to play.
@@ -148,6 +163,7 @@ PreparedAlgorithm createInitializer(Args &... args) {
 
 struct AlgorithmWithData {
     virtual PreparedAlgorithm prepare() = 0;
+    virtual AlgConfig &config() = 0;
 };
 
 /**
