@@ -45,8 +45,8 @@ struct MCCRSettings: OOSSettings {
     inline string toString() const override {
         std::stringstream ss;
         ss << "; MCCR" << endl;
-        if(retentionPolicy == ResetData) ss << "retentionPolicy         = ResetData" << endl;
-        if(retentionPolicy == KeepData)  ss << "retentionPolicy         = KeepData"  << endl;
+        if(retentionPolicy == ResetData) ss << "retentionPolicy        = ResetData" << endl;
+        if(retentionPolicy == KeepData)  ss << "retentionPolicy        = KeepData"  << endl;
         ss << OOSSettings::toString();
         return ss.str();
     }

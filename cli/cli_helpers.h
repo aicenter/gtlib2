@@ -164,8 +164,15 @@ unique_ptr<Domain> constructDomain(const string &description) {
 }
 
 unique_ptr<AlgorithmWithData> constructAlgWithData(const Domain &d,
-                                                   const string &algName,
+                                                   const string &description,
                                                    const CLI::AlgParams &params) {
+
+    std::stringstream ss(description);
+    string algName;
+    ss >> algName;
+    // ignore the rest of the name description
+    // (these can be useful for named parametrizations of algs, which are speicified in the configs)
+
     struct WrapperCFR: AlgorithmWithData {
         CFRData data;
         CFRSettings cfg;

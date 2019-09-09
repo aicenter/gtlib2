@@ -42,8 +42,7 @@ enum PlayControl {
 
 struct AlgConfig {
     inline virtual void update(const string &key, const string &value) {
-        LOG_ERROR("The key/value '" << key << "': '" << value << "' cannot be set.")
-        exit(1);
+        LOG_WARN("The key/value '" << key << "': '" << value << "' cannot be set!")
     };
     inline void updateAll(const unordered_map<string, string> &params) {
         for (const auto &[k, v] : params) update(k, v);
