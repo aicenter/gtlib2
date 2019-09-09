@@ -27,7 +27,7 @@
 
 namespace GTLib2::CLI {
 
-StrategyProfile CFR_AverageStrategy(Domain &domain, string cfg,
+StrategyProfile CFR_AverageStrategy(const Domain &domain, const AlgParams &cfg,
                                     unsigned int preplayBudget, BudgetType budgetType) {
     const auto alg = constructAlgWithData(domain, "CFR", cfg);
     const unique_ptr<GamePlayingAlgorithm> gameAlg = alg->prepare()(domain, Player(0));
@@ -37,7 +37,7 @@ StrategyProfile CFR_AverageStrategy(Domain &domain, string cfg,
     return getAverageStrategy(cfr->getCache());
 }
 
-StrategyProfile OOS_AverageStrategy(Domain &domain, const string &cfg,
+StrategyProfile OOS_AverageStrategy(const Domain &domain, const AlgParams &cfg,
                                     unsigned int preplayBudget, unsigned int moveBudget,
                                     BudgetType budgetType) {
     const auto alg = constructAlgWithData(domain, "OOS", cfg);
@@ -140,7 +140,7 @@ inline shared_ptr<PublicState> expandPs(PublicStateCache &cache,
 }
 
 
-StrategyProfile MCCR_AverageStrategy(Domain &domain, const string &cfg,
+StrategyProfile MCCR_AverageStrategy(const Domain &domain, const AlgParams &cfg,
                                      unsigned int preplayBudget, unsigned int moveBudget,
                                      BudgetType budgetType) {
     const auto alg = constructAlgWithData(domain, "MCCR", cfg);
@@ -240,12 +240,8 @@ void Command_CalcExpl(args::Subparser &parser) {
         LOG_ERROR("Exactly one algorithm must be specified!");
         exit(1);
     }
-    const auto cfgs = args::get(args::algcfg);
-    if (cfgs.size() != 1) {
-        LOG_ERROR("Exactly one algorithm config must be specified!")
-        exit(1);
-    }
 
+    const auto cfgs = CLI::algParams;
     const auto domain = constructDomain(args::get(args::domain));
     const unsigned int pb = args::get(preplayBudget);
     const unsigned int mb = args::get(moveBudget);

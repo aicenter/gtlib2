@@ -23,9 +23,7 @@
 #define GTLIB2_CLI_HELPERSH
 
 #include <iomanip>
-#include <fstream>
 
-#include "external/cereal/archives/json.hpp"
 #include "utils/args.hpp"
 #include "utils/global_args.h"
 
@@ -71,7 +69,7 @@ unique_ptr<Domain> constructDomain(const string &description) {
 
         // chance cards are specified
         vector<int> cards(p.size() - 1);
-        std::transform(p.begin() + 1, p.end(), cards.begin(), [](const std::string &val) {
+        std::transform(p.begin() + 1, p.end(), cards.begin(), [](const string &val) {
             return std::stod(val);
         });
 
@@ -154,10 +152,10 @@ unique_ptr<Domain> constructDomain(const string &description) {
     };
     // @formatter:on
 
-    if(domainsTable.find(domain) == domainsTable.end()) {
+    if (domainsTable.find(domain) == domainsTable.end()) {
         LOG_ERROR("Domain not found: " << domain);
         LOG_ERROR("List of available domains:")
-        for(const auto &[domain, cb] : domainsTable) {
+        for (const auto &[domain, cb] : domainsTable) {
             cerr << domain << endl;
         }
         abort();
@@ -165,86 +163,64 @@ unique_ptr<Domain> constructDomain(const string &description) {
     return domainsTable.at(domain)(params);
 }
 
-std::unique_ptr<GTLib2::AlgorithmWithData> constructAlgWithData(const GTLib2::Domain &d,
-                                                                const std::string &algName,
-                                                                std::string settingFile) {
-
+unique_ptr<AlgorithmWithData> constructAlgWithData(const Domain &d,
+                                                   const string &algName,
+                                                   const CLI::AlgParams &params) {
     struct WrapperCFR: AlgorithmWithData {
         CFRData data;
         CFRSettings cfg;
-        inline WrapperCFR(const Domain &d, CFRSettings _cfg) :
-            data(CFRData(d, _cfg.cfrUpdating)), cfg(_cfg) {}
+        inline WrapperCFR(const Domain &d, CFRSettings _cfg) : data(CFRData(d, _cfg.cfrUpdating)), cfg(_cfg) {}
         PreparedAlgorithm prepare() override { return createInitializer<CFRAlgorithm>(data, cfg); }
+        CFRSettings& config() override { return cfg; }
     };
     struct WrapperOOS: AlgorithmWithData {
         OOSData data;
         OOSSettings cfg;
         inline WrapperOOS(const Domain &d, OOSSettings _cfg) : data(OOSData(d)), cfg(_cfg) {}
         PreparedAlgorithm prepare() override { return createInitializer<OOSAlgorithm>(data, cfg); }
+        OOSSettings& config() override { return cfg; }
     };
     struct WrapperMCCR: AlgorithmWithData {
         OOSData data;
         MCCRSettings cfg;
         inline WrapperMCCR(const Domain &d, MCCRSettings _cfg) : data(OOSData(d)), cfg(_cfg) {}
         PreparedAlgorithm prepare() override { return createInitializer<MCCRAlgorithm>(data, cfg); }
+        MCCRSettings& config() override { return cfg; }
     };
     struct WrapperRND: AlgorithmWithData {
+        AlgConfig cfg = AlgConfig{};
         PreparedAlgorithm prepare() override { return createInitializer<RandomPlayer>(); }
+        AlgConfig& config() override { return cfg; }
     };
-
-    std::fstream fs;
-    unique_ptr<cereal::JSONInputArchive> deserialize;
 
     // @formatter:off
-    unordered_map<string, string> configsTable = {
-        {"CFR", "settings/cfr.json"},
-        {"OOS", "settings/oos.json"},
-        {"MCCR", "settings/mccr.json"},
-        {"RND", "settings/rnd.json"},
-    };
-
     unordered_map<string, function<unique_ptr<AlgorithmWithData>()>> algorithmsTable = {
         {"CFR",   [&]() {
             CFRSettings settings;
-            (*deserialize)(settings);
+            settings.updateAll(params);
             return make_unique<WrapperCFR>(d, settings);
         }},
         {"OOS",   [&]() {
             OOSSettings settings;
-            (*deserialize)(settings);
+            settings.updateAll(params);
             return make_unique<WrapperOOS>(d, settings);
         }},
         {"MCCR",   [&]() {
             MCCRSettings settings;
-            (*deserialize)(settings);
+            settings.updateAll(params);
             return make_unique<WrapperMCCR>(d, settings);
         }},
         {"RND",   [&]() { return make_unique<WrapperRND>(); }},
     };
     // @formatter:on
 
-    if(algorithmsTable.find(algName) == algorithmsTable.end()) {
-        LOG_ERROR("Algorithm not found: " << algName);
+    if (algorithmsTable.find(algName) == algorithmsTable.end()) {
+        LOG_ERROR("Algorithm not found: " << algName)
         LOG_ERROR("List of available algorithms:")
-        for(const auto &[alg, cb] : algorithmsTable) {
-            cerr << alg << endl;
-        }
-        abort();
-    }
-
-    if (settingFile.empty()) {
-        string defaultConfig = configsTable.at(algName);
-        LOG_INFO("No config file was supplied for " << algName << ", using " << defaultConfig)
-        settingFile = defaultConfig;
-    }
-
-    fs.open(settingFile, std::fstream::in);
-    if (!fs) {
-        LOG_ERROR("Could not open " << settingFile)
+        for (const auto &[alg, cb] : algorithmsTable) cerr << alg << endl;
         exit(1);
     }
 
-    deserialize = make_unique<cereal::JSONInputArchive>(fs);
     return algorithmsTable.at(algName)();
 }
 

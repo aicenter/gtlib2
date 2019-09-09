@@ -43,7 +43,7 @@ void Command_PlayMatch(args::Subparser &parser) {
         LOG_ERROR("Two algorithms must be specified!");
         exit(1);
     }
-    const auto cfgs = args::get(args::algcfg);
+    const auto cfgs = CLI::algParams;
     if (cfgs.size() != 2) {
         LOG_ERROR("Two algorithm configs must be specified!")
         exit(1);
@@ -79,12 +79,13 @@ void Command_PlayMatch(args::Subparser &parser) {
     }
 
     LOG_INFO("Running match on domain: \n\n" << (Indented{domain->getInfo(), 8}) << "\n")
-    LOG_INFO("Algorithms:   " << algs)
-    LOG_INFO("Config files: " << cfgs)
-    LOG_INFO("Preplay:      " << pb)
-    LOG_INFO("Per move:     " << mb)
-    LOG_INFO("Budget:       " << (time ? "time" : "iterations"))
-    LOG_INFO("Match seed:   " << seedValue)
+    LOG_INFO("Algorithms: " << algs)
+    LOG_INFO("Config 1: \n" << instance1->config())
+    LOG_INFO("Config 2: \n" << instance2->config())
+    LOG_INFO("Preplay:    " << pb)
+    LOG_INFO("Per move:   " << mb)
+    LOG_INFO("Budget:     " << (time ? "time" : "iterations"))
+    LOG_INFO("Match seed: " << seedValue)
     LOG_INFO("--------------------------------------")
 
     const auto utilities = playMatch(*domain, {instance1->prepare(), instance2->prepare()},

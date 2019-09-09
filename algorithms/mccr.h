@@ -35,23 +35,22 @@ struct MCCRSettings: OOSSettings {
 
     RetentionPolicy retentionPolicy = ResetData;
 
-    template<class Archive>
-    void serialize(Archive &archive) {
-        archive(CEREAL_NVP(samplingBlock),
-                CEREAL_NVP(accumulatorWeighting),
-                CEREAL_NVP(regretMatching),
-                CEREAL_NVP(targeting),
-                CEREAL_NVP(playStrategy),
-                CEREAL_NVP(samplingScheme),
-                CEREAL_NVP(avgStrategyComputation),
-                CEREAL_NVP(baseline),
-                CEREAL_NVP(exploration),
-                CEREAL_NVP(targetBiasing),
-                CEREAL_NVP(approxRegretMatching),
-                CEREAL_NVP(batchSize),
-                CEREAL_NVP(seed),
-                CEREAL_NVP(retentionPolicy));
+    //@formatter:off
+    inline void update(const string  &k, const string &v) {
+        if(k == "retentionPolicy" && v == "ResetData") retentionPolicy = ResetData; else
+        if(k == "retentionPolicy" && v == "KeepData") retentionPolicy = KeepData;   else
+        OOSSettings::update(k, v);
     }
+
+    inline string toString() const override {
+        std::stringstream ss;
+        ss << "; MCCR" << endl;
+        if(retentionPolicy == ResetData) ss << "retentionPolicy         = ResetData" << endl;
+        if(retentionPolicy == KeepData)  ss << "retentionPolicy         = KeepData"  << endl;
+        ss << OOSSettings::toString();
+        return ss.str();
+    }
+    //@formatter:on
 };
 
 class MCCRResolver: public OOSAlgorithm {
@@ -97,8 +96,8 @@ class MCCRAlgorithm: public ContinualResolving {
           cfg_(settings) {}
     ~MCCRAlgorithm() override = default;
 
-    const OOSData & getCache() { return cache_; }
-    const OOSSettings & getSettings() { return cfg_; }
+    const OOSData &getCache() { return cache_; }
+    const OOSSettings &getSettings() { return cfg_; }
 
     void updateGadget() override;
 
