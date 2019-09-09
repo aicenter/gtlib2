@@ -25,7 +25,6 @@
 
 #include "base/base.h"
 
-
 namespace GTLib2::domains {
 
 typedef uint8_t CellState;

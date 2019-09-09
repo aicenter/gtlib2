@@ -44,19 +44,18 @@ class CPW_ISMCTS: public ISMCTS {
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
 
  private:
-    unordered_map<shared_ptr<AOH>, vector<shared_ptr<EFGNode>>> nodesMap_;
-    shared_ptr<AOH> currentInfoset_;
-    ProbDistribution belief_;
-
 
     double handlePlayerNode(const shared_ptr<EFGNode> &h) override;
-
-    void setCurrentInfoset(const shared_ptr<AOH> &newInfoset);
 
     void fillBelief(const shared_ptr<EFGNode> &currentNode,
                     const shared_ptr<AOH> &newInfoset,
                     double reachProbability,
                     const vector<shared_ptr<EFGNode>> &newNodes);
+ protected:
+    unordered_map<shared_ptr<AOH>, vector<shared_ptr<EFGNode>>> nodesMap_;
+    ProbDistribution belief_;
+    shared_ptr<AOH> currentInfoset_;
+    void setCurrentInfoset(const shared_ptr<AOH> &newInfoset);
 };
 
 }

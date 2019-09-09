@@ -359,6 +359,9 @@ class State {
      */
     virtual vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const = 0;
 
+
+    virtual shared_ptr<Action> getActionByID(Player player, ActionId action) const;
+
     /**
      * Performs actions given by vector of  <player, action>. If actions for some players
      * are missing, they will be padded by NO_ACTION.
@@ -385,7 +388,6 @@ class State {
      * Returns whether there is no more transition to any other state
      */
     virtual bool isTerminal() const = 0;
-
 
     /**
      * Returns state description
@@ -414,6 +416,7 @@ class State {
  * Additionally, chance is encoded by *stochastic* transitions, i.e. the outcome
  * of player's actions (in general) is not deterministic.
  */
+
 class Domain {
  public:
     Domain(unsigned int maxStateDepth, unsigned int numberOfPlayers, bool isZeroSum_,

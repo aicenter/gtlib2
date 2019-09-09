@@ -143,6 +143,9 @@ bool State::isPlayerMakingMove(Player pl) const {
 string State::toString() const {
     return std::string("not implemented");
 }
+shared_ptr<Action> State::getActionByID(Player player, ActionId action) const {
+    return getAvailableActionsFor(player).at(action);
+}
 
 bool ActionObservationIds::operator==(const ActionObservationIds &rhs) const {
     return action == rhs.action

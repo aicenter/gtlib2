@@ -1100,6 +1100,11 @@ OutcomeDistribution KriegspielState::performActions(
     s->updateState(this->playerOnTheMove);
     shared_ptr<KriegspielAction> ac = a->clone();
     if (s->makeMove(a)) {
+        auto k = s->getPieceOnCoords(a->getMove().second);
+        if (k != nullptr && k->getKind() == 'k')
+        {
+
+        }
         s->addToHistory(ac);
         enPassSquare = this->checkEnPassant(a);
         nextMove = chess::invertColor(this->playerOnTheMove);
