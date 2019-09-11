@@ -723,7 +723,7 @@ vector<Square> King::getSquaresAttacked() const {
             continue;
         }
         shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
-        if (p != nullptr) {// && p->getColor() == this->getColor()
+        if (p != nullptr) {
             continue;
         }
         v.push_back(newPos);
@@ -924,7 +924,7 @@ int KriegspielState::checkGameOverCheck(int c) const {
 
 void KriegspielState::checkPlayerInCheck() {
     int kingColor = this->playerOnTheMove;
-    this->playerInCheck = -1;
+    this->playerInCheck = NO_PLAYER; //TODO change from -1, why is previous info deleted?
     shared_ptr<AbstractPiece> king = this->getPiecesOfColorAndKind(kingColor, chess::KING)[0];
     for (const shared_ptr<AbstractPiece> &p: *this->pieces) {
         if (p->getColor() == kingColor) continue;
@@ -966,18 +966,29 @@ bool KriegspielState::makeMove(KriegspielAction *a) {
         != p->getAllValidMoves()->end()) {
 
         if (p->getKind() == 'k') {
-            auto k2 = this->getPiecesOfColorAndKind(chess::invertColor(p->getColor()), chess::KING)[0];
+            auto k2 =
+                this->getPiecesOfColorAndKind(chess::invertColor(p->getColor()), chess::KING)[0];
             auto attackSquares = k2->getAllMoves();
-            if (std::find(attackSquares->begin(), attackSquares->end(), a->getMove().second) != attackSquares->end())
+            if (std::find(attackSquares->begin(), attackSquares->end(), a->getMove().second)
+                != attackSquares->end())
                 return false;
         }
+        //TODO: change capturedPiece calculation to keep info about what piece and where was captured
         //move valid
-        shared_ptr<AbstractPiece> checkCut = this->getPieceOnCoords(pos);
-        if (checkCut != nullptr) {
-            lastCut =
-                30 + checkCut->getPosition().x + ((checkCut->getPosition().y - 1) * this->ySize);
+        shared_ptr<AbstractPiece> checkCapture = this->getPieceOnCoords(pos);
+        if (checkCapture != nullptr) {
+            //capturedPawn
+            if (checkCapture->getKind() == 'p') {
+                capturedPiece = checkCapture->getPosition().x
+                    + (checkCapture->getPosition().y - 1) * this->ySize;
+            } else { // captured other piece
+                capturedPiece = 64 + checkCapture->getPosition().x
+                    + (checkCapture->getPosition().y - 1) * this->ySize;
+            }
+//            capturedPiece =
+//                30 + checkCapture->getPosition().x + ((checkCapture->getPosition().y - 1) * this->ySize);
             for (auto It = this->pieces->begin(); It != this->pieces->end();) {
-                if (*(*It) == *checkCut) {
+                if (*(*It) == *checkCapture) {
                     this->pieces->erase(It);
                     break;
                 } else {
@@ -1002,6 +1013,7 @@ bool KriegspielState::makeMove(KriegspielAction *a) {
                 }
             }
         }
+
         if (p->getKind() == chess::KING && abs(a->movingFrom().x - pos.x) > 1) {
             this->castle(a);
         }
@@ -1037,8 +1049,8 @@ vector<double> KriegspielState::checkGameOver() const {
             return rewards;
         }
     }
-    rewards[chess::WHITE] = 0;
-    rewards[chess::BLACK] = 0;
+    rewards[chess::WHITE] = 0.0;
+    rewards[chess::BLACK] = 0.0;
     bool hasMoves[] = {false, false};
     int isCheck = this->checkGameOverCheck(this->playerOnTheMove);
 
@@ -1055,8 +1067,8 @@ vector<double> KriegspielState::checkGameOver() const {
             rewards[chess::BLACK] = 0;
         } else if (this->moveHistory->size() + this->attemptedMoveHistory->size()
             == domain_->getMaxStateDepth()) {
-            rewards[chess::WHITE] = 0;
-            rewards[chess::BLACK] = 0;
+            rewards[chess::WHITE] = 0.0;
+            rewards[chess::BLACK] = 0.0;
         }
     } else if (!hasMoves[this->playerOnTheMove]) {
         rewards[chess::WHITE] = 0;
@@ -1079,6 +1091,7 @@ OutcomeDistribution KriegspielState::performActions(
     auto a1 = dynamic_cast<KriegspielAction *>(actions[0].get());
     auto a2 = dynamic_cast<KriegspielAction *>(actions[1].get());
     vector<shared_ptr<Observation>> observations(2);
+    shared_ptr<Observation> publicObservation;
     vector<double> rewards(2);
     shared_ptr<KriegspielState> s;
     int nextMove = this->playerOnTheMove;
@@ -1107,24 +1120,26 @@ OutcomeDistribution KriegspielState::performActions(
         s->setEnPassant(enPassSquare);
         s->updateState(nextMove);
         rewards = s->checkGameOver();
-        observations[this->playerOnTheMove] = make_shared<Observation>(1);
+        observations[this->playerOnTheMove] = make_shared<KriegspielObservation>(1);
         observations[chess::invertColor(this->playerOnTheMove)] =
-            make_shared<Observation>(
+            make_shared<KriegspielObservation>(
                 s->calculateObservation(chess::invertColor(this->playerOnTheMove)));
-        int x = 4;
+        publicObservation = make_shared<KriegspielObservation>(s->calculatePublicObservation());
+        //int x = 4; //????
     } else {
         s->addToAttemptedMoves(ac);
         nextMove = this->playerOnTheMove;
-        observations[this->playerOnTheMove] = make_shared<Observation>(a->getId());
+        observations[this->playerOnTheMove] = make_shared<KriegspielObservation>(a->getId());
         observations[chess::invertColor(this->playerOnTheMove)] =
-            make_shared<Observation>(NO_OBSERVATION);
+            make_shared<KriegspielObservation>(NO_OBSERVATION);
+        publicObservation = make_shared<KriegspielObservation>(NO_OBSERVATION);
         s->updateState(nextMove);
         rewards = s->checkGameOver();
     }
-    if (rewards[0] != 0 || rewards[1] != 0) {
+    if (rewards[0] != 0 || rewards[1] != 0) { // TODO: what about draw???
         s->setGameHasEnded(true);
     }
-    Outcome o(s, observations, shared_ptr<Observation>(), rewards);
+    Outcome o(s, observations, publicObservation, rewards);
     OutcomeDistribution prob;
     prob.push_back(OutcomeEntry(o));
     return prob;
@@ -1174,7 +1189,6 @@ string KriegspielState::toString() const {
         vector<string> row;
         for (int i = 0; i < this->xSize; i++) {
             row.emplace_back("_");
-            //row.emplace_back(((j*ySize+j+i+1) % 2) ? "□" : "■");
         }
         board.push_back(row);
     }
@@ -1443,9 +1457,10 @@ void KriegspielState::addToAttemptedMoves(shared_ptr<KriegspielAction> a) {
     this->attemptedMoveHistory->push_back(a);
 }
 
+// only observation for other player
 int KriegspielState::calculateObservation(Player player) const {
     auto pawns = getPiecesOfColorAndKind(player, chess::PAWN);
-    int toreturn = lastCut;
+    int toreturn = capturedPiece;
     for (const shared_ptr<AbstractPiece> &p: pawns) {
         auto curr = dynamic_cast<chess::Pawn *>(p.get());
         for (auto move: *curr->getAllMoves()) {
@@ -1457,6 +1472,58 @@ int KriegspielState::calculateObservation(Player player) const {
         }
     }
     return toreturn;
+}
+ObservationId KriegspielState::calculatePublicObservation() const {
+    ObservationId observation = this->capturedPiece;
+    if (this->isPlayerInCheck() == this->playerOnTheMove) {
+        Square kingPosition =
+            this->getPiecesOfColorAndKind(this->playerOnTheMove, chess::KING)[0]->getPosition();
+        for (shared_ptr<AbstractPiece> piece : this->getCheckingFigures()) {
+            Square piecePos = piece->getPosition();
+            if (piece->getKind() == 'n') {
+                // it is knight
+                observation |= 1UL << 27;
+            } else if (kingPosition.x == piecePos.x) {
+                //vertical
+                observation |= 1UL << 31;
+            } else if (kingPosition.y == piecePos.y) {
+                //horizontal
+                observation |= 1UL << 30;
+            } else { // diagonal checks
+                if ((kingPosition.x <= 4 && kingPosition.y > 4)
+                    || (kingPosition.x > 4 && kingPosition.y <= 4)) {
+                    //king in upper left or bottom right quadrant
+                    if ((piecePos.x > kingPosition.x && piecePos.y < kingPosition.y)
+                        || (piecePos.x < kingPosition.x && piecePos.y > kingPosition.y)) {
+                        // long diagonal
+                        observation |= 1UL << 29;
+                    } else if ((piecePos.x < kingPosition.x && piecePos.y < kingPosition.y)
+                        || (piecePos.x > kingPosition.x && piecePos.y > kingPosition.y)) {
+                        // short diagonal
+                        observation |= 1UL << 28;
+                    } else {
+                        //assert(false)
+                    }
+                } else if ((kingPosition.x <= 4 && kingPosition.y <= 4)
+                    || (kingPosition.x > 4 && kingPosition.y > 4)) {
+                    //king in upper right or bottom left quadrant
+                    if ((piecePos.x < kingPosition.x && piecePos.y < kingPosition.y)
+                        || (piecePos.x > kingPosition.x && piecePos.y > kingPosition.y)) {
+                        //long diagonal
+                        observation |= 1UL << 29;
+                    } else if ((piecePos.x < kingPosition.x && piecePos.y > kingPosition.y)
+                        || (piecePos.x > kingPosition.x && piecePos.y < kingPosition.y)) {
+                        //short diagonal
+                        observation |= 1UL << 28;
+                    } else {
+                        //assert(false)
+                    }
+                }
+            }
+        }
+
+    }
+    return observation;
 }
 }
 

@@ -74,7 +74,6 @@ TEST(Kriegspiel, enPassant) {
     shared_ptr<King> whiteKing = make_shared<King>(KING, 0, Square(1, 1), ks);
     shared_ptr<King> blackKing = make_shared<King>(KING, 1, Square(1, 8), ks);
 
-
     shared_ptr<Pawn> whitePawn = make_shared<Pawn>(PAWN, 0, Square(5, 2), ks, 1);
     shared_ptr<Pawn> blackPawn = make_shared<Pawn>(PAWN, 1, Square(4, 4), ks, 3);
     ks->insertPiece(whitePawn);
@@ -170,7 +169,6 @@ TEST(Kriegspiel, checking) {
     shared_ptr<King> whiteKing = make_shared<King>(KING, 0, Square(1, 1), ks);
     shared_ptr<King> blackKing = make_shared<King>(KING, 1, Square(1, 8), ks);
 
-
     shared_ptr<Queen> whiteQueen = make_shared<Queen>(QUEEN, 0, Square(5, 1), ks);
     ks->insertPiece(whiteQueen);
     ks->insertPiece(whiteKing);
@@ -206,7 +204,6 @@ TEST(Kriegspiel, doublechecking) {
     shared_ptr<King> whiteKing = make_shared<King>(KING, 0, Square(1, 1), ks);
     shared_ptr<King> blackKing = make_shared<King>(KING, 1, Square(5, 8), ks);
 
-
     shared_ptr<Queen> whiteQueen = make_shared<Queen>(QUEEN, 0, Square(5, 1), ks);
     shared_ptr<Bishop> whiteBishop = make_shared<Bishop>(BISHOP, 0, Square(5, 2), ks);
     shared_ptr<Bishop> blackBishop = make_shared<Bishop>(BISHOP, 1, Square(4, 8), ks);
@@ -241,7 +238,6 @@ TEST(Kriegspiel, doublechecking) {
     EXPECT_TRUE(newBlackRook->getAllValidMoves()->empty());
     EXPECT_EQ(newBlackKing->getAllValidMoves()->size(), 1);
 }
-
 
 TEST(Kriegspiel, castling) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
@@ -504,8 +500,8 @@ TEST(Kriegspiel, gameOverDraw) {
 
     Outcome newState = ks->performActions(v)[0].outcome;
     //after Rh8 there should be only 3 pieces left - the black rook is cut
-    EXPECT_EQ(newState.rewards[0], 0);
-    EXPECT_EQ(newState.rewards[1], 0);
+    EXPECT_EQ(newState.rewards[0], 0.0);
+    EXPECT_EQ(newState.rewards[1], 0.0);
 }
 
 TEST(Kriegspiel, PAWNPromotion) {
@@ -560,7 +556,6 @@ TEST(Kriegspiel, protection) {
     ks->insertPiece(whiteKing);
     ks->insertPiece(blackKing);
     ks->updateAllPieces();
-
 
     vector<shared_ptr<Action>> v;
     for (shared_ptr<Action> a: ks->getAvailableActionsFor(1)) {
@@ -617,7 +612,6 @@ TEST(Kriegspiel, randomPin) {
     }
     ks->updateAllPieces();
 
-
     vector<shared_ptr<Action>> v;
     for (shared_ptr<Action> a: ks->getAvailableActionsFor(1)) {
         string check = a->toString();
@@ -671,7 +665,6 @@ TEST(Kriegspiel, randomGameOver) {
     }
     ks->updateAllPieces();
 
-
     vector<shared_ptr<Action>> v;
     for (shared_ptr<Action> a: ks->getAvailableActionsFor(1)) {
         string check = a->toString();
@@ -711,7 +704,6 @@ TEST(Kriegspiel, piercingProtection) {
     ks[0].getPiecesOfColorAndKind(1, KING)[0]->move(Square(5, 8));
     ks->updateAllPieces();
 
-
     vector<shared_ptr<Action>> v;
     for (shared_ptr<Action> a: ks->getAvailableActionsFor(1)) {
         string check = a->toString();
@@ -724,12 +716,12 @@ TEST(Kriegspiel, piercingProtection) {
 
     Outcome newState = ks->performActions(v)[0].outcome;
 
-    EXPECT_EQ(newState.rewards[0], 0);
-    EXPECT_EQ(newState.rewards[1], 0);
+    EXPECT_EQ(newState.rewards[0], 0.0);
+    EXPECT_EQ(newState.rewards[1], 0.0);
 }
 
 TEST(Kriegspiel, gameOverTest) {
-    domains::KriegspielDomain d(4, 4, BOARD::MINIMAL3x3);
+    domains::KriegspielDomain d(4, 4, BOARD::MINIMAL4x3);
     shared_ptr<State> s = d.getRootStatesDistribution()[0].outcome.state;
     auto ks = dynamic_cast<domains::KriegspielState *>(s.get());
 
@@ -775,4 +767,165 @@ TEST(Kriegspiel, gameOverTest) {
     EXPECT_EQ(lastsState.rewards[1], -1);
 }
 
+TEST(Kriegspiel, observationConsistencyOnPawnTakes) {
+    domains::KriegspielDomain d1(4, 4, SILVERMAN4BY4);
+    domains::KriegspielDomain d2(4, 4, SILVERMAN4BY4);
+
+    shared_ptr<State> root1 = d1.getRootStatesDistribution()[0].outcome.state;
+    shared_ptr<State> root2 = d2.getRootStatesDistribution()[0].outcome.state;
+    auto state1 = dynamic_cast<domains::KriegspielState *>(root1.get());
+    auto state2 = dynamic_cast<domains::KriegspielState *>(root2.get());
+
+    //axb3 e.g. pawn on a2 captures on b3
+    auto a1 = make_shared<KriegspielAction>(0, pair<shared_ptr<AbstractPiece>,
+                                                    Square>(state1->getPieceOnCoords(Square(1, 2)),
+                                                            Square(2, 3)), Square(1, 2));
+    //cxb3 e.g. pawn on c2 captures on b3
+    auto a2 = make_shared<KriegspielAction>(0, pair<shared_ptr<AbstractPiece>,
+                                                    Square>(state1->getPieceOnCoords(Square(3, 2)),
+                                                            Square(2, 3)), Square(3, 2));
+
+    vector<shared_ptr<Action>> actions1;
+    actions1.emplace_back(a1);
+    actions1.emplace_back(d1.getNoAction());
+
+    vector<shared_ptr<Action>> actions2;
+    actions2.emplace_back(a2);
+    actions2.emplace_back(d2.getNoAction());
+
+    Outcome outcome1 = state1->performActions(actions1)[0].outcome;
+    Outcome outcome2 = state2->performActions(actions2)[0].outcome;
+
+    EXPECT_EQ(outcome1.publicObservation->getId(), outcome2.publicObservation->getId());
+}
+
+TEST(Kriegspiel, observationConsistencyChecks) {
+    domains::KriegspielDomain domain(4, 4, BOARD::STANDARD);
+    shared_ptr<State> rootState = domain.getRootStatesDistribution()[0].outcome.state;
+    auto state = dynamic_cast<domains::KriegspielState *>(rootState.get());
+    state->clearBoard();
+    //built model situation
+    //need kings on board for the game to function
+    shared_ptr<King> whiteKing = make_shared<King>(KING, WHITE, Square(1, 1), state);
+    shared_ptr<King> blackKing = make_shared<King>(KING, BLACK, Square(3, 6), state);
+
+    shared_ptr<Queen> whiteQueen = make_shared<Queen>(QUEEN, WHITE, Square(4, 4), state);
+    shared_ptr<Knight> whiteKnight = make_shared<Knight>(KNIGHT, WHITE, Square(1, 2), state);
+    state->insertPiece(whiteKing);
+    state->insertPiece(blackKing);
+    state->insertPiece(whiteQueen);
+    state->insertPiece(whiteKnight);
+    state->updateAllPieces();
+
+    vector<shared_ptr<Action>> actions;
+    auto shortDiagCheck = make_shared<KriegspielAction>(
+        0, pair<shared_ptr<AbstractPiece>, Square>(
+            state->getPieceOnCoords(Square(4, 4)), Square(1, 4)), Square(4, 4));
+
+    auto longDiagCheck = make_shared<KriegspielAction>(
+        0, pair<shared_ptr<AbstractPiece>, Square>(
+            state->getPieceOnCoords(Square(4, 4)), Square(5, 4)), Square(4, 4));
+
+    auto verticalCheck = make_shared<KriegspielAction>(
+        0, pair<shared_ptr<AbstractPiece>, Square>(
+            state->getPieceOnCoords(Square(4, 4)), Square(3, 4)), Square(4, 4));
+
+    auto horizontalCheck = make_shared<KriegspielAction>(
+        0, pair<shared_ptr<AbstractPiece>, Square>(
+            state->getPieceOnCoords(Square(4, 4)), Square(6, 6)), Square(4, 4));
+
+    auto knightCheck = make_shared<KriegspielAction>(
+        0, pair<shared_ptr<AbstractPiece>, Square>(
+            state->getPieceOnCoords(Square(1, 2)), Square(2, 4)), Square(1, 2));
+
+    actions.emplace_back(verticalCheck);
+    actions.emplace_back(horizontalCheck);
+    actions.emplace_back(longDiagCheck);
+    actions.emplace_back(shortDiagCheck);
+    actions.emplace_back(knightCheck);
+
+    vector<ObservationId> expectedIds{2147483648, 1073741824, 536870912, 268435456, 134217728};
+    for (int i = 0; i < 5; i++) {
+        vector<shared_ptr<Action>> act;
+        act.emplace_back(actions[i]);
+        act.emplace_back(domain.getNoAction());
+        Outcome outcome = state->performActions(act)[0].outcome;
+//        cout << outcome.state->toString() << endl;
+        EXPECT_EQ(outcome.publicObservation->getId(), expectedIds[i]);
+    }
+}
+
+TEST(Kriegspiel, observationConsistencyPawnPieceCapture) {
+    domains::KriegspielDomain domain(4, 4, BOARD::STANDARD);
+    shared_ptr<State> rootState = domain.getRootStatesDistribution()[0].outcome.state;
+    auto state = dynamic_cast<domains::KriegspielState *>(rootState.get());
+    state->clearBoard();
+
+    //need kings on board for the game to function
+    shared_ptr<King> whiteKing = make_shared<King>(KING, WHITE, Square(1, 1), state);
+    shared_ptr<King> blackKing = make_shared<King>(KING, BLACK, Square(3, 1), state);
+
+    shared_ptr<Queen> whiteQueen = make_shared<Queen>(QUEEN, WHITE, Square(4, 4), state);
+    shared_ptr<Pawn> blackPawn = make_shared<Pawn>(PAWN, BLACK, Square(1, 7), state, 1);
+    shared_ptr<Knight> blackKnight = make_shared<Knight>(KNIGHT, BLACK, Square(4, 8), state);
+    state->insertPiece(whiteKing);
+    state->insertPiece(blackKing);
+    state->insertPiece(whiteQueen);
+    state->insertPiece(blackPawn);
+    state->insertPiece(blackKnight);
+    state->updateAllPieces();
+    // capturing actions
+    auto takePawn = make_shared<KriegspielAction>(0, pair<shared_ptr<AbstractPiece>, Square>(
+        state->getPieceOnCoords(Square(4, 4)), Square(1, 7)), Square(4, 4));
+    auto takeKnight = make_shared<KriegspielAction>(0, pair<shared_ptr<AbstractPiece>, Square>(
+        state->getPieceOnCoords(Square(4, 4)), Square(4, 8)), Square(4, 4));
+
+    vector<shared_ptr<Action>> actions;
+
+    //capture Knight
+    actions.emplace_back(takeKnight);
+    actions.emplace_back(domain.getNoAction());
+    Outcome outcomeKnight = state->performActions(actions)[0].outcome;
+    EXPECT_EQ(outcomeKnight.publicObservation->getId(), 124);
+
+    actions.clear();
+//    capture pawn
+    actions.emplace_back(takePawn);
+    actions.emplace_back(domain.getNoAction());
+    Outcome outcomePawn = state->performActions(actions)[0].outcome;
+    EXPECT_EQ(outcomePawn.publicObservation->getId(), 49);
+}
+
+TEST(Kriegspiel, checkWithMultiplePieces) {
+    domains::KriegspielDomain domain(4, 4, BOARD::STANDARD);
+    shared_ptr<State> rootState = domain.getRootStatesDistribution()[0].outcome.state;
+    auto state = dynamic_cast<domains::KriegspielState *>(rootState.get());
+    state->clearBoard();
+
+    shared_ptr<King> whiteKing = make_shared<King>(KING, WHITE, Square(8, 1), state);
+    shared_ptr<King> blackKing = make_shared<King>(KING, BLACK, Square(3, 7), state);
+
+    shared_ptr<Queen> whiteQueen = make_shared<Queen>(QUEEN, WHITE, Square(7, 3), state);
+    shared_ptr<Knight> whiteKnight = make_shared<Knight>(KNIGHT, WHITE, Square(6, 4), state);
+    shared_ptr<Bishop> blackBishop = make_shared<Bishop>(BISHOP, BLACK, Square(6, 6), state);
+
+    state->insertPiece(whiteKing);
+    state->insertPiece(blackKing);
+    state->insertPiece(whiteQueen);
+    state->insertPiece(whiteKnight);
+    state->insertPiece(blackBishop);
+    state->updateAllPieces();
+
+    vector<shared_ptr<Action>> actions;
+
+    auto knightCheck = make_shared<KriegspielAction>(0, pair<shared_ptr<AbstractPiece>, Square>(
+        state->getPieceOnCoords(Square(6, 4)), Square(5, 6)), Square(6, 4));
+
+    actions.emplace_back(knightCheck);
+    actions.emplace_back(domain.getNoAction());
+
+    Outcome outcome = state->performActions(actions)[0].outcome;
+    EXPECT_EQ(outcome.publicObservation->getId(), 671088640);
+}
+//TODO write more test on diagonal checks
 }

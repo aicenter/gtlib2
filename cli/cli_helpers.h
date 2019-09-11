@@ -153,7 +153,7 @@ unique_ptr<Domain> constructDomain(const string &description) {
         {"KS",         [ ](vector<string> p) { return make_unique<KriegspielDomain>(1000, 1000, chess::BOARD::STANDARD); }},
         {"KS_STANDARD",      [ ](vector<string> p) { return make_unique<KriegspielDomain>(1000, 1000, chess::BOARD::STANDARD); }},
         {"KS_SILVERMAN4BY4", [ ](vector<string> p) { return make_unique<KriegspielDomain>(1000, 1000, chess::BOARD::SILVERMAN4BY4); }},
-        {"KS_MINIMAL3x3",    [ ](vector<string> p) { return make_unique<KriegspielDomain>(1000, 1000, chess::BOARD::MINIMAL3x3); }},
+        {"KS_MINIMAL3x3",    [ ](vector<string> p) { return make_unique<KriegspielDomain>(1000, 1000, chess::BOARD::MINIMAL4x3); }},
         {"KS_MICROCHESS",    [ ](vector<string> p) { return make_unique<KriegspielDomain>(1000, 1000, chess::BOARD::MICROCHESS); }},
         {"KS_DEMICHESS",     [ ](vector<string> p) { return make_unique<KriegspielDomain>(1000, 1000, chess::BOARD::DEMICHESS ); }},
     };
