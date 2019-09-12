@@ -973,7 +973,6 @@ bool KriegspielState::makeMove(KriegspielAction *a) {
                 != attackSquares->end())
                 return false;
         }
-        //TODO: change capturedPiece calculation to keep info about what piece and where was captured
         //move valid
         shared_ptr<AbstractPiece> checkCapture = this->getPieceOnCoords(pos);
         if (checkCapture != nullptr) {
@@ -1044,8 +1043,8 @@ vector<double> KriegspielState::checkGameOver() const {
                 isDraw = false;
         }
         if (isDraw) {
-            rewards[chess::WHITE] = 0;
-            rewards[chess::BLACK] = 0;
+            rewards[chess::WHITE] = 0.0;
+            rewards[chess::BLACK] = 0.0;
             return rewards;
         }
     }
@@ -1063,19 +1062,19 @@ vector<double> KriegspielState::checkGameOver() const {
             rewards[this->playerOnTheMove] = -1;
             rewards[chess::invertColor(this->playerOnTheMove)] = 1;
         } else if (this->moveHistory->size() == this->legalMaxDepth) {
-            rewards[chess::WHITE] = 0;
-            rewards[chess::BLACK] = 0;
+            rewards[chess::WHITE] = 0.0;
+            rewards[chess::BLACK] = 0.0;
         } else if (this->moveHistory->size() + this->attemptedMoveHistory->size()
             == domain_->getMaxStateDepth()) {
             rewards[chess::WHITE] = 0.0;
             rewards[chess::BLACK] = 0.0;
         }
     } else if (!hasMoves[this->playerOnTheMove]) {
-        rewards[chess::WHITE] = 0;
-        rewards[chess::BLACK] = 0;
+        rewards[chess::WHITE] = 0.0;
+        rewards[chess::BLACK] = 0.0;
     } else if (this->moveHistory->size() == this->legalMaxDepth) {
-        rewards[chess::WHITE] = 0;
-        rewards[chess::BLACK] = 0;
+        rewards[chess::WHITE] = 0.0;
+        rewards[chess::BLACK] = 0.0;
     }
 
     return rewards;
@@ -1120,15 +1119,14 @@ OutcomeDistribution KriegspielState::performActions(
         s->setEnPassant(enPassSquare);
         s->updateState(nextMove);
         rewards = s->checkGameOver();
-        observations[this->playerOnTheMove] = make_shared<KriegspielObservation>(1);
+        observations[this->playerOnTheMove] = make_shared<KriegspielObservation>(NO_OBSERVATION);
         observations[chess::invertColor(this->playerOnTheMove)] =
-            make_shared<KriegspielObservation>(
-                s->calculateObservation(chess::invertColor(this->playerOnTheMove)));
+            make_shared<KriegspielObservation>(NO_OBSERVATION);
         publicObservation = make_shared<KriegspielObservation>(s->calculatePublicObservation());
-        //int x = 4; //????
     } else {
         s->addToAttemptedMoves(ac);
         nextMove = this->playerOnTheMove;
+        // invalid move -> only private observation
         observations[this->playerOnTheMove] = make_shared<KriegspielObservation>(a->getId());
         observations[chess::invertColor(this->playerOnTheMove)] =
             make_shared<KriegspielObservation>(NO_OBSERVATION);
@@ -1474,7 +1472,7 @@ int KriegspielState::calculateObservation(Player player) const {
     return toreturn;
 }
 ObservationId KriegspielState::calculatePublicObservation() const {
-    ObservationId observation = this->capturedPiece;
+    ObservationId observation = this->capturedPiece; // if any pieces captured, otherwise 0
     if (this->isPlayerInCheck() == this->playerOnTheMove) {
         Square kingPosition =
             this->getPiecesOfColorAndKind(this->playerOnTheMove, chess::KING)[0]->getPosition();

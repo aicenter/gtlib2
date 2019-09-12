@@ -797,6 +797,7 @@ TEST(Kriegspiel, observationConsistencyOnPawnTakes) {
     Outcome outcome2 = state2->performActions(actions2)[0].outcome;
 
     EXPECT_EQ(outcome1.publicObservation->getId(), outcome2.publicObservation->getId());
+    EXPECT_EQ(outcome1.publicObservation->getId(), 536870922);
 }
 
 TEST(Kriegspiel, observationConsistencyChecks) {
@@ -926,6 +927,44 @@ TEST(Kriegspiel, checkWithMultiplePieces) {
 
     Outcome outcome = state->performActions(actions)[0].outcome;
     EXPECT_EQ(outcome.publicObservation->getId(), 671088640);
+}
+TEST(Kriegspiel, diagonalChecksObservations) {
+    domains::KriegspielDomain domain(4, 4, BOARD::STANDARD);
+    shared_ptr<State> rootState = domain.getRootStatesDistribution()[0].outcome.state;
+    auto state = dynamic_cast<domains::KriegspielState *>(rootState.get());
+    state->clearBoard();
+
+    vector<shared_ptr<Action>> actions;
+    auto noAction = domain.getNoAction();
+
+    shared_ptr<King> whiteKing = make_shared<King>(KING, WHITE, Square(8, 1), state);
+    shared_ptr<King> blackKing = make_shared<King>(KING, BLACK, Square(3, 5), state);
+    shared_ptr<Bishop> whiteBishop = make_shared<Bishop>(BISHOP, WHITE, Square(3, 1), state);
+    shared_ptr<Bishop> whiteBishop2 = make_shared<Bishop>(BISHOP, WHITE, Square(3, 7), state);
+
+    state->insertPiece(whiteKing);
+    state->insertPiece(blackKing);
+    state->insertPiece(whiteBishop);
+    state->insertPiece(whiteBishop2);
+    state->updateAllPieces();
+
+    vector<Square> movePosition{Square(5, 3), Square(1, 3), Square(4, 6), Square(2, 6)};
+    vector<ObservationId> expectedObservations{536870912, 268435456, 268435456, 536870912};
+    vector<Square> bishopPos{Square(3, 1), Square(3, 7)};
+
+    for (int i = 0; i < movePosition.size(); ++i) {
+        int bishop = i < 2 ? 0 : 1;
+        actions.clear();
+        auto bishopMove = make_shared<KriegspielAction>(0,
+                                                        pair<shared_ptr<AbstractPiece>, Square>(
+                                                            state->getPieceOnCoords(bishopPos.at(
+                                                                bishop)), movePosition.at(i)),
+                                                        bishopPos.at(bishop));
+        actions.emplace_back(bishopMove);
+        actions.emplace_back(noAction);
+        Outcome outcome = state->performActions(actions)[0].outcome;
+        EXPECT_EQ(outcome.publicObservation->getId(), expectedObservations.at(i));
+    }
 }
 //TODO write more test on diagonal checks
 }
