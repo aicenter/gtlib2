@@ -36,7 +36,7 @@ struct MCCRSettings: OOSSettings {
     RetentionPolicy retentionPolicy = ResetData;
 
     //@formatter:off
-    inline void update(const string  &k, const string &v) {
+    inline void update(const string  &k, const string &v) override {
         if(k == "retentionPolicy" && v == "ResetData") retentionPolicy = ResetData; else
         if(k == "retentionPolicy" && v == "KeepData") retentionPolicy = KeepData;   else
         OOSSettings::update(k, v);

@@ -30,18 +30,18 @@ void Exp3Selector::updateProb() {
     for (int i = 0; i < K; i++) {
         double denom = 1;
         for (int j = 0; j < K; j++) {
-            if (i != j) denom += exp((fact_->gamma / K) * (rewards_[j] - rewards_[i]));
+            if (i != j) denom += exp((factory_->cfg_.gamma / K) * (rewards_[j] - rewards_[i]));
         }
         const double cp = (1 / denom);
-        actionProbability_[i] = (1 - fact_->gamma) * cp + fact_->gamma / K;
-        if (fact_->storeExploration) actionMeanProbability_[i] += actionProbability_[i];
+        actionProbability_[i] = (1 - factory_->cfg_.gamma) * cp + factory_->cfg_.gamma / K;
+        if (factory_->cfg_.storeExploration) actionMeanProbability_[i] += actionProbability_[i];
         else actionMeanProbability_[i] += cp;
     }
 }
 
 ActionId Exp3Selector::select() {
     updateProb();
-    double rand = pickRandomDouble(fact_->getRandom());
+    double rand = pickRandomDouble(factory_->getRandom());
     for (int i = 0; i < actionProbability_.size(); i++) {
         if (rand > actionProbability_[i]) {
             rand -= actionProbability_[i];
@@ -53,10 +53,11 @@ ActionId Exp3Selector::select() {
 }
 
 void Exp3Selector::update(ActionId ai, double value) {
-    rewards_[ai] += fact_->normalizeValue(value) / actionProbability_[ai];
+    rewards_[ai] += factory_->normalizeValue(value) / actionProbability_[ai];
 }
 
 ProbDistribution Exp3Selector::getActionsProbDistribution() {
     return normalizeProbability(actionMeanProbability_);
 }
+
 }

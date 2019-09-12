@@ -182,6 +182,7 @@ set(SOURCE_FILES
         algorithms/strategy.cpp algorithms/strategy.h
         algorithms/utility.h algorithms/utility.cpp
         algorithms/MCTS/ISMCTS.h algorithms/MCTS/ISMCTS.cpp
+        algorithms/MCTS/ISMCTS_settings.h
         algorithms/MCTS/CPW_ISMCTS.h algorithms/MCTS/CPW_ISMCTS.cpp
         algorithms/MCTS/selectors/selector.h
         algorithms/MCTS/selectors/selectorFactory.h

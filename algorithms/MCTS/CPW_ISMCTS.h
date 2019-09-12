@@ -22,9 +22,7 @@
 #ifndef GTLIB2_CPW_ISMCTS_H
 #define GTLIB2_CPW_ISMCTS_H
 
-#include "ISMCTS.h"
-
-#include <utility>
+#include "algorithms/MCTS/ISMCTS.h"
 #include "algorithms/common.h"
 
 /**
@@ -38,8 +36,8 @@ namespace GTLib2::algorithms {
 
 class CPW_ISMCTS: public ISMCTS {
  public:
-    explicit CPW_ISMCTS(const Domain &domain, Player playingPlayer, ISMCTSSettings config) :
-        ISMCTS(domain, playingPlayer, std::move(config)), belief_({1.0}) {};
+    explicit CPW_ISMCTS(const Domain &domain, Player playingPlayer, const ISMCTSSettings &config) :
+        ISMCTS(domain, playingPlayer, config), belief_({1.0}) {};
 
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
 

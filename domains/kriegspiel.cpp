@@ -1174,6 +1174,7 @@ string KriegspielState::toString() const {
         vector<string> row;
         for (int i = 0; i < this->xSize; i++) {
             row.emplace_back("_");
+            //row.emplace_back(((j*ySize+j+i+1) % 2) ? "□" : "■");
         }
         board.push_back(row);
     }
@@ -1187,13 +1188,17 @@ string KriegspielState::toString() const {
 
     string s;
     for (int i = this->ySize - 1; i >= 0; i--) {
+        s += to_string(i+1) + " ";
         vector<string> row = board.at(i);
         for (const string &str: row) {
             s += str;
         }
         s += "\n";
     }
-    s += "oooooooo\n";
+
+    s += "  ";
+    for (int i = 0; i < this->xSize; i++) s += 'a'+i;
+    s += "\n";
     return s;
 
     /*chess::FenBoardFactory f;

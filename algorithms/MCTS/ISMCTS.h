@@ -21,34 +21,19 @@
 
 #ifndef GTLIB2_ISMCTS_H
 #define GTLIB2_ISMCTS_H
+
 #include "base/algorithm.h"
-#include "selectors/UCTSelector.h"
 #include "base/random.h"
 
+#include "algorithms/MCTS/ISMCTS_settings.h"
+#include "algorithms/MCTS/selectors/selector.h"
+#include "algorithms/MCTS/selectors/selectorFactory.h"
+#include "selectors/UCTSelectorFactory.h"
+#include "selectors/RMSelectorFactory.h"
+#include "selectors/Exp3SelectorFactory.h"
+
+
 namespace GTLib2::algorithms {
-
-struct ISMCTSSettings {
-    /**
-     * fact_ describes which of selectors will be used to choose action at current infoset.
-     */
-    shared_ptr<SelectorFactory> fact_;
-
-    /**
-     * IMPORTANT NOTES
-     *
-     * useBelief DOES NOT AFFECT usual ISMCTS algorithm, only CPW_ISMCTS, as it requires IS -> nodes map.
-     *
-     * When useBelief = true, a node to be iterated is selected according to the probability distribution.
-     *
-     * Probability of the node counted as a multiplication of all probabilities,
-     * that lead from the previous infoset to the current node.
-     * If there are multiple ways from the old infoset to the node, they are summed.
-     * In the end, probabilities for all nodes are normalized (see setCurrentInfoset and fillBelief at CPW_ISMCTS).
-     */
-    bool useBelief = false;
-
-    int randomSeed = 0;
-};
 
 /**
  * Information Set Monte Carlo Tree Search algorithm (ISMCTS) is based on the MCTS algorithm,
@@ -72,17 +57,20 @@ struct ISMCTSSettings {
  */
 class ISMCTS: public GamePlayingAlgorithm {
  public:
-    explicit ISMCTS(const Domain &domain, Player playingPlayer, const ISMCTSSettings &config) :
-        GamePlayingAlgorithm(domain, playingPlayer), config_(config),
+    explicit inline ISMCTS(const Domain &domain, Player playingPlayer, const ISMCTSSettings &config) :
+        GamePlayingAlgorithm(domain, playingPlayer),
+        config_(config),
+        factory_(move(config_.createFactory())),
         rootNode_(createRootEFGNode(domain)) {
-        generator_ = std::mt19937(config.randomSeed);
+        generator_ = std::mt19937(config.seed);
     };
 
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
     optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override;
 
  protected:
-    const ISMCTSSettings config_;
+    const ISMCTSSettings &config_;
+    const unique_ptr<SelectorFactory> factory_;
     std::mt19937 generator_;
     unordered_map<shared_ptr<AOH>, unique_ptr<Selector>> infosetSelectors_;
     const shared_ptr<EFGNode> rootNode_;

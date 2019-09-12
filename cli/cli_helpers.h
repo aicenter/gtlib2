@@ -23,6 +23,7 @@
 #define GTLIB2_CLI_HELPERSH
 
 #include <iomanip>
+#include <algorithms/MCTS/selectors/UCTSelector.h>
 
 #include "utils/args.hpp"
 #include "global_args.h"
@@ -32,7 +33,11 @@
 #include "algorithms/cfr.h"
 #include "algorithms/oos.h"
 #include "algorithms/mccr.h"
+#include "algorithms/MCTS/ISMCTS.h"
 #include "algorithms/MCTS/CPW_ISMCTS.h"
+#include "algorithms/MCTS/selectors/UCTSelectorFactory.h"
+#include "algorithms/MCTS/selectors/RMSelectorFactory.h"
+#include "algorithms/MCTS/selectors/Exp3SelectorFactory.h"
 
 #include "domains/goofSpiel.h"
 #include "domains/oshiZumo.h"
@@ -44,6 +49,7 @@
 #include "domains/stratego.h"
 
 namespace GTLib2::CLI {
+
 using namespace domains;
 using namespace algorithms;
 
@@ -60,11 +66,11 @@ unique_ptr<Domain> constructDomain(const string &description) {
         const auto numCards = static_cast<uint32>(stoi(p.at(0)));
         if (p.size() == 1) {
             return make_unique<GoofSpielDomain>(GoofSpielSettings{
-                variant: v,
-                numCards: numCards,
-                fixChanceCards: false, // chance cards are not fixed !! (in constrast to IIGS_#)
-                chanceCards: {},
-                binaryTerminalRewards: false
+                .variant = v,
+                .numCards = numCards,
+                .fixChanceCards = false, // chance cards are not fixed !! (in constrast to IIGS_#)
+                .chanceCards = {},
+                .binaryTerminalRewards = false
             });
         }
 
@@ -75,11 +81,11 @@ unique_ptr<Domain> constructDomain(const string &description) {
         });
 
         return make_unique<GoofSpielDomain>(GoofSpielSettings{
-            variant: v,
-            numCards: numCards,
-            fixChanceCards: true,
-            chanceCards: cards,
-            binaryTerminalRewards: false
+            .variant = v,
+            .numCards = numCards,
+            .fixChanceCards = true,
+            .chanceCards = cards,
+            .binaryTerminalRewards = false
         });
     };
 
@@ -89,10 +95,10 @@ unique_ptr<Domain> constructDomain(const string &description) {
         const auto minBid = p.size() >= 3 ? static_cast<uint32>(stoi(p.at(2))) : 1;
 
         return make_unique<OshiZumoDomain>(OshiZumoSettings{
-            variant: v,
-            startingCoins: startingCoins,
-            startingLocation: startingLocation,
-            minBid: minBid,
+            .variant = v,
+            .startingCoins = startingCoins,
+            .startingLocation = startingLocation,
+            .minBid = minBid,
         });
     };
 
@@ -149,7 +155,7 @@ unique_ptr<Domain> constructDomain(const string &description) {
         {"KS_SILVERMAN4BY4", [ ](vector<string> p) { return make_unique<KriegspielDomain>(1000, 1000, chess::BOARD::SILVERMAN4BY4); }},
         {"KS_MINIMAL3x3",    [ ](vector<string> p) { return make_unique<KriegspielDomain>(1000, 1000, chess::BOARD::MINIMAL3x3); }},
         {"KS_MICROCHESS",    [ ](vector<string> p) { return make_unique<KriegspielDomain>(1000, 1000, chess::BOARD::MICROCHESS); }},
-        {"KS_DEMICHESS ",    [ ](vector<string> p) { return make_unique<KriegspielDomain>(1000, 1000, chess::BOARD::DEMICHESS ); }},
+        {"KS_DEMICHESS",     [ ](vector<string> p) { return make_unique<KriegspielDomain>(1000, 1000, chess::BOARD::DEMICHESS ); }},
     };
     // @formatter:on
 
@@ -164,6 +170,73 @@ unique_ptr<Domain> constructDomain(const string &description) {
     return domainsTable.at(domain)(params);
 }
 
+template<typename A, typename C, typename D>
+struct Wrapper: public AlgorithmWithData {
+    D data;
+    C cfg;
+    inline Wrapper(D d) : data(move(d)) {}
+    PreparedAlgorithm prepare() override { return createInitializer<A>(data, cfg); }
+    C &config() override { return cfg; }
+};
+template<typename A, typename C>
+struct WrapperCfg: public AlgorithmWithData {
+    C cfg;
+    inline WrapperCfg() {}
+    PreparedAlgorithm prepare() override { return createInitializer<A>(cfg); }
+    C &config() override { return cfg; }
+};
+
+
+// @formatter:off
+typedef Wrapper   <CFRAlgorithm,  CFRSettings,         CFRData>  WrapperCFR;
+typedef Wrapper   <OOSAlgorithm,  OOSSettings,         OOSData>  WrapperOOS;
+typedef Wrapper   <MCCRAlgorithm, MCCRSettings,        OOSData>  WrapperMCCR;
+typedef WrapperCfg<RandomPlayer,  AlgConfig>                     WrapperRND;
+typedef WrapperCfg<ISMCTS,        UCT_ISMCTSSettings>            WrapperISMCTS_UCT;
+typedef WrapperCfg<ISMCTS,        RM_ISMCTSSettings>             WrapperISMCTS_RM;
+typedef WrapperCfg<ISMCTS,        EXP3_ISMCTSSettings>           WrapperISMCTS_EXP3;
+typedef WrapperCfg<CPW_ISMCTS,    UCT_ISMCTSSettings>            WrapperCPW_UCT;
+typedef WrapperCfg<CPW_ISMCTS,    RM_ISMCTSSettings>             WrapperCPW_RM;
+typedef WrapperCfg<CPW_ISMCTS,    EXP3_ISMCTSSettings>           WrapperCPW_EXP3;
+
+template<>
+struct WrapperCfg<RandomPlayer, AlgConfig> : public AlgorithmWithData {
+    AlgConfig cfg;
+    WrapperCfg() : cfg(AlgConfig{}) {}
+    PreparedAlgorithm prepare() { return createInitializer<RandomPlayer>(); }
+    AlgConfig& config() { return cfg; }
+};
+
+template<>
+struct WrapperCfg<ISMCTS, RM_ISMCTSSettings> : public AlgorithmWithData {
+    RM_ISMCTSSettings cfg;
+    WrapperCfg(const Domain &d) : cfg(RM_ISMCTSSettings(d.getMinUtility(), d.getMaxUtility())) {}
+    PreparedAlgorithm prepare() override { return createInitializer<ISMCTS>(cfg); }
+    RM_ISMCTSSettings &config() override { return cfg; }
+};
+template<>
+struct WrapperCfg<ISMCTS, EXP3_ISMCTSSettings> : public AlgorithmWithData {
+    EXP3_ISMCTSSettings cfg;
+    WrapperCfg(const Domain &d) : cfg(EXP3_ISMCTSSettings(d.getMinUtility(), d.getMaxUtility())) {}
+    PreparedAlgorithm prepare() override { return createInitializer<ISMCTS>(cfg); }
+    EXP3_ISMCTSSettings &config() override { return cfg; }
+};
+template<>
+struct WrapperCfg<CPW_ISMCTS, RM_ISMCTSSettings> : public AlgorithmWithData {
+    RM_ISMCTSSettings cfg;
+    WrapperCfg(const Domain &d) : cfg(RM_ISMCTSSettings(d.getMinUtility(), d.getMaxUtility())) {}
+    PreparedAlgorithm prepare() override { return createInitializer<CPW_ISMCTS>(cfg); }
+    RM_ISMCTSSettings &config() override { return cfg; }
+};
+template<>
+struct WrapperCfg<CPW_ISMCTS, EXP3_ISMCTSSettings> : public AlgorithmWithData {
+    EXP3_ISMCTSSettings cfg;
+    WrapperCfg(const Domain &d) : cfg(EXP3_ISMCTSSettings(d.getMinUtility(), d.getMaxUtility())) {}
+    PreparedAlgorithm prepare() override { return createInitializer<CPW_ISMCTS>(cfg); }
+    EXP3_ISMCTSSettings &config() override { return cfg; }
+};
+// @formatter:on
+
 unique_ptr<AlgorithmWithData> constructAlgWithData(const Domain &d,
                                                    const string &description,
                                                    const CLI::AlgParams &params) {
@@ -174,76 +247,21 @@ unique_ptr<AlgorithmWithData> constructAlgWithData(const Domain &d,
     // ignore the rest of the name description
     // (these can be useful for named parametrizations of algs, which are speicified in the configs)
 
-    struct WrapperCFR: AlgorithmWithData {
-        CFRData data;
-        CFRSettings cfg;
-        inline WrapperCFR(const Domain &d, CFRSettings _cfg) : data(CFRData(d, _cfg.cfrUpdating)), cfg(_cfg) {}
-        PreparedAlgorithm prepare() override { return createInitializer<CFRAlgorithm>(data, cfg); }
-        CFRSettings& config() override { return cfg; }
-    };
-    struct WrapperOOS: AlgorithmWithData {
-        OOSData data;
-        OOSSettings cfg;
-        inline WrapperOOS(const Domain &d, OOSSettings _cfg) : data(OOSData(d)), cfg(_cfg) {}
-        PreparedAlgorithm prepare() override { return createInitializer<OOSAlgorithm>(data, cfg); }
-        OOSSettings& config() override { return cfg; }
-    };
-    struct WrapperMCCR: AlgorithmWithData {
-        OOSData data;
-        MCCRSettings cfg;
-        inline WrapperMCCR(const Domain &d, MCCRSettings _cfg) : data(OOSData(d)), cfg(_cfg) {}
-        PreparedAlgorithm prepare() override { return createInitializer<MCCRAlgorithm>(data, cfg); }
-        MCCRSettings& config() override { return cfg; }
-    };
-    struct WrapperRND: AlgorithmWithData {
-        AlgConfig cfg = AlgConfig{};
-        PreparedAlgorithm prepare() override { return createInitializer<RandomPlayer>(); }
-        AlgConfig& config() override { return cfg; }
-    };
-    struct WrapperCPW: AlgorithmWithData {
-        ISMCTSSettings cfg;
-        inline WrapperCPW(const Domain &d, ISMCTSSettings _cfg) : cfg(_cfg) {}
-        PreparedAlgorithm prepare() override { return createInitializer<CPW_ISMCTS>(cfg); }
-        ISMCTSSettings& config() override { return cfg; }
-    };
-    struct WrapperISMCTS: AlgorithmWithData {
-        ISMCTSSettings cfg;
-        inline WrapperISMC(const Domain &d, ISMCTSSettings _cfg) : cfg(_cfg) {}
-        PreparedAlgorithm prepare() override { return createInitializer<ISMCTS>(cfg); }
-        ISMCTSSettings& config() override { return cfg; }
-    };
-
-    std::fstream fs;
-    unique_ptr<cereal::JSONInputArchive> deserialize;
 
     // @formatter:off
     unordered_map<string, function<unique_ptr<AlgorithmWithData>()>> algorithmsTable = {
-        {"CFR",   [&]() {
-            CFRSettings settings;
-            settings.updateAll(params);
-            return make_unique<WrapperCFR>(d, settings);
-        }},
-        {"OOS",   [&]() {
-            OOSSettings settings;
-            settings.updateAll(params);
-            return make_unique<WrapperOOS>(d, settings);
-        }},
-        {"MCCR",   [&]() {
-            MCCRSettings settings;
-            settings.updateAll(params);
-            return make_unique<WrapperMCCR>(d, settings);
-        }},
-        {"ISMCTS",   [&]() {
-            auto fact = make_shared<UCTSelectorFactory>(sqrt(2));
-            ISMCTSSettings settings = {.fact_ = std::static_pointer_cast<SelectorFactory>(fact), .randomSeed = 1};
-            return make_unique<WrapperISMCTS>(d, settings);
-        }},
-        {"CPW",   [&]() {
-            auto fact = make_shared<UCTSelectorFactory>(sqrt(2));
-            ISMCTSSettings settings = {.useBelief = true, .fact_ = std::static_pointer_cast<SelectorFactory>(fact), .randomSeed = 2};
-            return make_unique<WrapperCPW>(d, settings);
-        }},
-        {"RND",   [&]() { return make_unique<WrapperRND>(); }},
+        {"RND",         [&]() { return make_unique<WrapperRND>         ();            }},
+        {"CFR",         [&]() { return make_unique<WrapperCFR>         (CFRData(d));  }},
+        {"OOS",         [&]() { return make_unique<WrapperOOS>         (OOSData(d));  }},
+        {"MCCR",        [&]() { return make_unique<WrapperMCCR>        (OOSData(d));  }},
+        {"ISMCTS",      [&]() { return make_unique<WrapperISMCTS_UCT>  ();            }},
+        {"ISMCTS_UCT",  [&]() { return make_unique<WrapperISMCTS_UCT>  ();            }},
+        {"ISMCTS_RM",   [&]() { return make_unique<WrapperISMCTS_RM>   (d);           }},
+        {"ISMCTS_EXP3", [&]() { return make_unique<WrapperISMCTS_EXP3> (d);           }},
+        {"CPW",         [&]() { return make_unique<WrapperCPW_UCT>     ();            }},
+        {"CPW_UCT",     [&]() { return make_unique<WrapperCPW_UCT>     ();            }},
+        {"CPW_RM",      [&]() { return make_unique<WrapperCPW_RM>      (d);           }},
+        {"CPW_EXP3",    [&]() { return make_unique<WrapperCPW_EXP3>    (d);           }},
     };
     // @formatter:on
 
@@ -254,7 +272,9 @@ unique_ptr<AlgorithmWithData> constructAlgWithData(const Domain &d,
         exit(1);
     }
 
-    return algorithmsTable.at(algName)();
+    auto algWithData = algorithmsTable.at(algName)();
+    algWithData->config().updateAll(params);
+    return algWithData;
 }
 
 }

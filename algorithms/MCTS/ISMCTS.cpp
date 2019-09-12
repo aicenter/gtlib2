@@ -48,7 +48,7 @@ double ISMCTS::iteration(const shared_ptr<EFGNode> &h) {
 int cnt = 0;
 
 double ISMCTS::handleTerminalNode(const shared_ptr<EFGNode> &h) {
-    if(playingPlayer_ == 0) cout << cnt++ << " " << h->getUtilities()[0] << endl;
+//    if(playingPlayer_ == 0) cout << cnt++ << " " << h->getUtilities()[0] << endl;
     return h->getUtilities()[playingPlayer_];
 }
 
@@ -66,7 +66,7 @@ double ISMCTS::handlePlayerNode(const shared_ptr<EFGNode> &h) {
     int actionIndex;
     double simulationResult;
     if (selectorPtr == infosetSelectors_.end()) {
-        infosetSelectors_.emplace(infoset, config_.fact_->createSelector(h->availableActions()));
+        infosetSelectors_.emplace(infoset, factory_->createSelector(h->availableActions()));
         selector = infosetSelectors_[infoset].get();
         actionIndex = selector->select();
         simulationResult = simulate(h);

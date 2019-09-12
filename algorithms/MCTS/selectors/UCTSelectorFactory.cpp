@@ -21,7 +21,11 @@
 
 #include "UCTSelector.h"
 #include "UCTSelectorFactory.h"
+
 namespace GTLib2::algorithms {
+
+UCTSelectorFactory::UCTSelectorFactory(const UCT_ISMCTSSettings &cfg)
+    : cfg_(cfg), generator_(cfg_.seed) {}
 
 unique_ptr<Selector> UCTSelectorFactory::createSelector(int actionsNumber) const {
     return make_unique<UCTSelector>(actionsNumber, this);
@@ -30,7 +34,6 @@ unique_ptr<Selector> UCTSelectorFactory::createSelector(int actionsNumber) const
 unique_ptr<Selector> UCTSelectorFactory::createSelector(vector<shared_ptr<Action>> actions) const {
     return make_unique<UCTSelector>(actions, this);
 }
-
 std::mt19937 UCTSelectorFactory::getRandom() const {
     return generator_;
 }

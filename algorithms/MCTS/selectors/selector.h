@@ -27,12 +27,9 @@ namespace GTLib2::algorithms {
 
 class Selector {
  public:
-
     virtual ~Selector() = default;
     virtual ActionId select() = 0;
-
     virtual void update(ActionId ai, double value) = 0;
-
     virtual ProbDistribution getActionsProbDistribution() = 0;
 };
 

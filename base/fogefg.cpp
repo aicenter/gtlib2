@@ -329,7 +329,7 @@ vector<ActionObservationIds> FOG2EFGNode::getAOids(Player player) const {
     }
 
     // Must always hold, after we made all of the above.
-    assert(algorithms::isAOCompatible(parent_->getAOids(player), aoh));
+//    assert(algorithms::isAOCompatible(parent_->getAOids(player), aoh));
 
     return aoh;
 }

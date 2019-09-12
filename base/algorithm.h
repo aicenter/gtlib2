@@ -162,6 +162,7 @@ PreparedAlgorithm createInitializer(Args &... args) {
 }
 
 struct AlgorithmWithData {
+    virtual ~AlgorithmWithData() = default;
     virtual PreparedAlgorithm prepare() = 0;
     virtual AlgConfig &config() = 0;
 };

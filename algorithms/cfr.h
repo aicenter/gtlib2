@@ -99,6 +99,8 @@ class CFRData: public virtual InfosetCache,
                public StrategyCache {
 
  public:
+    inline explicit CFRData(const Domain &domain) : CFRData(domain, HistoriesUpdating) {}
+
     inline explicit CFRData(const Domain &domain, CFRUpdating updatingPolicy) :
         EFGCache(domain),
         InfosetCache(domain),
