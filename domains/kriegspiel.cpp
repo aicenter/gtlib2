@@ -592,7 +592,8 @@ void King::updateMoves() {
             continue;
         }
         shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
-        if (p != nullptr && p->getColor() == this->getColor()) continue;
+        // TODO is checking that p is a king necessary? two kings should naver have end up next to each other
+        if (p != nullptr && (p->getColor() == this->getColor() || p->getKind() == 'k')) continue;
         this->moves->push_back(newPos);
     }
 
@@ -973,7 +974,6 @@ bool KriegspielState::makeMove(KriegspielAction *a) {
                 != attackSquares->end())
                 return false;
         }
-        //TODO: change capturedPiece calculation to keep info about what piece and where was captured
         //move valid
         shared_ptr<AbstractPiece> checkCapture = this->getPieceOnCoords(pos);
         if (checkCapture != nullptr) {
@@ -1120,15 +1120,14 @@ OutcomeDistribution KriegspielState::performActions(
         s->setEnPassant(enPassSquare);
         s->updateState(nextMove);
         rewards = s->checkGameOver();
-        observations[this->playerOnTheMove] = make_shared<KriegspielObservation>(1);
+        observations[this->playerOnTheMove] = make_shared<KriegspielObservation>(NO_OBSERVATION);
         observations[chess::invertColor(this->playerOnTheMove)] =
-            make_shared<KriegspielObservation>(
-                s->calculateObservation(chess::invertColor(this->playerOnTheMove)));
+            make_shared<KriegspielObservation>(NO_OBSERVATION);
         publicObservation = make_shared<KriegspielObservation>(s->calculatePublicObservation());
-        //int x = 4; //????
     } else {
         s->addToAttemptedMoves(ac);
         nextMove = this->playerOnTheMove;
+        // invalid move -> only private observation
         observations[this->playerOnTheMove] = make_shared<KriegspielObservation>(a->getId());
         observations[chess::invertColor(this->playerOnTheMove)] =
             make_shared<KriegspielObservation>(NO_OBSERVATION);
@@ -1470,7 +1469,7 @@ int KriegspielState::calculateObservation(Player player) const {
     return toreturn;
 }
 ObservationId KriegspielState::calculatePublicObservation() const {
-    ObservationId observation = this->capturedPiece;
+    ObservationId observation = this->capturedPiece; // if any pieces captured, otherwise 0
     if (this->isPlayerInCheck() == this->playerOnTheMove) {
         Square kingPosition =
             this->getPiecesOfColorAndKind(this->playerOnTheMove, chess::KING)[0]->getPosition();
