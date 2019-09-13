@@ -268,9 +268,11 @@ class King: public AbstractPiece {
 };
 
 // See https://en.wikipedia.org/wiki/Minichess for variants description
-enum BOARD: int { STANDARD, SILVERMAN4BY4, MINIMAL3x3, MICROCHESS, DEMICHESS };
+enum BOARD : int { STANDARD, SILVERMAN4BY4, MINIMAL4x3, MICROCHESS, DEMICHESS };
+
 class BoardFactory;
 struct boardInfo;
+
 }
 
 using chess::AbstractPiece;
@@ -525,15 +527,15 @@ class KriegspielState: public State {
 
     /**
      * Checks whether the player currently on the move is in check
-     * The result is stored in this->playerInCheck (either chess::WHITE/chess::BLACK if a player is in check, -1 otherwise)
+     * The result is stored in this->playerInCheck (either chess::WHITE/chess::BLACK if a player is in check, NO_PLAYER otherwise)
      */
     void checkPlayerInCheck();
 
-    /**
-     * Same principle as KriegspielState::checkPlayerInCheck() but usable where the function required has to be marked as const
-     * @param int color of the player who we are checking for
-     * @returns the color of the player currently on the move if he is in check, -1 otherwise
-     */
+  /**
+   * Same principle as KriegspielState::checkPlayerInCheck() but usable where the function required has to be marked as const
+   * @param int color of the player who we are checking for
+   * @returns the color of the player currently on the move if he is in check, -1 otherwise
+   */
     int checkGameOverCheck(int) const;
 
     /**
@@ -585,11 +587,23 @@ class KriegspielState: public State {
      * @returns int the observation
      */
     int calculateObservation(Player player) const;
-    void setGameHasEnded(bool gameHasEnded);
-    void addToHistory(shared_ptr<KriegspielAction>);
-    void addToAttemptedMoves(shared_ptr<KriegspielAction>);
-    void setEnPassant(chess::Square);
-    shared_ptr<vector<shared_ptr<AbstractPiece>>> copyPieces() const;
+  /**
+   * Calculates public observation for both players, first 5 bits of number refer to different
+   * checks (vertical, horizontal, long diagonal, short diagonal, knight). Last 8 bits are for
+   * indicating captured pawn (value of 1 - 64) or captured piece (value 65 - 128). 0 in this
+   * last bits indicate legal move made without capture.
+   *
+   * @return ObservationId the observation
+   */
+  ObservationId calculatePublicObservation() const;
+  void setGameHasEnded(bool gameHasEnded);
+  void addToHistory(shared_ptr<KriegspielAction>);
+  void addToAttemptedMoves(shared_ptr<KriegspielAction>);
+  void setEnPassant(chess::Square);
+  inline shared_ptr<vector<shared_ptr<KriegspielAction>>> getAttemptedMoveHistory() const {
+      return attemptedMoveHistory;
+  }
+  shared_ptr<vector<shared_ptr<AbstractPiece>>> copyPieces() const;
     shared_ptr<vector<shared_ptr<KriegspielAction>>> copyMoveHistory() const;
     shared_ptr<vector<shared_ptr<KriegspielAction>>> copyAttemptedMoves() const;
  protected:
@@ -598,9 +612,9 @@ class KriegspielState: public State {
     const shared_ptr<vector<shared_ptr<KriegspielAction>>> moveHistory;
     const shared_ptr<vector<shared_ptr<KriegspielAction>>> attemptedMoveHistory;
     Player playerOnTheMove;
-    int lastCut = 0;
+  int capturedPiece = 0; //previously lastCut
     chess::Square enPassantSquare;
-    Player playerInCheck = -1;
+  Player playerInCheck = NO_PLAYER;
     const int legalMaxDepth;
     bool gameHasEnded = false;
  private:

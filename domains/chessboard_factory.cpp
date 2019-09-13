@@ -31,7 +31,7 @@ boardInfo BoardFactory::create(BOARD b, GTLib2::domains::KriegspielState *s) {
             return createStandard(s);
         case MICROCHESS:
             return createMicrochess(s);
-        case MINIMAL3x3:
+        case MINIMAL4x3:
             return createMinimal(s);
         case DEMICHESS:
             return createDemichess(s);

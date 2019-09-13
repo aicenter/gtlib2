@@ -48,6 +48,7 @@ int pickRandom(const Distribution &probs, double probSum, std::mt19937 &generato
 }
 
 int pickUniform(unsigned long numOutcomes, std::mt19937 &generator) {
+    assert(numOutcomes >= 1);
     if(numOutcomes == 1) return 0; // do not use generator unnecessarily
 
     double p = uniformDist(generator);
