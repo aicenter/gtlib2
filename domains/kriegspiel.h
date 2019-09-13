@@ -590,14 +590,18 @@ class KriegspielState: public State {
    * checks (vertical, horizontal, long diagonal, short diagonal, knight). Last 8 bits are for
    * indicating captured pawn (value of 1 - 64) or captured piece (value 65 - 128). 0 in this
    * last bits indicate legal move made without capture.
+   *
    * @return ObservationId the observation
    */
   ObservationId calculatePublicObservation() const;
-    void setGameHasEnded(bool gameHasEnded);
-    void addToHistory(shared_ptr<KriegspielAction>);
-    void addToAttemptedMoves(shared_ptr<KriegspielAction>);
-    void setEnPassant(chess::Square);
-    shared_ptr<vector<shared_ptr<AbstractPiece>>> copyPieces() const;
+  void setGameHasEnded(bool gameHasEnded);
+  void addToHistory(shared_ptr<KriegspielAction>);
+  void addToAttemptedMoves(shared_ptr<KriegspielAction>);
+  void setEnPassant(chess::Square);
+  inline shared_ptr<vector<shared_ptr<KriegspielAction>>> getAttemptedMoveHistory() const {
+      return attemptedMoveHistory;
+  }
+  shared_ptr<vector<shared_ptr<AbstractPiece>>> copyPieces() const;
     shared_ptr<vector<shared_ptr<KriegspielAction>>> copyMoveHistory() const;
     shared_ptr<vector<shared_ptr<KriegspielAction>>> copyAttemptedMoves() const;
  protected:
