@@ -865,12 +865,14 @@ vector<shared_ptr<Action>> KriegspielState::getAvailableActionsFor(Player player
         if (p->getColor() != player) continue;
         auto moves = p->getAllMoves();
         for (Square move: *moves) {
-            auto ksa = make_shared<KriegspielAction>(
+            auto newAction = make_shared<KriegspielAction>(
                 count, pair<shared_ptr<AbstractPiece>, Square>(p, move),
                 p->getPosition());
-            if (std::find(attemptedMoveHistory->begin(), attemptedMoveHistory->end(), ksa)
-                == attemptedMoveHistory->end()) {
-                list.push_back(ksa);
+            if (std::find_if(attemptedMoveHistory->begin(), attemptedMoveHistory->end(),
+                             [&newAction](shared_ptr<KriegspielAction> action) {
+                               return *action == *newAction;
+                             }) == attemptedMoveHistory->end()) {
+                list.push_back(newAction);
                 ++count;
             }
         }
@@ -1120,10 +1122,10 @@ OutcomeDistribution KriegspielState::performActions(
         s->setEnPassant(enPassSquare);
         s->updateState(nextMove);
         rewards = s->checkGameOver();
-        observations[this->playerOnTheMove] = make_shared<KriegspielObservation>(NO_OBSERVATION);
-        observations[chess::invertColor(this->playerOnTheMove)] =
-            make_shared<KriegspielObservation>(NO_OBSERVATION);
         publicObservation = make_shared<KriegspielObservation>(s->calculatePublicObservation());
+        observations[this->playerOnTheMove] = publicObservation;
+        observations[chess::invertColor(this->playerOnTheMove)] = publicObservation;
+
     } else {
         s->addToAttemptedMoves(ac);
         nextMove = this->playerOnTheMove;
@@ -1473,6 +1475,8 @@ ObservationId KriegspielState::calculatePublicObservation() const {
     if (this->isPlayerInCheck() == this->playerOnTheMove) {
         Square kingPosition =
             this->getPiecesOfColorAndKind(this->playerOnTheMove, chess::KING)[0]->getPosition();
+        int rowMid = this->xSize / 2;
+        int colMid = this->ySize / 2;
         for (shared_ptr<AbstractPiece> piece : this->getCheckingFigures()) {
             Square piecePos = piece->getPosition();
             if (piece->getKind() == 'n') {
@@ -1485,8 +1489,8 @@ ObservationId KriegspielState::calculatePublicObservation() const {
                 //horizontal
                 observation |= 1UL << 30;
             } else { // diagonal checks
-                if ((kingPosition.x <= 4 && kingPosition.y > 4)
-                    || (kingPosition.x > 4 && kingPosition.y <= 4)) {
+                if ((kingPosition.x <= rowMid && kingPosition.y > colMid)
+                    || (kingPosition.x > rowMid && kingPosition.y <= colMid)) {
                     //king in upper left or bottom right quadrant
                     if ((piecePos.x > kingPosition.x && piecePos.y < kingPosition.y)
                         || (piecePos.x < kingPosition.x && piecePos.y > kingPosition.y)) {
@@ -1497,10 +1501,10 @@ ObservationId KriegspielState::calculatePublicObservation() const {
                         // short diagonal
                         observation |= 1UL << 28;
                     } else {
-                        //assert(false)
+                        unreachable("Checking figure is on unknown position!");
                     }
-                } else if ((kingPosition.x <= 4 && kingPosition.y <= 4)
-                    || (kingPosition.x > 4 && kingPosition.y > 4)) {
+                } else if ((kingPosition.x <= rowMid && kingPosition.y <= colMid)
+                    || (kingPosition.x > rowMid && kingPosition.y > colMid)) {
                     //king in upper right or bottom left quadrant
                     if ((piecePos.x < kingPosition.x && piecePos.y < kingPosition.y)
                         || (piecePos.x > kingPosition.x && piecePos.y > kingPosition.y)) {
@@ -1511,7 +1515,7 @@ ObservationId KriegspielState::calculatePublicObservation() const {
                         //short diagonal
                         observation |= 1UL << 28;
                     } else {
-                        //assert(false)
+                        unreachable("Checking figure is on unknown position!");
                     }
                 }
             }

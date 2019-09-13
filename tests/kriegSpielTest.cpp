@@ -952,5 +952,92 @@ TEST(Kriegspiel, diagonalChecksObservations) {
         EXPECT_EQ(outcome.publicObservation->getId(), expectedObservations.at(i));
     }
 }
-//TODO write more test on diagonal checks
+
+TEST(Kriegspiel, diagonalCheckObservationSmallerBoard) {
+    domains::KriegspielDomain domain(4, 4, BOARD::SILVERMAN4BY4);
+    shared_ptr<State> rootState = domain.getRootStatesDistribution()[0].outcome.state;
+    auto state = dynamic_cast<domains::KriegspielState *>(rootState.get());
+    state->clearBoard();
+
+    vector<shared_ptr<Action>> actions;
+    auto noAction = domain.getNoAction();
+
+    shared_ptr<King> whiteKing = make_shared<King>(KING, WHITE, Square(1, 1), state);
+    shared_ptr<King> blackKing = make_shared<King>(KING, BLACK, Square(3, 3), state);
+    shared_ptr<Bishop> whiteBishop = make_shared<Bishop>(BISHOP, WHITE, Square(3, 1), state);
+    shared_ptr<Bishop> whiteBishop2 = make_shared<Bishop>(BISHOP, WHITE, Square(1, 3), state);
+
+    state->insertPiece(whiteKing);
+    state->insertPiece(blackKing);
+    state->insertPiece(whiteBishop);
+    state->insertPiece(whiteBishop2);
+    state->updateAllPieces();
+
+    vector<Square> movePosition{Square(4, 2), Square(2, 2), Square(2, 4)};
+    vector<ObservationId> expectedObservations{268435456, 536870912, 268435456};
+    vector<Square> bishopPos{Square(3, 1), Square(1, 3)};
+
+    for (int i = 0; i < movePosition.size(); ++i) {
+        int bishop = i < 2 ? 0 : 1;
+        actions.clear();
+        auto bishopMove = make_shared<KriegspielAction>(0,
+                                                        pair<shared_ptr<AbstractPiece>, Square>(
+                                                            state->getPieceOnCoords(bishopPos.at(
+                                                                bishop)), movePosition.at(i)),
+                                                        bishopPos.at(bishop));
+        actions.emplace_back(bishopMove);
+        actions.emplace_back(noAction);
+        Outcome outcome = state->performActions(actions)[0].outcome;
+        EXPECT_EQ(outcome.publicObservation->getId(), expectedObservations.at(i));
+    }
+
+}
+
+TEST(Kriegspiel, invalidMoveIsNotGeneratedNextState) {
+    domains::KriegspielDomain domain(4, 4, BOARD::SILVERMAN4BY4);
+    shared_ptr<State> rootState = domain.getRootStatesDistribution()[0].outcome.state;
+    auto state = dynamic_cast<domains::KriegspielState *>(rootState.get());
+    state->clearBoard();
+
+    shared_ptr<King> whiteKing = make_shared<King>(KING, WHITE, Square(1, 1), state);
+    shared_ptr<King> blackKing = make_shared<King>(KING, BLACK, Square(3, 3), state);
+    shared_ptr<Queen> whiteQueen = make_shared<Queen>(QUEEN, WHITE, Square(1, 4), state);
+
+    state->insertPiece(whiteKing);
+    state->insertPiece(blackKing);
+    state->insertPiece(whiteQueen);
+    state->updateAllPieces();
+
+    int violations = 0;
+
+    // Move Kb2 should be in available actions for white player
+    for (auto &action : state->getAvailableActionsFor(WHITE)) {
+        if (action->toString() == "Kb2") {
+            ++violations;
+        }
+    }
+    EXPECT_EQ(violations, 1);
+
+    vector<shared_ptr<Action>> actions;
+    auto noAction = domain.getNoAction();
+    auto Kb2 = make_shared<KriegspielAction>(0, pair<shared_ptr<AbstractPiece>, Square>(
+        state->getPieceOnCoords(Square(1, 1)), Square(2, 2)), Square(1, 1));
+
+    actions.emplace_back(Kb2);
+    actions.emplace_back(noAction);
+    // after playing Kb2 (illegal move) it is added to attemtedMovedHistory
+    Outcome outcome = state->performActions(actions)[0].outcome;
+    auto newKriegspielState = dynamic_cast<domains::KriegspielState *>(outcome.state.get());
+    EXPECT_FALSE(newKriegspielState->getAttemptedMoveHistory()->empty());
+
+    auto availableActions = newKriegspielState->getAvailableActionsFor(WHITE);
+    violations = 0;
+    // Kb2 is no longer in availableActions
+    for (auto &action : availableActions) {
+        if (action->toString() == "Kb2") {
+            ++violations;
+        }
+    }
+    EXPECT_EQ(violations, 0);
+}
 }
