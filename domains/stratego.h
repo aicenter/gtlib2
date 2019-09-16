@@ -43,6 +43,9 @@ struct Lake {
     const int x, y, height, width;
 };
 
+vector<unsigned int> decodeObservation(unsigned int obsid);
+Rank getRank(CellState cell);
+
 struct StrategoSettings {
     int boardHeight = 3;
     int boardWidth = 3;
@@ -87,11 +90,12 @@ class StrategoDomain: public Domain {
     const int boardWidth_;
     const vector<Rank> startFigures_;
     const vector<CellState> emptyBoard_;
-
 };
 
 CellState createCell(Rank figure, Player player);
-
+unsigned long countDistinctPermutations(vector<Rank> v);
+vector<Rank> permutations(vector<Rank> comb, unsigned long action);
+bool isFigureSlain(CellState attacker, CellState defender);
 /**
  * Setup actions are permutations of startFigures_ of domain.
  *

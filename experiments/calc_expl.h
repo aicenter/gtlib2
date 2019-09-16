@@ -89,9 +89,8 @@ StrategyProfile OOS_AverageStrategy(Domain &domain, const string &cfg,
         }
 
         if (node->type_ != TerminalNode) {
-            auto actions = node->availableActions();
             for (EdgeId i = 0; i < node->countAvailableActions(); ++i) {
-                const auto nextNode = node->performAction(actions.at(i));
+                const auto nextNode = node->performAction(node->getActionByID(i));
                 traverse(nextNode);
             }
         }

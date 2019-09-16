@@ -24,7 +24,7 @@
 namespace GTLib2::algorithms {
 
 PlayControl ISMCTS::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
-    if ((currentInfoset != nullopt)
+    if ((currentInfoset != PLAY_FROM_ROOT)
         && (infosetSelectors_.find(*currentInfoset) == infosetSelectors_.end()))
         return GiveUp; // unexplored IS reached
 
@@ -45,16 +45,13 @@ double ISMCTS::iteration(const shared_ptr<EFGNode> &h) {
     }
 }
 
-int cnt = 0;
-
 double ISMCTS::handleTerminalNode(const shared_ptr<EFGNode> &h) {
-    if(playingPlayer_ == 0) cout << cnt++ << " " << h->getUtilities()[0] << endl;
     return h->getUtilities()[playingPlayer_];
 }
 
 double ISMCTS::handleChanceNode(const shared_ptr<EFGNode> &h) {
     const int selectedIndex = pickRandom(*h, generator_);
-    const shared_ptr<Action> selectedAction = h->availableActions()[selectedIndex];
+    const shared_ptr<Action> selectedAction = h->getActionByID(selectedIndex);
     const auto child = h->performAction(selectedAction);
     return iteration(child);
 }
@@ -66,14 +63,14 @@ double ISMCTS::handlePlayerNode(const shared_ptr<EFGNode> &h) {
     int actionIndex;
     double simulationResult;
     if (selectorPtr == infosetSelectors_.end()) {
-        infosetSelectors_.emplace(infoset, config_.fact_->createSelector(h->availableActions()));
+        infosetSelectors_.emplace(infoset, config_.fact_->createSelector(h->countAvailableActions()));
         selector = infosetSelectors_[infoset].get();
         actionIndex = selector->select();
         simulationResult = simulate(h);
     } else {
         selector = selectorPtr->second.get();
         actionIndex = selector->select();
-        shared_ptr<Action> selectedAction = h->availableActions()[actionIndex];
+        shared_ptr<Action> selectedAction = h->getActionByID(actionIndex);
         const auto child = h->performAction(selectedAction);
         simulationResult = iteration(child);
     }
@@ -86,13 +83,13 @@ double ISMCTS::simulate(const shared_ptr<EFGNode> &h) {
     shared_ptr<EFGNode> currentNode = h;
     while (currentNode->type_ != TerminalNode) {
         const int selectedIndex = pickRandom((*currentNode), generator_);
-        shared_ptr<Action> selectedAction = currentNode->availableActions()[selectedIndex];
+        shared_ptr<Action> selectedAction = currentNode->getActionByID(selectedIndex);
         currentNode = currentNode->performAction(selectedAction);
     }
     return currentNode->getUtilities()[playingPlayer_];
 }
 
-optional<ProbDistribution> ISMCTS::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
+optional<ProbDistribution> ISMCTS::getPlayDistribution(const shared_ptr<AOH> &currentInfoset, const long actionsNum) {
     const auto selectorPtr = infosetSelectors_.find(currentInfoset);
     if (selectorPtr != infosetSelectors_.end()) {
         return selectorPtr->second->getActionsProbDistribution();

@@ -24,7 +24,7 @@
 namespace GTLib2::algorithms {
 
 PlayControl CPW_ISMCTS::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
-    if (currentInfoset == nullopt) {
+    if (currentInfoset == PLAY_FROM_ROOT) {
         iteration(rootNode_);
         return ContinueImproving;
     }
@@ -73,14 +73,14 @@ void CPW_ISMCTS::setCurrentInfoset(const shared_ptr<AOH> &newInfoset) {
         const vector<shared_ptr<EFGNode>> newNodes = newNodesIt->second;
 
         belief_ = vector<double>(newNodes.size());
-        for (int i = 0; i < oldNodes.size(); i++) {
+        for (unsigned long i = 0; i < oldNodes.size(); i++) {
             fillBelief(oldNodes[i], newInfoset, oldBelief[i], newNodes);
         }
         //normalize belief
         double sum = 0;
         for (double d : belief_) sum += d;
         assert(sum > 0);
-        for (int i = 0; i < belief_.size(); i++) belief_[i] /= sum;
+        for (double & i : belief_) i /= sum;
     }
     currentInfoset_ = newInfoset;
 }
@@ -110,8 +110,8 @@ void CPW_ISMCTS::fillBelief(const shared_ptr<EFGNode> &currentNode,
         if (it == infosetSelectors_.end())
             return;
         const auto distribution = it->second->getActionsProbDistribution();
-        for (int i = 0; i < currentNode->availableActions().size(); i++) {
-            const auto action = currentNode->availableActions()[i];
+        for (int i = 0; i < currentNode->countAvailableActions(); i++) {
+            const auto action = currentNode->getActionByID(i);
             fillBelief(currentNode->performAction(action),
                        newInfoset,
                        reachProbability * distribution[i],
@@ -120,8 +120,8 @@ void CPW_ISMCTS::fillBelief(const shared_ptr<EFGNode> &currentNode,
     }
 
     if (currentNode->type_ == ChanceNode) {
-        for (int i = 0; i < currentNode->availableActions().size(); i++) {
-            const auto action = currentNode->availableActions()[i];
+        for (int i = 0; i < currentNode->countAvailableActions(); i++) {
+            const auto action = currentNode->getActionByID(i);
             fillBelief(currentNode->performAction(action),
                        newInfoset,
                        reachProbability * currentNode->chanceProbForAction(action),

@@ -285,7 +285,8 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
     };
 
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
-    optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override;
+    optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset,
+                                                   const long actionsNum) override;
 
     const OOSData & getCache() { return cache_; }
     const OOSSettings & getSettings() { return cfg_; }

@@ -145,7 +145,7 @@ constexpr ObservationId NO_OBSERVATION = 0xFFFFFFFF;
 
 /**
  * Special value of observation id, indicating that player made a move.
- * 0x0xFFFFFF00 means player 0, 0xFFFFFF01 player 1, etc.
+ * 0xFFFFFF00 means player 0, 0xFFFFFF01 player 1, etc.
  *
  * Use function observationPlayerMove for calculating the values.
  */

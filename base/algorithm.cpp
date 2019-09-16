@@ -92,7 +92,7 @@ PlayControl FixedActionPlayer::runPlayIteration(const optional<shared_ptr<AOH>> 
 }
 
 optional<ProbDistribution>
-FixedActionPlayer::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
+FixedActionPlayer::getPlayDistribution(const shared_ptr<AOH> &currentInfoset, const long actionsNum) {
     auto nodes = cache_.getNodesFor(currentInfoset);
     // must be signed due to modulo operations
     int numActions = int(nodes[0]->countAvailableActions());
@@ -143,7 +143,7 @@ vector<double> playMatch(const Domain &domain,
     auto reachProbPlayers = vector<double>(numAlgs, 1.0);
     while (node->type_ != TerminalNode) {
         int playerAction;
-        auto actions = node->availableActions();
+        auto actionsnum = node->countAvailableActions();
 
         switch (node->type_) {
             case ChanceNode: {
@@ -152,7 +152,7 @@ vector<double> playMatch(const Domain &domain,
                 LOG_PLAYER(2, "Chance picked p[" << playerAction << "]=" << probs[playerAction]
                                                  << " from p="
                                                  << (Either{probs.size() < 10, probs, "(too many)"}))
-                LOG_INFO("Selected action is: " << *actions[playerAction])
+                LOG_INFO("Selected action is: " << *node->getActionByID(playerAction))
                 break;
             }
 
@@ -172,7 +172,7 @@ vector<double> playMatch(const Domain &domain,
 
                 ProbDistribution probs;
                 if (continuePlay[pl]) {
-                    auto maybeProbs = algs[pl]->getPlayDistribution(infoset);
+                    auto maybeProbs = algs[pl]->getPlayDistribution(infoset, node->countAvailableActions());
                     if (maybeProbs == nullopt) continuePlay[pl] = false;
                     else probs = *maybeProbs;
                 }
@@ -180,10 +180,10 @@ vector<double> playMatch(const Domain &domain,
                     if (givenUpMove[pl] == -1) givenUpMove[pl] = playerMoveCnt[pl];
                     LOG_PLAYER(pl, "Player " << int(pl) << " has given up, so plays "
                                              << "randomly in move #" << playerMoveCnt[pl])
-                    probs = ProbDistribution(actions.size(), 1. / actions.size());
+                    probs = ProbDistribution(actionsnum, 1. / actionsnum);
                 }
 
-                assert(probs.size() == actions.size());
+                assert(probs.size() == actionsnum);
                 double sumProbs = 0.0;
                 for (double prob : probs) sumProbs += prob;
                 assert(fabs(1.0 - sumProbs) < 1e-9);
@@ -194,7 +194,7 @@ vector<double> playMatch(const Domain &domain,
                 LOG_PLAYER(pl, "Player " << int(pl) << " picked p[" << playerAction
                                          << "]=" << probs[playerAction] << " from p="
                                          << (Either{probs.size() < 10, probs, "(too many)"}))
-                LOG_INFO("Selected action is: " << *actions[playerAction])
+                LOG_INFO("Selected action is: " << *node->getActionByID(playerAction))
                 break;
             }
 
@@ -204,7 +204,7 @@ vector<double> playMatch(const Domain &domain,
                 unreachable("unrecognized option!");
         }
 
-        node = node->performAction(actions[playerAction]);
+        node = node->performAction(node->getActionByID(playerAction));
         const auto fogNode = dynamic_pointer_cast<FOG2EFGNode>(node);
         const auto newState = fogNode->getState();
         LOG_INFO("--------------------------------------")

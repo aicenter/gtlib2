@@ -23,16 +23,32 @@
 #define GTLIB2_ALGORITHMS_MCTS_DD_ISMCTS_H_
 #include "CPW_ISMCTS.h"
 #include "domains/stratego.h"
+
 namespace GTLib2::algorithms {
 class DD_ISMCTS : public CPW_ISMCTS {
  public:
-    explicit DD_ISMCTS(const domains::StrategoDomain &domain, Player playingPlayer, ISMCTSSettings config) :
-        CPW_ISMCTS(domain, playingPlayer, std::move(config)) {};
+    explicit DD_ISMCTS(const Domain &domain, Player playingPlayer, ISMCTSSettings config) :
+        CPW_ISMCTS(domain, playingPlayer, std::move(config)), generateIters_(config.generateIters), iterateRoot_(config.iterateRoot) {
+        revealedFigures_ = vector<domains::Rank>(dynamic_cast<const domains::StrategoDomain&>(domain).startFigures_.size());
+        std::fill(revealedFigures_.begin(), revealedFigures_.end(), domains::EMPTY);};
 
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
 
+    optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset, long actionsNum) override;
+
+    void setCurrentInfoset(const shared_ptr<AOH> &newInfoset) override;
+
  private:
-    bool isCurrentISUndiscovered = false;
+    bool isCurrentISUndiscovered_ = false;
+    vector<domains::Rank> revealedFigures_;
+    unsigned long  lastRevealAoid_ = 1;
+    unsigned long revealedCounter_ = 0;
+    bool currentISChecked_ = true;
+    shared_ptr<Action> selectedPermutation_;
+    const int generateIters_ = 1000;
+    bool iterateRoot_ = false;
+
+    void generate();
 };
 }
 #endif //GTLIB2_ALGORITHMS_MCTS_DD_ISMCTS_H_

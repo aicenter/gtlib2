@@ -51,7 +51,7 @@ PlayControl CFRAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &curr
 }
 
 optional<ProbDistribution>
-CFRAlgorithm::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
+CFRAlgorithm::getPlayDistribution(const shared_ptr<AOH> &currentInfoset, const long actionsNum) {
     const auto &data = cache_.infosetData.at(currentInfoset);
     const auto &acc = data.avgStratAccumulator;
     return calcAvgProbs(acc);

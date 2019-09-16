@@ -81,15 +81,14 @@ RandomLeafOutcome pickRandomLeaf(const std::shared_ptr<EFGNode> &start, std::mt1
 
     std::shared_ptr<EFGNode> h = start;
     while (h->type_ != TerminalNode) {
-        const auto &actions = h->availableActions();
         int ai = pickRandom(*h, generator);
 
         switch (h->type_) {
             case ChanceNode:
-                out.chanceReachProb *= h->chanceProbForAction(actions[ai]);
+                out.chanceReachProb *= h->chanceProbForAction(h->getActionByID(ai));
                 break;
             case PlayerNode:
-                out.playerReachProbs[h->getPlayer()] *= 1.0 / actions.size();
+                out.playerReachProbs[h->getPlayer()] *= 1.0 / h->countAvailableActions();
                 break;
             case TerminalNode:
                 unreachable("terminal node!");
@@ -97,7 +96,7 @@ RandomLeafOutcome pickRandomLeaf(const std::shared_ptr<EFGNode> &start, std::mt1
                 unreachable("unrecognized option!");
         }
 
-        h = h->performAction(actions[ai]);
+        h = h->performAction(h->getActionByID(ai));
     }
 
     out.utilities = h->getUtilities();

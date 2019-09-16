@@ -55,7 +55,7 @@ class CPW_ISMCTS: public ISMCTS {
     unordered_map<shared_ptr<AOH>, vector<shared_ptr<EFGNode>>> nodesMap_;
     ProbDistribution belief_;
     shared_ptr<AOH> currentInfoset_;
-    void setCurrentInfoset(const shared_ptr<AOH> &newInfoset);
+    virtual void setCurrentInfoset(const shared_ptr<AOH> &newInfoset);
 };
 
 }

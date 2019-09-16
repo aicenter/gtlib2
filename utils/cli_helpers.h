@@ -24,6 +24,7 @@
 
 #include <iomanip>
 #include <fstream>
+#include <algorithms/MCTS/DD_ISMCTS.h>
 
 #include "external/cereal/archives/json.hpp"
 #include "utils/args.hpp"
@@ -195,7 +196,7 @@ std::unique_ptr<GTLib2::AlgorithmWithData> constructAlgWithData(const GTLib2::Do
     struct WrapperCPW: AlgorithmWithData {
         ISMCTSSettings cfg;
         inline WrapperCPW(const Domain &d, ISMCTSSettings _cfg) : cfg(_cfg) {}
-        PreparedAlgorithm prepare() override { return createInitializer<CPW_ISMCTS>(cfg); }
+        PreparedAlgorithm prepare() override { return createInitializer<algorithms::DD_ISMCTS>(cfg); }
     };
     struct WrapperISMC: AlgorithmWithData {
         ISMCTSSettings cfg;

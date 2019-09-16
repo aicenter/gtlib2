@@ -167,7 +167,8 @@ class CFRAlgorithm: public GamePlayingAlgorithm {
                  CFRData &cache,
                  CFRSettings settings);
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
-    optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override;
+    optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset,
+                                                   const long actionsNum) override;
 
     inline double runIteration(const Player updatingPl) {
         return runIteration(cache_.getRootNode(), array<double, 3>{1., 1., 1.}, updatingPl);

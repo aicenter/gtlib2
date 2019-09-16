@@ -66,7 +66,8 @@ class ContinualResolving: public GamePlayingAlgorithm {
             return resolveIteration(gadget_->getRootNode(), *currentInfoset);
     }
 
-    optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override {
+    optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset,
+                                                   const long actionsNum) override {
         return cache_.strategyFor(currentInfoset);
     }
 

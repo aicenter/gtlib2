@@ -48,6 +48,9 @@ struct ISMCTSSettings {
     bool useBelief = false;
 
     int randomSeed = 0;
+
+    int generateIters = 10000;//for DD_ISMCTS
+    bool iterateRoot = false;
 };
 
 /**
@@ -79,7 +82,8 @@ class ISMCTS: public GamePlayingAlgorithm {
     };
 
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
-    optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override;
+    optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset,
+                                                   const long actionsNum) override;
 
  protected:
     const ISMCTSSettings config_;
