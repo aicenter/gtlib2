@@ -755,7 +755,6 @@ KriegspielDomain::KriegspielDomain(unsigned int maxDepth,
     rootStatesDistribution_.push_back(OutcomeEntry(o));
     maxUtility_ = 1;
 }
-KriegspielObservation::KriegspielObservation(int id) : Observation(id) {}
 KriegspielState::KriegspielState(const Domain *domain, int legalMaxDepth, chess::BOARD b) :
     State(domain, hashCombine(56456654521424531, legalMaxDepth, int(b))), enPassantSquare(-1, -1),
     moveHistory(make_shared<vector<shared_ptr<KriegspielAction>>>()),
@@ -969,15 +968,7 @@ bool KriegspielState::makeMove(KriegspielAction *a) {
         shared_ptr<AbstractPiece> checkCapture = this->getPieceOnCoords(pos);
         if (checkCapture != nullptr) {
             //capturedPawn
-            if (checkCapture->getKind() == 'p') {
-                capturedPiece = checkCapture->getPosition().x
-                    + (checkCapture->getPosition().y - 1) * this->ySize;
-            } else { // captured other piece
-                capturedPiece = 64 + checkCapture->getPosition().x
-                    + (checkCapture->getPosition().y - 1) * this->ySize;
-            }
-//            capturedPiece =
-//                30 + checkCapture->getPosition().x + ((checkCapture->getPosition().y - 1) * this->ySize);
+            this->capturedPiece = checkCapture;
             for (auto It = this->pieces->begin(); It != this->pieces->end();) {
                 if (*(*It) == *checkCapture) {
                     this->pieces->erase(It);
@@ -1103,7 +1094,7 @@ OutcomeDistribution KriegspielState::performActions(
         s->setPlayerOnMove(playerOnMove);
         s->setEnPassant(enPassSquare);
         s->updateState(playerOnMove);
-        publicObservation = make_shared<KriegspielObservation>(s->calculatePublicObservation());
+        publicObservation = s->calculatePublicObservation();
         observations[this->playerOnTheMove] = publicObservation;
         observations[chess::invertColor(this->playerOnTheMove)] = publicObservation;
 
@@ -1456,24 +1447,20 @@ void KriegspielState::addToAttemptedMoves(shared_ptr<KriegspielAction> a) {
     this->attemptedMoveHistory->push_back(a);
 }
 
-// only observation for other player
-int KriegspielState::calculateObservation(Player player) const {
-    auto pawns = getPiecesOfColorAndKind(player, chess::PAWN);
-    int toreturn = capturedPiece;
-    for (const shared_ptr<AbstractPiece> &p: pawns) {
-        auto curr = dynamic_cast<chess::Pawn *>(p.get());
-        for (auto move: *curr->getAllMoves()) {
-            if (move.x == curr->getPosition().x - 1) {
-                toreturn += curr->getId();
-            } else if (move.x == curr->getPosition().x + 1) {
-                toreturn += curr->getId() + 1;
-            }
+shared_ptr<KriegspielObservation> KriegspielState::calculatePublicObservation() const {
+    ObservationId observation = 0; // if any pieces captured, otherwise 0
+    string capturedP;
+    if (this->capturedPiece != nullopt) {
+        AbstractPiece *p = this->capturedPiece->get();
+        if (p->getKind() == 'p') {
+            observation = p->getPosition().x + (p->getPosition().y - 1) * this->ySize;
+            capturedP = "pawn at " + coordToString(p->getPosition());
+        } else { // captured other piece
+            observation = 64 + p->getPosition().x + (p->getPosition().y - 1) * this->ySize;
+            capturedP = "piece at " + coordToString(p->getPosition());
         }
     }
-    return toreturn;
-}
-ObservationId KriegspielState::calculatePublicObservation() const {
-    ObservationId observation = this->capturedPiece; // if any pieces captured, otherwise 0
+    vector<chess::checkType> checks;
     if (this->isPlayerInCheck() == this->playerOnTheMove) {
         Square kingPosition =
             this->getPiecesOfColorAndKind(this->playerOnTheMove, chess::KING)[0]->getPosition();
@@ -1484,12 +1471,15 @@ ObservationId KriegspielState::calculatePublicObservation() const {
             if (piece->getKind() == 'n') {
                 // it is knight
                 observation |= 1UL << 27;
+                checks.emplace_back(chess::KNIGHT_CHECK);
             } else if (kingPosition.x == piecePos.x) {
                 //vertical
                 observation |= 1UL << 31;
+                checks.emplace_back(chess::VERTICAL);
             } else if (kingPosition.y == piecePos.y) {
                 //horizontal
                 observation |= 1UL << 30;
+                checks.emplace_back(chess::HORIZONTAL);
             } else { // diagonal checks
                 if ((kingPosition.x <= rowMid && kingPosition.y > colMid)
                     || (kingPosition.x > rowMid && kingPosition.y <= colMid)) {
@@ -1498,10 +1488,12 @@ ObservationId KriegspielState::calculatePublicObservation() const {
                         || (piecePos.x < kingPosition.x && piecePos.y > kingPosition.y)) {
                         // long diagonal
                         observation |= 1UL << 29;
+                        checks.emplace_back(chess::LONG_DIAGONAL);
                     } else if ((piecePos.x < kingPosition.x && piecePos.y < kingPosition.y)
                         || (piecePos.x > kingPosition.x && piecePos.y > kingPosition.y)) {
                         // short diagonal
                         observation |= 1UL << 28;
+                        checks.emplace_back(chess::SHORT_DIAGONAL);
                     } else {
                         unreachable("Checking figure is on unknown position!");
                     }
@@ -1512,10 +1504,12 @@ ObservationId KriegspielState::calculatePublicObservation() const {
                         || (piecePos.x > kingPosition.x && piecePos.y > kingPosition.y)) {
                         //long diagonal
                         observation |= 1UL << 29;
+                        checks.emplace_back(chess::LONG_DIAGONAL);
                     } else if ((piecePos.x < kingPosition.x && piecePos.y > kingPosition.y)
                         || (piecePos.x > kingPosition.x && piecePos.y < kingPosition.y)) {
                         //short diagonal
                         observation |= 1UL << 28;
+                        checks.emplace_back(chess::SHORT_DIAGONAL);
                     } else {
                         unreachable("Checking figure is on unknown position!");
                     }
@@ -1524,7 +1518,7 @@ ObservationId KriegspielState::calculatePublicObservation() const {
         }
 
     }
-    return observation;
+    return make_shared<KriegspielObservation>(observation, checks, capturedP);
 }
 }
 
