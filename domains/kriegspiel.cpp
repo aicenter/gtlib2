@@ -48,7 +48,7 @@ AbstractPiece::AbstractPiece(chess::pieceName k,
                              Square pos,
                              const KriegspielState *s)
     : position(pos), kind(k), color(c), board(s) {}
-
+//                      kind   color            position                 board
 Pawn::Pawn(chess::pieceName k, int c, chess::Square p, const KriegspielState *b, int id)
     : AbstractPiece(k, c, p, b), id(id) {}
 Rook::Rook(chess::pieceName k, int c, chess::Square p, const KriegspielState *b)
