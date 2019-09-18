@@ -247,32 +247,21 @@ bool AbstractPiece::equal_to(const AbstractPiece &that) const {
 void Pawn::updateMoves() {
     //cut moves
     int ycut = this->color == WHITE ? this->position.y + 1 : this->position.y - 1;
-    Square cutpos(this->position.x - 1, ycut);
-    if (this->board->getPieceOnCoords(cutpos) != nullptr) {
-        moves->push_back(cutpos);
-    }
-
-    if (this->board->getEnPassantSquare() == cutpos) {
-        moves->push_back(cutpos);
-    }
-
-    Square cutpos2(this->position.x + 1, ycut);
-    if (this->board->getPieceOnCoords(cutpos2) != nullptr) {
-        moves->push_back(cutpos2);
-    }
-
-    if (this->board->getEnPassantSquare() == cutpos2) {
-        moves->push_back(cutpos2);
-    }
-
-
+    Square takeLeft(this->position.x - 1, ycut);
+    Square takeRight(this->position.x + 1, ycut);
     Square moveForward(this->position.x, ycut);
-    moves->push_back(moveForward);
+    Square moveByTwo = this->hasMoved() ? Square(-1, -1) :
+                       Square(this->position.x,
+                              this->color == WHITE ? this->position.y + 2 : this->position.y - 2);
+    vector<Square> possibleMoves{takeLeft, takeRight, moveForward, moveByTwo};
 
-    if (!this->hasMoved()) {
-        Square moveByTwo
-            (this->position.x, this->color == WHITE ? this->position.y + 2 : this->position.y - 2);
-        moves->push_back(moveByTwo);
+    for (Square &move : possibleMoves) {
+        if (!this->board->coordOutOfBounds(move)) {
+            auto piece = this->board->getPieceOnCoords(move);
+            if (piece == nullptr || piece->getColor() != this->getColor()) {
+                moves->push_back(move);
+            }
+        }
     }
 }
 
@@ -926,15 +915,16 @@ int KriegspielState::checkGameOverCheck(int c) const {
 
 void KriegspielState::checkPlayerInCheck() {
     int kingColor = this->playerOnTheMove;
-    this->playerInCheck = NO_PLAYER; //TODO change from -1, why is previous info deleted?
+    this->playerInCheck = NO_PLAYER;
+    this->checkingFigures.clear();
     shared_ptr<AbstractPiece> king = this->getPiecesOfColorAndKind(kingColor, chess::KING)[0];
-    for (const shared_ptr<AbstractPiece> &p: *this->pieces) {
-        if (p->getColor() == kingColor) continue;
+    for (const shared_ptr<AbstractPiece> &piece: *this->pieces) {
+        if (piece->getColor() == kingColor) continue;
         Square kingPos = king->getPosition();
-        vector<Square> attackSquares = p->getSquaresAttacked();
+        vector<Square> attackSquares = piece->getSquaresAttacked();
         if (std::find(attackSquares.begin(), attackSquares.end(), kingPos) != attackSquares.end()) {
             this->playerInCheck = kingColor;
-            this->checkingFigures.push_back(p);
+            this->checkingFigures.push_back(piece);
         }
     }
 }
@@ -1031,8 +1021,8 @@ bool KriegspielState::makeMove(KriegspielAction *a) {
     }
 }
 
-vector<double> KriegspielState::checkGameOver() const {
-    vector<double> rewards(2);
+int KriegspielState::checkGameOver() const {
+    int result = 0; // 0 = play continue, 1 = player on the move lost, 2 = draw
     vector<shared_ptr<AbstractPiece>> whitePieces = this->getPiecesOfColor(0);
     vector<shared_ptr<AbstractPiece>> blackPieces = this->getPiecesOfColor(1);
     if (whitePieces.size() <= 2 && blackPieces.size() <= 2) {
@@ -1045,13 +1035,11 @@ vector<double> KriegspielState::checkGameOver() const {
                 isDraw = false;
         }
         if (isDraw) {
-            rewards[chess::WHITE] = 0.0;
-            rewards[chess::BLACK] = 0.0;
-            return rewards;
+            result = 2;
+            return result;
         }
     }
-    rewards[chess::WHITE] = 0.0;
-    rewards[chess::BLACK] = 0.0;
+
     bool hasMoves[] = {false, false};
     int isCheck = this->checkGameOverCheck(this->playerOnTheMove);
 
@@ -1061,25 +1049,20 @@ vector<double> KriegspielState::checkGameOver() const {
 
     if (isCheck == this->playerOnTheMove) {
         if (!hasMoves[this->playerOnTheMove]) {
-            rewards[this->playerOnTheMove] = -1;
-            rewards[chess::invertColor(this->playerOnTheMove)] = 1;
+            result = 1;
         } else if (this->moveHistory->size() == this->legalMaxDepth) {
-            rewards[chess::WHITE] = 0.0;
-            rewards[chess::BLACK] = 0.0;
+            result = 2;
         } else if (this->moveHistory->size() + this->attemptedMoveHistory->size()
             == domain_->getMaxStateDepth()) {
-            rewards[chess::WHITE] = 0.0;
-            rewards[chess::BLACK] = 0.0;
+            result = 2;
         }
-    } else if (!hasMoves[this->playerOnTheMove]) {
-        rewards[chess::WHITE] = 0.0;
-        rewards[chess::BLACK] = 0.0;
+    } else if (!hasMoves[this->playerOnTheMove]) { //stale-mate
+        result = 2;
     } else if (this->moveHistory->size() == this->legalMaxDepth) {
-        rewards[chess::WHITE] = 0.0;
-        rewards[chess::BLACK] = 0.0;
+        result = 2;
     }
 
-    return rewards;
+    return result;
 }
 
 Square KriegspielState::getEnPassantSquare() const {
@@ -1095,7 +1078,7 @@ OutcomeDistribution KriegspielState::performActions(
     shared_ptr<Observation> publicObservation;
     vector<double> rewards(2);
     shared_ptr<KriegspielState> s;
-    int nextMove = this->playerOnTheMove;
+    int playerOnMove = this->playerOnTheMove;
     Square enPassSquare(-1, -1);
     KriegspielAction *a = a1->getMove().first != nullptr ? a1 : a2;
     shared_ptr<vector<shared_ptr<AbstractPiece>>> pieces = this->copyPieces();
@@ -1108,37 +1091,46 @@ OutcomeDistribution KriegspielState::performActions(
                                      pieces,
                                      this->enPassantSquare,
                                      history,
-                                     nextMove,
+                                     playerOnMove,
                                      this->canPlayerCastle,
                                      attemptedmoves);
-    s->updateState(this->playerOnTheMove);
+    s->updateState(playerOnMove);
     shared_ptr<KriegspielAction> ac = a->clone();
     if (s->makeMove(a)) {
         s->addToHistory(ac);
         enPassSquare = this->checkEnPassant(a);
-        nextMove = chess::invertColor(this->playerOnTheMove);
-        s->setPlayerOnMove(nextMove);
+        playerOnMove = chess::invertColor(playerOnMove);
+        s->setPlayerOnMove(playerOnMove);
         s->setEnPassant(enPassSquare);
-        s->updateState(nextMove);
-        rewards = s->checkGameOver();
+        s->updateState(playerOnMove);
         publicObservation = make_shared<KriegspielObservation>(s->calculatePublicObservation());
         observations[this->playerOnTheMove] = publicObservation;
         observations[chess::invertColor(this->playerOnTheMove)] = publicObservation;
 
     } else {
         s->addToAttemptedMoves(ac);
-        nextMove = this->playerOnTheMove;
-        // invalid move -> only private observation
+//        s->updateState(playerOnMove);
         observations[this->playerOnTheMove] = make_shared<KriegspielObservation>(a->getId());
         observations[chess::invertColor(this->playerOnTheMove)] =
             make_shared<KriegspielObservation>(NO_OBSERVATION);
         publicObservation = make_shared<KriegspielObservation>(NO_OBSERVATION);
-        s->updateState(nextMove);
-        rewards = s->checkGameOver();
+
     }
-    if (rewards[0] != 0 || rewards[1] != 0) { // TODO: what about draw???
-        s->setGameHasEnded(true);
+    switch (s->checkGameOver()) {
+        case 0:rewards[0] = 0.0;
+            rewards[1] = 0.0;
+            break;
+        case 1:rewards[s->playerOnTheMove] = -1.0;
+            rewards[chess::invertColor(s->playerOnTheMove)] = 1.0;
+            s->setGameHasEnded(true);
+            break;
+        case 2:rewards[0] = 0.0;
+            rewards[1] = 0.0;
+            s->setGameHasEnded(true);
+            break;
+        default:unreachable("wrong return value of checkGameOver()!");
     }
+
     Outcome o(s, observations, publicObservation, rewards);
     OutcomeDistribution prob;
     prob.push_back(OutcomeEntry(o));
@@ -1213,6 +1205,14 @@ string KriegspielState::toString() const {
     s += "  ";
     for (int i = 0; i < this->xSize; i++) s += 'a'+i;
     s += "\n";
+    if (!this->attemptedMoveHistory->empty()) {
+        s += "\nPreviously attempted illegal moves: [";
+        for (auto action : *this->attemptedMoveHistory) {
+            s += action->toString();
+            s += ", ";
+        }
+        s += "]\n";
+    }
     return s;
 
     /*chess::FenBoardFactory f;
@@ -1245,9 +1245,8 @@ void KriegspielState::resetAllPieces() {
 }
 
 void KriegspielState::updatePiecesOfColor(int color) const {
-    vector<shared_ptr<AbstractPiece>> v = this->getPiecesOfColor(color);
-    for (shared_ptr<AbstractPiece> &p: v) {
-        p->update();
+    for (shared_ptr<AbstractPiece> &piece: this->getPiecesOfColor(color)) {
+        piece->update();
     }
 }
 

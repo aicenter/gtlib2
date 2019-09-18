@@ -450,7 +450,7 @@ class KriegspielState: public State {
      * Function for calculating the rewards for the current game state
      * @returns vector<double> a list of rewards for all of the players
      */
-    vector<double> checkGameOver() const;
+    int checkGameOver() const;
 
     /**
      * Checks whether an action produces an available enPassantSquare

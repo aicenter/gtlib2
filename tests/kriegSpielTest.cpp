@@ -47,7 +47,7 @@ TEST(Kriegspiel, pinning) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
     shared_ptr<State> s = d.getRootStatesDistribution()[0].outcome.state;
     auto ks = dynamic_cast<domains::KriegspielState *>(s.get());
-    EXPECT_EQ(ks->getAvailableActionsFor(0).size(), 20);
+    EXPECT_EQ(ks->getAvailableActionsFor(0).size(), 34);
     ks->clearBoard();
 
     //build a model pinning situation
