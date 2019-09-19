@@ -297,7 +297,8 @@ class KriegspielAction : public Action {
   inline string toString() const final {
       if (id_ == NO_ACTION)
           return "No action";
-      return move_.first->toString() + coordToString(move_.second);
+      return move_.first->toString() + to_string(moveFrom.x)
+          + coordToString(move_.second); //TODO change column number to letter
   }
   bool operator==(const Action &that) const override;
   pair<shared_ptr<AbstractPiece>, chess::Square> getMove() const;
@@ -477,6 +478,7 @@ class KriegspielState : public State {
   void clearBoard();
   void insertPiece(shared_ptr<AbstractPiece>);
   void setPlayerOnMove(int);
+  vector<shared_ptr<Action>> getAllValidActions(Player);
 
   string toString() const override;
 

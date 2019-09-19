@@ -310,7 +310,7 @@ int Pawn::getId() const {
 }
 
 void Rook::updateMoves() {
-    for (int *i: rookMoves) {
+    for (auto i: rookMoves) {
         int dx = this->position.x;
         int dy = this->position.y;
         bool breakInner = false;
@@ -1100,7 +1100,7 @@ OutcomeDistribution KriegspielState::performActions(
 
     } else {
         s->addToAttemptedMoves(ac);
-//        s->updateState(playerOnMove);
+        s->updateState(playerOnMove); //stalemate check
         observations[this->playerOnTheMove] = make_shared<KriegspielObservation>(a->getId());
         observations[chess::invertColor(this->playerOnTheMove)] =
             make_shared<KriegspielObservation>(NO_OBSERVATION);
@@ -1519,6 +1519,23 @@ shared_ptr<KriegspielObservation> KriegspielState::calculatePublicObservation() 
 
     }
     return make_shared<KriegspielObservation>(observation, checks, capturedP);
+}
+vector<shared_ptr<Action>> KriegspielState::getAllValidActions(Player player) {
+    auto pieces = this->getPiecesOfColor(player);
+    vector<shared_ptr<Action>> validActions;
+    for (auto piece : pieces) {
+        auto pos = piece->getPosition();
+        auto va = piece->getAllValidMoves();
+        for (auto move : *va) {
+            int i = 0;
+            validActions.emplace_back(make_shared<KriegspielAction>(i++,
+                                                                    pair<shared_ptr<AbstractPiece>,
+                                                                         Square>(
+                                                                        piece, move),
+                                                                    pos));
+        }
+    }
+    return validActions;
 }
 }
 
