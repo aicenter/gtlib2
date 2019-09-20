@@ -94,7 +94,6 @@ shared_ptr<AbstractPiece> Bishop::clone() const {
     return make_shared<Bishop>(this->kind, this->color, this->position, this->board);
 }
 
-
 int invertColor(int c) {
     return c == WHITE ? BLACK : WHITE;
 }
@@ -139,7 +138,6 @@ vector<Square> *AbstractPiece::getAllMoves() const {
 vector<Square> *AbstractPiece::getAllValidMoves() const {
     return this->validMoves.get();
 }
-
 
 void AbstractPiece::update() {
     this->updateMoves();
@@ -223,13 +221,12 @@ bool AbstractPiece::equal_to(const AbstractPiece &that) const {
 
 void Pawn::updateMoves() {
     //cut moves
-    int ycut = this->color == WHITE ? this->position.y + 1 : this->position.y - 1;
-    Square takeLeft(this->position.x - 1, ycut);
-    Square takeRight(this->position.x + 1, ycut);
-    Square moveForward(this->position.x, ycut);
+    int dy = this->color == WHITE ? 1 : -1;
+    Square takeLeft(this->position.x - 1, this->position.y + dy);
+    Square takeRight(this->position.x + 1, this->position.y + dy);
+    Square moveForward(this->position.x, this->position.y + dy);
     Square moveByTwo = this->hasMoved() ? Square(-1, -1) :
-                       Square(this->position.x,
-                              this->color == WHITE ? this->position.y + 2 : this->position.y - 2);
+                       Square(this->position.x, this->position.y + 2 * dy);
     vector<Square> possibleMoves{takeLeft, takeRight, moveForward, moveByTwo};
 
     for (Square &move : possibleMoves) {
@@ -244,11 +241,12 @@ void Pawn::updateMoves() {
 
 void Pawn::updateValidMovesPinsProtects(bool onlyPinsAndProtects) {
     //cut moves
-    int ycut = this->color == WHITE ? this->position.y + 1 : this->position.y - 1;
-    for (int i = -1; i < 2; i += 2) {
-        Square cutpos(this->position.x + i, ycut);
+    int dy = this->color == WHITE ? 1 : -1;
+    for (int i : {-1, 1}) {
+        Square cutpos(this->position.x + i, this->position.y + dy);
         if (this->board->coordOutOfBounds(cutpos)) continue;
         shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(cutpos);
+
         if (p != nullptr && p->getColor() != this->getColor()) {
             if (!onlyPinsAndProtects) validMoves->push_back(cutpos);
         } else if (p != nullptr && p->getColor() == this->getColor()) {
@@ -258,28 +256,31 @@ void Pawn::updateValidMovesPinsProtects(bool onlyPinsAndProtects) {
         }
     }
 
-    Square moveForward(this->position.x, ycut);
-    if (this->board->getPieceOnCoords(moveForward) == nullptr) {
-        if (!onlyPinsAndProtects) validMoves->push_back(moveForward);
-    }
-
-    Square moveByTwo
-        (this->position.x, this->color == WHITE ? this->position.y + 2 : this->position.y - 2);
-    if (!this->moved && this->board->getPieceOnCoords(moveByTwo) == nullptr
-        && this->board->getPieceOnCoords(moveForward) == nullptr) {
-        if (!onlyPinsAndProtects) validMoves->push_back(moveByTwo);
+    Square moveByOne(this->position.x, this->position.y + dy);
+    Square moveByTwo(this->position.x, this->position.y + 2 * dy);
+    if (!onlyPinsAndProtects) {
+        if (this->board->getPieceOnCoords(moveByOne) == nullptr) {
+            validMoves->push_back(moveByOne);
+            if (!this->moved && this->board->getPieceOnCoords(moveByTwo) == nullptr) {
+                validMoves->push_back(moveByTwo);
+            }
+        }
     }
 }
 
 vector<Square> Pawn::getSquaresAttacked() const {
-    vector<Square> v;
-    int ycut = this->color == WHITE ? this->position.y + 1 : this->position.y - 1;
-    Square pos1(this->position.x - 1, ycut);
-    v.push_back(pos1);
+    vector<Square> attacked;
+    int dy = this->color == WHITE ? 1 : -1;
+    vector<Square> positions{
+        Square(this->position.x - 1, this->position.y + dy),
+        Square(this->position.x + 1, this->position.y + dy)};
 
-    Square pos2(this->position.x + 1, ycut);
-    v.push_back(pos2);
-    return v;
+    for (auto pos : positions) {
+        if (!this->board->coordOutOfBounds(pos)) {
+            attacked.push_back(pos);
+        }
+    }
+    return attacked;
 }
 
 int Pawn::getId() const {
@@ -312,14 +313,14 @@ void Pawn::updateValidMovesWhilePinned() {
 }
 
 void Rook::updateMoves() {
-    for (auto i: rookMoves) {
+    for (auto move: rookMoves) {
         int dx = this->position.x;
         int dy = this->position.y;
         bool breakInner = false;
-        dx += i[0];
-        dy += i[1];
+        dx += move[0];
+        dy += move[1];
         //for cycle runs until coordinates are out of bounds
-        for (; !this->board->coordOutOfBounds(Square(dx, dy)); dx += i[0], dy += i[1]) {
+        for (; !this->board->coordOutOfBounds(Square(dx, dy)); dx += move[0], dy += move[1]) {
             if (breakInner) continue;
             Square newPos(dx, dy);
             shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
@@ -333,14 +334,14 @@ void Rook::updateMoves() {
 }
 
 void Rook::updateValidMovesPinsProtects(bool onlyPinsAndProtects) {
-    for (int *i: rookMoves) {
+    for (auto move: rookMoves) {
         int dx = this->position.x;
         int dy = this->position.y;
         bool breakInner = false;
-        dx += i[0];
-        dy += i[1];
+        dx += move[0];
+        dy += move[1];
         //for cycle runs until coordinates are out of bounds
-        for (; !this->board->coordOutOfBounds(Square(dx, dy)); dx += i[0], dy += i[1]) {
+        for (; !this->board->coordOutOfBounds(Square(dx, dy)); dx += move[0], dy += move[1]) {
             if (breakInner) break;
             Square newPos(dx, dy);
             shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
@@ -362,26 +363,23 @@ void Rook::updateValidMovesPinsProtects(bool onlyPinsAndProtects) {
 }
 
 vector<Square> Rook::getSquaresAttacked() const {
-    vector<Square> v;
-    for (int *i: rookMoves) {
+    vector<Square> attacked;
+    for (auto move: rookMoves) {
         int dx = this->position.x;
         int dy = this->position.y;
-        bool breakInner = false;
-        dx += i[0];
-        dy += i[1];
+        dx += move[0];
+        dy += move[1];
         //for cycle runs until coordinates are out of bounds
-        for (; !this->board->coordOutOfBounds(Square(dx, dy)); dx += i[0], dy += i[1]) {
-            if (breakInner) break;
+        for (; !this->board->coordOutOfBounds(Square(dx, dy)); dx += move[0], dy += move[1]) {
             Square newPos(dx, dy);
             shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
-            if ((p != nullptr && p->getKind() != KING)
-                || (p != nullptr && p->getKind() == KING && p->getColor() == this->getColor())) {
-                breakInner = true;
+            attacked.push_back(newPos);
+            if (p != nullptr) {
+                break;
             }
-            v.push_back(newPos);
         }
     }
-    return v;
+    return attacked;
 }
 void Rook::updateValidMovesWhilePinned() {
     AbstractPiece *pinner = this->getPinnedBy();
@@ -411,25 +409,22 @@ void Rook::updateValidMovesWhilePinned() {
 }
 
 void Knight::updateMoves() {
-    for (int *i: knightMoves) {
-        int dx = this->position.x;
-        int dy = this->position.y;
-        Square newPos(dx + i[0], dy + i[1]);
-        shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
-        if (!this->board->coordOutOfBounds(newPos)
-            && (p == nullptr || (p != nullptr && p->getColor() != this->getColor()))) {
-            this->moves->push_back(newPos);
+    for (auto move: knightMoves) {
+        Square newPos(this->position.x + move[0], this->position.y + move[1]);
+        if (!this->board->coordOutOfBounds(newPos)) {
+            shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
+            if (p == nullptr || (p != nullptr && p->getColor() != this->getColor())) {
+                this->moves->push_back(newPos);
+            }
         }
     }
 }
 
 void Knight::updateValidMovesPinsProtects(bool onlyPinsAndProtects) {
-    for (int *i: knightMoves) {
-        int dx = this->position.x;
-        int dy = this->position.y;
-        Square newPos(dx + i[0], dy + i[1]);
-        shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
+    for (auto move: knightMoves) {
+        Square newPos(this->position.x + move[0], this->position.y + move[1]);
         if (!this->board->coordOutOfBounds(newPos)) {
+            shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
             if (p != nullptr && p->getColor() == this->getColor()) {
                 p->setProtectedBy(this);
                 continue;
@@ -440,20 +435,14 @@ void Knight::updateValidMovesPinsProtects(bool onlyPinsAndProtects) {
 }
 
 vector<Square> Knight::getSquaresAttacked() const {
-    vector<Square> v;
-    for (int *i: knightMoves) {
-        int dx = this->position.x;
-        int dy = this->position.y;
-        Square newPos(dx + i[0], dy + i[1]);
-        shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
+    vector<Square> attacked;
+    for (auto move: knightMoves) {
+        Square newPos(this->position.x + move[0], this->position.y + move[1]);
         if (!this->board->coordOutOfBounds(newPos)) {
-            if (p != nullptr && p->getColor() == this->getColor()) {
-                continue;
-            }
-            v.push_back(newPos);
+            attacked.push_back(newPos);
         }
     }
-    return v;
+    return attacked;
 }
 void Knight::updateValidMovesWhilePinned() {
     // if knight is pinned, it can never move
@@ -461,14 +450,14 @@ void Knight::updateValidMovesWhilePinned() {
 }
 
 void Bishop::updateMoves() {
-    for (int *i: bishopMoves) {
+    for (auto move : bishopMoves) {
         int dx = this->position.x;
         int dy = this->position.y;
         bool breakInner = false;
-        dx += i[0];
-        dy += i[1];
+        dx += move[0];
+        dy += move[1];
         //for cycle runs until coordinates are out of bounds
-        for (; !this->board->coordOutOfBounds(Square(dx, dy)); dx += i[0], dy += i[1]) {
+        for (; !this->board->coordOutOfBounds(Square(dx, dy)); dx += move[0], dy += move[1]) {
             if (breakInner) continue;
             Square newPos(dx, dy);
             shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
@@ -482,14 +471,14 @@ void Bishop::updateMoves() {
 }
 
 void Bishop::updateValidMovesPinsProtects(bool onlyPinsAndProtects) {
-    for (int *i: bishopMoves) {
+    for (auto move : bishopMoves) {
         int dx = this->position.x;
         int dy = this->position.y;
         bool breakInner = false;
-        dx += i[0];
-        dy += i[1];
+        dx += move[0];
+        dy += move[1];
         //for cycle runs until coordinates are out of bounds
-        for (; !this->board->coordOutOfBounds(Square(dx, dy)); dx += i[0], dy += i[1]) {
+        for (; !this->board->coordOutOfBounds(Square(dx, dy)); dx += move[0], dy += move[1]) {
             if (breakInner) break;
             Square newPos(dx, dy);
             shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
@@ -511,26 +500,23 @@ void Bishop::updateValidMovesPinsProtects(bool onlyPinsAndProtects) {
 }
 
 vector<Square> Bishop::getSquaresAttacked() const {
-    vector<Square> v;
-    for (int *i: bishopMoves) {
+    vector<Square> attacked;
+    for (auto move: bishopMoves) {
         int dx = this->position.x;
         int dy = this->position.y;
-        bool breakInner = false;
-        dx += i[0];
-        dy += i[1];
+        dx += move[0];
+        dy += move[1];
         //for cycle runs until coordinates are out of bounds
-        for (; !this->board->coordOutOfBounds(Square(dx, dy)); dx += i[0], dy += i[1]) {
-            if (breakInner) break;
+        for (; !this->board->coordOutOfBounds(Square(dx, dy)); dx += move[0], dy += move[1]) {
             Square newPos(dx, dy);
             shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
-            if ((p != nullptr && p->getKind() != KING)
-                || (p != nullptr && p->getKind() == KING && p->getColor() == this->getColor())) {
-                breakInner = true;
+            attacked.push_back(newPos);
+            if (p != nullptr) {
+                break;
             }
-            v.push_back(newPos);
         }
     }
-    return v;
+    return attacked;
 }
 
 void Bishop::updateValidMovesWhilePinned() {
@@ -558,14 +544,14 @@ void Bishop::updateValidMovesWhilePinned() {
 }
 
 void Queen::updateMoves() {
-    for (int *i: queenKingMoves) {
+    for (auto move: queenKingMoves) {
         int dx = this->position.x;
         int dy = this->position.y;
         bool breakInner = false;
-        dx += i[0];
-        dy += i[1];
+        dx += move[0];
+        dy += move[1];
         //for cycle runs until coordinates are out of bounds
-        for (; !this->board->coordOutOfBounds(Square(dx, dy)); dx += i[0], dy += i[1]) {
+        for (; !this->board->coordOutOfBounds(Square(dx, dy)); dx += move[0], dy += move[1]) {
             if (breakInner) continue;
             Square newPos(dx, dy);
             shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
@@ -579,14 +565,14 @@ void Queen::updateMoves() {
 }
 
 void Queen::updateValidMovesPinsProtects(bool onlyPinsAndProtects) {
-    for (int *i: queenKingMoves) {
+    for (auto move: queenKingMoves) {
         int dx = this->position.x;
         int dy = this->position.y;
         bool breakInner = false;
-        dx += i[0];
-        dy += i[1];
+        dx += move[0];
+        dy += move[1];
         //for cycle runs until coordinates are out of bounds
-        for (; !this->board->coordOutOfBounds(Square(dx, dy)); dx += i[0], dy += i[1]) {
+        for (; !this->board->coordOutOfBounds(Square(dx, dy)); dx += move[0], dy += move[1]) {
             if (breakInner) break;
             Square newPos(dx, dy);
             shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
@@ -609,22 +595,19 @@ void Queen::updateValidMovesPinsProtects(bool onlyPinsAndProtects) {
 
 vector<Square> Queen::getSquaresAttacked() const {
     vector<Square> v;
-    for (int *i: queenKingMoves) {
+    for (auto move: queenKingMoves) {
         int dx = this->position.x;
         int dy = this->position.y;
-        bool breakInner = false;
-        dx += i[0];
-        dy += i[1];
+        dx += move[0];
+        dy += move[1];
         //for cycle runs until coordinates are out of bounds
-        for (; !this->board->coordOutOfBounds(Square(dx, dy)); dx += i[0], dy += i[1]) {
-            if (breakInner) break;
+        for (; !this->board->coordOutOfBounds(Square(dx, dy)); dx += move[0], dy += move[1]) {
             Square newPos(dx, dy);
             shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
-            if ((p != nullptr && p->getKind() != KING)
-                || (p != nullptr && p->getKind() == KING && p->getColor() == this->getColor())) {
-                breakInner = true;
-            }
             v.push_back(newPos);
+            if (p != nullptr) {
+                break;
+            }
         }
     }
     return v;
@@ -648,61 +631,56 @@ void Queen::updateValidMovesWhilePinned() {
         Square newPos(dx, dy);
         this->validMoves->push_back(newPos);
     }
-
     this->validMoves->push_back(pinnerPosition);
 }
 
 void King::updateMoves() {
-    for (int *i: queenKingMoves) {
-        Square newPos(this->position.x + i[0], this->position.y + i[1]);
-        if (this->board->coordOutOfBounds(newPos)) {
-            continue;
+    for (auto move: queenKingMoves) {
+        Square newPos(this->position.x + move[0], this->position.y + move[1]);
+        if (!this->board->coordOutOfBounds(newPos)) {
+            shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
+            if (p != nullptr && (p->getColor() == this->getColor() || p->getKind() == 'k'))
+                continue;
+            this->moves->push_back(newPos);
         }
-        shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
-        if (p != nullptr && (p->getColor() == this->getColor() || p->getKind() == 'k')) continue;
-        this->moves->push_back(newPos);
     }
     // castle
     if (!this->hasMoved() && this->board->isPlayerInCheck() != this->getColor()
         && this->board->canCastle()) {
-        vector<shared_ptr<AbstractPiece>>
-            rooks = this->board->getPiecesOfColorAndKind(this->color, ROOK);
-        for (const shared_ptr<AbstractPiece> &r: rooks) {
-            if (!r->hasMoved()) {
-                vector<Square> squaresBetween = this->board->getSquaresBetween(r.get(), this);
+        auto rooks = this->board->getPiecesOfColorAndKind(this->color, ROOK);
+        for (const auto &rook: rooks) {
+            if (!rook->hasMoved()) {
+                vector<Square> squaresBetween = this->board->getSquaresBetween(rook.get(), this);
                 if (squaresBetween.size() == 2) {
                     //short castle
-
-                    bool breakinner = false;
+                    bool pieceBetween = false;
                     //check if there are pieces in the way
-                    for (Square i: squaresBetween) {
-                        if (this->board->getPieceOnCoords(i) != nullptr) {
-                            breakinner = true;
+                    for (Square square: squaresBetween) {
+                        if (this->board->getPieceOnCoords(square) != nullptr) {
+                            pieceBetween = true;
                             break;
                         }
                     }
-                    if (breakinner) continue;
+                    if (pieceBetween) continue;
 
-                    int dx = r->getPosition().x > this->position.x ? r->getPosition().x - 1 :
-                             r->getPosition().x + 1;
+                    int dx = rook->getPosition().x > this->position.x ? rook->getPosition().x - 1 :
+                             rook->getPosition().x + 1;
                     Square newPos(dx, this->position.y);
                     this->moves->push_back(newPos);
                 } else {
                     //long castle
-
-                    bool breakinner = false;
+                    bool pieceBetween = false;
                     //check if there are pieces in the way
-                    for (Square i: squaresBetween) {
-                        if (this->board->getPieceOnCoords(i) != nullptr) {
-                            breakinner = true;
+                    for (Square square: squaresBetween) {
+                        if (this->board->getPieceOnCoords(square) != nullptr) {
+                            pieceBetween = true;
                             break;
                         }
                     }
-                    if (breakinner) continue;
+                    if (pieceBetween) continue;
 
-
-                    int dx = r->getPosition().x > this->position.x ? r->getPosition().x - 2 :
-                             r->getPosition().x + 2;
+                    int dx = rook->getPosition().x > this->position.x ? rook->getPosition().x - 2 :
+                             rook->getPosition().x + 2;
                     Square newPos(dx, this->position.y);
                     this->moves->push_back(newPos);
                 }
@@ -712,8 +690,8 @@ void King::updateMoves() {
 }
 
 void King::updateValidMovesPinsProtects(bool onlyPinsAndProtects) {
-    for (int *i: queenKingMoves) {
-        Square newPos(this->position.x + i[0], this->position.y + i[1]);
+    for (auto move: queenKingMoves) {
+        Square newPos(this->position.x + move[0], this->position.y + move[1]);
         if (this->board->coordOutOfBounds(newPos)
             || this->board->isSquareUnderAttack(invertColor(this->getColor()), newPos)) {
             continue;
@@ -729,51 +707,49 @@ void King::updateValidMovesPinsProtects(bool onlyPinsAndProtects) {
     // castle
     if (!this->hasMoved() && this->board->isPlayerInCheck() != this->getColor()
         && this->board->canCastle()) {
-        vector<shared_ptr<AbstractPiece>>
-            rooks = this->board->getPiecesOfColorAndKind(this->color, ROOK);
-        for (const shared_ptr<AbstractPiece> &r: rooks) {
-            if (!r->hasMoved()) {
-                vector<Square> squares = this->board->getSquaresBetween(r.get(), this);
+        auto rooks = this->board->getPiecesOfColorAndKind(this->color, ROOK);
+        for (const auto &rook: rooks) {
+            if (!rook->hasMoved()) {
+                vector<Square> squares = this->board->getSquaresBetween(rook.get(), this);
                 bool breakinner = false;
                 for (Square i: squares) {
-                    if (this->board->isSquareUnderAttack(invertColor(this->color), i)) {
+                    if (this->board->isSquareUnderAttack(invertColor(this->getColor()), i)) {
                         breakinner = true;
                     }
                 }
                 if (breakinner) continue;
-                vector<Square> squaresBetween = this->board->getSquaresBetween(r.get(), this);
+                vector<Square> squaresBetween = this->board->getSquaresBetween(rook.get(), this);
                 if (squaresBetween.size() == 2) {
                     //short castle
-
-                    bool breakin = false;
+                    bool pieceBetween = false;
                     //check if there are pieces in the way
-                    for (Square i: squaresBetween) {
-                        if (this->board->getPieceOnCoords(i) != nullptr) {
-                            breakin = true;
+                    for (Square square: squaresBetween) {
+                        if (this->board->getPieceOnCoords(square) != nullptr) {
+                            pieceBetween = true;
                             break;
                         }
                     }
-                    if (breakin) continue;
+                    if (pieceBetween) continue;
 
-                    int dx = r->getPosition().x > this->position.x ? r->getPosition().x - 1 :
-                             r->getPosition().x + 1;
+                    int dx = rook->getPosition().x > this->position.x ? rook->getPosition().x - 1 :
+                             rook->getPosition().x + 1;
                     Square newPos(dx, this->position.y);
                     this->validMoves->push_back(newPos);
                 } else {
                     //long castle
 
-                    bool breakin = false;
+                    bool pieceBetween = false;
                     //check if there are pieces in the way
-                    for (Square i: squaresBetween) {
-                        if (this->board->getPieceOnCoords(i) != nullptr) {
-                            breakin = true;
+                    for (Square square: squaresBetween) {
+                        if (this->board->getPieceOnCoords(square) != nullptr) {
+                            pieceBetween = true;
                             break;
                         }
                     }
-                    if (breakin) continue;
+                    if (pieceBetween) continue;
 
-                    int dx = r->getPosition().x > this->position.x ? r->getPosition().x - 2 :
-                             r->getPosition().x + 2;
+                    int dx = rook->getPosition().x > this->position.x ? rook->getPosition().x - 2 :
+                             rook->getPosition().x + 2;
                     Square newPos(dx, this->position.y);
                     this->validMoves->push_back(newPos);
                 }
@@ -790,9 +766,6 @@ vector<Square> King::getSquaresAttacked() const {
             continue;
         }
         shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
-//        if (p != nullptr) { // TODO only hotfix
-//            continue;
-//        }
         v.push_back(newPos);
     }
     return v;
@@ -906,7 +879,11 @@ string KriegspielDomain::getInfo() const {
 }
 
 KriegspielDomain::KriegspielDomain(unsigned int maxDepth, unsigned int legalMaxDepth, string s)
-    : Domain(maxDepth, 2,  true, make_shared<KriegspielAction>(), make_shared<KriegspielObservation>()) {
+    : Domain(maxDepth,
+             2,
+             true,
+             make_shared<KriegspielAction>(),
+             make_shared<KriegspielObservation>()) {
     vector<double> rewards(2);
     vector<shared_ptr<Observation>>
         Obs{make_shared<Observation>(NO_OBSERVATION), make_shared<Observation>(-1)};
@@ -1141,9 +1118,8 @@ Square KriegspielState::getEnPassantSquare() const {
     return this->enPassantSquare;
 }
 
-
 OutcomeDistribution KriegspielState::performActions(
-    const vector <shared_ptr<Action>> &actions) const {
+    const vector<shared_ptr<Action>> &actions) const {
     auto a1 = dynamic_cast<KriegspielAction *>(actions[0].get());
     auto a2 = dynamic_cast<KriegspielAction *>(actions[1].get());
     vector<shared_ptr<Observation>> observations(2);
@@ -1266,7 +1242,7 @@ string KriegspielState::toString() const {
 
     string s;
     for (int i = this->ySize - 1; i >= 0; i--) {
-        s += to_string(i+1) + " ";
+        s += to_string(i + 1) + " ";
         vector<string> row = board.at(i);
         for (const string &str: row) {
             s += str;
@@ -1275,7 +1251,7 @@ string KriegspielState::toString() const {
     }
 
     s += "  ";
-    for (int i = 0; i < this->xSize; i++) s += 'a'+i;
+    for (int i = 0; i < this->xSize; i++) s += 'a' + i;
     s += "\n";
     if (!this->attemptedMoveHistory->empty()) {
         s += "\nPreviously attempted illegal moves: [";
