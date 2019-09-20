@@ -94,6 +94,7 @@ shared_ptr<AbstractPiece> Bishop::clone() const {
     return make_shared<Bishop>(this->kind, this->color, this->position, this->board);
 }
 
+
 int invertColor(int c) {
     return c == WHITE ? BLACK : WHITE;
 }
@@ -139,27 +140,6 @@ vector<Square> *AbstractPiece::getAllValidMoves() const {
     return this->validMoves.get();
 }
 
-void AbstractPiece::updateValidMovesWhilePinned() {
-    AbstractPiece *pinner = this->getPinnedBy();
-    this->validMoves->clear();
-    int dx = this->position.x;
-    int dy = this->position.y;
-    Square pinnerPosition = pinner->getPosition();
-
-    int incrementX = dx == pinnerPosition.x ? 0 : dx < pinnerPosition.x ? 1 : -1;
-    int incrementY = dy == pinnerPosition.y ? 0 : dy < pinnerPosition.y ? 1 : -1;
-
-    dx += incrementX;
-    dy += incrementY;
-
-    for (; !(dx == pinnerPosition.x && dy == pinnerPosition.y);
-           dx += incrementX, dy += incrementY) {
-        Square newPos(dx, dy);
-        this->validMoves->push_back(newPos);
-    }
-
-    this->validMoves->push_back(pinnerPosition);
-}
 
 void AbstractPiece::update() {
     this->updateMoves();
@@ -177,25 +157,23 @@ void AbstractPiece::updateValidMovesWhileInCheck() {
     if (this->kind == KING) {
         for (int *i: queenKingMoves) {
             Square newPos(this->position.x + i[0], this->position.y + i[1]);
+            if (this->board->coordOutOfBounds(newPos)) continue;
             shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
-            if (this->board->coordOutOfBounds(newPos)
-                || this->board->isSquareUnderAttack(invertColor(this->color), newPos) ||
-                (p != nullptr && p->getColor() == this->getColor())
+            if (this->board->isSquareUnderAttack(invertColor(this->color), newPos)
+                || (p != nullptr && p->getColor() == this->getColor())
                 || (p != nullptr && p->getProtectedBy() != nullptr)) {
                 continue;
             }
             this->validMoves->push_back(newPos);
-
         }
         return;
     }
-    if (this->board->getCheckingFigures().size() == 2) {
+    if (this->board->getCheckingFigures().size() == 2) { //no chance to block 2 checks
         this->validMoves->clear();
         return;
     }
-    shared_ptr<AbstractPiece>
-        king = this->board->getPiecesOfColorAndKind(this->getColor(), KING)[0];
-    shared_ptr<AbstractPiece> checker = this->board->getCheckingFigures().at(0);
+    auto king = this->board->getPiecesOfColorAndKind(this->getColor(), KING)[0];
+    auto checker = this->board->getCheckingFigures().at(0);
     if (checker->getKind() != KNIGHT) {
         vector<Square> blockingSquares = this->board->getSquaresBetween(king.get(), checker.get());
         for (Square s: blockingSquares) {
@@ -208,7 +186,6 @@ void AbstractPiece::updateValidMovesWhileInCheck() {
         != this->moves->end()) {
         this->validMoves->push_back(checker->getPosition());
     }
-
 }
 
 void AbstractPiece::reset() {
@@ -308,6 +285,31 @@ vector<Square> Pawn::getSquaresAttacked() const {
 int Pawn::getId() const {
     return this->id;
 }
+void Pawn::updateValidMovesWhilePinned() {
+    this->validMoves->clear();
+    int dy = this->color == WHITE ? 1 : -1;
+    Square attackLeft(this->position.x - 1, this->position.y + dy);
+    Square attackRight(this->position.x + 1, this->position.y + dy);
+
+    Square pinnerPosition = this->getPinnedBy()->getPosition();
+
+    if ((pinnerPosition == attackLeft) || (pinnerPosition == attackRight)) {
+        this->validMoves->push_back(pinnerPosition);
+    }
+    //same column
+    if (pinnerPosition.x == this->position.x) {
+        auto moveByOne = Square(this->position.x, this->position.y + dy);
+        if (this->board->getPieceOnCoords(moveByOne) == nullptr) {
+            this->validMoves->push_back(moveByOne);
+            if (!this->hasMoved()) {
+                auto moveByTwo = Square(this->position.x, this->position.y + 2 * dy);
+                if (this->board->getPieceOnCoords(moveByTwo) == nullptr) {
+                    this->validMoves->push_back(moveByTwo);
+                }
+            }
+        }
+    }
+}
 
 void Rook::updateMoves() {
     for (auto i: rookMoves) {
@@ -381,6 +383,32 @@ vector<Square> Rook::getSquaresAttacked() const {
     }
     return v;
 }
+void Rook::updateValidMovesWhilePinned() {
+    AbstractPiece *pinner = this->getPinnedBy();
+    this->validMoves->clear();
+
+    int dx = this->position.x;
+    int dy = this->position.y;
+
+    Square pinnerPosition = pinner->getPosition();
+    //same row
+    if (dy == pinnerPosition.y) {
+        int incrementX = dx < pinnerPosition.x ? 1 : -1;
+        dx += incrementX;
+        for (; dx != pinnerPosition.x; dx += incrementX) {
+            this->validMoves->push_back(Square(dx, dy));
+        }
+        this->validMoves->push_back(pinnerPosition);
+
+    } else if (dx == pinnerPosition.x) { // same column
+        int incrementY = dy < pinnerPosition.y ? 1 : -1;
+        dy += incrementY;
+        for (; dy != pinnerPosition.y; dy += incrementY) {
+            this->validMoves->push_back(Square(dx, dy));
+        }
+        this->validMoves->push_back(pinnerPosition);
+    }
+}
 
 void Knight::updateMoves() {
     for (int *i: knightMoves) {
@@ -426,6 +454,10 @@ vector<Square> Knight::getSquaresAttacked() const {
         }
     }
     return v;
+}
+void Knight::updateValidMovesWhilePinned() {
+    // if knight is pinned, it can never move
+    this->validMoves->clear();
 }
 
 void Bishop::updateMoves() {
@@ -501,6 +533,30 @@ vector<Square> Bishop::getSquaresAttacked() const {
     return v;
 }
 
+void Bishop::updateValidMovesWhilePinned() {
+    this->validMoves->clear();
+    int dx = this->position.x;
+    int dy = this->position.y;
+
+    Square pinnerPosition = this->getPinnedBy()->getPosition();
+    // if pinned vertically or horizontally, no possible moves for bishop
+    if (dx == pinnerPosition.x || dy == pinnerPosition.y) return;
+
+    int incrementX = dx < pinnerPosition.x ? 1 : -1;
+    int incrementY = dy < pinnerPosition.y ? 1 : -1;
+
+    dx += incrementX;
+    dy += incrementY;
+
+    for (; !(dx == pinnerPosition.x && dy == pinnerPosition.y);
+           dx += incrementX, dy += incrementY) {
+        Square newPos(dx, dy);
+        this->validMoves->push_back(newPos);
+    }
+
+    this->validMoves->push_back(pinnerPosition);
+}
+
 void Queen::updateMoves() {
     for (int *i: queenKingMoves) {
         int dx = this->position.x;
@@ -574,6 +630,28 @@ vector<Square> Queen::getSquaresAttacked() const {
     return v;
 }
 
+void Queen::updateValidMovesWhilePinned() {
+    this->validMoves->clear();
+    int dx = this->position.x;
+    int dy = this->position.y;
+
+    Square pinnerPosition = this->getPinnedBy()->getPosition();
+
+    int incrementX = dx == pinnerPosition.x ? 0 : dx < pinnerPosition.x ? 1 : -1;
+    int incrementY = dy == pinnerPosition.y ? 0 : dy < pinnerPosition.y ? 1 : -1;
+
+    dx += incrementX;
+    dy += incrementY;
+
+    for (; !(dx == pinnerPosition.x && dy == pinnerPosition.y);
+           dx += incrementX, dy += incrementY) {
+        Square newPos(dx, dy);
+        this->validMoves->push_back(newPos);
+    }
+
+    this->validMoves->push_back(pinnerPosition);
+}
+
 void King::updateMoves() {
     for (int *i: queenKingMoves) {
         Square newPos(this->position.x + i[0], this->position.y + i[1]);
@@ -584,7 +662,7 @@ void King::updateMoves() {
         if (p != nullptr && (p->getColor() == this->getColor() || p->getKind() == 'k')) continue;
         this->moves->push_back(newPos);
     }
-
+    // castle
     if (!this->hasMoved() && this->board->isPlayerInCheck() != this->getColor()
         && this->board->canCastle()) {
         vector<shared_ptr<AbstractPiece>>
@@ -648,7 +726,7 @@ void King::updateValidMovesPinsProtects(bool onlyPinsAndProtects) {
         if (p != nullptr && p->getProtectedBy() != nullptr) continue;
         this->validMoves->push_back(newPos);
     }
-
+    // castle
     if (!this->hasMoved() && this->board->isPlayerInCheck() != this->getColor()
         && this->board->canCastle()) {
         vector<shared_ptr<AbstractPiece>>
@@ -712,12 +790,15 @@ vector<Square> King::getSquaresAttacked() const {
             continue;
         }
         shared_ptr<AbstractPiece> p = this->board->getPieceOnCoords(newPos);
-        if (p != nullptr) {
-            continue;
-        }
+//        if (p != nullptr) { // TODO only hotfix
+//            continue;
+//        }
         v.push_back(newPos);
     }
     return v;
+}
+void King::updateValidMovesWhilePinned() {
+    unreachable("King can never be pinned -> check");
 }
 }
 

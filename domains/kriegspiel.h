@@ -121,7 +121,7 @@ class AbstractPiece {
   /**
    * Updates valid moves while the figure is pinned (the line towards the pinner and the pinner itself)
    */
-  void updateValidMovesWhilePinned();
+  virtual void updateValidMovesWhilePinned() = 0;
 
   /**
    * Updates valid moves of the figure while the player is in check (the checker's position and blocking moves)
@@ -195,6 +195,7 @@ class Pawn : public AbstractPiece {
    */
   Pawn(pieceName, int, Square, const GTLib2::domains::KriegspielState *, int);
   void updateMoves() override;
+  void updateValidMovesWhilePinned() override;
   vector<Square> getSquaresAttacked() const override;
   void updateValidMovesPinsProtects(bool) override;
   shared_ptr<AbstractPiece> clone() const override;
@@ -211,6 +212,7 @@ class Bishop : public AbstractPiece {
  public:
   Bishop(pieceName, int, Square, const GTLib2::domains::KriegspielState *);
   void updateMoves() override;
+  void updateValidMovesWhilePinned() override;
   vector<Square> getSquaresAttacked() const override;
   void updateValidMovesPinsProtects(bool) override;
   shared_ptr<AbstractPiece> clone() const override;
@@ -225,6 +227,7 @@ class Rook : public AbstractPiece {
   Rook(pieceName, int, Square, const GTLib2::domains::KriegspielState *);
   Rook(pieceName, int, Square, const GTLib2::domains::KriegspielState *, bool);
   void updateMoves() override;
+  void updateValidMovesWhilePinned() override;
   vector<Square> getSquaresAttacked() const override;
   void updateValidMovesPinsProtects(bool) override;
   shared_ptr<AbstractPiece> clone() const override;
@@ -238,6 +241,7 @@ class Knight : public AbstractPiece {
  public:
   Knight(pieceName, int, Square, const GTLib2::domains::KriegspielState *);
   void updateMoves() override;
+  void updateValidMovesWhilePinned() override;
   vector<Square> getSquaresAttacked() const override;
   void updateValidMovesPinsProtects(bool) override;
   shared_ptr<AbstractPiece> clone() const override;
@@ -251,6 +255,7 @@ class Queen : public AbstractPiece {
  public:
   Queen(pieceName, int, Square, const GTLib2::domains::KriegspielState *);
   void updateMoves() override;
+  void updateValidMovesWhilePinned() override;
   vector<Square> getSquaresAttacked() const override;
   void updateValidMovesPinsProtects(bool) override;
   shared_ptr<AbstractPiece> clone() const override;
@@ -265,6 +270,7 @@ class King : public AbstractPiece {
   King(pieceName, int, Square, const GTLib2::domains::KriegspielState *);
   King(pieceName, int, Square, const GTLib2::domains::KriegspielState *, bool);
   void updateMoves() override;
+  void updateValidMovesWhilePinned() override;
   vector<Square> getSquaresAttacked() const override;
   void updateValidMovesPinsProtects(bool) override;
   shared_ptr<AbstractPiece> clone() const override;
@@ -297,7 +303,7 @@ class KriegspielAction : public Action {
   inline string toString() const final {
       if (id_ == NO_ACTION)
           return "No action";
-      return move_.first->toString() + to_string(moveFrom.x)
+      return move_.first->toString()
           + coordToString(move_.second); //TODO change column number to letter
   }
   bool operator==(const Action &that) const override;
