@@ -126,7 +126,7 @@ class AbstractPiece {
   /**
    * Updates valid moves of the figure while the player is in check (the checker's position and blocking moves)
    */
-  void updateValidMovesWhileInCheck();
+  virtual void updateValidMovesWhileInCheck();
 
   /**
    * Returns a string used for figure notation eg. K for king and N for knight
@@ -196,6 +196,7 @@ class Pawn : public AbstractPiece {
   Pawn(pieceName, int, Square, const GTLib2::domains::KriegspielState *, int);
   void updateMoves() override;
   void updateValidMovesWhilePinned() override;
+  void updateValidMovesWhileInCheck() override;
   vector<Square> getSquaresAttacked() const override;
   void updateValidMovesPinsProtects(bool) override;
   shared_ptr<AbstractPiece> clone() const override;
@@ -342,7 +343,10 @@ class KriegspielDomain : public Domain {
   ~KriegspielDomain() override = default;
 
   // GetInfo returns string containing domain information.
-  string getInfo() const final;
+  inline string getInfo() const final {
+      return "************ Kriegspiel *************\n" +
+          this->rootStatesDistribution_[0].outcome.state->toString() + "\n";
+  }
 };
 
 /**
@@ -563,7 +567,7 @@ class KriegspielState : public State {
   /**
    * Returns this->playerInCheck
    */
-  int isPlayerInCheck() const;
+  int getPlayerInCheck() const;
 
   /**
    * Checks whether the player currently on the move is in check
@@ -617,7 +621,6 @@ class KriegspielState : public State {
   void promote(shared_ptr<AbstractPiece>, chess::Square) const;
   int getYSize() const;
   int getXSize() const;
-
 
   /**
    * Calculates public observation for both players, first 5 bits of number refer to different
