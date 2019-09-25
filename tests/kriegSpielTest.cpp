@@ -19,9 +19,11 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "base/random.h"
+#include <base/random.h>
 #include "base/base.h"
+#include "algorithms/stats.h"
 #include "domains/kriegspiel.h"
+#include "base/algorithm.h"
 
 #include "tests/domainsTest.h"
 #include "gtest/gtest.h"
@@ -29,38 +31,101 @@
 namespace GTLib2::domains {
 
 using namespace chess;
-
-TEST(Kriegspiel, stability) {
-    domains::KriegspielDomain d(1000, 1000, BOARD::STANDARD);
-    auto rootNode = createRootEFGNode(d);
-    auto expectedOutcomes = array<double, 10>{0, 0, 1, 0, 0, 1, 0, 1, 0, 0};
-
-    for (int i = 0; i < 10; i++) {
-        std::mt19937 gen = std::mt19937(i);
-        RandomLeafOutcome r = pickRandomLeaf(rootNode, gen);
-        EXPECT_EQ(r.utilities[0] + r.utilities[1], 0);
-        EXPECT_EQ(r.utilities[0], expectedOutcomes[i]);
-    }
-}
+// this doesnt really test anything
+//TEST(Kriegspiel, stability) {
+//    domains::KriegspielDomain d(1000, 1000, BOARD::STANDARD);
+//    auto rootNode = createRootEFGNode(d);
+//    auto expectedOutcomes = array<double, 10>{0, 0, 1, 0, 0, 1, 0, 1, 0, 0};
+//
+//    for (int i = 0; i < 10; i++) {
+//        std::mt19937 gen = std::mt19937(i);
+//        RandomLeafOutcome r = pickRandomLeaf(rootNode, gen);
+//        EXPECT_EQ(r.utilities[0] + r.utilities[1], 0);
+//        EXPECT_EQ(r.utilities[0], expectedOutcomes[i]);
+//    }
+//}
 
 TEST(Kriegspiel, pinning) {
     domains::KriegspielDomain d(4, 4, BOARD::STANDARD);
     shared_ptr<State> s = d.getRootStatesDistribution()[0].outcome.state;
     auto ks = dynamic_cast<domains::KriegspielState *>(s.get());
-    EXPECT_EQ(ks->getAvailableActionsFor(0).size(), 20);
+    EXPECT_EQ(ks->getAvailableActionsFor(0).size(), 34);
     ks->clearBoard();
 
-    //build a model pinning situation
-    shared_ptr<King> whiteKing = make_shared<King>(KING, 0, Square(5, 1), ks);
-    shared_ptr<Bishop> whiteBishop = make_shared<Bishop>(BISHOP, 0, Square(5, 2), ks);
-    shared_ptr<Queen> blackQueen = make_shared<Queen>(QUEEN, 1, Square(5, 3), ks);
-    ks->insertPiece(whiteKing);
-    ks->insertPiece(whiteBishop);
-    ks->insertPiece(blackQueen);
-    ks->updateAllPieces();
+    // PINNED PIECE MUST BE FIRST IN THE VECTOR
+    vector<shared_ptr<AbstractPiece>> bishopDiagonal{
+        make_shared<Bishop>(BISHOP, WHITE, Square(2, 2), ks),
+        make_shared<King>(KING, WHITE, Square(1, 1), ks),
+        make_shared<King>(KING, BLACK, Square(7, 8), ks),
+        make_shared<Queen>(QUEEN, BLACK, Square(8, 8), ks),
+    };
 
-    //the bishops only valid move should be the square whence the bishop is being pinned
-    EXPECT_EQ(ks->getPiecesOfColorAndKind(0, BISHOP)[0]->getAllValidMoves()->size(), 1);
+    vector<shared_ptr<AbstractPiece>> bishopHorizontal{
+        make_shared<Bishop>(BISHOP, WHITE, Square(2, 1), ks),
+        make_shared<King>(KING, WHITE, Square(1, 1), ks),
+        make_shared<King>(KING, BLACK, Square(7, 8), ks),
+        make_shared<Queen>(QUEEN, BLACK, Square(8, 1), ks),
+    };
+
+    vector<shared_ptr<AbstractPiece>> bishopVertical{
+        make_shared<Bishop>(BISHOP, WHITE, Square(1, 2), ks),
+        make_shared<King>(KING, WHITE, Square(1, 1), ks),
+        make_shared<King>(KING, BLACK, Square(8, 8), ks),
+        make_shared<Queen>(QUEEN, BLACK, Square(1, 4), ks),
+    };
+
+    vector<shared_ptr<AbstractPiece>> pawnTakes{
+        make_shared<Pawn>(PAWN, WHITE, Square(2, 2), ks, 0),
+        make_shared<King>(KING, WHITE, Square(1, 1), ks),
+        make_shared<King>(KING, BLACK, Square(7, 8), ks),
+        make_shared<Queen>(QUEEN, BLACK, Square(3, 3), ks),
+    };
+
+    vector<shared_ptr<AbstractPiece>> pawnNoTake{
+        make_shared<Pawn>(PAWN, WHITE, Square(2, 2), ks, 0),
+        make_shared<King>(KING, WHITE, Square(1, 1), ks),
+        make_shared<King>(KING, BLACK, Square(7, 8), ks),
+        make_shared<Queen>(QUEEN, BLACK, Square(4, 4), ks),
+    };
+
+    vector<shared_ptr<AbstractPiece>> pawnVertical2{
+        make_shared<Pawn>(PAWN, WHITE, Square(1, 2), ks, 0),
+        make_shared<King>(KING, WHITE, Square(1, 1), ks),
+        make_shared<King>(KING, BLACK, Square(7, 8), ks),
+        make_shared<Queen>(QUEEN, BLACK, Square(1, 8), ks),
+    };
+    vector<shared_ptr<AbstractPiece>> pawnVertical1{
+        make_shared<Pawn>(PAWN, WHITE, Square(1, 2), ks, 0),
+        make_shared<King>(KING, WHITE, Square(1, 1), ks),
+        make_shared<King>(KING, BLACK, Square(7, 8), ks),
+        make_shared<Queen>(QUEEN, BLACK, Square(1, 4), ks),
+    };
+
+    vector<shared_ptr<AbstractPiece>> pawnHorizontal{
+        make_shared<Pawn>(PAWN, WHITE, Square(2, 2), ks, 0),
+        make_shared<King>(KING, WHITE, Square(1, 2), ks),
+        make_shared<King>(KING, BLACK, Square(7, 8), ks),
+        make_shared<Queen>(QUEEN, BLACK, Square(8, 2), ks),
+    };
+
+    vector<int> solution{6, 0, 0, 1, 0, 2, 1, 0};
+    vector<vector<shared_ptr<AbstractPiece>>>
+        situations
+        {bishopDiagonal, bishopHorizontal, bishopVertical, pawnTakes, pawnNoTake, pawnVertical2,
+         pawnVertical1, pawnHorizontal};
+
+    for (unsigned i = 0; i < solution.size(); ++i) {
+        ks->clearBoard();
+        auto &pieces = situations[i];
+        for (auto piece : pieces) {
+            ks->insertPiece(piece);
+        }
+        ks->updateAllPieces();
+
+        //the bishops only valid move should be the square whence the bishop is being pinned
+        EXPECT_EQ(pieces[0]->getAllValidMoves()->size(), solution[i]);
+    }
+
 }
 
 TEST(Kriegspiel, enPassant) {
@@ -188,7 +253,7 @@ TEST(Kriegspiel, checking) {
 
     Outcome newState = ks->performActions(v)[0].outcome;
     auto newBoard = dynamic_cast<domains::KriegspielState *>(newState.state.get());
-    EXPECT_TRUE(newBoard->isPlayerInCheck());
+    EXPECT_TRUE(newBoard->getPlayerInCheck());
     auto newBlackKing = newBoard->getPiecesOfColorAndKind(1, KING)[0];
     EXPECT_EQ(newBlackKing->getAllValidMoves()->size(), 2);
 }
@@ -229,7 +294,7 @@ TEST(Kriegspiel, doublechecking) {
 
     Outcome newState = ks->performActions(v)[0].outcome;
     auto newBoard = dynamic_cast<domains::KriegspielState *>(newState.state.get());
-    EXPECT_TRUE(newBoard->isPlayerInCheck());
+    EXPECT_TRUE(newBoard->getPlayerInCheck());
     //the only valid move for black should be Kf7
     auto newBlackBishop = newBoard->getPiecesOfColorAndKind(1, BISHOP)[0];
     auto newBlackRook = newBoard->getPiecesOfColorAndKind(1, ROOK)[0];
@@ -1053,5 +1118,203 @@ TEST(Kriegspiel, invalidMoveIsNotGeneratedNextState) {
         }
     }
     EXPECT_EQ(violations, 0);
+}
+//TEST(Kriegspiel, statssize) {
+//    KriegspielDomain d(4, 4, BOARD::STANDARD);
+//    algorithms::DomainStatistics actualStats;
+//    algorithms::calculateDomainStatistics(d, &actualStats);
+//    cout << actualStats;
+//}
+
+TEST(Kriegspiel, noMovesValid) {
+    domains::KriegspielDomain domain(4, 4, BOARD::SILVERMAN4BY4);
+    shared_ptr<State> rootState = domain.getRootStatesDistribution()[0].outcome.state;
+    auto state = dynamic_cast<domains::KriegspielState *>(rootState.get());
+    state->clearBoard();
+
+    vector<shared_ptr<AbstractPiece>> pieces{
+        make_shared<King>(KING, WHITE, Square(4, 2), state),
+        make_shared<Queen>(QUEEN, WHITE, Square(1, 2), state),
+        make_shared<Rook>(ROOK, WHITE, Square(1, 1), state),
+        make_shared<Rook>(ROOK, WHITE, Square(4, 1), state),
+        make_shared<Pawn>(PAWN, WHITE, Square(2, 2), state, 1),
+        make_shared<Pawn>(PAWN, WHITE, Square(3, 3), state, 2),
+        make_shared<King>(KING, BLACK, Square(3, 4), state),
+        make_shared<Rook>(ROOK, BLACK, Square(2, 3), state),
+        make_shared<Rook>(ROOK, BLACK, Square(4, 4), state),
+        make_shared<Pawn>(PAWN, BLACK, Square(4, 3), state, 1),
+    };
+
+    for (auto piece : pieces) {
+        state->insertPiece(piece);
+    }
+    state->updateAllPieces();
+    state->setPlayerOnMove(BLACK);
+    state->updateState(BLACK);
+    auto actions = state->getAvailableActionsFor(BLACK);
+    auto validActions = state->getAllValidActions(BLACK);
+
+//    cout << state->toString() << endl;
+    EXPECT_EQ(actions.size(), 10);
+    EXPECT_EQ(validActions.size(), 0);
+    EXPECT_EQ(state->checkGameOver(), 2); //stale mate
+}
+
+TEST(Kriegspiel, updateValidMovesWhilePinned) {
+    domains::KriegspielDomain domain(4, 4, BOARD::SILVERMAN4BY4);
+    shared_ptr<State> rootState = domain.getRootStatesDistribution()[0].outcome.state;
+    auto state = dynamic_cast<domains::KriegspielState *>(rootState.get());
+    state->clearBoard();
+
+    vector<shared_ptr<AbstractPiece>> pieces{
+        make_shared<King>(KING, WHITE, Square(4, 1), state),
+        make_shared<Queen>(QUEEN, WHITE, Square(1, 1), state),
+        make_shared<King>(KING, BLACK, Square(4, 4), state),
+        make_shared<Pawn>(PAWN, BLACK, Square(3, 3), state, 1),
+    };
+
+    for (auto &piece : pieces) {
+        state->insertPiece(piece);
+    }
+    state->updateAllPieces();
+    state->setPlayerOnMove(BLACK);
+    state->updateState(BLACK);
+
+//    cout << endl << state->toString() << endl;
+//    auto actions = state->getAvailableActionsFor(BLACK);
+//    auto validActions = state->getAllValidActions(BLACK);
+    EXPECT_EQ(pieces[3]->getAllValidMoves()->size(), 0);
+}
+
+TEST(Kriegspiel, kingToKingMove) {
+    domains::KriegspielDomain domain(4, 4, BOARD::SILVERMAN4BY4);
+    shared_ptr<State> rootState = domain.getRootStatesDistribution()[0].outcome.state;
+    auto state = dynamic_cast<domains::KriegspielState *>(rootState.get());
+    state->clearBoard();
+
+    vector<shared_ptr<AbstractPiece>> pieces{
+        make_shared<King>(KING, WHITE, Square(3, 1), state),
+        make_shared<Rook>(ROOK, WHITE, Square(1, 1), state),
+        make_shared<Rook>(ROOK, WHITE, Square(4, 2), state),
+        make_shared<King>(KING, BLACK, Square(3, 3), state),
+        make_shared<Queen>(QUEEN, BLACK, Square(2, 4), state),
+        make_shared<Rook>(ROOK, BLACK, Square(4, 4), state),
+        make_shared<Pawn>(PAWN, BLACK, Square(3, 2), state, 1),
+    };
+
+    for (auto piece : pieces) {
+        state->insertPiece(piece);
+    }
+    state->updateAllPieces();
+
+//    cout << endl << state->toString() << endl;
+//    auto actions = state->getAvailableActionsFor(WHITE);
+//    auto validActions = state->getAllValidActions(WHITE);
+
+    EXPECT_TRUE(pieces[0]->getAllValidMoves()->empty());
+}
+
+TEST(Kriegspiel, rookSquaresAttacked) {
+    domains::KriegspielDomain domain(4, 4, BOARD::SILVERMAN4BY4);
+    shared_ptr<State> rootState = domain.getRootStatesDistribution()[0].outcome.state;
+    auto state = dynamic_cast<domains::KriegspielState *>(rootState.get());
+    state->clearBoard();
+
+    vector<shared_ptr<AbstractPiece>> pieces{
+        make_shared<King>(KING, WHITE, Square(3, 1), state),
+        make_shared<Rook>(ROOK, WHITE, Square(3, 2), state),
+        make_shared<Rook>(ROOK, WHITE, Square(4, 2), state),
+        make_shared<King>(KING, BLACK, Square(3, 3), state),
+        make_shared<Queen>(QUEEN, BLACK, Square(2, 2), state),
+        make_shared<Rook>(ROOK, BLACK, Square(4, 4), state),
+    };
+
+    for (auto piece : pieces) {
+        state->insertPiece(piece);
+    }
+    state->updateAllPieces();
+
+//    cout << endl << state->toString() << endl;
+    EXPECT_EQ(pieces[1]->getSquaresAttacked().size(), 5);
+}
+
+TEST(Kriegspiel, pawnValidMovesWhileChecked) {
+    domains::KriegspielDomain domain(1000, 1000, BOARD::MICROCHESS);
+    shared_ptr<State> rootState = domain.getRootStatesDistribution()[0].outcome.state;
+    auto state = dynamic_cast<domains::KriegspielState *>(rootState.get());
+    state->clearBoard();
+
+    vector<shared_ptr<AbstractPiece>> pieces{
+        make_shared<King>(KING, BLACK, Square(2, 4), state),
+        make_shared<Rook>(ROOK, BLACK, Square(4, 5), state),
+        make_shared<Bishop>(BISHOP, BLACK, Square(3, 5), state),
+        make_shared<Knight>(KNIGHT, BLACK, Square(2, 5), state),
+        make_shared<Pawn>(PAWN, BLACK, Square(1, 4), state, 0),
+
+        make_shared<King>(KING, WHITE, Square(4, 1), state),
+        make_shared<Rook>(ROOK, WHITE, Square(1, 1), state),
+        make_shared<Bishop>(BISHOP, WHITE, Square(3, 2), state),
+        make_shared<Knight>(KNIGHT, WHITE, Square(1, 2), state),
+        make_shared<Pawn>(PAWN, WHITE, Square(4, 2), state, 0),
+    };
+
+    for (auto &piece : pieces) {
+        state->insertPiece(piece);
+    }
+    // set king has moved, no castle check
+    pieces[0]->setHasMoved(true);
+    state->setPlayerOnMove(BLACK);
+    state->updateState(BLACK);
+//    cout << endl << state->toString() << endl;
+    // black pawn should have no valid moves
+    EXPECT_EQ(pieces[4]->getAllValidMoves()->size(), 0);
+}
+
+TEST(Kriegspiel, pawnCantJumpPiece) {
+    domains::KriegspielDomain domain(1000, 1000, BOARD::MICROCHESS);
+    shared_ptr<State> rootState = domain.getRootStatesDistribution()[0].outcome.state;
+    auto state = dynamic_cast<domains::KriegspielState *>(rootState.get());
+    state->clearBoard();
+
+    vector<shared_ptr<AbstractPiece>> pieces{
+        make_shared<King>(KING, BLACK, Square(2, 4), state),
+
+        make_shared<King>(KING, WHITE, Square(4, 1), state),
+        make_shared<Knight>(KNIGHT, WHITE, Square(3, 3), state),
+        make_shared<Pawn>(PAWN, WHITE, Square(3, 2), state, 0),
+    };
+
+    for (auto &piece : pieces) {
+        state->insertPiece(piece);
+    }
+    state->updateState(WHITE);
+//    cout << endl << state->toString() << endl;
+    // black pawn should have no valid moves
+    EXPECT_EQ(pieces[3]->getAllMoves()->size(), 2);
+    EXPECT_EQ(pieces[3]->getAllValidMoves()->size(), 0);
+
+}
+
+TEST(Kriegspiel, castleOverAttackedSquare) {
+    domains::KriegspielDomain domain(4, 4, BOARD::STANDARD);
+    shared_ptr<State> rootState = domain.getRootStatesDistribution()[0].outcome.state;
+    auto state = dynamic_cast<domains::KriegspielState *>(rootState.get());
+    state->clearBoard();
+
+    vector<shared_ptr<AbstractPiece>> pieces{
+        make_shared<King>(KING, WHITE, Square(5, 1), state),
+        make_shared<Rook>(ROOK, WHITE, Square(1, 1), state),
+        make_shared<Rook>(ROOK, WHITE, Square(8, 1), state),
+        make_shared<King>(KING, BLACK, Square(5, 8), state),
+        make_shared<Bishop>(BISHOP, BLACK, Square(5, 3), state),
+    };
+
+    for (auto &piece : pieces) {
+        state->insertPiece(piece);
+    }
+    state->updateState(WHITE);
+//    cout << endl << state->toString() << endl;
+    EXPECT_EQ(pieces[0]->getAllMoves()->size(), 7);
+    EXPECT_EQ(pieces[0]->getAllValidMoves()->size(), 3);
 }
 }
