@@ -60,16 +60,21 @@ int pickUniform(unsigned long numOutcomes, std::mt19937 &generator) {
 }
 
 int pickRandom(const EFGNode &node, std::mt19937 &generator) {
+    int ai = 0;
     switch (node.type_) {
         case ChanceNode:
-            return pickRandom(node.chanceProbs(), generator);
+            ai = pickRandom(node.chanceProbs(), generator);
+            break;
         case PlayerNode:
-            return pickUniform(node.countAvailableActions(), generator);
+            ai = pickUniform(node.countAvailableActions(), generator);
+            break;
         case TerminalNode:
             unreachable("No actions!");
         default:
             unreachable("unrecognized option!");
     }
+    assert(ai >= 0 && ai < node.countAvailableActions());
+    return ai;
 }
 
 
@@ -84,6 +89,7 @@ RandomLeafOutcome pickRandomLeaf(const std::shared_ptr<EFGNode> &start, std::mt1
     while (h->type_ != TerminalNode) {
         const auto &actions = h->availableActions();
         int ai = pickRandom(*h, generator);
+        assert(ai >= 0 && ai < actions.size());
 
         switch (h->type_) {
             case ChanceNode:

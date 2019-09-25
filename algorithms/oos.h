@@ -243,7 +243,7 @@ class Targetor {
     /**
      * Retrieve the value of weighting factor according to equation (3) in [1]:
      *
-     * 1/w = (1-delta) + delta * ( sum_of_unbiased_reach_probs / sum_of_biased_reach_probs )
+     * 1/w = (1-targetBiasing) + targetBiasing * ( sum_of_unbiased_reach_probs / sum_of_biased_reach_probs )
      *
      * [1] Online monte carlo counterfactual regret minimization for search in imperfect information games
      *     Lisý, Viliam and Lanctot, Marc and Bowling, Michael
@@ -277,7 +277,7 @@ typedef tuple<unsigned int, double, double, double> PlayerNodeOutcome;
 /**
  * Online Outcome Sampling algorithm
  *
- * When this algorithm is instantiated with delta = 0. it becomes  MCCFR with incremental
+ * When this algorithm is instantiated with targetBiasing = 0. it becomes  MCCFR with incremental
  * tree building. You can prebuild the tree yourself, and you get MCCFR.
  *
  * There are some important conventions in variable naming: X_Y_Z
@@ -434,7 +434,7 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
     ProbDistribution tmpProbs_ = ProbDistribution(OOS_MAX_ACTIONS);
     ProbDistribution *pBiasedProbs_ = &tmpProbs_;
 
-    // should current iteration make a biased sample? (with prob. delta)
+    // should current iteration make a biased sample? (with probability of targetBiasing)
     bool isBiasedIteration_ = false;
 
     // are we deeper in the tree, "below" target IS?

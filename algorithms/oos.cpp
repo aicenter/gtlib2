@@ -52,14 +52,6 @@ bool Targetor::updateCurrentPosition(const optional<shared_ptr<AOH>> &infoset,
 
 pair<double, double> Targetor::updateWeighting(const shared_ptr<EFGNode> &h,
                                                double bs_h_all, double us_h_all) {
-    const auto updateInfoset = h->getAOHInfSet();
-
-    if (*updateInfoset == *currentInfoset_) {
-        return make_pair(bs_h_all, us_h_all); // do not go below
-    }
-
-    double biasedSum = 0.0;
-    const auto actions = h->availableActions();
     ProbDistribution dist;
 
     switch (h->type_) {
@@ -67,6 +59,11 @@ pair<double, double> Targetor::updateWeighting(const shared_ptr<EFGNode> &h,
             dist = h->chanceProbs();
             break;
         case PlayerNode: {
+            const auto updateInfoset = h->getAOHInfSet();
+            if (*updateInfoset == *currentInfoset_) {
+                return make_pair(bs_h_all, us_h_all); // do not go below
+            }
+
             CFRData::InfosetData data = cache_.infosetData.at(updateInfoset);
             dist = vector<double>(data.regrets.size());
             calcRMProbs(data.regrets, &dist, 0.001); // todo: eps parameter?
@@ -77,6 +74,9 @@ pair<double, double> Targetor::updateWeighting(const shared_ptr<EFGNode> &h,
         default:
             unreachable("unrecognized option!");
     }
+
+    double biasedSum = 0.0;
+    const auto actions = h->availableActions();
 
     for (const auto &action: actions) {
         if (!isAllowedAction(h, action)) dist[action->getId()] = 0.0;
@@ -250,6 +250,7 @@ double OOSAlgorithm::handlePlayerNode(const shared_ptr<EFGNode> &h,
                                       double bs_h_all, double us_h_all, double us_h_cn,
                                       Player exploringPl) {
     const auto &actions = h->availableActions();
+    assert(actions.size() < OOS_MAX_ACTIONS);
     const auto &infoset = cache_.getInfosetFor(h);
     const double s_h_all = bias(bs_h_all, us_h_all);
     CFRData::InfosetData &data = cache_.infosetData.at(infoset);
