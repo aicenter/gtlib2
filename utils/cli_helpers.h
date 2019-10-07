@@ -146,7 +146,7 @@ unique_ptr<Domain> constructDomain(const string &description) {
         {"STRAT3x3",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{3,3,{{1,1,1,1}},{'1', '2', '3'}});}},
         {"STRAT4x4",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{4,4,{{1,1,2,2}}, {'3','2','2','1'}});}},
         {"STRAT6x6",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{6,6,{{2,2,2,2}}, {'B','4','3','3','2','2', '2','1','1','1','1','F'}});}},
-        {"STRAT10x10", [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{10,10, {{3,5,2,2}, {7,5,2,2}}}); }},
+        {"STRAT10x10", [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{10,10, {{2,4,2,2}, {6,4,2,2}}, {'B','B','B','B','B','B','9','8','7','7','6','6','6','5','5','5','5','4','4','4','4','3','3','3','3','2','2','2','2','2','1','1','1','1','1','1','1','1','0','F'}}); }},
         {"KS",         [ ](vector<string> p) { return make_unique<KriegspielDomain>(1000, 1000, chess::BOARD::STANDARD); }},
         {"KS_STANDARD",      [ ](vector<string> p) { return make_unique<KriegspielDomain>(1000, 1000, chess::BOARD::STANDARD); }},
         {"KS_SILVERMAN4BY4", [ ](vector<string> p) { return make_unique<KriegspielDomain>(1000, 1000, chess::BOARD::SILVERMAN4BY4); }},
@@ -196,12 +196,17 @@ std::unique_ptr<GTLib2::AlgorithmWithData> constructAlgWithData(const GTLib2::Do
     struct WrapperCPW: AlgorithmWithData {
         ISMCTSSettings cfg;
         inline WrapperCPW(const Domain &d, ISMCTSSettings _cfg) : cfg(_cfg) {}
-        PreparedAlgorithm prepare() override { return createInitializer<algorithms::DD_ISMCTS>(cfg); }
+        PreparedAlgorithm prepare() override { return createInitializer<algorithms::CPW_ISMCTS>(cfg); }
     };
     struct WrapperISMC: AlgorithmWithData {
         ISMCTSSettings cfg;
         inline WrapperISMC(const Domain &d, ISMCTSSettings _cfg) : cfg(_cfg) {}
         PreparedAlgorithm prepare() override { return createInitializer<ISMCTS>(cfg); }
+    };
+    struct WrapperDD: AlgorithmWithData {
+        ISMCTSSettings cfg;
+        inline WrapperDD(const Domain &d, ISMCTSSettings _cfg) : cfg(_cfg) {}
+        PreparedAlgorithm prepare() override { return createInitializer<algorithms::DD_ISMCTS>(cfg); }
     };
 
     std::fstream fs;
@@ -215,6 +220,7 @@ std::unique_ptr<GTLib2::AlgorithmWithData> constructAlgWithData(const GTLib2::Do
         {"RND", "settings/rnd.json"},
         {"CPW", "settings/cpw.json"},
         {"ISMCTS", "settings/ismcts.json"},
+        {"DD", "settings/dd.json"},
     };
 
     unordered_map<string, function<unique_ptr<AlgorithmWithData>()>> algorithmsTable = {
@@ -242,6 +248,11 @@ std::unique_ptr<GTLib2::AlgorithmWithData> constructAlgWithData(const GTLib2::Do
             auto fact = make_shared<UCTSelectorFactory>(sqrt(2));
             ISMCTSSettings settings = {.useBelief = true, .fact_ = std::static_pointer_cast<SelectorFactory>(fact), .randomSeed = 2};
             return make_unique<WrapperCPW>(d, settings);
+        }},
+        {"DD",   [&]() {
+            auto fact = make_shared<UCTSelectorFactory>(sqrt(2));
+            ISMCTSSettings settings = {.useBelief = true, .fact_ = std::static_pointer_cast<SelectorFactory>(fact), .randomSeed = 2};
+            return make_unique<WrapperDD>(d, settings);
         }},
         {"RND",   [&]() { return make_unique<WrapperRND>(); }},
     };

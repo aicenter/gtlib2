@@ -85,13 +85,13 @@ class ISMCTS: public GamePlayingAlgorithm {
     optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset,
                                                    const long actionsNum) override;
 
+    virtual double iteration(const shared_ptr<EFGNode> &h);
+
  protected:
     const ISMCTSSettings config_;
     std::mt19937 generator_;
     unordered_map<shared_ptr<AOH>, unique_ptr<Selector>> infosetSelectors_;
     const shared_ptr<EFGNode> rootNode_;
-
-    virtual double iteration(const shared_ptr<EFGNode> &h);
     double handleTerminalNode(const shared_ptr<EFGNode> &h);
     double handleChanceNode(const shared_ptr<EFGNode> &h);
     virtual double handlePlayerNode(const shared_ptr<EFGNode> &h);

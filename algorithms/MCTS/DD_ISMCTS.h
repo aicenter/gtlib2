@@ -29,8 +29,10 @@ class DD_ISMCTS : public CPW_ISMCTS {
  public:
     explicit DD_ISMCTS(const Domain &domain, Player playingPlayer, ISMCTSSettings config) :
         CPW_ISMCTS(domain, playingPlayer, std::move(config)), generateIters_(config.generateIters), iterateRoot_(config.iterateRoot) {
-        revealedFigures_ = vector<domains::Rank>(dynamic_cast<const domains::StrategoDomain&>(domain).startFigures_.size());
-        std::fill(revealedFigures_.begin(), revealedFigures_.end(), domains::EMPTY);};
+        dynamic_cast<const ExtendedDomain&>(domain); // check is domain is appliable
+        //revealedFigures_ = vector<domains::Rank>(dynamic_cast<const domains::StrategoDomain&>(domain).startFigures_.size());
+        //std::fill(revealedFigures_.begin(), revealedFigures_.end(), domains::EMPTY);
+    };
 
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
 
@@ -40,14 +42,13 @@ class DD_ISMCTS : public CPW_ISMCTS {
 
  private:
     bool isCurrentISUndiscovered_ = false;
-    vector<domains::Rank> revealedFigures_;
+    unordered_map<unsigned long, shared_ptr<RevealedInfo>> revealed_;
     unsigned long  lastRevealAoid_ = 1;
     unsigned long revealedCounter_ = 0;
     bool currentISChecked_ = true;
-    shared_ptr<Action> selectedPermutation_;
+    //shared_ptr<Action> selectedPermutation_;
     const int generateIters_ = 1000;
     bool iterateRoot_ = false;
-
     void generate();
 };
 }

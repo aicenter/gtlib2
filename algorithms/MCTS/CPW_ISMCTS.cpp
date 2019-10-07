@@ -29,10 +29,12 @@ PlayControl CPW_ISMCTS::runPlayIteration(const optional<shared_ptr<AOH>> &curren
         return ContinueImproving;
     }
 
-    if (infosetSelectors_.find(*currentInfoset) == infosetSelectors_.end()) return GiveUp;
+    if (infosetSelectors_.find(*currentInfoset) == infosetSelectors_.end()) 
+        return GiveUp;
 
     const auto nodes = nodesMap_.find(*currentInfoset);
-    if (nodes == nodesMap_.end()) return GiveUp;
+    if (nodes == nodesMap_.end()) 
+        return GiveUp;
 
     if (currentInfoset_ != *currentInfoset) setCurrentInfoset(*currentInfoset);
     const int nodeIndex = config_.useBelief

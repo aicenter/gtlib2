@@ -469,6 +469,28 @@ class Domain {
     const shared_ptr<Action> noAction_;
     const shared_ptr<Observation> noObservation_;
 };
+
+class ExtendedDomain : public Domain {
+ public:
+    ExtendedDomain(unsigned int maxStateDepth, unsigned int numberOfPlayers, bool isZeroSum_,
+           shared_ptr<Action> noAction, shared_ptr<Observation> noObservation) :
+           Domain(maxStateDepth, numberOfPlayers, isZeroSum_, noAction, noObservation) {};
+
+    //virtual ~ExtendedDomain() = default;
+
+    string getInfo() const override { return "";}
+
+    bool isExtended() {return true;}
+};
+
+struct RevealedInfo
+{
+    RevealedInfo() {}
+    virtual ~RevealedInfo() = default;
+ public:
+//    unsigned long AOIDID;
+};
+
 }  // namespace GTLib2
 
 MAKE_EQ(GTLib2::InformationSet)
