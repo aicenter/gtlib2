@@ -25,6 +25,8 @@
 #ifndef DOMAINS_GOOFSPIEL_H_
 #define DOMAINS_GOOFSPIEL_H_
 
+#include <utility>
+
 #include "base/base.h"
 
 namespace GTLib2::domains {
@@ -59,6 +61,12 @@ class GoofSpielAction: public Action {
     const int cardNumber_;
 };
 
+struct GoofSpielRevealedInfo : RevealedInfo
+{
+    GoofSpielRevealedInfo (vector<int> cards) : cardOptions(std::move(cards)) {};
+    vector<int> cardOptions;
+};
+
 /**
  * In Goofspiel (GS), each player is given a private hand of bid cards with values 1 to N.
  *
@@ -75,7 +83,7 @@ class GoofSpielAction: public Action {
  * who won or lost a bid, but not the bid cards played. This way all actions are private
  * and information sets have various sizes.
  */
-class GoofSpielDomain: public Domain {
+class GoofSpielDomain: public ExtendedDomain {
  public:
     explicit GoofSpielDomain(GoofSpielSettings settings);
     string getInfo() const override;
@@ -89,10 +97,19 @@ class GoofSpielDomain: public Domain {
     // Factories for common instances of IIGS
     static unique_ptr<GoofSpielDomain> IIGS(unsigned int n);
     static unique_ptr<GoofSpielDomain> GS(unsigned int n);
+    bool proceedAOIDs(const Player playingPlayer, const vector<ActionObservationIds> & aoids, long & startIndex,
+                      unordered_map<unsigned long, shared_ptr<RevealedInfo>> & revealedInfo) const override;
+    void generateNodes(const Player playingPlayer, const vector<ActionObservationIds> & aoids,
+                       const unordered_map<unsigned long, shared_ptr<RevealedInfo>> & revealedInfo,
+                       const int max,const std::function<double(const shared_ptr<EFGNode> &)>& func) const override;
+    virtual void prepareRevealedMap(unordered_map<unsigned long, shared_ptr<RevealedInfo>> &revealedInfo) const override;
 
  private:
     void initRandomCards(const vector<int> &natureCards);
     void initFixedCards(const vector<int> &natureCards);
+    void recursiveNodeGeneration(const Player playingPlayer, const vector<ActionObservationIds> & aoids,
+                                                  const shared_ptr<EFGNode> & node, int depth, int maxDepth, const unordered_map<unsigned long, shared_ptr<RevealedInfo>> &revealedInfo,
+                                                  vector<int> remaining, int & counter, const std::function<double(const shared_ptr<EFGNode> &)>& func) const;
 };
 
 constexpr int NO_NATURE_CARD = 0;

@@ -44,7 +44,7 @@ struct Lake {
     const int x, y, height, width;
 };
 
-vector<unsigned int> decodeObservation(unsigned int obsid);
+vector<unsigned int> decodeStrategoObservation(unsigned int obsid);
 Rank getRank(CellState cell);
 
 struct StrategoSettings {
@@ -101,17 +101,20 @@ class StrategoDomain: public ExtendedDomain {
     const int boardWidth_;
     const vector<Rank> startFigures_;
     const vector<CellState> emptyBoard_;
-    bool proceedAOIDs(const Player playingPlayer, const vector<ActionObservationIds> & aoids, unsigned long & startIndex,
-        unordered_map<unsigned long, shared_ptr<RevealedInfo>> & revealedFigures);
+    bool proceedAOIDs(const Player playingPlayer, const vector<ActionObservationIds> & aoids, long & startIndex,
+        unordered_map<unsigned long, shared_ptr<RevealedInfo>> & revealedFigures) const override;
     void generateNodes(const Player playingPlayer, const vector<ActionObservationIds> & aoids,
         const unordered_map<unsigned long, shared_ptr<RevealedInfo>> & revealedFigures,
-        const int max,std::function<double(const shared_ptr<EFGNode> &)> func);
+        const int max,const std::function<double(const shared_ptr<EFGNode> &)>& func) const override;
+    virtual void prepareRevealedMap(unordered_map<unsigned long, shared_ptr<RevealedInfo>> &revealedInfo) const override {};
+ private:
     void recursiveNodeGeneration(const Player playingPlayer, const vector<ActionObservationIds> & aoids,
-                                                 const EFGNode & node, int depth,
+                                                const shared_ptr<EFGNode> & node, int depth,
                                                  const vector<shared_ptr<StrategoRevealedInfo>> & mask,
-                                                 vector<Rank> remaining, int & counter, std::function<double(const shared_ptr<EFGNode> &)> func);
+                                                 const vector<Rank>& remaining, int & counter,
+                                                 const std::function<double(const shared_ptr<EFGNode> &)>& func) const;
     void simulateMoves(const vector<ActionObservationIds> &aoids,
-                       const shared_ptr<EFGNode> node, std::function<double(const shared_ptr<EFGNode> &)> func);
+                       const shared_ptr<EFGNode> node, const std::function<double(const shared_ptr<EFGNode> &)>& func) const;
 };
 
 CellState createCell(Rank figure, Player player);

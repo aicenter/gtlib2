@@ -47,7 +47,7 @@ vector<Rank> getMovableRanks(vector<Rank> figures)
     return v;
 }
 
-vector<unsigned int> decodeObservation(unsigned int obsid) {
+vector<unsigned int> decodeStrategoObservation(unsigned int obsid) {
     unsigned int size8 = 255, size7 = 127;
     int obstype = (obsid>>30);
     if (obstype == 0) {
@@ -577,10 +577,9 @@ bool StrategoState::operator==(const State &rhs) const {
 
 unsigned int backtrackPosition(const vector<ActionObservationIds> & aoids, unsigned int endpos, long  i) {
     auto startpos = endpos;
-    while(i > 0)
-    {
+    while(i > 0) {
         i--;
-        const auto currObs = domains::decodeObservation(aoids[i].observation);
+        const auto currObs = domains::decodeStrategoObservation(aoids[i].observation);
         if (currObs.size() == 3) break;
         if (currObs[1] == startpos) {
             if (currObs[3] != domains::EMPTY && !domains::isFigureSlain(currObs[2], currObs[3]))
@@ -594,16 +593,16 @@ unsigned int backtrackPosition(const vector<ActionObservationIds> & aoids, unsig
 
 
 bool StrategoDomain::proceedAOIDs(const Player playingPlayer, const vector<ActionObservationIds> & aoids,
-    unsigned long & startIndex, unordered_map<unsigned long, shared_ptr<RevealedInfo>> & revealedFigures)
+    long & startIndex, unordered_map<unsigned long, shared_ptr<RevealedInfo>> & revealedFigures) const
 {
     bool newFigureRevealed = false;
     for (unsigned long i = startIndex + 1; i < aoids.size(); i++) {
         if (aoids[i].observation == getNoObservation()->getId()) break;
-        const auto res = decodeObservation(aoids[i].observation);
+        const auto res = decodeStrategoObservation(aoids[i].observation);
         if (res.size() != 4) continue;
         if (res[3] != EMPTY) {
-            unsigned long
-                pos = backtrackPosition(aoids, (aoids[i].action == getNoAction()->getId()) ? res[0] : res[1], i);
+            unsigned long pos =
+                backtrackPosition(aoids, (aoids[i].action == getNoAction()->getId()) ? res[0] : res[1], i);
             if (playingPlayer == 0) pos = boardHeight_ * boardWidth_ - pos - 1;
             const Rank val = getRank((aoids[i].action == getNoAction()->getId()) ? res[2] : res[3]);
             if (revealedFigures.find(pos) == revealedFigures.end()) {
@@ -617,8 +616,9 @@ bool StrategoDomain::proceedAOIDs(const Player playingPlayer, const vector<Actio
             }
             startIndex = i;
             newFigureRevealed = true;
-        } else{
-            unsigned long pos = playingPlayer == 0 ? boardHeight_ * boardWidth_ - res[0] - 1 : res[0];
+        }
+        else {
+            const unsigned long pos = playingPlayer == 0 ? boardHeight_ * boardWidth_ - res[0] - 1 : res[0];
             if (pos < startFigures_.size() && revealedFigures.find(pos) == revealedFigures.end())
                 revealedFigures[pos] = make_shared<StrategoRevealedInfo>(true);
         }
@@ -627,94 +627,79 @@ bool StrategoDomain::proceedAOIDs(const Player playingPlayer, const vector<Actio
 }
 
 void StrategoDomain::simulateMoves(const vector<ActionObservationIds> & aoids,
-    const shared_ptr<EFGNode> node, std::function<double(const shared_ptr<EFGNode> &)> func) {
-    auto currNode = node;
+    const shared_ptr<EFGNode> node, const std::function<double(const shared_ptr<EFGNode> &)>& func) const{
+    auto currentNode = node;
     for (int i = startFigures_.size()*2+1; i < aoids.size(); i++) {
-        if (currNode->getAOHInfSet()->getAOids() == aoids) {
-            func(currNode);
-//            func(currNode);
-//            std::invoke(func, node);
-//            isCurrentISUndiscovered_ = false;
+        if (currentNode->getAOHInfSet()->getAOids() == aoids) {
+            func(currentNode);
             break;
         }
         if (aoids[i].action == getNoAction()->getId()) {
-            if (aoids[i].observation == OBSERVATION_PLAYER_MOVE)
-                unreachable("Node generation failed"); // debug
-            const auto currObs = domains::decodeObservation(aoids[i].observation);
+            const auto currentObservation = domains::decodeStrategoObservation(aoids[i].observation);
             bool moveActionFound = false;
-            for (const auto& a : currNode->availableActions()) {
+            for (const auto& a : currentNode->availableActions()) {
                 const auto action = dynamic_pointer_cast<domains::StrategoMoveAction>(a);
-                if (action->startPos == currObs[0] && action->endPos == currObs[1]) {
+                if (action->startPos == currentObservation[0] && action->endPos == currentObservation[1]) {
                     moveActionFound = true;
-                    currNode = currNode->performAction(a);
+                    currentNode = currentNode->performAction(a);
                     break;
                 }
             }
-            if (!moveActionFound) break; //same action not found => board setup does not fit (for example, bomb in place of movable piece)
+            if (!moveActionFound)
+                break; //same action not found => board setup does not fit
         }
         else
-            currNode = currNode->performAction(currNode->getActionByID(aoids[i].action));
+            currentNode = currentNode->performAction(currentNode->getActionByID(aoids[i].action));
     }
 }
 
 void StrategoDomain::recursiveNodeGeneration(const Player playingPlayer, const vector<ActionObservationIds> & aoids,
-    const EFGNode & node, int depth, const vector<shared_ptr<StrategoRevealedInfo>> & mask,
-    vector<Rank> remaining, int & counter, std::function<double(const shared_ptr<EFGNode> &)> func) {
-    shared_ptr<EFGNode> currNode = make_shared<FOG2EFGNode>(node);
+    const shared_ptr<EFGNode> & node, int depth, const vector<shared_ptr<StrategoRevealedInfo>> & mask,
+    const vector<Rank>& remaining, int & counter, const std::function<double(const shared_ptr<EFGNode> &)>& func) const {
+    shared_ptr<EFGNode> currentNode = node;
     if (counter <= 0) return;
-    if (depth == mask.size() - 1) {
-        if (remaining.size() != 0)
-            return;
+    if (depth == mask.size()) {
         counter--;
-        simulateMoves(aoids, currNode, func);
+        simulateMoves(aoids, currentNode, func);
         return;
     }
-    if (playingPlayer == 0) currNode = currNode->performAction(currNode->getActionByID(aoids[1 + 2 * depth].action));
+    if (playingPlayer == 0) currentNode = currentNode->performAction(currentNode->getActionByID(aoids[1 + 2 * depth].action));
     if (mask[depth]->revealedRank != EMPTY) {
-//        vector<Rank> newremainning = remaining;
-        bool found = false;
-        for (const auto& a : currNode->availableActions()) {
+        for (const auto& a : currentNode->availableActions()) {
             const auto action = dynamic_pointer_cast<domains::StrategoSetupAction>(a);
-
             if (action->figureRank == mask[depth]->revealedRank) {
-                currNode = currNode->performAction(a);
-                found = true;
-//                newremainning.erase(std::find(newremainning.begin(), newremainning.end(), mask[depth]->revealedRank));
+                currentNode = currentNode->performAction(a);
                 break;
             }
         }
-        assert(found);
-        if (playingPlayer == 1) {
-            currNode = currNode->performAction(currNode->getActionByID(aoids[1 + 2 * depth + 1].action));
-        }
-        //counter--;
-        recursiveNodeGeneration(playingPlayer, aoids, *currNode, depth + 1, mask, remaining, counter, func);
+        if (playingPlayer == 1)
+            currentNode = currentNode->performAction(currentNode->getActionByID(aoids[1 + 2 * depth + 1].action));
+        recursiveNodeGeneration(playingPlayer, aoids, currentNode, depth + 1, mask, remaining, counter, func);
         return;
     }
     for (auto rank : mask[depth]->moved ? getMovableRanks(remaining) : remaining) {
-        vector<Rank> newremainning = remaining;
+        auto newNode = currentNode;
+        vector<Rank> newRemaining = remaining;
         bool found = false;
-        for (const auto& a : currNode->availableActions()) {
+        for (const auto& a : currentNode->availableActions()) {
             const auto action = dynamic_pointer_cast<domains::StrategoSetupAction>(a);
             if (action->figureRank == rank) {
                 found = true;
-                currNode = currNode->performAction(a);
-                newremainning.erase(std::find(newremainning.begin(), newremainning.end(), rank));
+                newNode = newNode->performAction(a);
+                newRemaining.erase(std::find(newRemaining.begin(), newRemaining.end(), rank));
                 break;
             }
         }
         if (!found)
             continue;
-        if (playingPlayer == 1) currNode = currNode->performAction(currNode->getActionByID(aoids[1 + 2*depth + 1].action));
-        //counter--;
-        recursiveNodeGeneration(playingPlayer, aoids, *currNode, depth + 1, mask, newremainning, counter, func);
+        if (playingPlayer == 1) newNode = newNode->performAction(newNode->getActionByID(aoids[1 + 2*depth + 1].action));
+        recursiveNodeGeneration(playingPlayer, aoids, newNode, depth + 1, mask, newRemaining, counter, func);
     }
-    int a = 0;
 }
 
 void StrategoDomain::generateNodes(const Player playingPlayer, const vector<ActionObservationIds> & aoids,
                                         const unordered_map<unsigned long, shared_ptr<RevealedInfo>> & revealedFigures,
-                                        const int max, std::function<double(const shared_ptr<EFGNode> &)> func)
+                                        const int max, const std::function<double(const shared_ptr<EFGNode> &)>& func) const
 {
     vector<shared_ptr<StrategoRevealedInfo>> mask = vector<shared_ptr<StrategoRevealedInfo>>(startFigures_.size());
     for (int i = 0 ; i < mask.size(); i++)
@@ -722,19 +707,18 @@ void StrategoDomain::generateNodes(const Player playingPlayer, const vector<Acti
     vector<Rank> remaining = startFigures_;
     for (auto p : revealedFigures)
     {
-        auto a = dynamic_cast<StrategoRevealedInfo*>(p.second.get());
-        if (a->revealedRank != EMPTY) {
-            auto position = std::find(remaining.begin(), remaining.end(), a->revealedRank);
+        auto currentConstraints = dynamic_cast<StrategoRevealedInfo*>(p.second.get());
+        if (currentConstraints->revealedRank != EMPTY) {
+            auto position = std::find(remaining.begin(), remaining.end(), currentConstraints->revealedRank);
             if (position != remaining.end())
                 remaining.erase(position);
             else unreachable("Incorrect revealing");
         }
-        mask[p.first]->revealedRank = a->revealedRank;
-        mask[p.first]->moved = a->moved;
+        mask[p.first]->revealedRank = currentConstraints->revealedRank;
+        mask[p.first]->moved = currentConstraints->moved;
     }
-    auto root = createRootEFGNode(*this);
+    const auto root = createRootEFGNode(*this);
     int a = max;
-    recursiveNodeGeneration(playingPlayer, aoids, *root, 0, mask, remaining, a, func);
-
+    recursiveNodeGeneration(playingPlayer, aoids, root, 0, mask, remaining, a, func);
 }
 }

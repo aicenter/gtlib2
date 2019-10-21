@@ -20,6 +20,7 @@
 */
 
 
+#include <base/fogefg.h>
 #include <base/random.h>
 #include "domains/goofSpiel.h"
 
@@ -30,11 +31,27 @@ namespace GTLib2::domains {
 
 bool GoofSpielAction::operator==(const Action &that) const {
     if (typeid(that) == typeid(*this)) {
-        const auto rhsAction = static_cast<const GoofSpielAction *>(&that);
+        const auto rhsAction = dynamic_cast<const GoofSpielAction *>(&that);
         return cardNumber_ == rhsAction->cardNumber_;
     }
     return false;
 }
+//
+//GoofSpielObservation::GoofSpielObservation(int initialNumOfCards,
+//                                           const array<int, 3> &chosenCards,
+//                                           GoofspielRoundOutcome roundResult)
+//    : Observation(),
+//      player0LastCard_(chosenCards[0]),
+//      player1LastCard_(chosenCards[1]),
+//      natureCard_(chosenCards[2]),
+//      roundResult_(roundResult) {
+//
+//    assert(initialNumOfCards < 20);
+//    int n = initialNumOfCards + 1;
+//
+//    id_ = (roundResult_ + 1) // round outcome is 0..2, i.e. 2 bits to shift
+//        | ((natureCard_ + player0LastCard_ * n + player1LastCard_ * n * n) << 2);
+//}
 
 GoofSpielObservation::GoofSpielObservation(int initialNumOfCards,
                                            const array<int, 3> &chosenCards,
@@ -49,8 +66,11 @@ GoofSpielObservation::GoofSpielObservation(int initialNumOfCards,
     int n = initialNumOfCards + 1;
 
     id_ = (roundResult_ + 1) // round outcome is 0..2, i.e. 2 bits to shift
-        | ((natureCard_ + player0LastCard_ * n + player1LastCard_ * n * n) << 2);
+        | (natureCard_ << 2)
+        | (player0LastCard_  << 12)
+        | (player1LastCard_ << 22);
 }
+
 string GoofSpielObservation::toString() const {
     return to_string(roundResult_);
 }
@@ -79,7 +99,7 @@ vector<int> GoofSpielSettings::getNatureCards() {
 }
 
 GoofSpielDomain::GoofSpielDomain(GoofSpielSettings settings) :
-    Domain(settings.numCards + 1, 2, true,
+    ExtendedDomain(settings.numCards + 1, 2, true,
            make_shared<GoofSpielAction>(),
            make_shared<GoofSpielObservation>()),
     numberOfCards_(settings.numCards),
@@ -193,7 +213,6 @@ unique_ptr<GoofSpielDomain> GoofSpielDomain::GS(unsigned int n) {
     });
 }
 
-
 unsigned long GoofSpielState::countAvailableActionsFor(Player player) const {
     return playerDecks_[player].size();
 }
@@ -209,7 +228,7 @@ vector<shared_ptr<Action>> GoofSpielState::getAvailableActionsFor(const Player p
 
 OutcomeDistribution
 GoofSpielState::performActions(const vector<shared_ptr<Action>> &actions) const {
-    const auto goofdomain = static_cast<const GoofSpielDomain *>(domain_);
+    const auto goofdomain = dynamic_cast<const GoofSpielDomain *>(domain_);
     const array<int, 3> chosenCards = {
         dynamic_cast<GoofSpielAction &>(*actions[0]).cardNumber_,
         dynamic_cast<GoofSpielAction &>(*actions[1]).cardNumber_,
@@ -316,6 +335,145 @@ bool GoofSpielState::operator==(const State &rhs) const {
 
 bool GoofSpielState::isTerminal() const {
     return playerDecks_[0].empty() && playerDecks_[1].empty();
+}
+
+vector<unsigned int> decodeGoofSpielObservation(ObservationId obs)
+{
+    const int size10  = 1023;
+    return {(obs & 3), (obs >> 2) & size10, (obs >> 12) & size10, (obs >> 22) & size10};
+}
+
+void removeRest(unordered_map<unsigned long, shared_ptr<RevealedInfo>> &revealedInfo)
+{
+    bool found = false;
+    for (int i = 0; i < revealedInfo.size(); i++) {
+        const auto constraint1 = dynamic_cast<GoofSpielRevealedInfo *>(revealedInfo[i].get());
+        if (constraint1->cardOptions.size() == 1)
+        {
+            for (int j = 0; j < revealedInfo.size(); j++) {
+                if (j == i) continue;
+                const auto constraint2 = dynamic_cast<GoofSpielRevealedInfo *>(revealedInfo[j].get());
+                const auto position = std::find(constraint2->cardOptions.begin(), constraint2->cardOptions.end(), constraint1->cardOptions[0]);
+                if (position != constraint2->cardOptions.end()) {
+                    constraint2->cardOptions.erase(position);
+                    found = true;
+                }
+            }
+        }
+    }
+    if (found)
+        removeRest(revealedInfo);
+}
+
+bool GoofSpielDomain::proceedAOIDs(const Player playingPlayer,
+                                   const vector<ActionObservationIds> &aoids,
+                                   long &startIndex,
+                                   unordered_map<unsigned long, shared_ptr<RevealedInfo>> &revealedInfo) const {
+    for (unsigned long i = startIndex + 1; i < aoids.size(); i++) {
+        if (i == 0 || aoids[i].observation >= OBSERVATION_PLAYER_MOVE) continue;
+        const auto currentObservation = decodeGoofSpielObservation(aoids[i].observation);
+        startIndex = i;
+        const int card = currentObservation[playingPlayer == 0 ? 2 : 3];
+        if (currentObservation[0] == PL0_DRAW+1)
+        {
+            auto cardsList = {card};
+            revealedInfo[playingPlayer == 0 ? i/2-1: i-1] = make_shared<GoofSpielRevealedInfo>(cardsList);
+            removeRest(revealedInfo);
+            continue;
+        }
+        auto currentConstraint = dynamic_cast<GoofSpielRevealedInfo *>(revealedInfo[playingPlayer == 0 ? i/2-1 : i-1].get());
+        if ((playingPlayer == 0 && currentObservation[0] == PL0_WIN+1) || (playingPlayer == 1 && currentObservation[0] == PL0_LOSE+1))
+        {
+            currentConstraint->cardOptions.erase(
+                std::remove_if(
+                    currentConstraint->cardOptions.begin(), currentConstraint->cardOptions.end(),
+                    [card](int k){
+                        return k >= card;
+                    }),
+                currentConstraint->cardOptions.end());
+            removeRest(revealedInfo);
+            continue;
+        }
+        currentConstraint->cardOptions.erase(
+            std::remove_if(
+                currentConstraint->cardOptions.begin(), currentConstraint->cardOptions.end(),
+                [card](int i){ return i <= card;}),
+            currentConstraint->cardOptions.end());
+        removeRest(revealedInfo);
+    }
+    return true;
+}
+
+void GoofSpielDomain::recursiveNodeGeneration(const Player playingPlayer, const vector<ActionObservationIds> & aoids,
+                                             const shared_ptr<EFGNode> & node, int depth, int maxDepth, const unordered_map<unsigned long, shared_ptr<RevealedInfo>> &revealedInfo,
+                                             vector<int> remaining, int & counter, const std::function<double(const shared_ptr<EFGNode> &)>& func) const {
+    if (depth == maxDepth) {
+        if (playingPlayer == 1) {
+            const auto extraTurn = dynamic_cast<GoofSpielRevealedInfo *>(revealedInfo.at(maxDepth).get());
+            for (auto card : extraTurn->cardOptions) {
+                auto newNode = node;
+                const auto position = std::find(remaining.begin(), remaining.end(), card);
+                if (position == remaining.end()) continue;
+                for (const auto& action : newNode->availableActions()) {
+                    if (dynamic_cast<GoofSpielAction *>(action.get())->cardNumber_ != card) continue;
+                    newNode = newNode->performAction(action);
+                    if (newNode->getAOHInfSet()->getAOids() == aoids) {
+                        counter--;
+                        func(newNode);
+                    }
+                    break;
+                }
+            }
+        }
+        else if (node->getAOHInfSet()->getAOids() == aoids) {
+            counter--;
+            func(node);
+        }
+        return;
+    }
+    auto currentNode = node;
+    if (playingPlayer == 0)
+        currentNode = currentNode->performAction(currentNode->getActionByID(aoids[2*depth+1].action));
+    const auto currentConstraints = dynamic_cast<GoofSpielRevealedInfo *>(revealedInfo.at(depth).get());
+    for (auto card : currentConstraints->cardOptions) {
+        auto newNode = currentNode;
+        const auto position = std::find(remaining.begin(), remaining.end(), card);
+        if (position == remaining.end())  continue;
+        for (const auto& action : newNode->availableActions()) {
+            if (dynamic_cast<GoofSpielAction *>(action.get())->cardNumber_ != card)
+                continue;
+            newNode = newNode->performAction(action);
+            remaining.erase(position);
+            break;
+        }
+        if (playingPlayer == 1) newNode = newNode->performAction(newNode->getActionByID(aoids[depth+1].action));
+        recursiveNodeGeneration(playingPlayer, aoids, newNode, depth+1, maxDepth, revealedInfo, remaining, counter, func);
+    }
+}
+
+void GoofSpielDomain::generateNodes(const Player playingPlayer,
+                                    const vector<ActionObservationIds> &aoids,
+                                    const unordered_map<unsigned long, shared_ptr<RevealedInfo>> &revealedInfo,
+                                    const int max,
+                                    const std::function<double(const shared_ptr<EFGNode> &)>& func) const {
+    const auto root = createRootEFGNode(*this);
+    vector<int> deck = vector<int>(numberOfCards_);
+    std::iota(deck.begin(), deck.end(), 1);
+    int maxDepth = 0;
+    for (unsigned long i = 0; i < aoids.size(); i++) {
+        if (i == 0 || aoids[i].observation >= OBSERVATION_PLAYER_MOVE) continue;
+        maxDepth++;
+    }
+    int a = max;
+    recursiveNodeGeneration(playingPlayer, aoids, root, 0, maxDepth, revealedInfo, deck, a, func);
+}
+
+void GoofSpielDomain::prepareRevealedMap(unordered_map<unsigned long, shared_ptr<RevealedInfo>> &revealedInfo) const {
+    auto deck = vector<int>(numberOfCards_);
+    std::iota(deck.begin(), deck.end(), 1);
+    for (int i = 0; i < numberOfCards_; i++) {
+        revealedInfo[i] = make_shared<GoofSpielRevealedInfo>(deck);
+    }
 }
 
 }  // namespace GTLib2

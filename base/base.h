@@ -470,6 +470,16 @@ class Domain {
     const shared_ptr<Observation> noObservation_;
 };
 
+struct RevealedInfo
+{
+    RevealedInfo() {}
+    virtual ~RevealedInfo() = default;
+ public:
+//    unsigned long AOIDID;
+};
+
+class EFGNode;
+
 class ExtendedDomain : public Domain {
  public:
     ExtendedDomain(unsigned int maxStateDepth, unsigned int numberOfPlayers, bool isZeroSum_,
@@ -480,16 +490,16 @@ class ExtendedDomain : public Domain {
 
     string getInfo() const override { return "";}
 
-    bool isExtended() {return true;}
+    virtual void prepareRevealedMap(unordered_map<unsigned long, shared_ptr<RevealedInfo>> &revealedInfo) const = 0;
+
+    virtual bool proceedAOIDs(const Player playingPlayer, const vector<ActionObservationIds> & aoids, long & startIndex,
+                      unordered_map<unsigned long, shared_ptr<RevealedInfo>> & revealedInfo) const = 0;
+
+    virtual void generateNodes(const Player playingPlayer, const vector<ActionObservationIds> & aoids,
+                       const unordered_map<unsigned long, shared_ptr<RevealedInfo>> & revealedInfo,
+                       const int max, const std::function<double(const shared_ptr<EFGNode> &)>& func) const = 0;
 };
 
-struct RevealedInfo
-{
-    RevealedInfo() {}
-    virtual ~RevealedInfo() = default;
- public:
-//    unsigned long AOIDID;
-};
 
 }  // namespace GTLib2
 

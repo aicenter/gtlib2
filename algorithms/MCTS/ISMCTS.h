@@ -49,7 +49,7 @@ struct ISMCTSSettings {
 
     int randomSeed = 0;
 
-    int generateIters = 10000;//for DD_ISMCTS
+    int generateIters = 1000;//for DD_ISMCTS
     bool iterateRoot = false;
 };
 
