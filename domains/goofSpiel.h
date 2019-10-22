@@ -101,7 +101,7 @@ class GoofSpielDomain: public ExtendedDomain {
                       unordered_map<unsigned long, shared_ptr<RevealedInfo>> & revealedInfo) const override;
     void generateNodes(const Player playingPlayer, const vector<ActionObservationIds> & aoids,
                        const unordered_map<unsigned long, shared_ptr<RevealedInfo>> & revealedInfo,
-                       const int max,const std::function<double(const shared_ptr<EFGNode> &)>& func) const override;
+                       const int max, const std::function<double(const shared_ptr<EFGNode> &)>& func) const override;
     virtual void prepareRevealedMap(unordered_map<unsigned long, shared_ptr<RevealedInfo>> &revealedInfo) const override;
 
  private:

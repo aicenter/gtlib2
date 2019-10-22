@@ -288,6 +288,7 @@ set(SOURCE_FILES
         )
 
 set(TEST_FILES
+        tests/DDISMCTSTest.cpp
         tests/ISMCTSTest.cpp
         tests/strategoTest.cpp
         tests/domainsTest.h tests/domainsTest.cpp

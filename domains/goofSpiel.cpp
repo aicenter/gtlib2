@@ -61,10 +61,7 @@ GoofSpielObservation::GoofSpielObservation(int initialNumOfCards,
       player1LastCard_(chosenCards[1]),
       natureCard_(chosenCards[2]),
       roundResult_(roundResult) {
-
     assert(initialNumOfCards < 20);
-    int n = initialNumOfCards + 1;
-
     id_ = (roundResult_ + 1) // round outcome is 0..2, i.e. 2 bits to shift
         | (natureCard_ << 2)
         | (player0LastCard_  << 12)
@@ -407,6 +404,7 @@ bool GoofSpielDomain::proceedAOIDs(const Player playingPlayer,
 void GoofSpielDomain::recursiveNodeGeneration(const Player playingPlayer, const vector<ActionObservationIds> & aoids,
                                              const shared_ptr<EFGNode> & node, int depth, int maxDepth, const unordered_map<unsigned long, shared_ptr<RevealedInfo>> &revealedInfo,
                                              vector<int> remaining, int & counter, const std::function<double(const shared_ptr<EFGNode> &)>& func) const {
+    if (counter <= 0) return;
     if (depth == maxDepth) {
         if (playingPlayer == 1) {
             const auto extraTurn = dynamic_cast<GoofSpielRevealedInfo *>(revealedInfo.at(maxDepth).get());
@@ -437,17 +435,18 @@ void GoofSpielDomain::recursiveNodeGeneration(const Player playingPlayer, const 
     const auto currentConstraints = dynamic_cast<GoofSpielRevealedInfo *>(revealedInfo.at(depth).get());
     for (auto card : currentConstraints->cardOptions) {
         auto newNode = currentNode;
-        const auto position = std::find(remaining.begin(), remaining.end(), card);
-        if (position == remaining.end())  continue;
+        auto newremaining = remaining;
+        const auto position = std::find(newremaining.begin(), newremaining.end(), card);
+        if (position == newremaining.end())  continue;
         for (const auto& action : newNode->availableActions()) {
             if (dynamic_cast<GoofSpielAction *>(action.get())->cardNumber_ != card)
                 continue;
             newNode = newNode->performAction(action);
-            remaining.erase(position);
+            newremaining.erase(position);
             break;
         }
         if (playingPlayer == 1) newNode = newNode->performAction(newNode->getActionByID(aoids[depth+1].action));
-        recursiveNodeGeneration(playingPlayer, aoids, newNode, depth+1, maxDepth, revealedInfo, remaining, counter, func);
+        recursiveNodeGeneration(playingPlayer, aoids, newNode, depth+1, maxDepth, revealedInfo, newremaining, counter, func);
     }
 }
 
