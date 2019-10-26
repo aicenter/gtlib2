@@ -24,7 +24,6 @@
 #define GTLIB2_STRATEGO_H
 
 #include "base/base.h"
-#include "algorithms/MCTS/ISMCTS.h"
 
 namespace GTLib2::domains {
 
@@ -81,15 +80,15 @@ struct StrategoSettings {
  */
 struct StrategoRevealedInfo : public RevealedInfo
 {
-    StrategoRevealedInfo(bool moved) : moved(moved), revealedRank(EMPTY) {};
-    StrategoRevealedInfo(Rank rank) : revealedRank(rank), moved(false) {};
+    explicit StrategoRevealedInfo(bool moved) : moved(moved), revealedRank(EMPTY) {};
+    explicit StrategoRevealedInfo(Rank rank) : revealedRank(rank), moved(false) {};
  public:
     Rank revealedRank;
     bool moved;
 };
 
 
-class StrategoDomain: public ExtendedDomain {
+class StrategoDomain: public Domain , public RevealingDomain{
  public:
     explicit StrategoDomain(StrategoSettings settings);
     string getInfo() const override;
@@ -101,25 +100,23 @@ class StrategoDomain: public ExtendedDomain {
     const int boardWidth_;
     const vector<Rank> startFigures_;
     const vector<CellState> emptyBoard_;
-    bool proceedAOIDs(const Player playingPlayer, const vector<ActionObservationIds> & aoids, long & startIndex,
-        unordered_map<unsigned long, shared_ptr<RevealedInfo>> & revealedFigures) const override;
-    void generateNodes(const Player playingPlayer, const vector<ActionObservationIds> & aoids,
-        const unordered_map<unsigned long, shared_ptr<RevealedInfo>> & revealedFigures,
-        const int max,const std::function<double(const shared_ptr<EFGNode> &)>& func) const override;
-    virtual void prepareRevealedMap(unordered_map<unsigned long, shared_ptr<RevealedInfo>> &revealedInfo) const override {};
+    bool proceedAOIDs(const shared_ptr<AOH> & currentInfoset, long & startIndex,
+                      ConstraintsMap & revealedFigures) const override;
+    void generateNodes(const shared_ptr<AOH> & currentInfoset,
+        const ConstraintsMap & revealedFigures,
+        int max,const std::function<double(const shared_ptr<EFGNode> &)>& newNodeCallback) const override;
+    void prepareRevealedMap(ConstraintsMap &revealedInfo) const override {};
  private:
-    void recursiveNodeGeneration(const Player playingPlayer, const vector<ActionObservationIds> & aoids,
+    void recursiveNodeGeneration(const shared_ptr<AOH> & currentInfoset,
                                                 const shared_ptr<EFGNode> & node, int depth,
                                                  const vector<shared_ptr<StrategoRevealedInfo>> & mask,
                                                  const vector<Rank>& remaining, int & counter,
-                                                 const std::function<double(const shared_ptr<EFGNode> &)>& func) const;
+                                                 const std::function<double(const shared_ptr<EFGNode> &)>& newNodeCallback) const;
     void simulateMoves(const vector<ActionObservationIds> &aoids,
-                       const shared_ptr<EFGNode> node, const std::function<double(const shared_ptr<EFGNode> &)>& func) const;
+                       shared_ptr<EFGNode> node, const std::function<double(const shared_ptr<EFGNode> &)>& newNodeCallback) const;
 };
 
 CellState createCell(Rank figure, Player player);
-unsigned long countDistinctPermutations(vector<Rank> v);
-vector<Rank> permutations(vector<Rank> comb, unsigned long action);
 bool isFigureSlain(CellState attacker, CellState defender);
 /**
  * Setup actions are permutations of startFigures_ of domain.
@@ -173,7 +170,7 @@ class StrategoSetupObservation: public Observation {
 
 class StrategoState: public State {
  public:
-    inline StrategoState(const ExtendedDomain *domain, vector<CellState> boardState,
+    inline StrategoState(const Domain *domain, vector<CellState> boardState,
                          bool setupState, bool finished, int player, int noAttackCounter) :
         State(domain, hashCombine(98612345434231, boardState, setupState, finished, player)),
         boardState_(move(boardState)),

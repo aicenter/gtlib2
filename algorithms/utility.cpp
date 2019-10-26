@@ -37,21 +37,18 @@ vector<double> computeUtilitiesTwoPlayerGame(const Domain &domain,
             case ChanceNode: {
                 vector<double> utils = {0.0, 0.0};
                 const auto chanceProbs = node->chanceProbs();
-                for (unsigned long i = 0; i < node->countAvailableActions(); i++)
-                {
-                    const auto newNode = node->performAction(node->getActionByID(i));
+                for (const auto &action : node->availableActions()) {
+                    const auto newNode = node->performAction(action);
                     const auto childUtils = calculate(newNode);
-                    utils[0] += chanceProbs[i] * childUtils[0];
-                    utils[1] += chanceProbs[i] * childUtils[1];
+                    utils[0] += chanceProbs[action->getId()] * childUtils[0];
+                    utils[1] += chanceProbs[action->getId()] * childUtils[1];
                 }
                 return utils;
             }
 
             case PlayerNode: {
                 auto utils = vector<double>{0.0, 0.0};
-                for (unsigned long i = 0; i < node->countAvailableActions(); i++)
-                {
-                    const auto action = node->getActionByID(i);
+                for (const auto &action : node->availableActions()) {
                     const auto infoset = node->getAOHInfSet();
                     auto dist = stratProfile[node->getPlayer()].at(infoset);
                     double prob = getActionProb(dist, action);

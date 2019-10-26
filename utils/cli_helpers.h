@@ -24,7 +24,6 @@
 
 #include <iomanip>
 #include <fstream>
-#include <algorithms/MCTS/DD_ISMCTS.h>
 
 #include "external/cereal/archives/json.hpp"
 #include "utils/args.hpp"
@@ -36,6 +35,7 @@
 #include "algorithms/oos.h"
 #include "algorithms/mccr.h"
 #include "algorithms/MCTS/CPW_ISMCTS.h"
+#include "algorithms/MCTS/DD_ISMCTS.h"
 
 #include "domains/goofSpiel.h"
 #include "domains/oshiZumo.h"
@@ -63,11 +63,11 @@ unique_ptr<Domain> constructDomain(const string &description) {
         const auto numCards = static_cast<uint32>(stoi(p.at(0)));
         if (p.size() == 1) {
             return make_unique<GoofSpielDomain>(GoofSpielSettings{
-                variant: v,
-                numCards: numCards,
-                fixChanceCards: false, // chance cards are not fixed !! (in constrast to IIGS_#)
-                chanceCards: {},
-                binaryTerminalRewards: false
+                .variant =  v,
+                .numCards =  numCards,
+                .fixChanceCards =  false, // chance cards are not fixed !! (in constrast to IIGS_#)
+                .chanceCards =  {},
+                .binaryTerminalRewards =  false
             });
         }
 
@@ -78,11 +78,11 @@ unique_ptr<Domain> constructDomain(const string &description) {
         });
 
         return make_unique<GoofSpielDomain>(GoofSpielSettings{
-            variant: v,
-            numCards: numCards,
-            fixChanceCards: true,
-            chanceCards: cards,
-            binaryTerminalRewards: false
+            .variant =  v,
+            .numCards =  numCards,
+            .fixChanceCards =  true,
+            .chanceCards =  cards,
+            .binaryTerminalRewards =  false
         });
     };
 
@@ -92,10 +92,10 @@ unique_ptr<Domain> constructDomain(const string &description) {
         const auto minBid = p.size() >= 3 ? static_cast<uint32>(stoi(p.at(2))) : 1;
 
         return make_unique<OshiZumoDomain>(OshiZumoSettings{
-            variant: v,
-            startingCoins: startingCoins,
-            startingLocation: startingLocation,
-            minBid: minBid,
+            .variant =  v,
+            .startingCoins =  startingCoins,
+            .startingLocation =  startingLocation,
+            .minBid =  minBid,
         });
     };
 
@@ -259,7 +259,7 @@ std::unique_ptr<GTLib2::AlgorithmWithData> constructAlgWithData(const GTLib2::Do
     // @formatter:on
 
     if(algorithmsTable.find(algName) == algorithmsTable.end()) {
-        LOG_ERROR("Algorithm not found: " << algName);
+        LOG_ERROR("Algorithm not found: " << algName)
         LOG_ERROR("List of available algorithms:")
         for(const auto &[alg, cb] : algorithmsTable) {
             cerr << alg << endl;

@@ -35,12 +35,10 @@ PlayControl DD_ISMCTS::runPlayIteration(const optional<shared_ptr<AOH>> &current
     }
 
     if (!currentISChecked_) {
-        bool newFigureRevealed = dynamic_cast<const ExtendedDomain&>(domain_).proceedAOIDs(playingPlayer_,
-            currentInfoset_->getAOids(), lastRevealAoid_, revealed_);
+        bool newFigureRevealed = dynamic_cast<const RevealingDomain&>(domain_).proceedAOIDs(currentInfoset_, lastRevealAoid_, revealed_);
         if (newFigureRevealed)
-            dynamic_cast<const ExtendedDomain&>(domain_).generateNodes(this->playingPlayer_,
-                currentInfoset_->getAOids(), revealed_, generateIters_,
-                [this](const shared_ptr<EFGNode> & node) -> double{ return this->iteration(node);});
+            dynamic_cast<const RevealingDomain&>(domain_).generateNodes(currentInfoset_, revealed_, generateIters_,
+                                                                        [this](const shared_ptr<EFGNode> & node) -> double{ return this->iteration(node);});
 
         currentISChecked_ = true;
     }

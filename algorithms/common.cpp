@@ -117,9 +117,8 @@ vector<shared_ptr<EFGNode>> getAllNodesInInfoset(const shared_ptr<AOH> &infoset,
                 }
 
                 if (isAOCompatible(aoTarget, aoNode)) {
-                    for (unsigned long i = 0; i < node->countAvailableActions(); i++)
-                    {
-                        traverse(node->performAction(node->getActionByID(i)));
+                    for (const auto &action : node->availableActions()) {
+                        traverse(node->performAction(action));
                     }
                 }
                 return;

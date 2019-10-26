@@ -470,34 +470,37 @@ class Domain {
     const shared_ptr<Observation> noObservation_;
 };
 
+// Struct made to hold any type of constraints, which should be described in the domain
 struct RevealedInfo
 {
-    RevealedInfo() {}
+    RevealedInfo() = default;
     virtual ~RevealedInfo() = default;
- public:
-//    unsigned long AOIDID;
 };
+
+// Links turn number and constraints that can be applied at this turn
+typedef unordered_map<unsigned long, shared_ptr<RevealedInfo>> ConstraintsMap;
 
 class EFGNode;
 
-class ExtendedDomain : public Domain {
+class RevealingDomain{
  public:
-    ExtendedDomain(unsigned int maxStateDepth, unsigned int numberOfPlayers, bool isZeroSum_,
-           shared_ptr<Action> noAction, shared_ptr<Observation> noObservation) :
-           Domain(maxStateDepth, numberOfPlayers, isZeroSum_, noAction, noObservation) {};
+//    RevealingDomain(unsigned int maxStateDepth, unsigned int numberOfPlayers, bool isZeroSum_,
+//                    shared_ptr<Action> noAction, shared_ptr<Observation> noObservation) :
+//           Domain(maxStateDepth, numberOfPlayers, isZeroSum_, noAction, noObservation) {};
 
-    //virtual ~ExtendedDomain() = default;
+    // Create initial values in map (for example, vector of all cards at each turn for GS)
+    // Called at initialisation of DD_ISMCTS
+    virtual void prepareRevealedMap(ConstraintsMap &revealedInfo) const = 0;
 
-    string getInfo() const override { return "";}
+    // Cycle through AOIDs to find any new constraints
+    // Called at change of the current infoset
+    virtual bool proceedAOIDs(const shared_ptr<AOH> & currentInfoset, long & startIndex,
+                              ConstraintsMap & revealedInfo) const = 0;
 
-    virtual void prepareRevealedMap(unordered_map<unsigned long, shared_ptr<RevealedInfo>> &revealedInfo) const = 0;
-
-    virtual bool proceedAOIDs(const Player playingPlayer, const vector<ActionObservationIds> & aoids, long & startIndex,
-                      unordered_map<unsigned long, shared_ptr<RevealedInfo>> & revealedInfo) const = 0;
-
-    virtual void generateNodes(const Player playingPlayer, const vector<ActionObservationIds> & aoids,
-                       const unordered_map<unsigned long, shared_ptr<RevealedInfo>> & revealedInfo,
-                       const int max, const std::function<double(const shared_ptr<EFGNode> &)>& func) const = 0;
+    // Generate new nodes by applying constraints
+    virtual void generateNodes(const shared_ptr<AOH> & currentInfoset,
+                       const ConstraintsMap & revealedInfo,
+                       int max, const std::function<double(const shared_ptr<EFGNode> &)>& newNodeCallback) const = 0;
 };
 
 

@@ -49,6 +49,7 @@ struct ISMCTSSettings {
 
     int randomSeed = 0;
 
+    //max number of new histories generated
     int generateIters = 1000;//for DD_ISMCTS
     bool iterateRoot = false;
 };

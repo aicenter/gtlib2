@@ -27,7 +27,9 @@
 #include "gtest/gtest.h"
 
 namespace GTLib2::algorithms {
-TEST(DDISMCTS, HistoriesGenerationTestpl1) {
+
+//Test that GS domain returns correct number of histories for player 1
+TEST(DDISMCTS, GSHistoriesGenerationTestpl1) {
     GTLib2::domains::GoofSpielSettings settings
         ({.variant =   GTLib2::domains::IncompleteObservations, .numCards = 6, .fixChanceCards = true});
     domains::GoofSpielDomain domain(settings);
@@ -41,14 +43,15 @@ TEST(DDISMCTS, HistoriesGenerationTestpl1) {
     currnode = currnode->performAction(currnode->getActionByID(2));//3 (2-5)
     currnode = currnode->performAction(currnode->getActionByID(0));//2
     long startindex = 0;
-    domain.proceedAOIDs(1, currnode->getAOHInfSet()->getAOids(), startindex, revealed_);
+    domain.proceedAOIDs(make_shared<AOH>(1, currnode->getAOHInfSet()->getAOids()), startindex, revealed_);
     int count = 0;
-    domain.generateNodes(1, currnode->getAOHInfSet()->getAOids(), revealed_, 1000,
+    domain.generateNodes(make_shared<AOH>(1, currnode->getAOHInfSet()->getAOids()), revealed_, 1000,
                          [&r = count](const shared_ptr<EFGNode> & node) -> double{ return r++;});
     EXPECT_EQ(count, 2*2*4);
 }
 
-TEST(DDISMCTS, HistoriesGenerationTestpl0) {
+//Test that GS domain returns correct number of histories for player 0
+TEST(DDISMCTS, GSHistoriesGenerationTestpl0) {
     GTLib2::domains::GoofSpielSettings settings
         ({.variant =   GTLib2::domains::IncompleteObservations, .numCards = 6, .fixChanceCards = true});
     domains::GoofSpielDomain domain(settings);
@@ -61,16 +64,15 @@ TEST(DDISMCTS, HistoriesGenerationTestpl0) {
     currnode = currnode->performAction(currnode->getActionByID(2));//3 (2-5)
     currnode = currnode->performAction(currnode->getActionByID(0));//1 (1-2)
     long startindex = 0;
-    domain.proceedAOIDs(0, currnode->getAOHInfSet()->getAOids(), startindex, revealed_);
+    domain.proceedAOIDs(make_shared<AOH>(0, currnode->getAOHInfSet()->getAOids()), startindex, revealed_);
     int count = 0;
-    domain.generateNodes(0, currnode->getAOHInfSet()->getAOids(), revealed_, 1000,
+    domain.generateNodes(make_shared<AOH>(0, currnode->getAOHInfSet()->getAOids()), revealed_, 1000,
         [&r = count](const shared_ptr<EFGNode> & node) -> double{ return r++;});
     EXPECT_EQ(count, 2*2);
 }
 
 TEST(DDISMCTS, GS19Test) {
     auto rewards = vector<double>(20);
-
     for (int seed = 0; seed < 20; ++seed) {
         GTLib2::domains::GoofSpielSettings settings
             ({.variant =   GTLib2::domains::IncompleteObservations, .numCards =  19, .fixChanceCards = true});

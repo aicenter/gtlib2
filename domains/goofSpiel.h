@@ -83,7 +83,7 @@ struct GoofSpielRevealedInfo : RevealedInfo
  * who won or lost a bid, but not the bid cards played. This way all actions are private
  * and information sets have various sizes.
  */
-class GoofSpielDomain: public ExtendedDomain {
+class GoofSpielDomain: public Domain, public RevealingDomain {
  public:
     explicit GoofSpielDomain(GoofSpielSettings settings);
     string getInfo() const override;
@@ -97,19 +97,19 @@ class GoofSpielDomain: public ExtendedDomain {
     // Factories for common instances of IIGS
     static unique_ptr<GoofSpielDomain> IIGS(unsigned int n);
     static unique_ptr<GoofSpielDomain> GS(unsigned int n);
-    bool proceedAOIDs(const Player playingPlayer, const vector<ActionObservationIds> & aoids, long & startIndex,
-                      unordered_map<unsigned long, shared_ptr<RevealedInfo>> & revealedInfo) const override;
-    void generateNodes(const Player playingPlayer, const vector<ActionObservationIds> & aoids,
-                       const unordered_map<unsigned long, shared_ptr<RevealedInfo>> & revealedInfo,
-                       const int max, const std::function<double(const shared_ptr<EFGNode> &)>& func) const override;
-    virtual void prepareRevealedMap(unordered_map<unsigned long, shared_ptr<RevealedInfo>> &revealedInfo) const override;
+    bool proceedAOIDs(const shared_ptr<AOH> & currentInfoset, long & startIndex,
+                      ConstraintsMap & revealedInfo) const override;
+    void generateNodes(const shared_ptr<AOH> & currentInfoset,
+                       const ConstraintsMap & revealedInfo,
+                       int max, const std::function<double(const shared_ptr<EFGNode> &)> & newNodeCallback) const override;
+    void prepareRevealedMap(ConstraintsMap & revealedInfo) const override;
 
  private:
     void initRandomCards(const vector<int> &natureCards);
     void initFixedCards(const vector<int> &natureCards);
-    void recursiveNodeGeneration(const Player playingPlayer, const vector<ActionObservationIds> & aoids,
-                                                  const shared_ptr<EFGNode> & node, int depth, int maxDepth, const unordered_map<unsigned long, shared_ptr<RevealedInfo>> &revealedInfo,
-                                                  vector<int> remaining, int & counter, const std::function<double(const shared_ptr<EFGNode> &)>& func) const;
+    void recursiveNodeGeneration(const shared_ptr<AOH> & currentInfoset,
+                                      const shared_ptr<EFGNode> & node, int depth, int maxDepth, const ConstraintsMap & revealedInfo,
+                                      vector<int> remaining, int & counter, const std::function<double(const shared_ptr<EFGNode> &)> & newNodeCallback) const;
 };
 
 constexpr int NO_NATURE_CARD = 0;

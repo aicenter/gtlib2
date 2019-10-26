@@ -178,23 +178,10 @@ unsigned long fact(unsigned long n) {
     return n * fact(n - 1);
 }
 
-//unsigned long countDistinctPermutations(vector<Rank> v)
-//{
-//    unsigned long length = v.size();
-//    int freq['Z' - '0'];
-//    memset(freq, 0, sizeof(freq));
-//    for (int i = 0; i < length; i++)
-//        freq[v[i] - '0']++;
-//    unsigned long res = 1;
-//    for (int i : freq)
-//        res = res * fact(i);
-//    return fact(length) / res;
-//}
-
 StrategoDomain::StrategoDomain(StrategoSettings settings) :
-    ExtendedDomain(maxMovesWithoutAttack(settings.boardHeight, settings.boardWidth)
+    Domain(maxMovesWithoutAttack(settings.boardHeight, settings.boardWidth)
                * settings.figures.size() * 2, 2, true,
-           make_shared<Action>(), make_shared<Observation>()),
+                    make_shared<Action>(), make_shared<Observation>()),
     emptyBoard_(settings.generateBoard()),
     startFigures_(sortVector(settings.figures)),
     boardWidth_(settings.boardWidth),
@@ -269,25 +256,12 @@ unsigned long StrategoState::countAvailableActionsFor(Player player) const {
     }
     return count;
 }
-//
-//vector<Rank> permutations(vector<Rank> comb, unsigned long action)
-//{
-//    unsigned long id = 0;
-//    do {
-//        if (id == action) return comb;
-//        id++;
-//    } while (next_permutation(comb.begin(), comb.end()));
-//    unreachable("action ID out of bounds");
-//}
 
 shared_ptr<Action> StrategoState::getActionByID(const Player player, ActionId action) const {
     const auto stratDomain = dynamic_cast<const StrategoDomain *>(domain_);
     if (isSetupState_) {
         auto t = removeSimilar(player == 0 ? pl0FiguresToPlace_ : pl1FiguresToPlace_);
         return make_shared<StrategoSetupAction>(action, t[action], boardIDToPlace_);
-//        vector<Rank> comb = stratDomain->startFigures_;
-//        auto t = permutations(comb, action);
-//        return make_shared<StrategoSetupAction>(action, t);
     }
     const int height = stratDomain->boardHeight_;
     const int width = stratDomain->boardWidth_;
@@ -338,11 +312,6 @@ vector<shared_ptr<Action>> StrategoState::getAvailableActionsFor(const Player pl
             actions.push_back(make_shared<StrategoSetupAction>(id++, f, boardIDToPlace_));
         }
         return actions;
-//        vector<Rank> comb = dynamic_cast<const StrategoDomain *>(getDomain())->startFigures_;
-//        do {
-//            actions.push_back(make_shared<StrategoSetupAction>(id++, comb));
-//        } while (next_permutation(comb.begin(), comb.end()));
-//        return actions;
     }
     //todo: add scouts (move to more than one field)
     for (int i = 0; i < boardState_.size(); i++) {
@@ -404,17 +373,8 @@ StrategoState::performSetupAction(const vector<shared_ptr<Action>> &actions) con
     vector<CellState> board = boardState_;
     board[currentPlayer_ == 0 ? action.boardID : (board.size() - 1 - action.boardID)] = currentPlayer_ == 0 ?
                                                 action.figureRank : createCell(action.figureRank, Player(1));
-//    for (int i = 0; i < actionpl0.figuresSetup.size(); i++) {
-//        board[i] = createCell(actionpl0.figuresSetup[i], 0);
-//        board[board.size() - 1 - i] = createCell(actionpl1.figuresSetup[i], Player(1));
-//    }
     shared_ptr<StrategoState> newState;
     if (pl1FiguresToPlace_.size() == 1 && currentPlayer_ == 1) {
-//        if (currentPlayer_ == 0) {
-//            newState = make_shared<StrategoState>(stratDomain, board, true, false, 1, 0);
-//            //newState->figuresToPlace_ = stratDomain->startFigures_;
-//        } else
-//        {
             newState = make_shared<StrategoState>(stratDomain, board, false, false, 0, 0);
     }
     else {
@@ -580,7 +540,7 @@ unsigned int backtrackPosition(const vector<ActionObservationIds> & aoids, unsig
     while(i > 0) {
         i--;
         const auto currObs = domains::decodeStrategoObservation(aoids[i].observation);
-        if (currObs.size() == 3) break;
+        if (currObs.size() != 4) break;
         if (currObs[1] == startpos) {
             if (currObs[3] != domains::EMPTY && !domains::isFigureSlain(currObs[2], currObs[3]))
                 continue;
@@ -592,19 +552,19 @@ unsigned int backtrackPosition(const vector<ActionObservationIds> & aoids, unsig
 
 
 
-bool StrategoDomain::proceedAOIDs(const Player playingPlayer, const vector<ActionObservationIds> & aoids,
-    long & startIndex, unordered_map<unsigned long, shared_ptr<RevealedInfo>> & revealedFigures) const
+bool StrategoDomain::proceedAOIDs(const shared_ptr<AOH> & currentInfoset,
+    long & startIndex, ConstraintsMap & revealedFigures) const
 {
     bool newFigureRevealed = false;
-    for (unsigned long i = startIndex + 1; i < aoids.size(); i++) {
-        if (aoids[i].observation == getNoObservation()->getId()) break;
-        const auto res = decodeStrategoObservation(aoids[i].observation);
+    for (unsigned long i = startIndex + 1; i < currentInfoset->getAOids().size(); i++) {
+        if (currentInfoset->getAOids()[i].observation == getNoObservation()->getId()) break;
+        const auto res = decodeStrategoObservation(currentInfoset->getAOids()[i].observation);
         if (res.size() != 4) continue;
         if (res[3] != EMPTY) {
             unsigned long pos =
-                backtrackPosition(aoids, (aoids[i].action == getNoAction()->getId()) ? res[0] : res[1], i);
-            if (playingPlayer == 0) pos = boardHeight_ * boardWidth_ - pos - 1;
-            const Rank val = getRank((aoids[i].action == getNoAction()->getId()) ? res[2] : res[3]);
+                backtrackPosition(currentInfoset->getAOids(), (currentInfoset->getAOids()[i].action == getNoAction()->getId()) ? res[0] : res[1], i);
+            if (currentInfoset->getPlayer() == 0) pos = boardHeight_ * boardWidth_ - pos - 1;
+            const Rank val = getRank((currentInfoset->getAOids()[i].action == getNoAction()->getId()) ? res[2] : res[3]);
             if (revealedFigures.find(pos) == revealedFigures.end()) {
                 revealedFigures[pos] = make_shared<StrategoRevealedInfo>(val);
             } else {
@@ -618,7 +578,7 @@ bool StrategoDomain::proceedAOIDs(const Player playingPlayer, const vector<Actio
             newFigureRevealed = true;
         }
         else {
-            const unsigned long pos = playingPlayer == 0 ? boardHeight_ * boardWidth_ - res[0] - 1 : res[0];
+            const unsigned long pos = currentInfoset->getPlayer() == 0 ? boardHeight_ * boardWidth_ - res[0] - 1 : res[0];
             if (pos < startFigures_.size() && revealedFigures.find(pos) == revealedFigures.end())
                 revealedFigures[pos] = make_shared<StrategoRevealedInfo>(true);
         }
@@ -627,11 +587,11 @@ bool StrategoDomain::proceedAOIDs(const Player playingPlayer, const vector<Actio
 }
 
 void StrategoDomain::simulateMoves(const vector<ActionObservationIds> & aoids,
-    const shared_ptr<EFGNode> node, const std::function<double(const shared_ptr<EFGNode> &)>& func) const{
+    const shared_ptr<EFGNode> node, const std::function<double(const shared_ptr<EFGNode> &)> & newNodeCallback) const{
     auto currentNode = node;
     for (int i = startFigures_.size()*2+1; i < aoids.size(); i++) {
         if (currentNode->getAOHInfSet()->getAOids() == aoids) {
-            func(currentNode);
+            newNodeCallback(currentNode);
             break;
         }
         if (aoids[i].action == getNoAction()->getId()) {
@@ -653,17 +613,19 @@ void StrategoDomain::simulateMoves(const vector<ActionObservationIds> & aoids,
     }
 }
 
-void StrategoDomain::recursiveNodeGeneration(const Player playingPlayer, const vector<ActionObservationIds> & aoids,
-    const shared_ptr<EFGNode> & node, int depth, const vector<shared_ptr<StrategoRevealedInfo>> & mask,
-    const vector<Rank>& remaining, int & counter, const std::function<double(const shared_ptr<EFGNode> &)>& func) const {
+void StrategoDomain::recursiveNodeGeneration(const shared_ptr<AOH> & currentInfoset,
+                                             const shared_ptr<EFGNode> & node, int depth,
+                                             const vector<shared_ptr<StrategoRevealedInfo>> & mask,
+                                             const vector<Rank>& remaining, int & counter,
+                                             const std::function<double(const shared_ptr<EFGNode> &)>& newNodeCallback) const {
     shared_ptr<EFGNode> currentNode = node;
     if (counter <= 0) return;
     if (depth == mask.size()) {
         counter--;
-        simulateMoves(aoids, currentNode, func);
+        simulateMoves(currentInfoset->getAOids(), currentNode, newNodeCallback);
         return;
     }
-    if (playingPlayer == 0) currentNode = currentNode->performAction(currentNode->getActionByID(aoids[1 + 2 * depth].action));
+    if (currentInfoset->getPlayer() == 0) currentNode = currentNode->performAction(currentNode->getActionByID(currentInfoset->getAOids()[1 + 2 * depth].action));
     if (mask[depth]->revealedRank != EMPTY) {
         for (const auto& a : currentNode->availableActions()) {
             const auto action = dynamic_pointer_cast<domains::StrategoSetupAction>(a);
@@ -672,9 +634,9 @@ void StrategoDomain::recursiveNodeGeneration(const Player playingPlayer, const v
                 break;
             }
         }
-        if (playingPlayer == 1)
-            currentNode = currentNode->performAction(currentNode->getActionByID(aoids[1 + 2 * depth + 1].action));
-        recursiveNodeGeneration(playingPlayer, aoids, currentNode, depth + 1, mask, remaining, counter, func);
+        if (currentInfoset->getPlayer() == 1)
+            currentNode = currentNode->performAction(currentNode->getActionByID(currentInfoset->getAOids()[1 + 2 * depth + 1].action));
+        recursiveNodeGeneration(currentInfoset, currentNode, depth + 1, mask, remaining, counter, newNodeCallback);
         return;
     }
     for (auto rank : mask[depth]->moved ? getMovableRanks(remaining) : remaining) {
@@ -692,14 +654,13 @@ void StrategoDomain::recursiveNodeGeneration(const Player playingPlayer, const v
         }
         if (!found)
             continue;
-        if (playingPlayer == 1) newNode = newNode->performAction(newNode->getActionByID(aoids[1 + 2*depth + 1].action));
-        recursiveNodeGeneration(playingPlayer, aoids, newNode, depth + 1, mask, newRemaining, counter, func);
+        if (currentInfoset->getPlayer() == 1) newNode = newNode->performAction(newNode->getActionByID(currentInfoset->getAOids()[1 + 2*depth + 1].action));
+        recursiveNodeGeneration(currentInfoset, newNode, depth + 1, mask, newRemaining, counter, newNodeCallback);
     }
 }
 
-void StrategoDomain::generateNodes(const Player playingPlayer, const vector<ActionObservationIds> & aoids,
-                                        const unordered_map<unsigned long, shared_ptr<RevealedInfo>> & revealedFigures,
-                                        const int max, const std::function<double(const shared_ptr<EFGNode> &)>& func) const
+void StrategoDomain::generateNodes(const shared_ptr<AOH> & currentInfoset, const ConstraintsMap & revealedFigures,
+                                        const int max, const std::function<double(const shared_ptr<EFGNode> &)> & newNodeCallback) const
 {
     vector<shared_ptr<StrategoRevealedInfo>> mask = vector<shared_ptr<StrategoRevealedInfo>>(startFigures_.size());
     for (int i = 0 ; i < mask.size(); i++)
@@ -719,6 +680,6 @@ void StrategoDomain::generateNodes(const Player playingPlayer, const vector<Acti
     }
     const auto root = createRootEFGNode(*this);
     int a = max;
-    recursiveNodeGeneration(playingPlayer, aoids, root, 0, mask, remaining, a, func);
+    recursiveNodeGeneration(currentInfoset, root, 0, mask, remaining, a, newNodeCallback);
 }
 }
