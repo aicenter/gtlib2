@@ -97,7 +97,7 @@ class MCCRAlgorithm: public ContinualResolving {
     ~MCCRAlgorithm() override = default;
 
     const OOSData &getCache() { return cache_; }
-    const OOSSettings &getSettings() { return cfg_; }
+    const MCCRSettings &getSettings() { return cfg_; }
 
     void updateGadget() override;
 

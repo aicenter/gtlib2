@@ -107,8 +107,8 @@ inline std::string thread() {
 #define LOG_TIME_DIFF    CLI::time_diff(CLI::lastLogMeasure)
 #define LOG_THREAD       CLI::thread()
 
-#define LOG_VAR(x)           cerr << __FILE__ << ":" << __LINE__ << " |  " << #x"=" << x << std::endl;
-#define LOG_VAL(name, value) cerr << __FILE__ << ":" << __LINE__ << " |  " << name << "=" << value << std::endl;
+#define LOG_VAR(x)           if(CLI::log_level <= CLI::LOGLEVEL_VERBOSE)  { cerr << __FILE__ << ":" << __LINE__ << " |  " << #x"=" << x << std::endl; }
+#define LOG_VAL(name, value) if(CLI::log_level <= CLI::LOGLEVEL_VERBOSE)  { cerr << __FILE__ << ":" << __LINE__ << " |  " << name << "=" << value << std::endl; }
 
 #define LOG_VERBOSE(x)   if(CLI::log_level <= CLI::LOGLEVEL_VERBOSE)  { cerr << CLI::set_color(CLI::GRAY)           << "[VERBS]" << LOG_THREAD << " " << LOG_TIME_DIFF << " | " << x << CLI::set_color() << endl; }
 #define LOG_DEBUG(x)     if(CLI::log_level <= CLI::LOGLEVEL_DEBUG)    { cerr << CLI::set_color(CLI::GRAY)           << "[DEBUG]" << LOG_THREAD << " " << LOG_TIME_DIFF << " | " << x << CLI::set_color() << endl; }

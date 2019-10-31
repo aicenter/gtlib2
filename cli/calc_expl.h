@@ -141,7 +141,7 @@ BehavioralStrategy MCCR_AverageStrategyForPlayer(Player traversingPlayer,
         OOSData &currentData = *playerData.at(d + 1);
 
         if (currentData.hasPublicState(node)) {
-            auto alg = OOSAlgorithm(domain, traversingPlayer, currentData, settings);
+            auto alg = MCCRAlgorithm(domain, traversingPlayer, currentData, settings);
             auto infosets = currentData.getInfosetsForPubStatePlayer(node, traversingPlayer);
             // technically, we should do this for each infoset individually
             // because mccr can bias sampling towards the current infoset in the public state.
