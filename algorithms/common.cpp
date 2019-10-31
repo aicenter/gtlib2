@@ -66,34 +66,6 @@ BehavioralStrategy mixedToBehavioralStrategy(const Domain &domain,
     return behavStrat;
 }
 
-bool isAOCompatible(const vector<ActionObservationIds> &aoTarget,
-                    const vector<ActionObservationIds> &aoCmp) {
-    auto sizeTarget = aoTarget.size();
-    auto sizeCmp = aoCmp.size();
-    if (min(sizeTarget, sizeCmp) == 0) return true;
-
-    static_assert(sizeof(ActionObservationIds) == 8);
-    static_assert(sizeof(ObservationId) == 4);
-    static_assert(NO_OBSERVATION > OBSERVATION_PLAYER_MOVE);
-
-    const ObservationId obsCmp = aoCmp[aoCmp.size() - 1].observation;
-    const ObservationId obsTgt = aoTarget[aoTarget.size() - 1].observation;
-
-    size_t cmpBytes;
-    if ((obsCmp >= OBSERVATION_PLAYER_MOVE && (obsCmp < NO_OBSERVATION))
-        || (obsTgt >= OBSERVATION_PLAYER_MOVE && (obsTgt < NO_OBSERVATION))) {
-        // make sure that player move observation has precedence over no observation,
-        // unless it's both no observation
-        cmpBytes = (min(sizeTarget, sizeCmp) - 1) * sizeof(ActionObservationIds);
-    } else if (obsCmp == NO_OBSERVATION || obsTgt == NO_OBSERVATION) {
-        cmpBytes = min(sizeTarget, sizeCmp) * sizeof(ActionObservationIds) - sizeof(ObservationId);
-    } else {
-        cmpBytes = min(sizeTarget, sizeCmp) * sizeof(ActionObservationIds);
-    }
-
-    return !memcmp(aoTarget.data(), aoCmp.data(), cmpBytes);
-}
-
 vector<shared_ptr<EFGNode>> getAllNodesInInfoset(const shared_ptr<AOH> &infoset,
                                                  const Domain &domain) {
 

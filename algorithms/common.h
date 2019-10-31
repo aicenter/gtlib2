@@ -34,19 +34,6 @@ BehavioralStrategy mixedToBehavioralStrategy(const Domain &domain,
                                              const ProbDistribution &distribution,
                                              Player player);
 
-bool isAOCompatible(const vector<ActionObservationIds> &aoTarget,
-                    const vector<ActionObservationIds> &aoCmp);
-
-template<typename T>
-bool isCompatible(const vector<T> &target, const vector<T> &cmp) {
-    auto sizeTarget = target.size();
-    auto sizeCmp = cmp.size();
-    if (min(sizeTarget, sizeCmp) == 0) return true;
-
-    size_t cmpBytes = min(sizeTarget, sizeCmp) * sizeof(T);
-    return !memcmp(target.data(), cmp.data(), cmpBytes);
-}
-
 vector<shared_ptr<EFGNode>> getAllNodesInInfoset(const shared_ptr<AOH> &infoset,
                                                  const Domain &domain);
 

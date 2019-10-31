@@ -103,8 +103,8 @@ void CPW_ISMCTS::fillBelief(const shared_ptr<EFGNode> &currentNode,
 
             return; // reached undiscovered node in newInfoset
         }
-        if (!algorithms::isAOCompatible(currentNode->getAOids(newInfoset->getPlayer()),
-                                        newInfoset->getAOids()))
+        if (!isAOCompatible(currentNode->getAOids(newInfoset->getPlayer()),
+                            newInfoset->getAOids()))
             return;
         const auto it = infosetSelectors_.find(currentInfoset);
         if (it == infosetSelectors_.end())
