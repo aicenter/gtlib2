@@ -299,7 +299,7 @@ class PublicStateCache: public virtual EFGCache {
 
 
     inline const unordered_set<shared_ptr<EFGNode>> &
-    getNodesForPubState(const shared_ptr<PublicState> &state) {
+    getNodesForPubState(const shared_ptr<PublicState> &state) const {
         return publicState2nodes_.at(state);
     }
 
@@ -320,12 +320,12 @@ class PublicStateCache: public virtual EFGCache {
         return filteredSet;
     }
 
-    const shared_ptr<PublicState> &getRootPublicState() {
+    const shared_ptr<PublicState> &getRootPublicState() const {
         return node2publicState_.at(getRootNode());
     }
 
     const unordered_map<shared_ptr<PublicState>, unordered_set<shared_ptr<EFGNode>>> &
-    getPublicState2nodes() {
+    getPublicState2nodes() const {
         return publicState2nodes_;
     }
 
@@ -353,6 +353,53 @@ void treeWalk(EFGCache &cache, EFGNodeCallback function);
  * The tree is walked as DFS up to maximum depth.
  */
 bool treeWalk(EFGCache &cache, EFGNodeCallback function, int maxEfgDepth);
+
+inline unsigned int cntPsChildren(const PublicStateCache &cache, const shared_ptr<PublicState> &parent) {
+    // todo: inefficient but gets jobs done -- we have fully built caches
+    assert(cache.isCompletelyBuilt());
+
+    auto cnt = 0;
+    for (const auto &[pubState, _] :  cache.getPublicState2nodes()) {
+        if (pubState->getDepth() == parent->getDepth() + 1
+            && isCompatible(parent->getHistory(), pubState->getHistory()))
+            cnt++;
+    }
+    return cnt;
+}
+
+inline unsigned int psIsTerminal(const PublicStateCache &cache, const shared_ptr<PublicState> &node) {
+    // todo: inefficient but gets jobs done -- we have fully built caches
+    if(cntPsChildren(cache, node) == 0) {
+#ifndef NDEBUG
+        auto efgNodes = cache.getNodesForPubState(node);
+        for (auto &efgNode: efgNodes ) {
+            assert(node->getHistory() == efgNode->getPubObsIds());
+//            cout << efgNode->getPubObsIds() << endl;
+//            cout << efgNode->getAOids(0) << endl;
+//            cout << efgNode->getAOids(1) << endl;
+//            assert(efgNode->type_ == TerminalNode);
+        }
+#endif
+        return true;
+    }
+    return false;
+}
+
+inline shared_ptr<PublicState> expandPs(const PublicStateCache &cache,
+                                        const shared_ptr<PublicState> &parent, EdgeId index) {
+    // todo: inefficient but gets jobs done -- we have fully built caches
+    assert(cache.isCompletelyBuilt());
+
+    vector<shared_ptr<PublicState>> children;
+    for (const auto &[pubState, _] :  cache.getPublicState2nodes()) {
+        if (pubState->getDepth() == parent->getDepth() + 1
+            && isCompatible(parent->getHistory(), pubState->getHistory())) {
+            children.push_back(pubState);
+        }
+    }
+    std::sort(children.begin(), children.end()); // invokes PublicState::operator<
+    return children.at(index);
+}
 
 } // namespace GTLib2
 

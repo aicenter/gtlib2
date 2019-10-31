@@ -25,12 +25,15 @@
 
 #include "base/base.h"
 #include "base/efg.h"
+#include "base/cache.h"
 #include <fstream>
 
 namespace GTLib2::utils {
 
 void exportGraphViz(const Domain &domain, const string &fileToSave);
 void exportGraphViz(const Domain &domain, std::ostream &fs);
+void exportGraphViz(const PublicStateCache &domain, const string &fileToSave);
+void exportGraphViz(const PublicStateCache &domain, std::ostream &fs);
 void exportGambit(const Domain &domain, const string &fileToSave);
 void exportGambit(const Domain &domain, std::ostream &fs);
 

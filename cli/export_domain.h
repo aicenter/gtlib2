@@ -31,6 +31,7 @@ void Command_ExportDomain(args::Subparser &parser) {
     args::Group group(parser, "Export type:", args::Group::Validators::Xor);
     args::Flag gambit(group, "gambit", "", {"gbt", "gambit"});
     args::Flag graphviz(group, "graphviz", "", {"dot", "graphviz"});
+    args::Flag pubtree(parser, "pubtree", "", {"pubtree"});
     initializeParser(parser); // always include this line in command
 
     unique_ptr<Domain> d = constructDomain(args::get(args::domain));
@@ -40,7 +41,13 @@ void Command_ExportDomain(args::Subparser &parser) {
         return;
     }
     if (graphviz) {
-        utils::exportGraphViz(*d, cout);
+        if(pubtree) {
+            PublicStateCache cache = PublicStateCache(*d);
+            cache.buildTree();
+            utils::exportGraphViz(cache, cout);
+        } else {
+            utils::exportGraphViz(*d, cout);
+        }
         return;
     }
     throw std::runtime_error("Invalid export type!");

@@ -334,6 +334,8 @@ vector<ActionObservationIds> FOG2EFGNode::getAOids(Player player) const {
     return aoh;
 }
 
+// Compute public observation ids so that they are consistent
+// with how public states are defined in CFR-D (transitive closure of augmented infosets)
 vector<ObservationId> FOG2EFGNode::getPubObsIds() const {
     if (!parent_) return vector<ObservationId>{};
 
@@ -342,18 +344,21 @@ vector<ObservationId> FOG2EFGNode::getPubObsIds() const {
     const auto lastObservation = lastOutcome_->publicObservation->getId();
 
     // Always add new public observation if it occurs
+    bool noNewDomainObsImpliesPlayerMoveObs = true;
     if (hasNewOutcome() && lastObservation != NO_OBSERVATION) {
         oh.push_back(lastObservation);
+        noNewDomainObsImpliesPlayerMoveObs = false;
     }
 
     // Add that it's player's move, if it is not player's repeated move
     // If it is repeated, it means it might be secret.
     // If it's not secret, it should be revealed via new public observation,
     // in a domain dependent way.
-    if (type_ == PlayerNode &&
-        (parent_->type_ == ChanceNode
-            || (parent_->type_ == PlayerNode && parent_->getPlayer() != getPlayer())
-        ))
+    bool parentPlayerIsDifferent = type_ == PlayerNode
+        && (parent_->type_ == ChanceNode
+            || (parent_->type_ == PlayerNode && parent_->getPlayer() != getPlayer()));
+
+    if (parentPlayerIsDifferent && noNewDomainObsImpliesPlayerMoveObs)
         oh.push_back(observationPlayerMove(getPlayer()));
 
     return oh;

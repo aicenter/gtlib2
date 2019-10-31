@@ -24,6 +24,8 @@
 #include <iomanip>
 
 #include "base/fogefg.h"
+#include "base/cache.h"
+#include "base/tree.h"
 #include "algorithms/common.h"
 
 namespace GTLib2::utils {
@@ -104,6 +106,68 @@ inline string getColor(const shared_ptr<EFGNode> &node) {
         default:
             unreachable("unrecognized option!");
     }
+}
+
+void exportGraphViz(const PublicStateCache& cache, std::ostream &fs) {
+    // Print header
+    fs << "digraph {" << endl;
+    fs << "\trankdir=LR" << endl;
+    fs << "\tgraph [fontname=courier]" << endl;
+    fs << "\tnode  ["
+          "fontname=courier, "
+          "shape=box, "
+          "style=\"filled\", "
+          "fillcolor=white]"
+       << endl;
+    fs << "\tedge  [fontname=courier]" << endl;
+
+    std::function<void(shared_ptr<PublicState>)> walkPrint = [&](shared_ptr<PublicState> node) {
+        string color = "#FFFFFF";
+        string shape = "circle";
+
+        string label = node->getDepth() > 0 ? to_string(node->getHistory().back()) : "∅";
+
+        if (psIsTerminal(cache, node)) {
+            // Print nodes
+            fs << "\t\"" << node->toString() << "\" "
+               << "[fillcolor=\"" << color << "\""
+               << ",label=\"" << label << "\""
+               << ",shape=\"" << shape << "\"]\n";
+            return;
+        }
+
+        // Print node
+        fs << "\t\"" << node->toString() << "\" "
+           << "[fillcolor=\"" << color << "\""
+           << ",label=\"" << label << "\""
+           << ",shape=\"" << shape << "\"]\n";
+
+        for (int i = 0; i < cntPsChildren(cache, node); ++i) {
+            auto child = expandPs(cache, node, i);
+
+            // Print edges
+            fs << "\t\"" << node->toString() << "\""
+               << " -> "
+               << "\"" << child->toString() << "\""
+               << " [label=\"" << i << "\"]\n";
+
+            walkPrint(child);
+        }
+    };
+    walkPrint(cache.getRootPublicState());
+
+    fs << "}\n";
+}
+
+void exportGraphViz(const PublicStateCache& cache, const string &fileToSave) {
+    ofstream fs(fileToSave);
+    if (!fs.is_open()) {
+        LOG_ERROR("Could not open " << fileToSave << " for writing.")
+        return;
+    }
+    exportGraphViz(cache, fs);
+
+    fs.close();
 }
 
 

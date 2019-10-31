@@ -283,6 +283,33 @@ TEST(Cache, PublicStateCacheGetInfosets) {
     EXPECT_EQ(expectedInfosets, actualInfosets);
 }
 
+TEST(Cache, PublicStateTree) {
+    const auto numCards = 4;
+    unique_ptr <GoofSpielDomain> domain = GoofSpielDomain::IIGS(numCards);
+    PublicStateCache cache(*domain);
+    cache.buildTree();
+
+    std::function<void(shared_ptr<PublicState>)> walkCheck = [&](shared_ptr<PublicState> node) {
+        if (psIsTerminal(cache, node)) return;
+        if(node->getDepth() < numCards*2-1) {
+            if (node->getDepth() % 2 == 0) EXPECT_EQ(cntPsChildren(cache, node), 1);
+            else EXPECT_EQ(cntPsChildren(cache, node), 3);
+        } else { // children must be leaves
+            for (int i = 0; i < cntPsChildren(cache, node); ++i) {
+                auto child = expandPs(cache, node, i);
+                EXPECT_TRUE(psIsTerminal(cache, child));
+            }
+        }
+
+        for (int i = 0; i < cntPsChildren(cache, node); ++i) {
+            auto child = expandPs(cache, node, i);
+            EXPECT_TRUE(isCompatible(node->getHistory(), child->getHistory()));
+            walkCheck(child);
+        }
+    };
+    walkCheck(cache.getRootPublicState());
+}
+
 TEST(Cache, PublicStateCacheGetInfosetsLarge) {
     GoofSpielDomain domain({
                                variant:  IncompleteObservations,

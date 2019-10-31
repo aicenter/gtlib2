@@ -26,7 +26,9 @@
 #include "utils/args.hpp"
 #include "utils/logging.h"
 #include "utils/utils.h"
+
 #include <fstream>
+#include <filesystem>
 
 // Specify all global CLI arguments here
 namespace args {
@@ -69,7 +71,7 @@ inline vector<AlgParams> algParams = vector<AlgParams>(2);
 inline AlgParams readIni(const string &file) {
     std::fstream fs(file, std::fstream::in);
     if (!fs) {
-        LOG_ERROR("Could not open " << file)
+        LOG_ERROR("Could not open " << std::filesystem::current_path() << "/" << file)
         exit(1);
     }
 

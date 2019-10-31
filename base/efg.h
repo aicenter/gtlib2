@@ -1,3 +1,5 @@
+#include <utility>
+
 /*
 
     Copyright 2019 Faculty of Electrical Engineering at CTU in Prague
@@ -71,13 +73,21 @@ class PublicState: public Node<PublicState> {
  public:
     inline PublicState() : Node() {}
     inline PublicState(shared_ptr<PublicState const> parent, vector<ObservationId> history) :
-        Node(move(parent), history) {}
+        Node(move(parent), std::move(history)) {}
 
-    const vector<ActionId> &getHistory() const { return history_; };
+    const vector<ObservationId> &getHistory() const { return history_; };
 
     inline friend std::ostream & operator<<(std::ostream &ss, const PublicState &a) {
         ss << a.history_;
         return ss;
+    }
+
+    bool operator< (const PublicState& other) const
+    {
+        if(history_.size() != other.history_.size())
+            return history_.size() < other.history_.size();
+
+        return history_.back() < other.history_.back();
     }
 
 //    const shared_ptr<Observation> incomingObservation_;
