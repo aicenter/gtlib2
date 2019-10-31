@@ -110,35 +110,85 @@ StrategyProfile OOS_AverageStrategy(const Domain &domain, const AlgParams &cfg,
     return getAverageStrategy(targetData);
 }
 
-inline unsigned int cntPsChildren(PublicStateCache &cache, const shared_ptr<PublicState> &parent) {
-    // todo: inefficient but gets jobs done -- we have fully built caches
-    assert(cache.isCompletelyBuilt());
+BehavioralStrategy MCCR_AverageStrategyForPlayer(Player traversingPlayer,
+                                                 MCCRAlgorithm *mccr,
+                                                 const Domain &domain,
+                                                 const AlgParams &cfg,
+                                                 unsigned int moveBudget,
+                                                 BudgetType budgetType) {
 
-    auto cnt = 0;
-    for (const auto &[pubState, nodes] :  cache.getPublicState2nodes()) {
-        if (pubState->getDepth() == parent->getDepth() + 1
-            && isCompatible(parent->getHistory(), pubState->getHistory()))
-            cnt++;
-    }
-    return cnt;
-}
+    const auto settings = mccr->getSettings();
 
-inline shared_ptr<PublicState> expandPs(PublicStateCache &cache,
-                                        const shared_ptr<PublicState> &parent, EdgeId index) {
-    // todo: inefficient but gets jobs done -- we have fully built caches
-    assert(cache.isCompletelyBuilt());
+    // Player data at each depth of the public tree. This works as a "strategy" stack.
+    auto playerData = vector<OOSData *>();
+    playerData.emplace_back(new OOSData(mccr->getCache()));
 
-    vector<shared_ptr<PublicState>> children;
-    for (const auto &[pubState, nodes] :  cache.getPublicState2nodes()) {
-        if (pubState->getDepth() == parent->getDepth() + 1
-            && isCompatible(parent->getHistory(), pubState->getHistory())) {
-            children.push_back(pubState);
+    // this is the storage for our final strategy, collected individually at each public state
+    OOSData targetData = mccr->getCache();
+    targetData.buildTree();
+
+    unsigned int d = 0;
+
+    function<void(shared_ptr<PublicState>)> traverse = [&](const shared_ptr<PublicState> &node) {
+        if (psIsTerminal(targetData, node)) {
+            LOG_DEBUG("Reached terminal public state " << *node)
+            return;
         }
-    }
-    std::sort(children.begin(), children.end());
-    return children.at(index);
-}
+        LOG_DEBUG("Play at public state " << *node)
 
+        // copy data at previous depth to the current one
+        playerData.emplace(playerData.begin() + (d + 1), new OOSData(*playerData.at(d)));
+        OOSData &currentData = *playerData.at(d + 1);
+
+        if (currentData.hasPublicState(node)) {
+            auto alg = OOSAlgorithm(domain, traversingPlayer, currentData, settings);
+            auto infosets = currentData.getInfosetsForPubStatePlayer(node, traversingPlayer);
+            // technically, we should do this for each infoset individually
+            // because mccr can bias sampling towards the current infoset in the public state.
+            // However, for practical purposes, it would be super expensive to do so,
+            // as we'd have to re-calculate strategy for each infoset in the tree!
+            // Currently, this evaluation takes ~1 day for ~100k sampling per move,
+            // to do this per each infoset would be ~100x times more expensive.
+            const shared_ptr<AOH> anInfoset = *infosets.begin(); // todo: random enough? :)
+            playForBudget(alg, anInfoset, moveBudget, budgetType);
+
+            // copy to evaluated strategy
+            for (const auto &infoset : targetData.getInfosetsForPubStatePlayer(
+                node, traversingPlayer)) {
+                if (currentData.infosetData.find(infoset) != currentData.infosetData.end()) {
+                    targetData.infosetData.at(infoset) = currentData.infosetData.at(infoset);
+                }
+            }
+        } else {
+            for (const auto &infoset : targetData.getInfosetsForPubStatePlayer(
+                node, traversingPlayer)) {
+                // could be augmented IS
+                if (targetData.infosetData.find(infoset) != targetData.infosetData.end()) {
+                    targetData.infosetData.at(infoset).reset(); // play uniformly random
+                }
+            }
+        }
+        d++;
+
+        for (EdgeId i = 0; i < cntPsChildren(targetData, node); ++i) {
+            const auto nextNode = expandPs(targetData, node, i);
+            traverse(nextNode);
+        }
+
+        // we use pointers instead of unique_ptr
+        // because those would be destructed when the entire recursion goes out of scope
+        delete playerData.at(d);
+        d--;
+    };
+
+    traverse(targetData.getRootPublicState());
+    auto avgStratForPlayer = getAverageStrategy(targetData);
+    auto expl_partial = calcExploitability(domain, avgStratForPlayer);
+
+    LOG_INFO("Exploitability after resolving for player" << int(traversingPlayer))
+    LOG_VAR(expl_partial.expl)
+    return avgStratForPlayer.at(traversingPlayer);
+}
 
 StrategyProfile MCCR_AverageStrategy(const Domain &domain, const AlgParams &cfg,
                                      unsigned int preplayBudget, unsigned int moveBudget,
@@ -146,77 +196,21 @@ StrategyProfile MCCR_AverageStrategy(const Domain &domain, const AlgParams &cfg,
     const auto alg = constructAlgWithData(domain, "MCCR", cfg);
     const unique_ptr<GamePlayingAlgorithm> gameAlg = alg->prepare()(domain, Player(0));
     auto *mccr = dynamic_cast<MCCRAlgorithm *>(gameAlg.get());
-    const auto settings = mccr->getSettings();
 
     LOG_DEBUG("Calculating strategy in the root")
     playForBudget(*gameAlg, PLAY_FROM_ROOT, preplayBudget, budgetType);
 
     OOSData preplayData = mccr->getCache();
+    // let's build the whole tree if there are missing places where the alg didn't do it
+    // during the preplay phase. We need this to calc exploitability.
     preplayData.buildTree();
     LOG_INFO("Exploitability after preplay")
     calcExploitability(domain, getAverageStrategy(preplayData));
 
     StrategyProfile profile;
     for (Player traversingPlayer = 0; traversingPlayer < 2; ++traversingPlayer) {
-        auto playerData = vector<OOSData *>();
-        playerData.emplace_back(new OOSData(mccr->getCache()));
-
-        OOSData targetData = mccr->getCache();
-        targetData.buildTree();
-
-        unsigned int d = 0;
-
-        function<void(shared_ptr<PublicState>)>
-            traverse = [&](const shared_ptr<PublicState> &node) {
-            LOG_DEBUG("Play at public state " << *node)
-
-            playerData.emplace(
-                playerData.begin() + (d + 1),
-                new OOSData(*playerData.at(d)));
-            OOSData &currentData = *playerData.at(d + 1);
-
-            if (currentData.hasPublicState(node)) {
-                auto alg = OOSAlgorithm(domain, traversingPlayer, currentData, settings);
-                auto infosets = currentData.getInfosetsForPubStatePlayer(node, traversingPlayer);
-                const shared_ptr<AOH> anInfoset = *infosets.begin(); // todo: random enough? :)
-                playForBudget(alg, anInfoset, moveBudget, budgetType);
-
-                // copy to evaluated strategy
-                for (const auto &infoset : targetData.getInfosetsForPubStatePlayer(node,
-                                                                                   traversingPlayer)) {
-                    if (currentData.infosetData.find(infoset) != currentData.infosetData.end()) {
-                        targetData.infosetData.at(infoset) = currentData.infosetData.at(infoset);
-                    }
-                }
-            } else {
-                for (const auto &infoset : targetData.getInfosetsForPubStatePlayer(node,
-                                                                                   traversingPlayer)) {
-                    // could be augmented IS
-                    if (targetData.infosetData.find(infoset) != targetData.infosetData.end()) {
-                        targetData.infosetData.at(infoset).reset(); // play uniformly random
-                    }
-                }
-            }
-            d++;
-
-            for (EdgeId i = 0; i < cntPsChildren(targetData, node); ++i) {
-                const auto nextNode = expandPs(targetData, node, i);
-                traverse(nextNode);
-            }
-
-            // we use pointers instead of unique_ptr
-            // because those would be destructed when the entire recursion goes out of scope
-            delete playerData.at(d);
-            d--;
-        };
-
-        traverse(targetData.getRootPublicState());
-        auto avgStratForPlayer = getAverageStrategy(targetData);
-        auto expl_partial = calcExploitability(domain, avgStratForPlayer);
-
-        LOG_INFO("Exploitability after resolving for player" << int(traversingPlayer))
-        LOG_VAR(expl_partial.expl)
-        profile.emplace_back(avgStratForPlayer.at(traversingPlayer));
+        profile.emplace_back(MCCR_AverageStrategyForPlayer(
+            traversingPlayer, mccr, domain, cfg, moveBudget, budgetType));
     }
 
     return profile;
