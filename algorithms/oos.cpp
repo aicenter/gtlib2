@@ -459,13 +459,13 @@ void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
         default:
             unreachable("unrecognized option!");
     }
-
+    // todo: check!!
     baseline.nominator += a;
     baseline.denominator += b;
 }
 
 void OOSAlgorithm::updateInfosetAcc(const shared_ptr<EFGNode> &h, CFRData::InfosetData &data,
-                                    double s) {
+                                    double importanceSamplingRatio) {
     double w = 1.0;
     switch (cfg_.accumulatorWeighting) {
         case OOSSettings::UniformAccWeighting:
@@ -485,7 +485,7 @@ void OOSAlgorithm::updateInfosetAcc(const shared_ptr<EFGNode> &h, CFRData::Infos
         case OOSSettings::StochasticallyWeightedAveraging:
             calcRMProbs(data.regrets, &rmProbs_, cfg_.approxRegretMatching);
             for (int i = 0; i < data.avgStratAccumulator.size(); i++) {
-                data.avgStratAccumulator[i] += w * s * rmProbs_[i];
+                data.avgStratAccumulator[i] += w * importanceSamplingRatio * rmProbs_[i];
                 assert(data.avgStratAccumulator[i] > 0.0);
             }
             break;

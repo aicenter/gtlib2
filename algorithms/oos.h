@@ -72,7 +72,7 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
 
     unordered_map<shared_ptr<EFGNode>, Baseline> baselineValues;
 
-    PublicStateSummary getPublicStateSummary(const shared_ptr<PublicState> &ps) {
+    PublicStateSummary getPublicStateSummary(const shared_ptr<PublicState> &ps) const {
         // todo: make more efficient
         const auto &histories = getNodesForPubState(ps);
         vector<shared_ptr<EFGNode>> topmostHistories_;
@@ -375,7 +375,7 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
                                              const vector<shared_ptr<Action>> &actions,
                                              double s_h_all,
                                              Player exploringPl);
-    PlayerNodeOutcome sampleExistingTree(const shared_ptr<EFGNode> &h,
+    virtual PlayerNodeOutcome sampleExistingTree(const shared_ptr<EFGNode> &h,
                                          const vector<shared_ptr<Action>> &actions,
                                          double rm_h_pl, double rm_h_opp,
                                          double bs_h_all, double us_h_all, double us_h_cn,
@@ -403,7 +403,7 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
     virtual void updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exploringPl,
                                       CFRData::InfosetData &data, int ai,
                                       double u_x, double u_h, double w);
-    void updateInfosetAcc(const shared_ptr<EFGNode> &h, CFRData::InfosetData &data, double s);
+    void updateInfosetAcc(const shared_ptr<EFGNode> &h, CFRData::InfosetData &data, double importanceSamplingRatio);
 
     inline double bias(double biased, double nonBiased) const {
         return cfg_.targetBiasing * biased + (1 - cfg_.targetBiasing) * nonBiased;

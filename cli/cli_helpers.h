@@ -190,7 +190,7 @@ struct WrapperCfg: public AlgorithmWithData {
 // @formatter:off
 typedef Wrapper   <CFRAlgorithm,  CFRSettings,         CFRData>  WrapperCFR;
 typedef Wrapper   <OOSAlgorithm,  OOSSettings,         OOSData>  WrapperOOS;
-typedef Wrapper   <MCCRAlgorithm, MCCRSettings,        OOSData>  WrapperMCCR;
+typedef Wrapper   <MCCRAlgorithm, MCCRSettings,        MCCRData> WrapperMCCR;
 typedef WrapperCfg<RandomPlayer,  AlgConfig>                     WrapperRND;
 typedef WrapperCfg<ISMCTS,        UCT_ISMCTSSettings>            WrapperISMCTS_UCT;
 typedef WrapperCfg<ISMCTS,        RM_ISMCTSSettings>             WrapperISMCTS_RM;
@@ -253,7 +253,7 @@ unique_ptr<AlgorithmWithData> constructAlgWithData(const Domain &d,
         {"RND",         [&]() { return make_unique<WrapperRND>         ();            }},
         {"CFR",         [&]() { return make_unique<WrapperCFR>         (CFRData(d));  }},
         {"OOS",         [&]() { return make_unique<WrapperOOS>         (OOSData(d));  }},
-        {"MCCR",        [&]() { return make_unique<WrapperMCCR>        (OOSData(d));  }},
+        {"MCCR",        [&]() { return make_unique<WrapperMCCR>        (MCCRData(d)); }},
         {"ISMCTS",      [&]() { return make_unique<WrapperISMCTS_UCT>  ();            }},
         {"ISMCTS_UCT",  [&]() { return make_unique<WrapperISMCTS_UCT>  ();            }},
         {"ISMCTS_RM",   [&]() { return make_unique<WrapperISMCTS_RM>   (d);           }},

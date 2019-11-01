@@ -97,7 +97,7 @@ ActionProbDistribution mapDistribution(const ProbDistribution &dist,
 /**
  * Calculate reach probabilities for each player
  */
-array<double, 3> calcReachProbs(const shared_ptr<EFGNode> &h, StrategyCache* cache);
+array<double, 3> calcReachProbs(const shared_ptr<EFGNode> &h, const StrategyCache* cache);
 
 }  // namespace GTLib2
 

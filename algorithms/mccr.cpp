@@ -78,7 +78,32 @@ void MCCRAlgorithm::updateGadget() {
     if (cfg_.retentionPolicy == MCCRSettings::ResetData) {
         for (auto&[key, val] : cache_.baselineValues) val.reset();
         for (auto&[key, val] : cache_.infosetData) val.reset();
+    } else if (cfg_.retentionPolicy == MCCRSettings::ReweighKeepData) {
+        // Calculate probability of reweighing -- i.e. the probability
+        // of coming into current play infoset. Updates will be done
+        // as we visit each history during sampling -- we will check
+        // when was the last time it was updated, and multiply regrets
+        // and baseline values appropriately.
+        double p = calcProbOfLastAction();
+        cache_.probUpdates.emplace_back(p/(1+p));
+        for (auto&[key, val] : cache_.infosetData)  // we will reset only avg strategy acc
+            std::fill(val.avgStratAccumulator.begin(), val.avgStratAccumulator.end(), 0.);
     }
+}
+double MCCRAlgorithm::calcProbOfLastAction() {
+    const auto currentNode = (*cache_.getNodesFor(*playInfoset_).begin());
+
+    // go up until we get previous player's node or root
+    auto aNode = currentNode->getParent();
+    while (aNode != nullptr &&
+        !(aNode->type_ == PlayerNode && aNode->getPlayer() == playingPlayer_))
+        aNode = aNode->getParent();
+    if (aNode == nullptr) return 1.0;
+
+    // assumes that trunk strategy has not changed!
+    auto lastAction = currentNode->getHistory().at(aNode->getHistory().size());
+    double p = (*cache_.strategyFor(aNode->getAOHInfSet())).at(lastAction);
+    return p;
 }
 
 void MCCRResolver::updateGadget(GadgetGame *newGadget) {
@@ -203,6 +228,47 @@ double MCCRResolver::handlePlayerNode(const shared_ptr<EFGNode> &h, double rm_h_
 
     return u_h;
 }
+
+PlayerNodeOutcome MCCRResolver::sampleExistingTree(const shared_ptr<EFGNode> &h,
+                                                   const vector<shared_ptr<Action>> &actions,
+                                                   double rm_h_pl, double rm_h_opp,
+                                                   double bs_h_all, double us_h_all, double us_h_cn,
+                                                   CFRData::InfosetData &data,
+                                                   const shared_ptr<AOH> &infoset,
+                                                   Player exploringPl) {
+    assert(h->type_ == PlayerNode);
+
+    // we may need to reweight regrets
+    if(mccr_cfg_.retentionPolicy == MCCRSettings::ReweighKeepData) {
+        const auto lastUpdate = keep_.lastReweighUpdate.find(h);
+        const auto currentUpdateIdx = keep_.probUpdates.size() - 1;
+
+        if (lastUpdate == keep_.lastReweighUpdate.end()) {
+            unreachable("we should keep track of all update indices!");
+        }
+
+        int& idx = lastUpdate->second;
+        assert(idx >= 0);
+
+        if(currentUpdateIdx != idx) { // should update
+            assert(idx < currentUpdateIdx);
+
+            double update = 1.0;
+            for (int i = idx + 1; i <= currentUpdateIdx; ++i) update *= keep_.probUpdates.at(i);
+
+            for (double &regret : data.regrets) regret *= update;
+            cache_.baselineValues.at(h).denominator *= update; // todo: check
+
+            idx = currentUpdateIdx;
+        }
+    }
+
+    return OOSAlgorithm::sampleExistingTree(h, actions,
+                                            rm_h_pl, rm_h_opp,
+                                            bs_h_all, us_h_all, us_h_cn,
+                                            data, infoset, exploringPl);
+}
+
 
 void MCCRResolver::updateGadgetInfosetRegrets(const shared_ptr<EFGNode> &h, Player exploringPl,
                                               CFRData::InfosetData &data,

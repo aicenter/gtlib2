@@ -120,11 +120,13 @@ BehavioralStrategy MCCR_AverageStrategyForPlayer(Player traversingPlayer,
     const auto settings = mccr->getSettings();
 
     // Player data at each depth of the public tree. This works as a "strategy" stack.
-    auto playerData = vector<OOSData *>();
-    playerData.emplace_back(new OOSData(mccr->getCache()));
+    auto playerData = vector<MCCRData *>();
+    // The strategy at index 0 is the one from pre-play.
+    // i.e. public tree root node has been done in preplay.
+    playerData.emplace_back(new MCCRData(mccr->getCache())); // a copy!
 
     // this is the storage for our final strategy, collected individually at each public state
-    OOSData targetData = mccr->getCache();
+    MCCRData targetData = mccr->getCache(); // a copy!
     targetData.buildTree();
 
     unsigned int d = 0;
@@ -134,11 +136,14 @@ BehavioralStrategy MCCR_AverageStrategyForPlayer(Player traversingPlayer,
             LOG_DEBUG("Reached terminal public state " << *node)
             return;
         }
-        LOG_DEBUG("Play at public state " << *node)
+
+        d++;
+        LOG_DEBUG("Play at public state " << *node << " at depth " << d)
 
         // copy data at previous depth to the current one
-        playerData.emplace(playerData.begin() + (d + 1), new OOSData(*playerData.at(d)));
-        OOSData &currentData = *playerData.at(d + 1);
+        assert(playerData.size() == d);
+        playerData.emplace_back(new MCCRData(*playerData.at(d - 1)));
+        MCCRData &currentData = *playerData.at(d);
 
         if (currentData.hasPublicState(node)) {
             auto alg = MCCRAlgorithm(domain, traversingPlayer, currentData, settings);
@@ -168,7 +173,6 @@ BehavioralStrategy MCCR_AverageStrategyForPlayer(Player traversingPlayer,
                 }
             }
         }
-        d++;
 
         for (EdgeId i = 0; i < cntPsChildren(targetData, node); ++i) {
             const auto nextNode = expandPs(targetData, node, i);
@@ -178,15 +182,23 @@ BehavioralStrategy MCCR_AverageStrategyForPlayer(Player traversingPlayer,
         // we use pointers instead of unique_ptr
         // because those would be destructed when the entire recursion goes out of scope
         delete playerData.at(d);
+        playerData.pop_back();
+
         d--;
     };
 
-    traverse(targetData.getRootPublicState());
-    auto avgStratForPlayer = getAverageStrategy(targetData);
-    auto expl_partial = calcExploitability(domain, avgStratForPlayer);
+    // root node has been done in preplay
+    auto rootNode = targetData.getRootPublicState();
+    for (EdgeId i = 0; i < cntPsChildren(targetData, rootNode); ++i) {
+        const auto nextNode = expandPs(targetData, rootNode, i);
+        traverse(nextNode);
+    }
 
-    LOG_INFO("Exploitability after resolving for player" << int(traversingPlayer))
-    LOG_VAR(expl_partial.expl)
+    auto avgStratForPlayer = getAverageStrategy(targetData);
+//    auto expl_partial = calcExploitability(domain, avgStratForPlayer);
+
+//    LOG_INFO("Exploitability after resolving for player" << int(traversingPlayer))
+//    LOG_VAR(expl_partial.expl)
     return avgStratForPlayer.at(traversingPlayer);
 }
 
@@ -200,17 +212,50 @@ StrategyProfile MCCR_AverageStrategy(const Domain &domain, const AlgParams &cfg,
     LOG_DEBUG("Calculating strategy in the root")
     playForBudget(*gameAlg, PLAY_FROM_ROOT, preplayBudget, budgetType);
 
-    OOSData preplayData = mccr->getCache();
+//    MCCRData preplayData = mccr->getCache(); // notice we copy!
     // let's build the whole tree if there are missing places where the alg didn't do it
     // during the preplay phase. We need this to calc exploitability.
-    preplayData.buildTree();
-    LOG_INFO("Exploitability after preplay")
-    calcExploitability(domain, getAverageStrategy(preplayData));
+//    preplayData.buildTree();
+//    LOG_INFO("Exploitability after preplay")
+//    calcExploitability(domain, getAverageStrategy(preplayData));
 
     StrategyProfile profile;
     for (Player traversingPlayer = 0; traversingPlayer < 2; ++traversingPlayer) {
         profile.emplace_back(MCCR_AverageStrategyForPlayer(
             traversingPlayer, mccr, domain, cfg, moveBudget, budgetType));
+    }
+
+    return profile;
+}
+
+constexpr int DBAR_NUM_SEEDS = 50;
+
+StrategyProfile MCCR_DbarAverageStrategy(const Domain &domain, const AlgParams &cfg,
+                                         unsigned int preplayBudget, unsigned int moveBudget,
+                                         BudgetType budgetType) {
+
+    vector<StrategyProfile> profiles;
+    for (int i = 0; i < DBAR_NUM_SEEDS; ++i) {
+        LOG_INFO("Calculating seed " << i)
+        AlgParams cfg_seed = cfg;
+        cfg_seed.emplace("seed", to_string(i));
+        profiles.emplace_back(
+            MCCR_AverageStrategy(domain, cfg_seed, preplayBudget, moveBudget, budgetType));
+    }
+
+    // calc avg over individual seeds
+    StrategyProfile profile = profiles.at(0);
+    for (int p = 0; p < 2; ++p) {
+        for(auto&[infoset, probs] : profile.at(p)) {
+            for (auto&[action, prob]: probs) {
+                for (int i = 1; i < DBAR_NUM_SEEDS; ++i) {
+                    const auto &profile_seed = profiles[i];
+                    const ActionProbDistribution &probs_seed = profile_seed.at(p).at(infoset);
+                    prob += probs_seed.at(action);
+                }
+                prob /= DBAR_NUM_SEEDS;
+            }
+        }
     }
 
     return profile;
@@ -225,7 +270,7 @@ void Command_CalcExpl(args::Subparser &parser) {
     args::Flag time(budgetType, "time", "", {"time"});
     args::Flag iterations(budgetType, "iterations", "", {"iterations", "iters"});
     args::Flag printProfile(parser, "printProfile", "Print strategy profile?", {"print"}, false);
-    args::Flag dbar(parser, "dbar", "Compute double bar strategy (expectation over average strats)",
+    args::Flag dbar(parser, "dbar", "Compute double bar strategy (estimate expectation over average strats)",
                     {"dbar"}, false);
     initializeParser(parser); // always include this line in command
 
@@ -267,7 +312,10 @@ void Command_CalcExpl(args::Subparser &parser) {
     StrategyProfile profile;
     if (alg == "CFR") profile = CFR_AverageStrategy(*domain, cfg, pb, btype);
     else if (alg == "OOS") profile = OOS_AverageStrategy(*domain, cfg, pb, mb, btype);
-    else if (alg == "MCCR") profile = MCCR_AverageStrategy(*domain, cfg, pb, mb, btype);
+    else if (alg == "MCCR") {
+        if(dbar) profile = MCCR_DbarAverageStrategy(*domain, cfg, pb, mb, btype);
+        else profile = MCCR_AverageStrategy(*domain, cfg, pb, mb, btype);
+    }
     else LOG_ERROR("Algorthim " << alg << "does not have implemented exploitability calculation");
 
     if (printProfile) {

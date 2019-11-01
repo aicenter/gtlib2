@@ -38,7 +38,7 @@ class CFR_CR: public ContinualResolving, public CFRAlgorithm {
                   Player playingPlayer,
                   OOSData &cache,
                   CFRSettings settings)
-        : ContinualResolving(domain, playingPlayer, cache),
+        : ContinualResolving(domain, playingPlayer),
           CFRAlgorithm(domain, playingPlayer, cache, settings) {}
 
  protected:

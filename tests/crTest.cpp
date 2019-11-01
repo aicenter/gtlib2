@@ -45,7 +45,7 @@ using domains::RPSDomain;
 class ExampleCR: public ContinualResolving {
  public:
     ExampleCR(const Domain &domain, Player playingPlayer, OOSData &cache)
-        : ContinualResolving(domain, playingPlayer, cache) {}
+        : ContinualResolving(domain, playingPlayer) {}
 
     inline PlayControl preplayIteration(const shared_ptr<EFGNode> &rootNode) override {
         cache_.buildTree();

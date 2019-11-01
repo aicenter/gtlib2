@@ -279,21 +279,21 @@ class PublicStateCache: public virtual EFGCache {
         publicState2infosets_ = other.publicState2infosets_ ;
     }
 
-    inline bool hasPublicState(const shared_ptr<PublicState> &pubState) {
+    inline bool hasPublicState(const shared_ptr<PublicState> &pubState) const {
         return publicState2nodes_.find(pubState) != publicState2nodes_.end();
     }
-    inline bool hasPublicStateFor(const shared_ptr<EFGNode> &node) {
+    inline bool hasPublicStateFor(const shared_ptr<EFGNode> &node) const {
         return node2publicState_.find(node) != node2publicState_.end();
     }
-    inline bool hasPublicStateFor(const shared_ptr<AOH> &infoset) {
+    inline bool hasPublicStateFor(const shared_ptr<AOH> &infoset) const {
         return infoset2publicState_.find(infoset) != infoset2publicState_.end();
     }
 
-    inline const shared_ptr<PublicState> &getPublicStateFor(const shared_ptr<EFGNode> &node) {
+    inline const shared_ptr<PublicState> &getPublicStateFor(const shared_ptr<EFGNode> &node) const {
         return node2publicState_.at(node);
     }
 
-    inline const shared_ptr<PublicState> &getPublicStateFor(const shared_ptr<AOH> &infoset) {
+    inline const shared_ptr<PublicState> &getPublicStateFor(const shared_ptr<AOH> &infoset) const {
         return infoset2publicState_.at(infoset);
     }
 
@@ -339,7 +339,7 @@ class PublicStateCache: public virtual EFGCache {
 
 class StrategyCache {
  public:
-    virtual optional <ProbDistribution> strategyFor(const shared_ptr<AOH> &currentInfoset) = 0;
+    virtual optional <ProbDistribution> strategyFor(const shared_ptr<AOH> &currentInfoset) const = 0;
 };
 
 /**

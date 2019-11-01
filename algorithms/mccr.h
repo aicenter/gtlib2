@@ -31,32 +31,71 @@ namespace GTLib2::algorithms {
 class MCCRAlgorithm;
 
 struct MCCRSettings: OOSSettings {
-    enum RetentionPolicy { ResetData, KeepData };
+    enum RetentionPolicy { ResetData, NaiveKeepData, ReweighKeepData };
 
     RetentionPolicy retentionPolicy = ResetData;
 
     //@formatter:off
     inline void update(const string  &k, const string &v) override {
-        if(k == "retentionPolicy" && v == "ResetData") retentionPolicy = ResetData; else
-        if(k == "retentionPolicy" && v == "KeepData") retentionPolicy = KeepData;   else
+        if(k == "retentionPolicy" && v == "ResetData")       retentionPolicy = ResetData;       else
+        if(k == "retentionPolicy" && v == "NaiveKeepData")   retentionPolicy = NaiveKeepData;   else
+        if(k == "retentionPolicy" && v == "ReweighKeepData") retentionPolicy = ReweighKeepData; else
         OOSSettings::update(k, v);
     }
 
     inline string toString() const override {
         std::stringstream ss;
         ss << "; MCCR" << endl;
-        if(retentionPolicy == ResetData) ss << "retentionPolicy        = ResetData" << endl;
-        if(retentionPolicy == KeepData)  ss << "retentionPolicy        = KeepData"  << endl;
+        if(retentionPolicy == ResetData)       ss << "retentionPolicy        = ResetData"       << endl;
+        if(retentionPolicy == NaiveKeepData)   ss << "retentionPolicy        = NaiveKeepData"   << endl;
+        if(retentionPolicy == ReweighKeepData) ss << "retentionPolicy        = ReweighKeepData" << endl;
         ss << OOSSettings::toString();
         return ss.str();
     }
     //@formatter:on
 };
 
+struct MCCRData : OOSData {
+    unordered_map<shared_ptr<EFGNode>, int> lastReweighUpdate;
+    vector<double> probUpdates;
+
+    inline explicit MCCRData(const Domain &domain) :
+        EFGCache(domain),
+        InfosetCache(domain),
+        CFRData(domain, HistoriesUpdating),
+        PublicStateCache(domain),
+        OOSData(domain) {
+        addCallback([&](const shared_ptr<EFGNode> &n) { this->trackWeightUpdate(n); });
+        probUpdates.push_back(1.0); // for root (preplay) iterations
+        this->trackWeightUpdate(getRootNode());
+    }
+
+    inline MCCRData(const MCCRData &other) :
+        EFGCache(other),
+        InfosetCache(other),
+        CFRData(other),
+        PublicStateCache(other),
+        OOSData(other) {
+        addCallback([&](const shared_ptr<EFGNode> &n) { this->trackWeightUpdate(n); });
+        lastReweighUpdate = other.lastReweighUpdate;
+        probUpdates = other.probUpdates;
+    }
+
+ private:
+    void trackWeightUpdate(const shared_ptr<EFGNode> &node) {
+        lastReweighUpdate.emplace(make_pair(node, probUpdates.size()-1));
+    }
+};
+
 class MCCRResolver: public OOSAlgorithm {
  public:
-    MCCRResolver(const Domain &domain, Player playingPlayer, OOSData &cache, const OOSSettings &cfg)
-        : OOSAlgorithm(domain, playingPlayer, cache, cfg) {}
+    MCCRResolver(const Domain &domain,
+                 Player playingPlayer,
+                 MCCRData &cache,
+                 const MCCRSettings &cfg)
+        : OOSAlgorithm(domain, playingPlayer, cache, cfg),
+          mccr_cfg_(cfg),
+          keep_(cache) {}
 
  protected:
     double handleChanceNode(const shared_ptr<EFGNode> &h, double rm_h_pl, double rm_h_opp,
@@ -68,6 +107,15 @@ class MCCRResolver: public OOSAlgorithm {
     double handleTerminalNode(const shared_ptr<EFGNode> &h,
                               double bs_h_all, double us_h_all,
                               Player exploringPl) override;
+
+    PlayerNodeOutcome sampleExistingTree(const shared_ptr<EFGNode> &h,
+                                         const vector<shared_ptr<Action>> &actions,
+                                         double rm_h_pl, double rm_h_opp,
+                                         double bs_h_all, double us_h_all, double us_h_cn,
+                                         CFRData::InfosetData &data,
+                                         const shared_ptr<AOH> &infoset,
+                                         Player exploringPl) override;
+
     void updateGadgetInfosetRegrets(const shared_ptr<EFGNode> &h, Player exploringPl,
                                     CFRData::InfosetData &data,
                                     double us_h_cn, double rm_zha_all, double rm_ha_all);
@@ -83,28 +131,35 @@ class MCCRResolver: public OOSAlgorithm {
     unordered_map<shared_ptr<AOH>, CFRData::InfosetData> gadgetInfosetData_;
     ProbDistribution gadgetChanceProbs_ = ProbDistribution(OOS_MAX_ACTIONS);
     double gadgetBsum_;
+    MCCRData &keep_;
+    MCCRSettings mccr_cfg_;
 };
 
 class MCCRAlgorithm: public ContinualResolving {
+    MCCRData& cache_;
     unique_ptr<MCCRResolver> resolver_;
     MCCRSettings cfg_;
 
  public:
-    MCCRAlgorithm(const Domain &domain, Player playingPlayer, OOSData &cache, MCCRSettings settings)
-        : ContinualResolving(domain, playingPlayer, cache),
-          resolver_(make_unique<MCCRResolver>(domain, playingPlayer, cache, settings)),
+    MCCRAlgorithm(const Domain &domain,
+                  Player playingPlayer,
+                  MCCRData &data,
+                  MCCRSettings settings)
+        : ContinualResolving(domain, playingPlayer),
+          cache_(data),
+          resolver_(make_unique<MCCRResolver>(domain, playingPlayer, cache_, settings)),
           cfg_(settings) {}
     ~MCCRAlgorithm() override = default;
 
-    const OOSData &getCache() { return cache_; }
     const MCCRSettings &getSettings() { return cfg_; }
-
     void updateGadget() override;
 
+    const MCCRData &getCache() const override { return cache_; }
     PlayControl preplayIteration(const shared_ptr<EFGNode> &rootNode) override;
     PlayControl resolveIteration(const shared_ptr<GadgetRootNode> &gadgetRoot,
                                  const shared_ptr<AOH> &currentInfoset) override;
 
+    double calcProbOfLastAction();
 };
 
 };

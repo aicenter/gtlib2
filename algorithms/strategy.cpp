@@ -90,7 +90,7 @@ ActionProbDistribution mapDistribution(const ProbDistribution &dist,
     }
     return actionDist;
 }
-array<double, 3> calcReachProbs(const shared_ptr<EFGNode> &h, StrategyCache *cache) {
+array<double, 3> calcReachProbs(const shared_ptr<EFGNode> &h, const StrategyCache *cache) {
     array<double, 3> reaches = {1., 1., 1.};
     EFGNode const *current = h.get();
     while (current->getParent() != nullptr) {

@@ -36,48 +36,50 @@ namespace GTLib2::algorithms {
  */
 class ContinualResolving: public GamePlayingAlgorithm {
  protected:
-    OOSData &cache_;
     unique_ptr<GadgetGame> gadget_;
     shared_ptr<GadgetRootNode> gadgetRoot_;
 
  public:
-    ContinualResolving(const Domain &domain, Player playingPlayer, OOSData &cache)
-        : GamePlayingAlgorithm(domain, playingPlayer), cache_(cache), gadget_(nullptr) {}
+    ContinualResolving(const Domain &domain, Player playingPlayer)
+        : GamePlayingAlgorithm(domain, playingPlayer), gadget_(nullptr) {}
 
     virtual ~ContinualResolving() = default;
 
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override {
         // we can't make targetting, if the infoset is not in cache. Give up - play randomly
         // todo: make partial targetting up to the last known infoset at least?
-        if (currentInfoset && !cache_.hasPublicStateFor(*currentInfoset)) return GiveUp;
+        if (currentInfoset && !getCache().hasPublicStateFor(*currentInfoset)) {
+            return GiveUp;
+        }
 
         if (playInfoset_ != currentInfoset) {
             // new infoset!
             playInfoset_ = currentInfoset;
-            playPublicState_ = playInfoset_ ? optional(cache_.getPublicStateFor(*playInfoset_))
+            playPublicState_ = playInfoset_ ? optional(getCache().getPublicStateFor(*playInfoset_))
                                             : nullopt;
 
             updateGadget();
         }
 
         if (currentInfoset == nullopt)
-            return preplayIteration(cache_.getRootNode());
+            return preplayIteration(getCache().getRootNode());
         else
             return resolveIteration(gadget_->getRootNode(), *currentInfoset);
     }
 
     optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override {
-        return cache_.strategyFor(currentInfoset);
+        return getCache().strategyFor(currentInfoset);
     }
 
     virtual void updateGadget() {
         gadget_ = make_unique<GadgetGame>(
-            cache_.getPublicStateSummary(*playPublicState_), playingPlayer_,
+            getCache().getPublicStateSummary(*playPublicState_), playingPlayer_,
             *playInfoset_, SAFE_RESOLVING);
 
         gadgetRoot_ = gadget_->getRootNode();
     }
 
+    virtual const OOSData& getCache() const = 0;
     virtual PlayControl preplayIteration(const shared_ptr<EFGNode> &rootNode) = 0;
     virtual PlayControl resolveIteration(const shared_ptr<GadgetRootNode> &rootNode,
                                          const shared_ptr<AOH> &currentInfoset) = 0;
