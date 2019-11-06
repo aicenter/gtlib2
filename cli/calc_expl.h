@@ -294,6 +294,14 @@ void Command_CalcExpl(args::Subparser &parser) {
                     {"dbar"}, false);
     initializeParser(parser); // always include this line in command
 
+    if (args::get(args::tag_header)) {
+        cout << "preplay" << ",";
+        cout << "move" << ",";
+        cout << "budget" << ",";
+        cout << "expl" << endl;
+        throw args::Header();
+    }
+
     const auto algs = args::get(args::alg);
     if (algs.size() != 1) {
         LOG_ERROR("Exactly one algorithm must be specified!");
@@ -308,13 +316,6 @@ void Command_CalcExpl(args::Subparser &parser) {
     const auto alg = algs.at(0);
     const auto cfg = cfgs.at(0);
 
-    if (args::get(args::tag_header)) {
-        cout << "preplay" << ",";
-        cout << "move" << ",";
-        cout << "budget" << ",";
-        cout << "expl" << endl;
-        throw args::Header();
-    }
     if (args::get(args::tag)) {
         cout << pb << ",";
         cout << mb << ",";

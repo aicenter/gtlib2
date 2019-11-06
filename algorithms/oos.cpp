@@ -456,13 +456,11 @@ void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
         case OOSSettings::WeightedActingPlayerBaseline:
             reach = h->getPlayer() == exploringPl ? rm_h_pl : rm_h_opp;
             a = reach * u_h;
-//            b = reach / s_h_all; // todo: check!! why / s_h_all
             b = reach;
             break;
         case OOSSettings::WeightedAllPlayerBaseline:
             reach = rm_h_pl * rm_h_opp * us_h_cn;
             a = reach * u_h;
-//            b = reach / s_h_all; // todo: check!! why / s_h_all
             b = reach;
             break;
         case OOSSettings::WeightedTimeBaseline:

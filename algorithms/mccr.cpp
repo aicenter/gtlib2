@@ -257,8 +257,7 @@ PlayerNodeOutcome MCCRResolver::sampleExistingTree(const shared_ptr<EFGNode> &h,
 
             for (double &regret : data.regrets) regret *= update;
             for (double &avg: data.avgStratAccumulator) avg *= update;
-            cache_.baselineValues.at(h).denominator *= update; // todo: check
-            cache_.baselineValues.at(h).nominator *= update; // todo: check
+            cache_.baselineValues.at(h).nominator *= update;
 
             idx = currentUpdateIdx;
         }
