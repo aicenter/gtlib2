@@ -13,4 +13,20 @@ I've discovered a few problems:
 2019-11-06.5a65b36.dbar_iigs4_strange
 It seems like the strange weighing is indeed not good, it was some artifact from previos development.
 
+2019-11-06.8d500d1.dbar_iigs4
+not reweighing denominator makes it worse somehow...
+
+2019-11-06.8a18d31.dbar_iigs4
+avg strat should not be updated, since it does not use leaves reach prob
+now the perf gap is much smaller:
+MCCR_naivekeep.ini   ,1000,1000, ,0.028413
+MCCR_reset.ini       ,1000,1000, ,0.120949
+MCCR_reweighkeep.ini ,1000,1000, ,0.0307611
+
+
+2019-11-06.7bacb63.dbar_iigs4.o
+when avg strat is reset, the reweigh is worse than complete reset.
+This is strange:
+MCCR_reweighkeep.ini  0.124618
+MCCR_reset.ini        0.120949
 
