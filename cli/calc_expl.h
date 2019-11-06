@@ -105,7 +105,10 @@ StrategyProfile OOS_AverageStrategy(const Domain &domain, const AlgParams &cfg,
             depth.at(pl)--;
         }
     };
-    traverse(createRootEFGNode(domain));
+
+    if(moveBudget > 0) {
+        traverse(createRootEFGNode(domain));
+    }
 
     return getAverageStrategy(targetData);
 }
@@ -145,16 +148,31 @@ BehavioralStrategy MCCR_AverageStrategyForPlayer(Player traversingPlayer,
         playerData.emplace_back(new MCCRData(*playerData.at(d - 1)));
         MCCRData &currentData = *playerData.at(d);
 
-        if (currentData.hasPublicState(node)) {
+        // check if player has any infosets in which he can play at the public state
+        bool playerIsOwnerOfSomeIS = false;
+        shared_ptr<AOH> anInfoset;
+        if(currentData.hasPublicState(node)) {
+            const auto efgNodes = currentData.getNodesForPubState(node);
+            for (const auto&efgNode : efgNodes) {
+                if(efgNode->getPlayer() == traversingPlayer)  {
+                    playerIsOwnerOfSomeIS = true;
+                    anInfoset = efgNode->getAOHInfSet();
+                    break;
+                }
+            }
+        }
+
+        // This can be actually problematic in complicated public states.
+        // The player may not have sampled his infoset in the public state,
+        // and we will not improve his strategy there - we'll let it be random.
+        if (playerIsOwnerOfSomeIS) {
             auto alg = MCCRAlgorithm(domain, traversingPlayer, currentData, settings);
-            auto infosets = currentData.getInfosetsForPubStatePlayer(node, traversingPlayer);
             // technically, we should do this for each infoset individually
             // because mccr can bias sampling towards the current infoset in the public state.
             // However, for practical purposes, it would be super expensive to do so,
             // as we'd have to re-calculate strategy for each infoset in the tree!
             // Currently, this evaluation takes ~1 day for ~100k sampling per move,
             // to do this per each infoset would be ~100x times more expensive.
-            const shared_ptr<AOH> anInfoset = *infosets.begin(); // todo: random enough? :)
             playForBudget(alg, anInfoset, moveBudget, budgetType);
 
             // copy to evaluated strategy
@@ -165,6 +183,8 @@ BehavioralStrategy MCCR_AverageStrategyForPlayer(Player traversingPlayer,
                 }
             }
         } else {
+            // This might reset oponent strategy. That's fine, because we will call
+            // the computation for him separately.
             for (const auto &infoset : targetData.getInfosetsForPubStatePlayer(
                 node, traversingPlayer)) {
                 // could be augmented IS

@@ -28,6 +28,7 @@
 #include "base/gadget.h"
 #include "algorithms/cfr.h"
 #include "algorithms/oos.h"
+#include "utils/export.h"
 
 namespace GTLib2::algorithms {
 
@@ -72,14 +73,26 @@ class ContinualResolving: public GamePlayingAlgorithm {
     }
 
     virtual void updateGadget() {
-        gadget_ = make_unique<GadgetGame>(
-            getCache().getPublicStateSummary(*playPublicState_), playingPlayer_,
-            *playInfoset_, SAFE_RESOLVING);
+        const auto summary = getCache().getPublicStateSummary(*playPublicState_);
 
+        GadgetVariant variant = UNSAFE_RESOLVING;
+        // if opponent's augmented infoset spans all histories, it is not necessary
+        // to build safe gadget, we only need chance node
+        const auto oneOpponentAOH = summary.topmostHistories.at(0)->getAOHAugInfSet(opponent(playingPlayer_));
+        for (const auto& h : summary.topmostHistories) {
+            if(h->getAOHAugInfSet(opponent(playingPlayer_)) != oneOpponentAOH) {
+                variant = SAFE_RESOLVING;
+                break;
+            }
+        }
+
+        gadget_ = make_unique<GadgetGame>(summary, playingPlayer_, *playInfoset_, variant);
         gadgetRoot_ = gadget_->getRootNode();
+        // for debugging:
+//        utils::exportGambit(gadgetRoot_, "export_" + (*playPublicState_)->toString() + ".gbt");
     }
 
-    virtual const OOSData& getCache() const = 0;
+    virtual const OOSData &getCache() const = 0;
     virtual PlayControl preplayIteration(const shared_ptr<EFGNode> &rootNode) = 0;
     virtual PlayControl resolveIteration(const shared_ptr<GadgetRootNode> &rootNode,
                                          const shared_ptr<AOH> &currentInfoset) = 0;

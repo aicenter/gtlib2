@@ -95,7 +95,14 @@ class MCCRResolver: public OOSAlgorithm {
                  const MCCRSettings &cfg)
         : OOSAlgorithm(domain, playingPlayer, cache, cfg),
           mccr_cfg_(cfg),
-          keep_(cache) {}
+          keep_(cache) {
+
+        if(mccr_cfg_.baseline == OOSSettings::NoBaseline) {
+            LOG_ERROR("There cannot be NoBaseline for MCCR! "
+                      "It needs to save values for resolving.")
+            exit(1);
+        }
+    }
 
  protected:
     double handleChanceNode(const shared_ptr<EFGNode> &h, double rm_h_pl, double rm_h_opp,

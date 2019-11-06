@@ -316,4 +316,15 @@ void exportGambit(const Domain &domain, const string &fileToSave) {
     fs.close();
 }
 
+void exportGambit(const shared_ptr<EFGNode> &rootNode, const string &fileToSave) {
+    ofstream fs(fileToSave);
+    if (!fs.is_open()) {
+        LOG_ERROR("Could not open " << fileToSave << " for writing.")
+        return;
+    }
+    exportGambit(rootNode, fs);
+
+    fs.close();
+}
+
 }

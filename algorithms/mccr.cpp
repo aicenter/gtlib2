@@ -86,8 +86,8 @@ void MCCRAlgorithm::updateGadget() {
         // and baseline values appropriately.
         double p = calcProbOfLastAction();
         cache_.probUpdates.emplace_back(p/(1+p));
-        for (auto&[key, val] : cache_.infosetData)  // we will reset only avg strategy acc
-            std::fill(val.avgStratAccumulator.begin(), val.avgStratAccumulator.end(), 0.);
+//        for (auto&[key, val] : cache_.infosetData)  // we will reset only avg strategy acc
+//            std::fill(val.avgStratAccumulator.begin(), val.avgStratAccumulator.end(), 0.);
     }
 }
 double MCCRAlgorithm::calcProbOfLastAction() {
@@ -238,14 +238,13 @@ PlayerNodeOutcome MCCRResolver::sampleExistingTree(const shared_ptr<EFGNode> &h,
                                                    Player exploringPl) {
     assert(h->type_ == PlayerNode);
 
-    // we may need to reweight regrets
+    // we may need to reweight data at infoset
     if(mccr_cfg_.retentionPolicy == MCCRSettings::ReweighKeepData) {
         const auto lastUpdate = keep_.lastReweighUpdate.find(h);
         const auto currentUpdateIdx = keep_.probUpdates.size() - 1;
 
-        if (lastUpdate == keep_.lastReweighUpdate.end()) {
-            unreachable("we should keep track of all update indices!");
-        }
+        // we should keep track of all update indices!
+        assert(lastUpdate != keep_.lastReweighUpdate.end());
 
         int& idx = lastUpdate->second;
         assert(idx >= 0);
@@ -257,7 +256,9 @@ PlayerNodeOutcome MCCRResolver::sampleExistingTree(const shared_ptr<EFGNode> &h,
             for (int i = idx + 1; i <= currentUpdateIdx; ++i) update *= keep_.probUpdates.at(i);
 
             for (double &regret : data.regrets) regret *= update;
+            for (double &avg: data.avgStratAccumulator) avg *= update;
             cache_.baselineValues.at(h).denominator *= update; // todo: check
+            cache_.baselineValues.at(h).nominator *= update; // todo: check
 
             idx = currentUpdateIdx;
         }

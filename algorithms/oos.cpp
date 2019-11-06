@@ -219,7 +219,7 @@ double OOSAlgorithm::handleChanceNode(const shared_ptr<EFGNode> &h,
     const auto &actions = h->availableActions();
     const auto probs = h->chanceProbs();
 
-    const auto[biasApplicableActions, bsum] = calcBiasing(h, actions, bs_h_all);
+    const auto[_, bsum] = calcBiasing(h, actions, bs_h_all);
     const auto ai = selectChanceAction(h, bsum);
     double bs_ha_all = bsum > 0
                        ? (*pBiasedProbs_)[ai] / bsum
@@ -252,28 +252,37 @@ double OOSAlgorithm::handlePlayerNode(const shared_ptr<EFGNode> &h,
     const auto &actions = h->availableActions();
     assert(actions.size() < OOS_MAX_ACTIONS);
     const auto &infoset = cache_.getInfosetFor(h);
-    const double s_h_all = bias(bs_h_all, us_h_all);
     CFRData::InfosetData &data = cache_.infosetData.at(infoset);
 
     if (playInfoset_ != nullopt && **playInfoset_ == *infoset)
         isBelowTargetIS_ = true; // Change the state. All next histories will be under the target IS
 
+    const double s_h_all = bias(bs_h_all, us_h_all);
+
     // @formatter:off
     const auto[ai, rm_ha_all, u_h, u_x] = (cache_.hasAnyChildren(h))
-        ? sampleExistingTree(h, actions, rm_h_pl, rm_h_opp, bs_h_all, us_h_all, us_h_cn,
+        ? sampleExistingTree(h, actions,
+                             rm_h_pl, rm_h_opp,
+                             bs_h_all, us_h_all, us_h_cn,
                              data, infoset, exploringPl)
-        : incrementallyBuildTree(h, actions, bias(bs_h_all, us_h_all), exploringPl);
+        : incrementallyBuildTree(h, actions, s_h_all, exploringPl);
     // @formatter:on
     double rm_zha_all = rm_zh_all_;
     rm_zh_all_ *= rm_ha_all;
 
-    updateEFGNodeExpectedValue(exploringPl, h, u_h, rm_h_pl, rm_h_opp, us_h_cn, s_h_all);
+    updateEFGNodeExpectedValue(exploringPl, h, u_h,
+                               rm_h_pl, rm_h_opp,
+                               us_h_cn, s_h_all);
+
+
+    // The only probability that's missing here is rm_h_pl
+    // for it to be full reach probability weighted by full sampling probability.
+    double importanceSamplingRatio = rm_h_opp * us_h_cn / s_h_all;
 
     if (h->getPlayer() == exploringPl)
-        updateInfosetRegrets(h, exploringPl, data, ai, u_x, u_h,
-                             rm_h_opp * us_h_cn / s_h_all);
+        updateInfosetRegrets(h, exploringPl, data, ai, u_x, u_h, importanceSamplingRatio);
     else
-        updateInfosetAcc(h, data, rm_h_opp * us_h_cn / s_h_all);
+        updateInfosetAcc(h, data, importanceSamplingRatio);
 
     assert(!isnan(u_h) && !isinf(u_h));
     return u_h;
@@ -287,7 +296,10 @@ PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
                                                    const shared_ptr<AOH> &infoset,
                                                    Player exploringPl) {
     assert(h->type_ == PlayerNode);
-    assert(!isnan(rm_h_pl) && !isnan(rm_h_opp) && !isnan(bs_h_all) && !isnan(us_h_all)
+    assert(!isnan(rm_h_pl)
+               && !isnan(rm_h_opp)
+               && !isnan(bs_h_all)
+               && !isnan(us_h_all)
                && !isnan(us_h_cn));
 
     const bool exploringMoveInNode = h->getPlayer() == exploringPl;
@@ -426,22 +438,25 @@ ActionId OOSAlgorithm::selectNonExploringPlayerAction(const shared_ptr<EFGNode> 
 void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_ptr<EFGNode> &h,
                                               double u_h, double rm_h_pl, double rm_h_opp,
                                               double us_h_cn, double s_h_all) {
-
     // let's make sure that the utility is always for player 0
     // updateVal we get is for the exploring player
     u_h *= exploringPl == Player(0) ? 1 : -1;
 
     const auto &baselineIdx = cache_.baselineValues.find(h);
     assert(baselineIdx != cache_.baselineValues.end());
-    auto baseline = baselineIdx->second;
+    auto& baseline = baselineIdx->second;
 
     double a = 0.0, b = 0.0;
     double reach;
     switch (cfg_.baseline) {
+        // Following two cases calculate expected values of utilities
+        // using weighted averages, as in Eq. (6) in MCCR paper.
+        // The opponent reach probability will be multiplied later,
+        // when (possibly) the gadget is created.
         case OOSSettings::WeightedActingPlayerBaseline:
             reach = h->getPlayer() == exploringPl ? rm_h_pl : rm_h_opp;
             a = reach * u_h;
-            b = reach / s_h_all;
+            b = reach / s_h_all; // todo: check!! why / s_h_all
             break;
         case OOSSettings::WeightedAllPlayerBaseline:
             reach = rm_h_pl * rm_h_opp * us_h_cn;
@@ -459,7 +474,6 @@ void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
         default:
             unreachable("unrecognized option!");
     }
-    // todo: check!!
     baseline.nominator += a;
     baseline.denominator += b;
 }
@@ -506,18 +520,18 @@ void OOSAlgorithm::updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exp
     switch (cfg_.regretMatching) {
         case OOSSettings::RegretMatchingPlus:
             for (int i = 0; i < reg.size(); i++) {
-                if (i == ai) reg[i] = fmax(0, reg[i] + (u_x - u_h) * w);
-                else {
+                if (i == ai)
+                    reg[i] = fmax(0, reg[i] + (u_x - u_h) * w);
+                else
                     reg[i] = fmax(0, reg[i] + (baseline(h, i) - u_h) * w);
-                }
             }
             break;
         case OOSSettings::RegretMatchingNormal:
             for (int i = 0; i < reg.size(); i++) {
-                if (i == ai) reg[i] += (u_x - u_h) * w;
-                else {
+                if (i == ai)
+                    reg[i] += (u_x - u_h) * w;
+                else
                     reg[i] += (baseline(h, i) - u_h) * w;
-                }
             }
             break;
         default:

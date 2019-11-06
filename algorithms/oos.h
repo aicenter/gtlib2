@@ -106,7 +106,7 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
 
  private:
     void createOOSBaselineData(const shared_ptr<EFGNode> &node) {
-        baselineValues.emplace(make_pair(node, Baseline()));
+        baselineValues.emplace(node, Baseline());
     }
 
 };
@@ -295,7 +295,7 @@ typedef tuple<unsigned int, double, double, double> PlayerNodeOutcome;
  *    z - leaf node
  *    zh - from current history to the leaf, i.e. z|h
  *    zha - from current history and playing action a with 100% prob to the leaf, i.e. z|h.a
- *    ha - at the current history playing action a, i.e. h.a
+ *    ha - at the current history playing action a, i.e. resulting to child history h.a
  *
  * Z corresponds to player
  *    pl - current player
@@ -344,7 +344,7 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
      *
      * Utilities are always for the current exploring player.
      *
-     * @param n         current node
+     * @param h         current node
      * @param rm_h_pl   reach prob of the searching player to the current node using RM strategy
      * @param rm_h_opp  reach prob of the opponent  to the current node using RM strategy
      * @param bs_h_all  reach prob of all players to the current node using biased sampling strategy
@@ -371,6 +371,7 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
                                     double us_h_cn,
                                     Player exploringPl);
 
+    // Simulate an outcome from specified node
     PlayerNodeOutcome incrementallyBuildTree(const shared_ptr<EFGNode> &h,
                                              const vector<shared_ptr<Action>> &actions,
                                              double s_h_all,
@@ -382,6 +383,8 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
                                          CFRData::InfosetData &data, const shared_ptr<AOH> &infoset,
                                          Player exploringPl);
 
+    // Internally mutates pBiasedProbs for subsequent use.
+    // Returns biasApplicableActions and sum over biased probs
     pair<int, double> calcBiasing(const shared_ptr<EFGNode> &h,
                                   const vector<shared_ptr<Action>> &actions,
                                   double bs_h_all);

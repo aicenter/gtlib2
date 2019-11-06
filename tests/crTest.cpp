@@ -43,9 +43,11 @@ using domains::GoofSpielDomain;
 using domains::RPSDomain;
 
 class ExampleCR: public ContinualResolving {
+    OOSData cache_;
+
  public:
     ExampleCR(const Domain &domain, Player playingPlayer, OOSData &cache)
-        : ContinualResolving(domain, playingPlayer) {}
+        : ContinualResolving(domain, playingPlayer), cache_(cache) {}
 
     inline PlayControl preplayIteration(const shared_ptr<EFGNode> &rootNode) override {
         cache_.buildTree();
@@ -66,6 +68,8 @@ class ExampleCR: public ContinualResolving {
         }
         return StopImproving;
     }
+
+    const OOSData &getCache() const override { return cache_; }
 };
 
 //TEST(ContinualResolving, ResolverStepsThroughPublicStates) {
