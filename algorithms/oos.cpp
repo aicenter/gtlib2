@@ -444,7 +444,7 @@ void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
 
     const auto &baselineIdx = cache_.baselineValues.find(h);
     assert(baselineIdx != cache_.baselineValues.end());
-    auto& baseline = baselineIdx->second;
+    auto &baseline = baselineIdx->second;
 
     double a = 0.0, b = 0.0;
     double reach;
@@ -456,12 +456,14 @@ void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
         case OOSSettings::WeightedActingPlayerBaseline:
             reach = h->getPlayer() == exploringPl ? rm_h_pl : rm_h_opp;
             a = reach * u_h;
-            b = reach / s_h_all; // todo: check!! why / s_h_all
+//            b = reach / s_h_all; // todo: check!! why / s_h_all
+            b = reach;
             break;
         case OOSSettings::WeightedAllPlayerBaseline:
             reach = rm_h_pl * rm_h_opp * us_h_cn;
             a = reach * u_h;
-            b = reach / s_h_all;
+//            b = reach / s_h_all; // todo: check!! why / s_h_all
+            b = reach;
             break;
         case OOSSettings::WeightedTimeBaseline:
             a = u_h;
