@@ -68,8 +68,9 @@ GambitDomain::ParseNodeLine(std::ifstream &in, const std::string &line, int &lin
     constexpr int NODE_LABEL_OPEN = 2;
     constexpr int NODE_LABEL_CLOSE = 3;
     constexpr int INFOSET_IDX = 4;
-    constexpr int INFOSET_LABEL = 5;
-    constexpr int OUTCOMES_OPEN = 6;
+    constexpr int PUBSTATE_LABEL = 5;
+    constexpr int PUBSTATE_LABEL_CLOSE = 6;
+    constexpr int OUTCOMES_OPEN = 7;
     int state = OPEN;
     unsigned int num_action_quotes = 0;
     std::string buf;
@@ -78,6 +79,7 @@ GambitDomain::ParseNodeLine(std::ifstream &in, const std::string &line, int &lin
     char node_type = 'c'; // invalid node type
     int player = 2;
     int infoset_idx = 0;
+    int pubstate_idx = 0;
     int num_actions = 0;
     std::vector<double> utils;
     std::vector<double> probs;
@@ -117,10 +119,15 @@ GambitDomain::ParseNodeLine(std::ifstream &in, const std::string &line, int &lin
                 assert(node_type == 'p');
                 // now infoset id comes, can be multiple digits
                 if (c != '"') infoset_idx = infoset_idx * 10 + (c - '0');
-                else state = INFOSET_LABEL;
+                else state = PUBSTATE_LABEL;
                 break;
 
-            case INFOSET_LABEL: // ignore label
+            case PUBSTATE_LABEL:
+                if (c != '"') pubstate_idx = pubstate_idx * 10 + (c - '0');
+                else state = PUBSTATE_LABEL_CLOSE;
+                break;
+
+            case PUBSTATE_LABEL_CLOSE:
                 if (c == '{') state = OUTCOMES_OPEN;
                 break;
 
@@ -183,7 +190,7 @@ GambitDomain::ParseNodeLine(std::ifstream &in, const std::string &line, int &lin
     node->node_type = node_type;
     node->player = player;
     node->infoset_idx = infoset_idx;
-    node->num_actions = num_actions;
+    node->pubstate_idx = pubstate_idx;
     node->utils = utils;
     node->probs = probs;
     node->description = ""; // todo:
@@ -205,12 +212,6 @@ GambitDomain::ParseNodeLine(std::ifstream &in, const std::string &line, int &lin
         node->children.emplace_back(move(ParseNodeLine(in, next_line, line_num)));
     }
 
-    // update game stats
-    if (node_type == 't')
-        min_utility_ = std::min(min_utility_, *min_element(utils.begin(), utils.end()));
-    if (node_type == 't')
-        max_utility_ = std::max(max_utility_, *max_element(utils.begin(), utils.end()));
-
     return node;
 }
 
@@ -222,7 +223,7 @@ OutcomeDistribution GambitDomain::createOutcomes(Node *next) const {
             outcomes.emplace_back(OutcomeEntry(Outcome(
                 make_shared<GambitState>(this, next->children[i].get()),
                 createPrivateObs(next->children[i].get()),
-                getNoObservation(),
+                createPublicObs(next->children[i].get()),
                 {0, 0}
             ), next->probs[i]));
         }
@@ -237,7 +238,7 @@ OutcomeDistribution GambitDomain::createOutcomes(Node *next) const {
     return {OutcomeEntry(Outcome(
         make_shared<GambitState>(this, next),
         createPrivateObs(next),
-        getNoObservation(),
+        createPublicObs(next),
         utils
     ))};
 }
@@ -249,6 +250,13 @@ vector<shared_ptr<Observation>> GambitDomain::createPrivateObs(Node *next) const
     }
     obs[next->player] = make_shared<Observation>(next->infoset_idx);
     return obs;
+}
+
+shared_ptr<Observation> GambitDomain::createPublicObs(Node *next) const {
+    if(next->node_type == 't') {
+        return noObservation_;
+    }
+    return make_shared<Observation>(next->pubstate_idx);
 }
 
 OutcomeDistribution GambitState::performActions(const vector<shared_ptr<Action>> &actions) const {

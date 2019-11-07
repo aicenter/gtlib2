@@ -33,12 +33,11 @@ struct Node {
     char node_type;
     int player;
     int infoset_idx;
-    int num_actions;
+    int pubstate_idx;
     std::vector<double> utils;
     std::vector<double> probs;
     std::string description;
     std::vector<std::unique_ptr<Node>> children;
-    std::vector<std::string> actionLabels;
 };
 
 class GambitState;
@@ -53,21 +52,13 @@ class GambitDomain: public Domain {
  protected:
     friend GambitState;
     OutcomeDistribution createOutcomes(Node* next) const;
+    vector<shared_ptr<Observation>> createPrivateObs(Node *next) const;
+    shared_ptr <Observation> createPublicObs(Node *next) const;
 
  private:
     std::unique_ptr<Node> ParseNodeLine(std::ifstream &in, const std::string &line, int &line_num);
-
     std::string file_;  // Path to the gambit file
-
-    // cached fields
-    double min_utility_;
-    double max_utility_;
-    int max_game_length_ = 10000;
-
-    // game tree
-    std::unique_ptr<Node> root_;
-
-    vector<shared_ptr<Observation>> createPrivateObs(Node *next) const;
+    std::unique_ptr<Node> root_; // game tree
 };
 
 
