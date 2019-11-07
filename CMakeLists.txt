@@ -203,6 +203,7 @@ set(SOURCE_FILES
         base/hashing.h base/hashing.cpp
         base/includes.h
         base/random.h base/random.cpp
+        base/constrainingDomain.h
         base/tree.h
         # domains
         domains/chessboard_factory.h domains/chessboard_factory.cpp

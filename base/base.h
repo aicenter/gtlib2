@@ -470,40 +470,6 @@ class Domain {
     const shared_ptr<Observation> noObservation_;
 };
 
-// Struct made to hold any type of constraints, which should be described in the domain
-struct RevealedInfo
-{
-    RevealedInfo() = default;
-    virtual ~RevealedInfo() = default;
-};
-
-// Links turn number and constraints that can be applied at this turn
-typedef unordered_map<unsigned long, shared_ptr<RevealedInfo>> ConstraintsMap;
-
-class EFGNode;
-
-class RevealingDomain{
- public:
-//    RevealingDomain(unsigned int maxStateDepth, unsigned int numberOfPlayers, bool isZeroSum_,
-//                    shared_ptr<Action> noAction, shared_ptr<Observation> noObservation) :
-//           Domain(maxStateDepth, numberOfPlayers, isZeroSum_, noAction, noObservation) {};
-
-    // Create initial values in map (for example, vector of all cards at each turn for GS)
-    // Called at initialisation of DD_ISMCTS
-    virtual void prepareRevealedMap(ConstraintsMap &revealedInfo) const = 0;
-
-    // Cycle through AOIDs to find any new constraints
-    // Called at change of the current infoset
-    virtual bool proceedAOIDs(const shared_ptr<AOH> & currentInfoset, long & startIndex,
-                              ConstraintsMap & revealedInfo) const = 0;
-
-    // Generate new nodes by applying constraints
-    virtual void generateNodes(const shared_ptr<AOH> & currentInfoset,
-                       const ConstraintsMap & revealedInfo,
-                       int max, const std::function<double(const shared_ptr<EFGNode> &)>& newNodeCallback) const = 0;
-};
-
-
 }  // namespace GTLib2
 
 MAKE_EQ(GTLib2::InformationSet)

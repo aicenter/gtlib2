@@ -24,6 +24,7 @@
 #define GTLIB2_STRATEGO_H
 
 #include "base/base.h"
+#include "base/constrainingDomain.h"
 
 namespace GTLib2::domains {
 
@@ -57,6 +58,14 @@ struct StrategoSettings {
     int getBoardSize() const { return boardHeight * boardWidth; };
 };
 
+struct StrategoRevealedInfo: public Constraint {
+    explicit StrategoRevealedInfo(bool moved) : moved(moved), revealedRank(EMPTY) {};
+    explicit StrategoRevealedInfo(Rank rank) : revealedRank(rank), moved(false) {};
+ public:
+    Rank revealedRank;
+    bool moved;
+};
+
 /**
  * Basic rules:
  *
@@ -78,17 +87,7 @@ struct StrategoSettings {
  * emptyBoard_ contains only empty cells and lakes
  * startFigures_ are ranks available to every player they can place on the board during the setup action.
  */
-struct StrategoRevealedInfo : public RevealedInfo
-{
-    explicit StrategoRevealedInfo(bool moved) : moved(moved), revealedRank(EMPTY) {};
-    explicit StrategoRevealedInfo(Rank rank) : revealedRank(rank), moved(false) {};
- public:
-    Rank revealedRank;
-    bool moved;
-};
-
-
-class StrategoDomain: public Domain , public RevealingDomain{
+class StrategoDomain: public Domain, public ConstrainingDomain {
  public:
     explicit StrategoDomain(StrategoSettings settings);
     string getInfo() const override;
@@ -100,26 +99,28 @@ class StrategoDomain: public Domain , public RevealingDomain{
     const int boardWidth_;
     const vector<Rank> startFigures_;
     const vector<CellState> emptyBoard_;
-    bool proceedAOIDs(const shared_ptr<AOH> & currentInfoset, long & startIndex,
-                      ConstraintsMap & revealedFigures) const override;
-    void generateNodes(const shared_ptr<AOH> & currentInfoset,
-        const ConstraintsMap & revealedFigures,
-        int max,const std::function<double(const shared_ptr<EFGNode> &)>& newNodeCallback) const override;
-    void prepareRevealedMap(ConstraintsMap &revealedInfo) const override {};
+    bool updateConstraints(const shared_ptr<AOH> &currentInfoset, long &startIndex,
+                           ConstraintsMap &revealedFigures) const override;
+    void generateNodes(const shared_ptr<AOH> &currentInfoset,
+                       const ConstraintsMap &revealedFigures,
+                       int max, const EFGNodeCallback &newNodeCallback) const override;
+    void initializeEnumerativeConstraints(ConstraintsMap &revealedInfo) const override {};
  private:
-    void recursiveNodeGeneration(const shared_ptr<AOH> & currentInfoset,
-                                                const shared_ptr<EFGNode> & node, int depth,
-                                                 const vector<shared_ptr<StrategoRevealedInfo>> & mask,
-                                                 const vector<Rank>& remaining, int & counter,
-                                                 const std::function<double(const shared_ptr<EFGNode> &)>& newNodeCallback) const;
+    void recursiveNodeGeneration(const shared_ptr<AOH> &currentInfoset,
+                                 const shared_ptr<EFGNode> &node, int depth,
+                                 const vector<shared_ptr<StrategoRevealedInfo>> &mask,
+                                 const vector<Rank> &remaining, int &counter,
+                                 const EFGNodeCallback &newNodeCallback) const;
     void simulateMoves(const vector<ActionObservationIds> &aoids,
-                       shared_ptr<EFGNode> node, const std::function<double(const shared_ptr<EFGNode> &)>& newNodeCallback) const;
+                       shared_ptr<EFGNode> node, const EFGNodeCallback &newNodeCallback) const;
 };
 
 CellState createCell(Rank figure, Player player);
 bool isFigureSlain(CellState attacker, CellState defender);
+
 /**
  * Setup actions are permutations of startFigures_ of domain.
+ * They are factorized over cell positions.
  *
  * Figures are placed from the left top cell to the right for player 0,
  * and right bottom cell to the right for player 1.
@@ -148,9 +149,9 @@ class StrategoMoveAction: public Action {
 };
 
 class StrategoMoveObservation: public Observation {
-public:
+ public:
     inline StrategoMoveObservation() :
-            Observation(), startPos_(0), endPos_(0), startCell_(0), endCell_(0) {}
+        Observation(), startPos_(0), endPos_(0), startCell_(0), endCell_(0) {}
     StrategoMoveObservation(int startPos, int endPos, Rank startCell, Rank endCell);
     const int startPos_;
     const int endPos_;
@@ -178,12 +179,12 @@ class StrategoState: public State {
         isFinished_(finished),
         currentPlayer_(player),
         boardIDToPlace_(0),
-        noAttackCounter_(noAttackCounter)  {
-        }
+        noAttackCounter_(noAttackCounter) {
+    }
 
     unsigned long countAvailableActionsFor(Player player) const override;
     // for future use
-    shared_ptr<Action> getActionByID(Player player, ActionId action) const override ;
+    shared_ptr<Action> getActionByID(Player player, ActionId action) const override;
     vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
     OutcomeDistribution performMoveAction(const vector<shared_ptr<Action>> &actions) const;
     OutcomeDistribution performSetupAction(const vector<shared_ptr<Action>> &actions) const;

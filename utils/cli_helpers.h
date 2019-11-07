@@ -246,12 +246,12 @@ std::unique_ptr<GTLib2::AlgorithmWithData> constructAlgWithData(const GTLib2::Do
         }},
         {"CPW",   [&]() {
             auto fact = make_shared<UCTSelectorFactory>(sqrt(2));
-            ISMCTSSettings settings = {.useBelief = true, .fact_ = std::static_pointer_cast<SelectorFactory>(fact), .randomSeed = 2};
+            ISMCTSSettings settings = {.fact_ = std::static_pointer_cast<SelectorFactory>(fact), .useBelief = true, .randomSeed = 2};
             return make_unique<WrapperCPW>(d, settings);
         }},
         {"DD",   [&]() {
             auto fact = make_shared<UCTSelectorFactory>(sqrt(2));
-            ISMCTSSettings settings = {.useBelief = true, .fact_ = std::static_pointer_cast<SelectorFactory>(fact), .randomSeed = 2};
+            ISMCTSSettings settings = {.fact_ = std::static_pointer_cast<SelectorFactory>(fact), .useBelief = true, .randomSeed = 2};
             return make_unique<WrapperDD>(d, settings);
         }},
         {"RND",   [&]() { return make_unique<WrapperRND>(); }},

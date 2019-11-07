@@ -29,7 +29,7 @@ class DD_ISMCTS : public CPW_ISMCTS {
  public:
     explicit DD_ISMCTS(const Domain &domain, Player playingPlayer, ISMCTSSettings config) :
         CPW_ISMCTS(domain, playingPlayer, std::move(config)), generateIters_(config.generateIters), iterateRoot_(config.iterateRoot) {
-        dynamic_cast<const RevealingDomain&>(domain).prepareRevealedMap(revealed_); // check is domain is appliable and prepare map
+        dynamic_cast<const ConstrainingDomain &>(domain).initializeEnumerativeConstraints(revealed_); // check is domain is appliable and prepare map
     };
 
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
@@ -40,7 +40,7 @@ class DD_ISMCTS : public CPW_ISMCTS {
 
  private:
     bool isCurrentISUndiscovered_ = false;
-    unordered_map<unsigned long, shared_ptr<RevealedInfo>> revealed_;
+    unordered_map<unsigned long, shared_ptr<Constraint>> revealed_;
     long  lastRevealAoid_ = -1;
     bool currentISChecked_ = true;
     const int generateIters_ = 1000;

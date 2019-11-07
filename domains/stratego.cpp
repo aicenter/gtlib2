@@ -552,7 +552,7 @@ unsigned int backtrackPosition(const vector<ActionObservationIds> & aoids, unsig
 
 
 
-bool StrategoDomain::proceedAOIDs(const shared_ptr<AOH> & currentInfoset,
+bool StrategoDomain::updateConstraints(const shared_ptr<AOH> & currentInfoset,
     long & startIndex, ConstraintsMap & revealedFigures) const
 {
     bool newFigureRevealed = false;
@@ -587,7 +587,7 @@ bool StrategoDomain::proceedAOIDs(const shared_ptr<AOH> & currentInfoset,
 }
 
 void StrategoDomain::simulateMoves(const vector<ActionObservationIds> & aoids,
-    const shared_ptr<EFGNode> node, const std::function<double(const shared_ptr<EFGNode> &)> & newNodeCallback) const{
+    const shared_ptr<EFGNode> node, const EFGNodeCallback & newNodeCallback) const{
     auto currentNode = node;
     for (int i = startFigures_.size()*2+1; i < aoids.size(); i++) {
         if (currentNode->getAOHInfSet()->getAOids() == aoids) {
@@ -617,7 +617,7 @@ void StrategoDomain::recursiveNodeGeneration(const shared_ptr<AOH> & currentInfo
                                              const shared_ptr<EFGNode> & node, int depth,
                                              const vector<shared_ptr<StrategoRevealedInfo>> & mask,
                                              const vector<Rank>& remaining, int & counter,
-                                             const std::function<double(const shared_ptr<EFGNode> &)>& newNodeCallback) const {
+                                             const EFGNodeCallback& newNodeCallback) const {
     shared_ptr<EFGNode> currentNode = node;
     if (counter <= 0) return;
     if (depth == mask.size()) {
@@ -660,7 +660,7 @@ void StrategoDomain::recursiveNodeGeneration(const shared_ptr<AOH> & currentInfo
 }
 
 void StrategoDomain::generateNodes(const shared_ptr<AOH> & currentInfoset, const ConstraintsMap & revealedFigures,
-                                        const int max, const std::function<double(const shared_ptr<EFGNode> &)> & newNodeCallback) const
+                                        const int max, const EFGNodeCallback & newNodeCallback) const
 {
     vector<shared_ptr<StrategoRevealedInfo>> mask = vector<shared_ptr<StrategoRevealedInfo>>(startFigures_.size());
     for (int i = 0 ; i < mask.size(); i++)

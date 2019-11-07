@@ -376,7 +376,7 @@ void removeRest(ConstraintsMap &revealedInfo)
         removeRest(revealedInfo);
 }
 
-bool GoofSpielDomain::proceedAOIDs(const shared_ptr<AOH> & currentInfoset, long &startIndex,
+bool GoofSpielDomain::updateConstraints(const shared_ptr<AOH> & currentInfoset, long &startIndex,
                                    ConstraintsMap &revealedInfo) const {
     for (unsigned long i = startIndex + 1; i < currentInfoset->getAOids().size(); i++) {
         if (i == 0 || currentInfoset->getAOids()[i].observation >= OBSERVATION_PLAYER_MOVE) continue;
@@ -415,7 +415,7 @@ bool GoofSpielDomain::proceedAOIDs(const shared_ptr<AOH> & currentInfoset, long 
 
 void GoofSpielDomain::recursiveNodeGeneration(const shared_ptr<AOH> & currentInfoset,
                                              const shared_ptr<EFGNode> & node, int depth, int maxDepth, const ConstraintsMap &revealedInfo,
-                                             vector<int> remaining, int & counter, const std::function<double(const shared_ptr<EFGNode> &)>& newNodeCallback) const {
+                                             vector<int> remaining, int & counter, const EFGNodeCallback& newNodeCallback) const {
     if (counter <= 0) return;
     if (depth == maxDepth) {
         if (currentInfoset->getPlayer() == 1) {
@@ -465,7 +465,7 @@ void GoofSpielDomain::recursiveNodeGeneration(const shared_ptr<AOH> & currentInf
 void GoofSpielDomain::generateNodes(const shared_ptr<AOH> & currentInfoset,
                                     const ConstraintsMap & revealedInfo,
                                     const int max,
-                                    const std::function<double(const shared_ptr<EFGNode> &)>& newNodeCallback) const {
+                                    const EFGNodeCallback& newNodeCallback) const {
     const auto root = createRootEFGNode(*this);
     vector<int> deck = vector<int>(numberOfCards_);
     std::iota(deck.begin(), deck.end(), 1);
@@ -478,7 +478,7 @@ void GoofSpielDomain::generateNodes(const shared_ptr<AOH> & currentInfoset,
     recursiveNodeGeneration(currentInfoset, root, 0, maxDepth, revealedInfo, deck, a, newNodeCallback);
 }
 
-void GoofSpielDomain::prepareRevealedMap(ConstraintsMap &revealedInfo) const {
+void GoofSpielDomain::initializeEnumerativeConstraints(ConstraintsMap &revealedInfo) const {
     auto deck = vector<int>(numberOfCards_);
     std::iota(deck.begin(), deck.end(), 1);
     for (int i = 0; i < numberOfCards_; i++) {

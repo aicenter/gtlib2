@@ -35,15 +35,17 @@ TEST(DDISMCTS, GSHistoriesGenerationTestpl1) {
     domains::GoofSpielDomain domain(settings);
     const auto root = createRootEFGNode(domain);
     auto currnode = root;
-    unordered_map<unsigned long, shared_ptr<RevealedInfo>> revealed_;
-    domain.prepareRevealedMap(revealed_);
+    unordered_map<unsigned long, shared_ptr<Constraint>> revealed_;
+    domain.initializeEnumerativeConstraints(revealed_);
     currnode = currnode->performAction(currnode->getActionByID(4));//5 (5-6)
     currnode = currnode->performAction(currnode->getActionByID(3));//4 (1-4)
     currnode = currnode->performAction(currnode->getActionByID(0));//1 (1-2)
     currnode = currnode->performAction(currnode->getActionByID(2));//3 (2-5)
     currnode = currnode->performAction(currnode->getActionByID(0));//2
     long startindex = 0;
-    domain.proceedAOIDs(make_shared<AOH>(1, currnode->getAOHInfSet()->getAOids()), startindex, revealed_);
+    domain.updateConstraints(make_shared<AOH>(1, currnode->getAOHInfSet()->getAOids()),
+                             startindex,
+                             revealed_);
     int count = 0;
     domain.generateNodes(make_shared<AOH>(1, currnode->getAOHInfSet()->getAOids()), revealed_, 1000,
                          [&r = count](const shared_ptr<EFGNode> & node) -> double{ return r++;});
@@ -57,14 +59,16 @@ TEST(DDISMCTS, GSHistoriesGenerationTestpl0) {
     domains::GoofSpielDomain domain(settings);
     const auto root = createRootEFGNode(domain);
     auto currnode = root;
-    unordered_map<unsigned long, shared_ptr<RevealedInfo>> revealed_;
-    domain.prepareRevealedMap(revealed_);
+    unordered_map<unsigned long, shared_ptr<Constraint>> revealed_;
+    domain.initializeEnumerativeConstraints(revealed_);
     currnode = currnode->performAction(currnode->getActionByID(3));//4 (1-4)
     currnode = currnode->performAction(currnode->getActionByID(4));//5 (5-6)
     currnode = currnode->performAction(currnode->getActionByID(2));//3 (2-5)
     currnode = currnode->performAction(currnode->getActionByID(0));//1 (1-2)
     long startindex = 0;
-    domain.proceedAOIDs(make_shared<AOH>(0, currnode->getAOHInfSet()->getAOids()), startindex, revealed_);
+    domain.updateConstraints(make_shared<AOH>(0, currnode->getAOHInfSet()->getAOids()),
+                             startindex,
+                             revealed_);
     int count = 0;
     domain.generateNodes(make_shared<AOH>(0, currnode->getAOHInfSet()->getAOids()), revealed_, 1000,
         [&r = count](const shared_ptr<EFGNode> & node) -> double{ return r++;});
@@ -72,6 +76,7 @@ TEST(DDISMCTS, GSHistoriesGenerationTestpl0) {
 }
 
 TEST(DDISMCTS, GS19Test) {
+    // todo: runs awfully slow (2mins), and fails! using gcc compiler
     auto rewards = vector<double>(20);
     for (int seed = 0; seed < 20; ++seed) {
         GTLib2::domains::GoofSpielSettings settings
@@ -97,6 +102,7 @@ TEST(DDISMCTS, GS19Test) {
 }
 
 TEST(DDISMCTS, GS10Test) {
+    // todo: runs awfully slow (24sec), and fails! using gcc compiler
     auto rewards = vector<double>(100);
 
     for (int seed = 0; seed < 100; ++seed) {
@@ -123,6 +129,7 @@ TEST(DDISMCTS, GS10Test) {
 }
 
 TEST(DDISMCTS, Strat6Test) {
+    // todo: runs awfully slow (33sec), and fails! using gcc compiler
     auto rewards = vector<double>(20);
 
     for (int seed = 0; seed < 20; ++seed) {
