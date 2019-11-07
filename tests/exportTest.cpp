@@ -41,12 +41,11 @@ TEST(Export, GambitSmallDomain) {
 
     string expectedGambit =
         R"(EFG 2 R "" { "Pl0" "Pl1" })" "\n"
-        R"("")" "\n"
-        R"(p "" 1 1 "" { "Heads" "Tails" } 0)" "\n"
-        R"( p "" 2 2 "" { "Heads" "Tails" } 0)" "\n"
+        R"(p "" 1 1 "1" { "Heads" "Tails" } 0)" "\n"
+        R"( p "" 2 2 "2" { "Heads" "Tails" } 0)" "\n"
         R"(  t "" 0 "" { 1, -1})" "\n"
         R"(  t "" 1 "" { -1, 1})" "\n"
-        R"( p "" 2 2 "" { "Heads" "Tails" } 0)" "\n"
+        R"( p "" 2 2 "2" { "Heads" "Tails" } 0)" "\n"
         R"(  t "" 2 "" { -1, 1})" "\n"
         R"(  t "" 3 "" { 1, -1})" "\n";
     EXPECT_EQ(expectedGambit, gambit_os.str());
