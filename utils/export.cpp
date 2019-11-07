@@ -174,7 +174,6 @@ void exportGraphViz(const Domain &domain, const string &fileToSave) {
 void exportGambit(const shared_ptr<EFGNode>& node, std::ostream &fs) {
     // Print header
     fs << "EFG 2 R \"" << R"(" { "Pl0" "Pl1" })" << "\n";
-    fs << "\"\"\n";
 
     int terminalIdx = 0, chanceIdx = 0, infosetIdx = 0;
     unordered_map<shared_ptr<AOH>, int> infoset2id;

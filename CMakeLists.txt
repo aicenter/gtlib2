@@ -206,6 +206,7 @@ set(SOURCE_FILES
         base/tree.h
         # domains
         domains/chessboard_factory.h domains/chessboard_factory.cpp
+        domains/gambit.h domains/gambit.cpp
         domains/genericPoker.h domains/genericPoker.cpp
         domains/goofSpiel.h domains/goofSpiel.cpp
         domains/kriegspiel.h domains/kriegspiel.cpp
@@ -255,6 +256,7 @@ set(TEST_FILES
         tests/efgTest.cpp
         tests/exportTest.cpp
         tests/gadgetTest.cpp
+        tests/gambitTest.cpp
         tests/genericPokerTest.cpp
         tests/goofSpielTest.cpp
         tests/hashingTest.cpp
