@@ -238,10 +238,10 @@ void exportGraphViz(const Domain &domain, const string &fileToSave) {
 void exportGambit(const shared_ptr<EFGNode>& node, std::ostream &fs) {
     // Print header
     fs << "EFG 2 R \"" << R"(" { "Pl0" "Pl1" })" << "\n";
-    fs << "\"\"\n";
 
-    int terminalIdx = 0, chanceIdx = 0, infosetIdx = 0;
+    int terminalIdx = 0, chanceIdx = 0, infosetIdx = 0, pubStateIdx = 0;
     unordered_map<shared_ptr<AOH>, int> infoset2id;
+    unordered_map<shared_ptr<PublicState>, int> pubstate2id;
 
     auto walkPrint = [&](shared_ptr<EFGNode> node) {
 // Useful for debugging, but in normal view it clutters the graph a lot:
@@ -275,10 +275,18 @@ void exportGambit(const shared_ptr<EFGNode>& node, std::ostream &fs) {
                 } else {
                     isId = infoset2id.find(infoset)->second;
                 }
+                auto pubstate = node->getPublicState();
+                int psId;
+                if (pubstate2id.find(pubstate) == pubstate2id.end()) {
+                    pubstate2id.emplace(make_pair(pubstate, ++pubStateIdx));
+                    psId = pubStateIdx;
+                } else {
+                    psId = pubstate2id.find(pubstate)->second;
+                }
 
                 auto actions = node->availableActions();
                 fs << "p \"" << nodeLabel << "\" "
-                   << (int(node->getPlayer()) + 1) << " " << isId << " \"\" { ";
+                   << (int(node->getPlayer()) + 1) << " " << isId << " \"" << psId << "\" { ";
                 for (const auto &action: actions) {
                     fs << "\"" << action->toString() << "\" ";
                 }
