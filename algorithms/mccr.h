@@ -140,6 +140,7 @@ class MCCRResolver: public OOSAlgorithm {
     double gadgetBsum_;
     MCCRData &keep_;
     MCCRSettings mccr_cfg_;
+    double leafWeight_;
 };
 
 class MCCRAlgorithm: public ContinualResolving {

@@ -29,6 +29,7 @@ PlayControl MCCRAlgorithm::preplayIteration(const shared_ptr<EFGNode> &rootNode)
 
     r->isBiasedIteration_ = false; // nothing to bias towards in preplay
     r->isBelowTargetIS_ = true; // everything is below "target IS"
+    r->leafWeight_ = 1; // from root, no gadget is built
 
     for (int t = 0; t < r->cfg_.batchSize; ++t) {
         for (int exploringPl = 0; exploringPl < 2; ++exploringPl) {
@@ -106,11 +107,18 @@ double MCCRAlgorithm::calcProbOfLastAction() {
     return p;
 }
 
+
+// -----------------------------------------------------------------------------------------------
+// MCCRResolver
+// -----------------------------------------------------------------------------------------------
+
+
 void MCCRResolver::updateGadget(GadgetGame *newGadget) {
     gadget_ = newGadget;
 
     double playInfosetReachProb = updateGadgetInfosetData();
     updateGadgetBiasingProbs(playInfosetReachProb);
+    leafWeight_ = gadget_->pubStateReach_;
 }
 
 double MCCRResolver::updateGadgetInfosetData() {
@@ -295,8 +303,7 @@ double MCCRResolver::handleTerminalNode(const shared_ptr<EFGNode> &h,
 
     // We must multiply leaf utilities by pub state reach,
     // to eliminate normalization in the gadget chance node
-    double reach = gadget_ ? gadget_->pubStateReach_ : 1.0; // 1.0 if not using gadget in the root
-    return reach * OOSAlgorithm::handleTerminalNode(h, bs_h_all, us_h_all, exploringPl);
+    return leafWeight_ * OOSAlgorithm::handleTerminalNode(h, bs_h_all, us_h_all, exploringPl);
 }
 
 }

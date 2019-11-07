@@ -141,6 +141,7 @@ unique_ptr<Domain> constructDomain(const string &description) {
         {"GP_large",   [ ](vector<string> p) { return make_unique<GenericPokerDomain>(4,6,4,4,4,1); }},
         {"LD_116",     [ ](vector<string> p) { return make_unique<LiarsDiceDomain>(vector<int>{1, 1}, 6); }},
         {"LD_226",     [ ](vector<string> p) { return make_unique<LiarsDiceDomain>(vector<int>{2, 2}, 6); }},
+        {"LD_tiny",    [ ](vector<string> p) { return make_unique<LiarsDiceDomain>(vector<int>{1, 1}, 3); }},
         {"LD_small",   [ ](vector<string> p) { return make_unique<LiarsDiceDomain>(vector<int>{1, 1}, 6); }},
         {"LD_large",   [ ](vector<string> p) { return make_unique<LiarsDiceDomain>(vector<int>{2, 2}, 6); }},
         {"STRAT2x2",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{2,2,{},{'1', '2'}}); }},
