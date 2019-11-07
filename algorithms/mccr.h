@@ -55,7 +55,7 @@ struct MCCRSettings: OOSSettings {
     //@formatter:on
 };
 
-struct MCCRData : OOSData {
+struct MCCRData: OOSData {
     unordered_map<shared_ptr<EFGNode>, int> lastReweighUpdate;
     vector<double> probUpdates;
 
@@ -83,7 +83,7 @@ struct MCCRData : OOSData {
 
  private:
     void trackWeightUpdate(const shared_ptr<EFGNode> &node) {
-        lastReweighUpdate.emplace(make_pair(node, probUpdates.size()-1));
+        lastReweighUpdate.emplace(make_pair(node, probUpdates.size() - 1));
     }
 };
 
@@ -97,7 +97,7 @@ class MCCRResolver: public OOSAlgorithm {
           mccr_cfg_(cfg),
           keep_(cache) {
 
-        if(mccr_cfg_.baseline == OOSSettings::NoBaseline) {
+        if (mccr_cfg_.baseline == OOSSettings::NoBaseline) {
             LOG_ERROR("There cannot be NoBaseline for MCCR! "
                       "It needs to save values for resolving.")
             exit(1);
@@ -127,6 +127,11 @@ class MCCRResolver: public OOSAlgorithm {
                                     CFRData::InfosetData &data,
                                     double us_h_cn, double rm_zha_all, double rm_ha_all);
 
+    void updateEFGNodeExpectedValue(Player exploringPl, const shared_ptr<EFGNode> &h,
+                                    double u_h, double rm_h_pl, double rm_h_opp,
+                                    double us_h_cn, double s_h_all) override;
+
+
     // only MCCRAlgorithm can update gadget
     friend MCCRAlgorithm;
     void updateGadget(GadgetGame *newGadget);
@@ -144,7 +149,7 @@ class MCCRResolver: public OOSAlgorithm {
 };
 
 class MCCRAlgorithm: public ContinualResolving {
-    MCCRData& cache_;
+    MCCRData &cache_;
     unique_ptr<MCCRResolver> resolver_;
     MCCRSettings cfg_;
 

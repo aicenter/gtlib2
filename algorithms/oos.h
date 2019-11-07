@@ -377,11 +377,15 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
                                              double s_h_all,
                                              Player exploringPl);
     virtual PlayerNodeOutcome sampleExistingTree(const shared_ptr<EFGNode> &h,
-                                         const vector<shared_ptr<Action>> &actions,
-                                         double rm_h_pl, double rm_h_opp,
-                                         double bs_h_all, double us_h_all, double us_h_cn,
-                                         CFRData::InfosetData &data, const shared_ptr<AOH> &infoset,
-                                         Player exploringPl);
+                                                 const vector<shared_ptr<Action>> &actions,
+                                                 double rm_h_pl,
+                                                 double rm_h_opp,
+                                                 double bs_h_all,
+                                                 double us_h_all,
+                                                 double us_h_cn,
+                                                 CFRData::InfosetData &data,
+                                                 const shared_ptr<AOH> &infoset,
+                                                 Player exploringPl);
 
     // Internally mutates pBiasedProbs for subsequent use.
     // Returns biasApplicableActions and sum over biased probs
@@ -396,17 +400,15 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
                                                  int biasApplicableActions, double bsum);
     virtual ActionId selectNonExploringPlayerAction(const shared_ptr<EFGNode> &h, double bsum);
 
-    void updateEFGNodeExpectedValue(Player exploringPl,
-                                    const shared_ptr<EFGNode> &h,
-                                    double u_h,
-                                    double rm_h_pl,
-                                    double rm_h_opp,
-                                    double us_h_cn,
-                                    double s_h_all);
+    virtual void updateEFGNodeExpectedValue(Player exploringPl, const shared_ptr<EFGNode> &h,
+                                            double u_h, double rm_h_pl, double rm_h_opp,
+                                            double us_h_cn, double s_h_all);
     virtual void updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exploringPl,
                                       CFRData::InfosetData &data, int ai,
                                       double u_x, double u_h, double w);
-    void updateInfosetAcc(const shared_ptr<EFGNode> &h, CFRData::InfosetData &data, double importanceSamplingRatio);
+    void updateInfosetAcc(const shared_ptr<EFGNode> &h,
+                          CFRData::InfosetData &data,
+                          double importanceSamplingRatio);
 
     inline double bias(double biased, double nonBiased) const {
         return cfg_.targetBiasing * biased + (1 - cfg_.targetBiasing) * nonBiased;

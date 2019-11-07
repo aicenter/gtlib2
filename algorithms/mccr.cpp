@@ -86,9 +86,7 @@ void MCCRAlgorithm::updateGadget() {
         // when was the last time it was updated, and multiply regrets
         // and baseline values appropriately.
         double p = calcProbOfLastAction();
-        cache_.probUpdates.emplace_back(p/(1+p));
-//        for (auto&[key, val] : cache_.infosetData)  // we will reset only avg strategy acc
-//            std::fill(val.avgStratAccumulator.begin(), val.avgStratAccumulator.end(), 0.);
+        cache_.probUpdates.emplace_back(p / (1 + p));
     }
 }
 double MCCRAlgorithm::calcProbOfLastAction() {
@@ -247,17 +245,17 @@ PlayerNodeOutcome MCCRResolver::sampleExistingTree(const shared_ptr<EFGNode> &h,
     assert(h->type_ == PlayerNode);
 
     // we may need to reweight data at infoset
-    if(mccr_cfg_.retentionPolicy == MCCRSettings::ReweighKeepData) {
+    if (mccr_cfg_.retentionPolicy == MCCRSettings::ReweighKeepData) {
         const auto lastUpdate = keep_.lastReweighUpdate.find(h);
         const auto currentUpdateIdx = keep_.probUpdates.size() - 1;
 
         // we should keep track of all update indices!
         assert(lastUpdate != keep_.lastReweighUpdate.end());
 
-        int& idx = lastUpdate->second;
+        int &idx = lastUpdate->second;
         assert(idx >= 0);
 
-        if(currentUpdateIdx != idx) { // should update
+        if (currentUpdateIdx != idx) { // should update
             assert(idx < currentUpdateIdx);
 
             double update = 1.0;
@@ -296,6 +294,16 @@ void MCCRResolver::updateGadgetInfosetRegrets(const shared_ptr<EFGNode> &h, Play
     data.regrets[0] += (1 - p_follow) * diff;
     data.regrets[1] += -p_follow * diff;
 }
+
+void MCCRResolver::updateEFGNodeExpectedValue(Player exploringPl, const shared_ptr<EFGNode> &h,
+                                              double u_h, double rm_h_pl, double rm_h_opp,
+                                              double us_h_cn, double s_h_all) {
+    // undo the efffect of normalization of leaf utils
+    OOSAlgorithm::updateEFGNodeExpectedValue(
+        exploringPl, h, u_h / leafWeight_, rm_h_pl, rm_h_opp, us_h_cn, s_h_all
+    );
+}
+
 
 double MCCRResolver::handleTerminalNode(const shared_ptr<EFGNode> &h,
                                         double bs_h_all, double us_h_all,
