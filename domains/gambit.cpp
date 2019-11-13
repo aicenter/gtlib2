@@ -56,7 +56,7 @@ GambitDomain::GambitDomain(string file) : Domain(1000, 2, true,
 }
 
 std::unique_ptr<Node>
-GambitDomain::ParseNodeLine(std::ifstream &in, const std::string &line, int &line_num) {
+GambitDomain::ParseNodeLine(std::istream &in, const std::string &line, int &line_num) {
     line_num++;
 
     // A node line is something like:
@@ -89,6 +89,10 @@ GambitDomain::ParseNodeLine(std::ifstream &in, const std::string &line, int &lin
 
         switch (state) {
             case OPEN:
+                if(c == '#') { // comment
+                    return nullptr;
+                }
+
                 if (!(c == 'c' || c == 'p' || c == 't')) {
                     cerr << "Node type can be either c/p/t "
                             "at line " + std::to_string(line_num) + ". Line is: " + line << endl;
@@ -194,6 +198,8 @@ GambitDomain::ParseNodeLine(std::ifstream &in, const std::string &line, int &lin
     node->utils = utils;
     node->probs = probs;
     node->description = ""; // todo:
+
+    if(node_type == 't') maxUtility_ = max(maxUtility_, max(utils[0], utils[1]));
 
     // create the node
     for (int i = 0; i < num_actions; ++i) {

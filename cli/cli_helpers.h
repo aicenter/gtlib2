@@ -39,6 +39,7 @@
 #include "algorithms/MCTS/selectors/RMSelectorFactory.h"
 #include "algorithms/MCTS/selectors/Exp3SelectorFactory.h"
 
+#include "domains/gambit.h"
 #include "domains/goofSpiel.h"
 #include "domains/oshiZumo.h"
 #include "domains/genericPoker.h"
@@ -89,6 +90,16 @@ unique_ptr<Domain> constructDomain(const string &description) {
         });
     };
 
+    const auto parseGambit = [](vector<string> p) {
+        if(p.size() == 0) {
+            LOG_ERROR("Gambit domain needs input file as first argument")
+            exit(1);
+        }
+        auto file = p.at(0);
+        LOG_INFO("Loading domain from gambit file " + file)
+        return make_unique<GambitDomain>(file);
+    };
+
     const auto parseOshizumo = [](vector<string> p, OshiZumoVariant v) {
         const auto startingCoins = p.size() >= 1 ? static_cast<uint32>(stoi(p.at(0))) : 3;
         const auto startingLocation = p.size() >= 2 ? static_cast<uint32>(stoi(p.at(1))) : 3;
@@ -104,6 +115,7 @@ unique_ptr<Domain> constructDomain(const string &description) {
 
     // @formatter:off
     unordered_map<string, function<unique_ptr<Domain>(vector<string>)>> domainsTable = {
+        {"gambit",     [&](vector<string> p) { return parseGambit(p); }},
         {"IIGS",       [&](vector<string> p) { return parseGoofspiel(p, GoofSpielVariant::IncompleteObservations); }},
         {"IIGS_2",     [ ](vector<string> p) { return GoofSpielDomain::IIGS(2); }},
         {"IIGS_3",     [ ](vector<string> p) { return GoofSpielDomain::IIGS(3); }},

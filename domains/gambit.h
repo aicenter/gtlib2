@@ -56,7 +56,7 @@ class GambitDomain: public Domain {
     shared_ptr <Observation> createPublicObs(Node *next) const;
 
  private:
-    std::unique_ptr<Node> ParseNodeLine(std::ifstream &in, const std::string &line, int &line_num);
+    std::unique_ptr<Node> ParseNodeLine(std::istream &in, const std::string &line, int &line_num);
     std::string file_;  // Path to the gambit file
     std::unique_ptr<Node> root_; // game tree
 };
