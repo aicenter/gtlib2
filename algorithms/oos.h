@@ -51,10 +51,11 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
         baselineValues = other.baselineValues;
     }
 
-    inline double getBaselineFor(const shared_ptr<EFGNode> h, ActionId action, Player exploringPl) {
+    inline double getBaselineFor(const shared_ptr<EFGNode>& h, ActionId action, Player exploringPl) {
         return baselineValues.at(h).value() * (exploringPl == Player(0) ? 1 : -1);
     }
 
+    // always stored for Player(0)
     struct Baseline {
         double nominator = 0.;
         double denominator = 1.;
@@ -106,7 +107,11 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
 
  private:
     void createOOSBaselineData(const shared_ptr<EFGNode> &node) {
-        baselineValues.emplace(node, Baseline());
+        if(node->type_ == TerminalNode)
+            // todo: should we create this for NoBaseline?
+            baselineValues.emplace(node, Baseline{node->getUtilities()[0], 1.});
+        else
+            baselineValues.emplace(node, Baseline());
     }
 
 };
@@ -324,7 +329,7 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
                                  OOSData &cache, OOSSettings cfg)
         : GamePlayingAlgorithm(domain, playingPlayer),
           cache_(cache),
-          cfg_(cfg),
+          cfg_(move(cfg)),
           targetor_(Targetor(cache_, cfg_.targeting, cfg_.targetBiasing)) {
         generator_ = std::mt19937(cfg_.seed);
         dist_ = std::uniform_real_distribution<double>(0.0, 1.0);
@@ -337,7 +342,8 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
     const OOSSettings &getSettings() { return cfg_; }
 
  protected:
-    virtual void rootIteration(double compensation, Player exploringPl);
+    virtual void rootIteration(const shared_ptr<EFGNode> &rootNode, double compensation, Player exploringPl);
+    void rootIteration(double compensation, Player exploringPl);
 
     /**
      * The main function for OOS iteration.

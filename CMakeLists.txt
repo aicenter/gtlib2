@@ -264,6 +264,7 @@ set(TEST_FILES
         tests/LPTest.cpp
         tests/matchingPenniesTest.cpp
         tests/matchingPenniesTest.cpp
+        tests/mccrTest.h
         tests/mccrTest.cpp
         tests/oshiZumoTest.cpp
         tests/utilityTest.cpp

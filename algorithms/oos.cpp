@@ -164,9 +164,13 @@ OOSAlgorithm::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
     }
 }
 
-void OOSAlgorithm::rootIteration(double compensation, Player exploringPl) {
-    iteration(cache_.getRootNode(), 1.0, 1.0, compensation, compensation, 1.0, exploringPl);
+void OOSAlgorithm::rootIteration(const shared_ptr<EFGNode> &rootNode, double compensation, Player exploringPl) {
+    iteration(rootNode, 1.0, 1.0, compensation, compensation, 1.0, exploringPl);
     ++stats_.rootVisits;
+}
+
+void OOSAlgorithm::rootIteration(double compensation, Player exploringPl) {
+    rootIteration(cache_.getRootNode(), compensation, exploringPl);
 }
 
 double OOSAlgorithm::iteration(const shared_ptr<EFGNode> &h,

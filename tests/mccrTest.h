@@ -20,57 +20,62 @@
 */
 
 
-#ifndef ALGORITHMS_OOS_TEST_H_
-#define ALGORITHMS_OOS_TEST_H_
+#ifndef ALGORITHMS_MCCR_TEST_H_
+#define ALGORITHMS_MCCR_TEST_H_
 
-#include "algorithms/oos.h"
+#include "algorithms/mccr.h"
 
 
 namespace GTLib2::algorithms {
 
-class FixedSamplingOOS: public OOSAlgorithm {
+class FixedSamplingMCCRResolver: public MCCRResolver {
  public:
-    FixedSamplingOOS(const Domain &domain, Player playingPlayer, OOSData &cache,
-                     const OOSSettings cfg, vector<vector<ActionId>> samples)
-        : OOSAlgorithm(domain, playingPlayer, cache, cfg), samples_(move(samples)) {};
+    FixedSamplingMCCRResolver(const Domain &domain,
+                              Player playingPlayer,
+                              MCCRData &cache,
+                              const MCCRSettings &cfg,
+                              vector<vector<ActionId>> samples)
+        : MCCRResolver(domain, playingPlayer, cache, cfg), samples_(move(samples)) {};
 
  protected:
-    const vector <vector<ActionId>> samples_;
+    const vector<vector<ActionId>> samples_;
     int moveIdx_ = 0;
 
     inline int nextAction() {
+        assert(samples_.size() > stats_.rootVisits);
         assert(samples_.at(stats_.rootVisits).size() > moveIdx_);
         return samples_.at(stats_.rootVisits).at(moveIdx_++);
     }
 
-    inline void rootIteration(const shared_ptr<EFGNode> &rootNode, double compensation, Player exploringPl) override {
+    inline void rootIteration(const shared_ptr<EFGNode> &rootNode,
+                              double compensation, Player exploringPl) override {
         moveIdx_ = 0;
         assert(stats_.rootVisits < samples_.size());
-        OOSAlgorithm::rootIteration(rootNode, compensation, exploringPl);
+        MCCRResolver::rootIteration(rootNode, compensation, exploringPl);
     }
 
-    pair <ActionId, RandomLeafOutcome> selectLeaf(const shared_ptr <EFGNode> &start,
-                                                  const vector <shared_ptr<Action>> &actions) override;
-    inline ActionId selectChanceAction(const shared_ptr <EFGNode> &h,
+    pair<ActionId, RandomLeafOutcome> selectLeaf(const shared_ptr<EFGNode> &start,
+                                                 const vector<shared_ptr<Action>> &actions) override;
+    inline ActionId selectChanceAction(const shared_ptr<EFGNode> &h,
                                        double bsum) override {
         return nextAction();
     };
-    inline ActionId selectExploringPlayerAction(const shared_ptr <EFGNode> &h,
+    inline ActionId selectExploringPlayerAction(const shared_ptr<EFGNode> &h,
                                                 int biasApplicableActions,
                                                 double bsum) override {
         return nextAction();
     };
-    inline ActionId selectNonExploringPlayerAction(const shared_ptr <EFGNode> &h,
+    inline ActionId selectNonExploringPlayerAction(const shared_ptr<EFGNode> &h,
                                                    double bsum) override {
 
         return nextAction();
     };
 
-    inline double handleTerminalNode(const shared_ptr <EFGNode> &h,
+    inline double handleTerminalNode(const shared_ptr<EFGNode> &h,
                                      double bs_h_all, double us_h_all,
                                      Player exploringPl) override {
         assert(samples_.at(stats_.rootVisits).size() == moveIdx_);
-        return OOSAlgorithm::handleTerminalNode(h, bs_h_all, us_h_all, exploringPl);
+        return MCCRResolver::handleTerminalNode(h, bs_h_all, us_h_all, exploringPl);
     };
 
 };
@@ -78,4 +83,4 @@ class FixedSamplingOOS: public OOSAlgorithm {
 }  // namespace GTLib2
 
 
-#endif  // ALGORITHMS_OOS_TEST_H_
+#endif  // ALGORITHMS_MCCR_TEST_H_

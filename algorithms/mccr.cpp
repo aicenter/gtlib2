@@ -34,8 +34,7 @@ PlayControl MCCRAlgorithm::preplayIteration(const shared_ptr<EFGNode> &rootNode)
     for (int t = 0; t < r->cfg_.batchSize; ++t) {
         for (int exploringPl = 0; exploringPl < 2; ++exploringPl) {
             // no compensation in preplay
-            r->iteration(rootNode, 1.0, 1.0, 1.0, 1.0, 1.0, exploringPl);
-            ++r->stats_.rootVisits;
+            r->rootIteration(rootNode, 1.0, exploringPl);
         }
     }
 
@@ -64,8 +63,7 @@ PlayControl MCCRAlgorithm::resolveIteration(const shared_ptr<GadgetRootNode> &ga
             r->isBiasedIteration_ = r->dist_(r->generator_) <= r->cfg_.targetBiasing;
             r->isBelowTargetIS_ = false;
 
-            r->iteration(gadgetRoot, 1.0, 1.0, compensation, compensation, 1.0, exploringPl);
-            ++r->stats_.rootVisits;
+            r->rootIteration(gadgetRoot, compensation, exploringPl);
         }
     }
 

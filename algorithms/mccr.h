@@ -1,3 +1,5 @@
+#include <utility>
+
 /*
     Copyright 2019 Faculty of Electrical Engineering at CTU in Prague
 
@@ -157,11 +159,22 @@ class MCCRAlgorithm: public ContinualResolving {
     MCCRAlgorithm(const Domain &domain,
                   Player playingPlayer,
                   MCCRData &data,
+                  unique_ptr<MCCRResolver> resolver,
                   MCCRSettings settings)
         : ContinualResolving(domain, playingPlayer),
           cache_(data),
-          resolver_(make_unique<MCCRResolver>(domain, playingPlayer, cache_, settings)),
-          cfg_(settings) {}
+          resolver_(move(resolver)),
+          cfg_(move(settings)) {}
+
+    MCCRAlgorithm(const Domain &domain,
+                  Player playingPlayer,
+                  MCCRData &data,
+                  MCCRSettings settings)
+        : MCCRAlgorithm(domain,
+                        playingPlayer,
+                        data,
+                        make_unique<MCCRResolver>(domain, playingPlayer, data, settings),
+                        settings) {}
     ~MCCRAlgorithm() override = default;
 
     const MCCRSettings &getSettings() { return cfg_; }
