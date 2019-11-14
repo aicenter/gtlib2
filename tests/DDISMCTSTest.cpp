@@ -28,6 +28,22 @@
 
 namespace GTLib2::algorithms {
 
+
+TEST(DDISMCTS, CheckInfosetConsistency) {
+    // todo:
+    auto domain = GoofSpielDomain::IIGS(4);
+    auto cache = InfosetCache(*domain);
+    cache.buildTree();
+
+    auto mapping = cache.getInfoset2NodeMapping();
+    for(auto&[infoset,expectedNodes] : mapping) {
+        auto actualNodes = ;/* ... */
+        // sort based on vector<ActionId> OR make into sets
+        EFGNode n.getHistory();
+        EXPECT_EQ(actualNodes, expectedNodes);
+    }
+}
+
 //Test that GS domain returns correct number of histories for player 1
 TEST(DDISMCTS, GSHistoriesGenerationTestpl1) {
     GTLib2::domains::GoofSpielSettings settings
