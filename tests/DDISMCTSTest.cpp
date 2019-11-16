@@ -28,19 +28,31 @@
 
 namespace GTLib2::algorithms {
 
-
 TEST(DDISMCTS, CheckInfosetConsistency) {
-    // todo:
-    auto domain = GoofSpielDomain::IIGS(4);
+    auto domain = GTLib2::domains::GoofSpielDomain::IIGS(5);
     auto cache = InfosetCache(*domain);
     cache.buildTree();
-
     auto mapping = cache.getInfoset2NodeMapping();
     for(auto&[infoset,expectedNodes] : mapping) {
-        auto actualNodes = ;/* ... */
-        // sort based on vector<ActionId> OR make into sets
-        EFGNode n.getHistory();
-        EXPECT_EQ(actualNodes, expectedNodes);
+        if (expectedNodes[0]->type_ != PlayerNode) continue;
+        unordered_map<unsigned long, shared_ptr<Constraint>> revealed_;
+        domain->initializeEnumerativeConstraints(revealed_);
+        long ind = 1;
+        domain->updateConstraints(infoset, ind, revealed_);
+        vector<shared_ptr<EFGNode>> actualNodes;
+        domain->generateNodes(infoset, revealed_, 1000,
+                             [&actualNodes](const shared_ptr<EFGNode> & node) -> double {
+            actualNodes.push_back(node);
+            return 0;});
+//        std::set<const shared_ptr<EFGNode>> actualNodesSet(actualNodes.begin(), actualNodes.end());
+//        std::set<const shared_ptr<EFGNode>> expectedNodesSet(expectedNodes.begin(), expectedNodes.end());
+        std::sort(actualNodes.begin(), actualNodes.end(), [](const shared_ptr<EFGNode> lhs, const shared_ptr<EFGNode> rhs){ return lhs->getHistory() < rhs->getHistory(); });
+        std::sort(expectedNodes.begin(), expectedNodes.end(), [](const shared_ptr<EFGNode> lhs, const shared_ptr<EFGNode> rhs){ return lhs->getHistory() < rhs->getHistory(); });
+        bool ok = equal(begin(actualNodes), end(actualNodes),
+                        begin(expectedNodes), end(expectedNodes),
+                        [](const shared_ptr<EFGNode> lhs, const shared_ptr<EFGNode> rhs){ return *lhs == * rhs; });
+        EXPECT_TRUE(actualNodes.size() == expectedNodes.size());
+        EXPECT_TRUE(ok);
     }
 }
 

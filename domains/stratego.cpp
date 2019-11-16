@@ -79,7 +79,7 @@ unsigned int encodeSetupObservation(Rank rank, unsigned int pos, unsigned int pl
 }
 
 int maxMovesWithoutAttack(int h, int w) {
-    return (4 * h + 4 * w)*2;
+    return (2 * h + 2 * w);
 }
 
 bool isPlayers(CellState cell, Player player) {
