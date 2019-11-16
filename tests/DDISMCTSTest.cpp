@@ -29,28 +29,41 @@
 namespace GTLib2::algorithms {
 
 TEST(DDISMCTS, CheckInfosetConsistency) {
-    auto domain = GTLib2::domains::GoofSpielDomain::IIGS(5);
+    const auto domain = GTLib2::domains::GoofSpielDomain::IIGS(5);
     auto cache = InfosetCache(*domain);
     cache.buildTree();
     auto mapping = cache.getInfoset2NodeMapping();
-    for(auto&[infoset,expectedNodes] : mapping) {
+
+    const auto historySort = [](const shared_ptr<EFGNode> &a, const shared_ptr<EFGNode> &b) {
+        return a->getHistory() < b->getHistory();
+    };
+
+    for (auto&[infoset, expectedNodes] : mapping) {
         if (expectedNodes[0]->type_ != PlayerNode) continue;
-        unordered_map<unsigned long, shared_ptr<Constraint>> revealed_;
+        // a shorthand for distinguishing augmented infosets from ordinary ones
+        if (expectedNodes[0]->getPlayer() != infoset->getPlayer()) continue;
+
+        ConstraintsMap revealed_;
         domain->initializeEnumerativeConstraints(revealed_);
+
         long ind = 1;
         domain->updateConstraints(infoset, ind, revealed_);
+
         vector<shared_ptr<EFGNode>> actualNodes;
-        domain->generateNodes(infoset, revealed_, 1000,
-                             [&actualNodes](const shared_ptr<EFGNode> & node) -> double {
-            actualNodes.push_back(node);
-            return 0;});
-//        std::set<const shared_ptr<EFGNode>> actualNodesSet(actualNodes.begin(), actualNodes.end());
-//        std::set<const shared_ptr<EFGNode>> expectedNodesSet(expectedNodes.begin(), expectedNodes.end());
-        std::sort(actualNodes.begin(), actualNodes.end(), [](const shared_ptr<EFGNode> lhs, const shared_ptr<EFGNode> rhs){ return lhs->getHistory() < rhs->getHistory(); });
-        std::sort(expectedNodes.begin(), expectedNodes.end(), [](const shared_ptr<EFGNode> lhs, const shared_ptr<EFGNode> rhs){ return lhs->getHistory() < rhs->getHistory(); });
+        domain->generateNodes(infoset, revealed_,
+                              expectedNodes.size() + 1, // let's make sure we get all the nodes
+                              [&](const shared_ptr<EFGNode> &node) -> double {
+                                  actualNodes.push_back(node);
+                                  return 0;
+                              });
+
+        std::sort(actualNodes.begin(), actualNodes.end(), historySort);
+        std::sort(expectedNodes.begin(), expectedNodes.end(), historySort);
         bool ok = equal(begin(actualNodes), end(actualNodes),
                         begin(expectedNodes), end(expectedNodes),
-                        [](const shared_ptr<EFGNode> lhs, const shared_ptr<EFGNode> rhs){ return *lhs == * rhs; });
+                        [](const shared_ptr<EFGNode> lhs, const shared_ptr<EFGNode> rhs) {
+                            return *lhs == *rhs;
+                        });
         EXPECT_TRUE(actualNodes.size() == expectedNodes.size());
         EXPECT_TRUE(ok);
     }
