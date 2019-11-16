@@ -28,7 +28,51 @@
 
 namespace GTLib2::algorithms {
 
-TEST(DDISMCTS, CheckInfosetConsistency) {
+TEST(DDISMCTS, CheckStrInfosetConsistency) {
+    const int depth = 2;
+    const auto domain = GTLib2::domains::StrategoDomain({depth,depth,{}, {'1','2'}});
+    auto cache = InfosetCache(domain);
+    cache.buildTree();
+    auto mapping = cache.getInfoset2NodeMapping();
+
+    const auto historySort = [](const shared_ptr<EFGNode> &a, const shared_ptr<EFGNode> &b) {
+        return a->getHistory() < b->getHistory();
+    };
+
+    for (auto&[infoset, expectedNodes] : mapping) {
+        if (expectedNodes[0]->efgDepth() < 2*depth)
+            continue;
+        if (expectedNodes[0]->type_ != PlayerNode) continue;
+        // a shorthand for distinguishing augmented infosets from ordinary ones
+        if (expectedNodes[0]->getPlayer() != infoset->getPlayer()) continue;
+
+        ConstraintsMap revealed_;
+        domain.initializeEnumerativeConstraints(revealed_);
+
+        long ind = 1;
+        domain.updateConstraints(infoset, ind, revealed_);
+
+        vector<shared_ptr<EFGNode>> actualNodes;
+        domain.generateNodes(infoset, revealed_,
+                              expectedNodes.size() + 1, // let's make sure we get all the nodes
+                              [&](const shared_ptr<EFGNode> &node) -> double {
+                                  actualNodes.push_back(node);
+                                  return 0;
+                              });
+
+        std::sort(actualNodes.begin(), actualNodes.end(), historySort);
+        std::sort(expectedNodes.begin(), expectedNodes.end(), historySort);
+        bool ok = equal(begin(actualNodes), end(actualNodes),
+                        begin(expectedNodes), end(expectedNodes),
+                        [](const shared_ptr<EFGNode> lhs, const shared_ptr<EFGNode> rhs) {
+                            return *lhs == *rhs;
+                        });
+        EXPECT_TRUE(actualNodes.size() == expectedNodes.size());
+        EXPECT_TRUE(ok);
+    }
+}
+
+TEST(DDISMCTS, CheckGSInfosetConsistency) {
     const auto domain = GTLib2::domains::GoofSpielDomain::IIGS(5);
     auto cache = InfosetCache(*domain);
     cache.buildTree();
