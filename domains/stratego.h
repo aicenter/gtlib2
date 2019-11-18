@@ -91,6 +91,11 @@ class StrategoDomain: public Domain, public ConstrainingDomain {
  public:
     explicit StrategoDomain(StrategoSettings settings);
     string getInfo() const override;
+
+    static unique_ptr<StrategoDomain> STRAT2x2();
+    static unique_ptr<StrategoDomain> STRAT3x2();
+    static unique_ptr<StrategoDomain> STRAT3x3();
+
     vector<Player> getPlayers() const {
         return {0, 1};
     }

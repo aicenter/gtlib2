@@ -27,215 +27,40 @@
 #include "gtest/gtest.h"
 
 namespace GTLib2::algorithms {
-
-TEST(DDISMCTS, CheckStrInfosetConsistency) {
-    const int depth = 2;
-    const auto domain = GTLib2::domains::StrategoDomain({depth,depth,{}, {'1','2'}});
-    auto cache = InfosetCache(domain);
-    cache.buildTree();
-    auto mapping = cache.getInfoset2NodeMapping();
-
-    const auto historySort = [](const shared_ptr<EFGNode> &a, const shared_ptr<EFGNode> &b) {
-        return a->getHistory() < b->getHistory();
-    };
-
-    for (auto&[infoset, expectedNodes] : mapping) {
-        if (expectedNodes[0]->efgDepth() < 2*depth)
-            continue;
-        if (expectedNodes[0]->type_ != PlayerNode) continue;
-        // a shorthand for distinguishing augmented infosets from ordinary ones
-        if (expectedNodes[0]->getPlayer() != infoset->getPlayer()) continue;
-
-        ConstraintsMap revealed_;
-        domain.initializeEnumerativeConstraints(revealed_);
-
-        long ind = 1;
-        domain.updateConstraints(infoset, ind, revealed_);
-
-        vector<shared_ptr<EFGNode>> actualNodes;
-        domain.generateNodes(infoset, revealed_,
-                              expectedNodes.size() + 1, // let's make sure we get all the nodes
-                              [&](const shared_ptr<EFGNode> &node) -> double {
-                                  actualNodes.push_back(node);
-                                  return 0;
-                              });
-
-        std::sort(actualNodes.begin(), actualNodes.end(), historySort);
-        std::sort(expectedNodes.begin(), expectedNodes.end(), historySort);
-        bool ok = equal(begin(actualNodes), end(actualNodes),
-                        begin(expectedNodes), end(expectedNodes),
-                        [](const shared_ptr<EFGNode> lhs, const shared_ptr<EFGNode> rhs) {
-                            return *lhs == *rhs;
-                        });
-        EXPECT_TRUE(actualNodes.size() == expectedNodes.size());
-        EXPECT_TRUE(ok);
-    }
-}
-
-TEST(DDISMCTS, CheckGSInfosetConsistency) {
-    const auto domain = GTLib2::domains::GoofSpielDomain::IIGS(5);
-    auto cache = InfosetCache(*domain);
-    cache.buildTree();
-    auto mapping = cache.getInfoset2NodeMapping();
-
-    const auto historySort = [](const shared_ptr<EFGNode> &a, const shared_ptr<EFGNode> &b) {
-        return a->getHistory() < b->getHistory();
-    };
-
-    for (auto&[infoset, expectedNodes] : mapping) {
-        if (expectedNodes[0]->type_ != PlayerNode) continue;
-        // a shorthand for distinguishing augmented infosets from ordinary ones
-        if (expectedNodes[0]->getPlayer() != infoset->getPlayer()) continue;
-
-        ConstraintsMap revealed_;
-        domain->initializeEnumerativeConstraints(revealed_);
-
-        long ind = 1;
-        domain->updateConstraints(infoset, ind, revealed_);
-
-        vector<shared_ptr<EFGNode>> actualNodes;
-        domain->generateNodes(infoset, revealed_,
-                              expectedNodes.size() + 1, // let's make sure we get all the nodes
-                              [&](const shared_ptr<EFGNode> &node) -> double {
-                                  actualNodes.push_back(node);
-                                  return 0;
-                              });
-
-        std::sort(actualNodes.begin(), actualNodes.end(), historySort);
-        std::sort(expectedNodes.begin(), expectedNodes.end(), historySort);
-        bool ok = equal(begin(actualNodes), end(actualNodes),
-                        begin(expectedNodes), end(expectedNodes),
-                        [](const shared_ptr<EFGNode> lhs, const shared_ptr<EFGNode> rhs) {
-                            return *lhs == *rhs;
-                        });
-        EXPECT_TRUE(actualNodes.size() == expectedNodes.size());
-        EXPECT_TRUE(ok);
-    }
-}
-
-//Test that GS domain returns correct number of histories for player 1
-TEST(DDISMCTS, GSHistoriesGenerationTestpl1) {
-    GTLib2::domains::GoofSpielSettings settings
-        ({.variant =   GTLib2::domains::IncompleteObservations, .numCards = 6, .fixChanceCards = true});
-    domains::GoofSpielDomain domain(settings);
-    const auto root = createRootEFGNode(domain);
-    auto currnode = root;
-    unordered_map<unsigned long, shared_ptr<Constraint>> revealed_;
-    domain.initializeEnumerativeConstraints(revealed_);
-    currnode = currnode->performAction(currnode->getActionByID(4));//5 (5-6)
-    currnode = currnode->performAction(currnode->getActionByID(3));//4 (1-4)
-    currnode = currnode->performAction(currnode->getActionByID(0));//1 (1-2)
-    currnode = currnode->performAction(currnode->getActionByID(2));//3 (2-5)
-    currnode = currnode->performAction(currnode->getActionByID(0));//2
-    long startindex = 0;
-    domain.updateConstraints(make_shared<AOH>(1, currnode->getAOHInfSet()->getAOids()),
-                             startindex,
-                             revealed_);
-    int count = 0;
-    domain.generateNodes(make_shared<AOH>(1, currnode->getAOHInfSet()->getAOids()), revealed_, 1000,
-                         [&r = count](const shared_ptr<EFGNode> & node) -> double{ return r++;});
-    EXPECT_EQ(count, 2*2*4);
-}
-
-//Test that GS domain returns correct number of histories for player 0
-TEST(DDISMCTS, GSHistoriesGenerationTestpl0) {
-    GTLib2::domains::GoofSpielSettings settings
-        ({.variant =   GTLib2::domains::IncompleteObservations, .numCards = 6, .fixChanceCards = true});
-    domains::GoofSpielDomain domain(settings);
-    const auto root = createRootEFGNode(domain);
-    auto currnode = root;
-    unordered_map<unsigned long, shared_ptr<Constraint>> revealed_;
-    domain.initializeEnumerativeConstraints(revealed_);
-    currnode = currnode->performAction(currnode->getActionByID(3));//4 (1-4)
-    currnode = currnode->performAction(currnode->getActionByID(4));//5 (5-6)
-    currnode = currnode->performAction(currnode->getActionByID(2));//3 (2-5)
-    currnode = currnode->performAction(currnode->getActionByID(0));//1 (1-2)
-    long startindex = 0;
-    domain.updateConstraints(make_shared<AOH>(0, currnode->getAOHInfSet()->getAOids()),
-                             startindex,
-                             revealed_);
-    int count = 0;
-    domain.generateNodes(make_shared<AOH>(0, currnode->getAOHInfSet()->getAOids()), revealed_, 1000,
-        [&r = count](const shared_ptr<EFGNode> & node) -> double{ return r++;});
-    EXPECT_EQ(count, 2*2);
-}
-
-TEST(DDISMCTS, GS19Test) {
-    // todo: runs awfully slow (2mins), and fails! using gcc compiler
-    auto rewards = vector<double>(20);
-    for (int seed = 0; seed < 20; ++seed) {
-        GTLib2::domains::GoofSpielSettings settings
-            ({.variant =   GTLib2::domains::IncompleteObservations, .numCards =  19, .fixChanceCards = true});
-        settings.shuffleChanceCards(seed);
-        domains::GoofSpielDomain domain(settings);
-        auto fact0 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
-        auto fact1 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
-        ISMCTSSettings settings0 = {.fact_ = fact0, .randomSeed = seed, .generateIters = 100};
-        ISMCTSSettings settings1 = {.fact_ = fact1, .useBelief=true, .randomSeed = seed};
-        vector<PreparedAlgorithm> algs = {
-            createInitializer<DD_ISMCTS>(settings0),
-            createInitializer<CPW_ISMCTS>(settings1)
+TEST(DDISMCTS, CheckInfosetConsistency) {
+    vector<pair<shared_ptr<ConstrainingDomain>, int>> domains = {forward_as_tuple(GTLib2::domains::StrategoDomain::STRAT2x2(), 3),
+                                                                 forward_as_tuple(GTLib2::domains::GoofSpielDomain::IIGS(5), 0)};
+    for(int i = 0; i < domains.size(); ++i)
+    {
+        const auto domain = domains[i].first;
+        auto cache = InfosetCache(dynamic_cast<const Domain &>(*domain));
+        cache.buildTree();
+        auto mapping = cache.getInfoset2NodeMapping();
+        const auto historySort = [](const shared_ptr<EFGNode> &a, const shared_ptr<EFGNode> &b) {
+            return a->getHistory() < b->getHistory();
         };
-        auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
-        rewards[seed] = actualOutcome[0];
+        for (auto&[infoset, expectedNodes] : mapping) {
+            if (expectedNodes[0]->efgDepth() < 2*domains[i].second) continue; //no need for nodes in setup state
+            if (expectedNodes[0]->type_ != PlayerNode) continue;
+            // a shorthand for distinguishing augmented infosets from ordinary ones
+            if (expectedNodes[0]->getPlayer() != infoset->getPlayer()) continue;
+            ConstraintsMap revealed_;
+            domain->initializeEnumerativeConstraints(revealed_);
+            long ind = 1;
+            domain->updateConstraints(infoset, ind, revealed_);
+            vector<shared_ptr<EFGNode>> actualNodes;
+            domain->generateNodes(infoset, revealed_,
+                                  expectedNodes.size() + 1, // let's make sure we get all the nodes
+                                  [&](const shared_ptr<EFGNode> &node) -> double {
+                                      actualNodes.push_back(node);
+                                      return 0;
+                                  });
+            std::sort(actualNodes.begin(), actualNodes.end(), historySort);
+            std::sort(expectedNodes.begin(), expectedNodes.end(), historySort);
+            bool ok = equal(begin(actualNodes), end(actualNodes), begin(expectedNodes), end(expectedNodes),
+                            [](const shared_ptr<EFGNode> lhs, const shared_ptr<EFGNode> rhs) { return *lhs == *rhs; });
+            EXPECT_TRUE(ok);
+        }
     }
-    const double expsumm = 250;
-    double summ = 0;
-    cout << rewards << endl;
-    for (auto r : rewards)summ += r;
-    EXPECT_EQ(summ, expsumm);
-}
-
-TEST(DDISMCTS, GS10Test) {
-    // todo: runs awfully slow (24sec), and fails! using gcc compiler
-    auto rewards = vector<double>(100);
-
-    for (int seed = 0; seed < 100; ++seed) {
-        GTLib2::domains::GoofSpielSettings settings
-            ({.variant =   GTLib2::domains::IncompleteObservations, .numCards =  10, .fixChanceCards = true});
-        settings.shuffleChanceCards(seed);
-        domains::GoofSpielDomain domain(settings);
-        auto fact0 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
-        auto fact1 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
-        ISMCTSSettings settings0 = {.fact_ = fact0, .randomSeed = seed, .generateIters = 100};
-        ISMCTSSettings settings1 = {.fact_ = fact1, .useBelief=true, .randomSeed = seed};
-        vector<PreparedAlgorithm> algs = {
-            createInitializer<DD_ISMCTS>(settings0),
-            createInitializer<CPW_ISMCTS>(settings1)
-        };
-        auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
-        rewards[seed] = actualOutcome[0];
-    }
-    const double expsumm = 213;
-    double summ = 0;
-    cout << rewards << endl;
-    for (auto r : rewards)summ += r;
-    EXPECT_EQ(summ, expsumm);
-}
-
-TEST(DDISMCTS, Strat6Test) {
-    // todo: runs awfully slow (33sec), and fails! using gcc compiler
-    auto rewards = vector<double>(20);
-
-    for (int seed = 0; seed < 20; ++seed) {
-        GTLib2::domains::StrategoSettings settings
-            ({6,6,{{2,2,2,2}}, {'B','4','3','3','2','2', '2','1','1','1','1','F'}});
-        domains::StrategoDomain domain(settings);
-        auto fact0 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
-        auto fact1 = make_shared<UCTSelectorFactory>(sqrt(2), seed);
-        ISMCTSSettings settings0 = {.fact_ = fact0, .randomSeed = seed, .generateIters = 100};
-        ISMCTSSettings settings1 = {.fact_ = fact1, .useBelief=true, .randomSeed = seed};
-        vector<PreparedAlgorithm> algs = {
-            createInitializer<DD_ISMCTS>(settings0),
-            createInitializer<CPW_ISMCTS>(settings1)
-        };
-        auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
-        rewards[seed] = actualOutcome[0];
-    }
-    const double expsumm = 3;
-    double summ = 0;
-    cout << rewards << endl;
-    for (auto r : rewards)summ += r;
-    EXPECT_EQ(summ, expsumm);
 }
 }

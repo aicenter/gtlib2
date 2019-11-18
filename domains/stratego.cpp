@@ -199,6 +199,18 @@ string StrategoDomain::getInfo() const {
     return "Stratego game with " + to_string(emptyBoard_.size()) + " cells";
 }
 
+unique_ptr<StrategoDomain> StrategoDomain::STRAT3x3() {
+    return make_unique<StrategoDomain>(StrategoSettings{3,3,{{1,1,1,1}}, {'1','2', '3'}});
+}
+
+unique_ptr<StrategoDomain> StrategoDomain::STRAT3x2() {
+    return make_unique<StrategoDomain>(StrategoSettings{3,2,{}, {'1','2'}});
+}
+
+unique_ptr<StrategoDomain> StrategoDomain::STRAT2x2() {
+    return make_unique<StrategoDomain>(StrategoSettings{2,2,{}, {'1','2'}});
+}
+
 bool canMoveUp(int i, const vector<CellState> &board, int height, int width) {
     return (height > 1)
         && ((i + 1) > width)
