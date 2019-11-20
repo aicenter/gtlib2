@@ -29,7 +29,7 @@ namespace GTLib2::algorithms {
 
 bool Targetor::updateCurrentPosition(const optional<shared_ptr<AOH>> &infoset,
                                      const optional<shared_ptr<PublicState>> &pubState) {
-    if (targeting_ == OOSSettings::Targeting::NoTargeting) {
+    if (cfg_.targeting == OOSSettings::Targeting::NoTargeting) {
         weightingFactor_ = 1.0;
         return true;
     }
@@ -46,7 +46,7 @@ bool Targetor::updateCurrentPosition(const optional<shared_ptr<AOH>> &infoset,
     const auto[bsSum, usSum] = updateWeighting(cache_.getRootNode(), 1.0, 1.0);
     if (usSum == 0.0) return false;
     assert(usSum > 0.0);
-    weightingFactor_ = (1 - targetBiasing_) + targetBiasing_ * bsSum / usSum;
+    weightingFactor_ = (1 - cfg_.targetBiasing) + cfg_.targetBiasing * bsSum / usSum;
     return true;
 }
 
@@ -66,7 +66,7 @@ pair<double, double> Targetor::updateWeighting(const shared_ptr<EFGNode> &h,
 
             CFRData::InfosetData data = cache_.infosetData.at(updateInfoset);
             dist = vector<double>(data.regrets.size());
-            calcRMProbs(data.regrets, &dist, 0.001); // todo: eps parameter?
+            calcRMProbs(data.regrets, &dist, cfg_.approxRegretMatching);
             break;
         }
         case TerminalNode:
@@ -105,7 +105,7 @@ pair<double, double> Targetor::updateWeighting(const shared_ptr<EFGNode> &h,
 bool Targetor::isAllowedAction(const shared_ptr<EFGNode> &h, const shared_ptr<Action> &action) {
     const auto nextH = h->performAction(action);
 
-    switch (targeting_) {
+    switch (cfg_.targeting) {
         case OOSSettings::InfosetTargeting:
             return isAOCompatible(currentInfoset_->getAOids(),
                                   nextH->getAOids(currentInfoset_->getPlayer()));
@@ -164,7 +164,9 @@ OOSAlgorithm::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
     }
 }
 
-void OOSAlgorithm::rootIteration(const shared_ptr<EFGNode> &rootNode, double compensation, Player exploringPl) {
+void OOSAlgorithm::rootIteration(const shared_ptr<EFGNode> &rootNode,
+                                 double compensation,
+                                 Player exploringPl) {
     iteration(rootNode, 1.0, 1.0, compensation, compensation, 1.0, exploringPl);
     ++stats_.rootVisits;
 }
@@ -222,14 +224,15 @@ double OOSAlgorithm::handleChanceNode(const shared_ptr<EFGNode> &h,
                                       Player exploringPl) {
     const auto &actions = h->availableActions();
     const auto probs = h->chanceProbs();
+    usProbs_ = probs;
 
     const auto[_, bsum] = calcBiasing(h, actions, bs_h_all);
     const auto ai = selectChanceAction(h, bsum);
-    double bs_ha_all = bsum > 0
-                       ? (*pBiasedProbs_)[ai] / bsum
-                       : h->chanceProbForAction(ai);
-
+    const double bs_ha_all = bsum > 0
+                             ? (*pBiasedProbs_)[ai] / bsum
+                             : h->chanceProbForAction(ai);
     const double us_ha_all = probs[ai];
+    const double s_ha_all = bias(bs_ha_all, us_ha_all);
 
     const auto &nextNode = cache_.getChildFor(h, actions[ai]);
     const double u_ha = iteration(nextNode,
@@ -238,14 +241,19 @@ double OOSAlgorithm::handleChanceNode(const shared_ptr<EFGNode> &h,
                                   exploringPl);
     rm_zh_all_ *= probs[ai];
 
-    // compute baseline-augmented utilities
-    double s_ha_all = bias(bs_ha_all, us_ha_all);
-    double u_h = (u_ha - baseline(h, ai) * probs[ai]) / s_ha_all;
-    for (const auto &action : actions) {
+    // Compute baseline-augmented utilities.
+    // We do not need to separate the computation into two pieces as in sampleExistingTree,
+    // because chance probs do not change upon visit of the child node.
+    double u_h = (u_ha - baseline(h, ai)) * probs[ai] / s_ha_all; // 2nd term of 1st case of eq. 9)
+    cout << h->getHistory() << " u_h before " << u_h << "\n";
+    for (const auto &action : actions) { // 2nd case of eq. 10)
         u_h += probs[action->getId()] * baseline(h, action->getId());
     }
 
     assert(!isnan(u_h) && !isinf(u_h));
+
+    cout << h->getHistory() << " child: " << u_ha << "\n";
+    cout << h->getHistory() << " u_h after" << u_h << "\n";
     return u_h;
 }
 
@@ -264,7 +272,7 @@ double OOSAlgorithm::handlePlayerNode(const shared_ptr<EFGNode> &h,
     const double s_h_all = bias(bs_h_all, us_h_all);
 
     // @formatter:off
-    const auto[ai, rm_ha_all, u_h, u_x] = (cache_.hasAnyChildren(h))
+    const auto[ai, rm_ha_both, u_h, u_x] = (cache_.hasAnyChildren(h))
         ? sampleExistingTree(h, actions,
                              rm_h_pl, rm_h_opp,
                              bs_h_all, us_h_all, us_h_cn,
@@ -272,8 +280,9 @@ double OOSAlgorithm::handlePlayerNode(const shared_ptr<EFGNode> &h,
         : incrementallyBuildTree(h, actions, s_h_all, exploringPl);
     // @formatter:on
     double rm_zha_all = rm_zh_all_;
-    rm_zh_all_ *= rm_ha_all;
+    rm_zh_all_ *= rm_ha_both;
 
+    cout << h->getHistory() << " " << u_h << "\n";
     updateEFGNodeExpectedValue(exploringPl, h, u_h,
                                rm_h_pl, rm_h_opp,
                                us_h_cn, s_h_all);
@@ -307,10 +316,10 @@ PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
                && !isnan(us_h_cn));
 
     const bool exploringMoveInNode = h->getPlayer() == exploringPl;
-    calcRMProbs(data.regrets, &rmProbs_, cfg_.approxRegretMatching);
+    calcRMProbs(data.regrets, &usProbs_, cfg_.approxRegretMatching);
 #ifndef NDEBUG
     if (cfg_.approxRegretMatching > 0)
-        for (int i = 0; i < data.regrets.size(); ++i) assert(rmProbs_[i] > 0);
+        for (int i = 0; i < data.regrets.size(); ++i) assert(usProbs_[i] > 0);
 #endif
 
     const auto&[biasApplicableActions, bsum] = calcBiasing(h, actions, bs_h_all);
@@ -318,37 +327,44 @@ PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
                     ? selectExploringPlayerAction(h, biasApplicableActions, bsum)
                     : selectNonExploringPlayerAction(h, bsum);
 
-    const double rm_ha_all = rmProbs_[ai];
+    const double rm_ha_both = usProbs_[ai];
     const double bs_ha_prob = (*pBiasedProbs_)[ai];
     const double us_ha_all = exploringMoveInNode
-                             ? explore(1. / actions.size(), rmProbs_[ai])
-                             : rmProbs_[ai];
+                             ? explore(1. / actions.size(), usProbs_[ai])
+                             : usProbs_[ai];
     const double bs_ha_all = exploringMoveInNode
                              ? (bs_ha_prob > 0.0)
                                ? explore(1.0 / biasApplicableActions, bs_ha_prob / bsum) : 0.0
                              : bs_ha_prob / bsum;
+    const double s_ha_all = bias(bs_ha_all, us_ha_all);
 
     // precompute baseline components now, because after child iteration RM probs will change
+    // This is 2nd case of eq. (10) in VR-MCCFR, resp. 2nd case of (9)
     double u_h = 0.;
     for (int i = 0; i < actions.size(); ++i) {
+        // skip this case, as the baseline changes during this child traversal
+        // it will be added as the value of u_x after visiting the child
         if (i == ai) continue;
-        u_h += rmProbs_[i] * baseline(h, i);
+        u_h += usProbs_[i] * baseline(h, i);
     }
+    cout << h->getHistory() << " precomputed: " << u_h << "\n";
 
     const auto &nextNode = cache_.getChildFor(h, actions[ai]);
     const double u_ha = iteration(nextNode,
-                                  (exploringMoveInNode) ? rm_h_pl * rm_ha_all : rm_h_pl,
-                                  (exploringMoveInNode) ? rm_h_opp : rm_h_opp * rm_ha_all,
+                                  (exploringMoveInNode) ? rm_h_pl * rm_ha_both : rm_h_pl,
+                                  (exploringMoveInNode) ? rm_h_opp : rm_h_opp * rm_ha_both,
                                   bs_h_all * bs_ha_all, us_h_all * us_ha_all, us_h_cn,
                                   exploringPl);
 
-    // finish computing baseline-augmented utilities
-    const double s_ha_all = bias(bs_ha_all, us_ha_all);
-    const double u_x = (u_ha - baseline(h, ai)) / s_ha_all + baseline(h, ai);
-    u_h += u_x * rm_ha_all;
+    // finish computing baseline-augmented utilities of eq. (10)
+    const double u_x = (u_ha - baseline(h, ai)) / s_ha_all + baseline(h, ai); // 1st case of eq. (9)
+    u_h += u_x * rm_ha_both;
 
-    assert(!isnan(rm_ha_all) && !isnan(u_h) && !isnan(u_x));
-    return PlayerNodeOutcome(ai, rm_ha_all, u_h, u_x);
+    assert(!isnan(rm_ha_both) && !isnan(u_h) && !isnan(u_x));
+    cout << h->getHistory() << " child: " << u_ha << "\n";
+    cout << h->getHistory() << " u_x " << u_x << "\n";
+    cout << h->getHistory() << " u_h final " << u_h << "\n";
+    return PlayerNodeOutcome(ai, rm_ha_both, u_h, u_x);
 }
 
 PlayerNodeOutcome OOSAlgorithm::incrementallyBuildTree(const shared_ptr<EFGNode> &h,
@@ -357,13 +373,19 @@ PlayerNodeOutcome OOSAlgorithm::incrementallyBuildTree(const shared_ptr<EFGNode>
     assert(!isnan(s_h_all));
 
     const auto[ai, leaf] = selectLeaf(h, actions);
-    const double rm_ha_all = 1.0 / actions.size();
+    const double rm_ha_both = 1.0 / actions.size();
     u_z_ = leaf.utilities[exploringPl];
-    rm_zh_all_ = leaf.reachProb(); // "* rm_ha_all" will be added at the bottom
-    s_z_all_ = s_h_all * leaf.reachProb() * rm_ha_all;
+    rm_zh_all_ = leaf.reachProb(); // "* rm_ha_both" will be added at the bottom
+    s_z_all_ = s_h_all * leaf.reachProb() * rm_ha_both;
 
-    assert(!isnan(rm_ha_all) && !isnan(u_z_) && !isnan(s_z_all_));
-    return PlayerNodeOutcome(ai, rm_ha_all, u_z_, u_z_);
+    assert(!isnan(rm_ha_both) && !isnan(u_z_) && !isnan(s_z_all_));
+    // The expected values for u(h) and u_x=u(h.a) must be unbiased so MCCFR can work correctly.
+    // Normally we use importance sampling, but since the strategy and sampling policy are the
+    // same, they cancel each other out. Leaving just leaf value for the current estimate.
+    const double u_h = u_z_;
+    const double u_x = u_z_;
+
+    return PlayerNodeOutcome(ai, rm_ha_both, u_h, u_x);
 }
 
 pair<int, double> OOSAlgorithm::calcBiasing(const shared_ptr<EFGNode> &h,
@@ -371,7 +393,7 @@ pair<int, double> OOSAlgorithm::calcBiasing(const shared_ptr<EFGNode> &h,
                                             double bs_h_all) {
 
     if (cfg_.targetBiasing == 0.0 || bs_h_all == 0.0 || isBelowTargetIS_) { // no biasing case
-        pBiasedProbs_ = &rmProbs_; // do not compute RM probs again
+        pBiasedProbs_ = &usProbs_; // do not compute again
         return make_pair(actions.size(), 1.0);
     }
 
@@ -379,17 +401,16 @@ pair<int, double> OOSAlgorithm::calcBiasing(const shared_ptr<EFGNode> &h,
     double bsum = 0.0;
     int biasApplicableActions = 0;
 
-    const auto probs = h->type_ == PlayerNode ? rmProbs_ : h->chanceProbs();
     for (int i = 0; i < actions.size(); ++i) {
         if (targetor_.isAllowedAction(h, actions[i])) {
-            (*pBiasedProbs_)[i] = rmProbs_[i];
-            bsum += rmProbs_[i];
+            (*pBiasedProbs_)[i] = usProbs_[i];
+            bsum += usProbs_[i];
             ++biasApplicableActions;
         } else (*pBiasedProbs_)[i] = -0.0; // negative zeros denote the banned actions
     }
 
     if (bsum == 0) { // if there is now way how to get to the target
-        pBiasedProbs_ = &rmProbs_;
+        pBiasedProbs_ = &usProbs_;
         return make_pair(actions.size(), 1.0);
     }
 
@@ -420,7 +441,7 @@ ActionId OOSAlgorithm::selectExploringPlayerAction(const shared_ptr<EFGNode> &h,
 
     if (!shouldBias) {
         if (shouldExplore) return pickUniform(h->countAvailableActions(), generator_);
-        else return pickRandom(rmProbs_, generator_);
+        else return pickRandom(usProbs_, generator_);
     } else {
         if (shouldExplore) {
             ActionId ai = 0;
@@ -436,7 +457,7 @@ ActionId OOSAlgorithm::selectNonExploringPlayerAction(const shared_ptr<EFGNode> 
     // avoid using random number generator when outcome is sure
     if (h->countAvailableActions() == 1) return 0;
     return isBiasedIteration_ && bsum > 0 ? pickRandom(*pBiasedProbs_, bsum, generator_)
-                                          : pickRandom(rmProbs_, generator_);
+                                          : pickRandom(usProbs_, generator_);
 }
 
 void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_ptr<EFGNode> &h,
@@ -444,6 +465,9 @@ void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
                                               double us_h_cn, double s_h_all) {
     // let's make sure that the utility is always for player 0
     // updateVal we get is for the exploring player
+    if (h->getParent() == nullptr) {
+        cout << "update root";
+    }
     u_h *= exploringPl == Player(0) ? 1 : -1;
 
     const auto &baselineIdx = cache_.baselineValues.find(h);
@@ -501,9 +525,9 @@ void OOSAlgorithm::updateInfosetAcc(const shared_ptr<EFGNode> &h, CFRData::Infos
 
     switch (cfg_.avgStrategyComputation) {
         case OOSSettings::StochasticallyWeightedAveraging:
-            calcRMProbs(data.regrets, &rmProbs_, cfg_.approxRegretMatching);
+            calcRMProbs(data.regrets, &usProbs_, cfg_.approxRegretMatching);
             for (int i = 0; i < data.avgStratAccumulator.size(); i++) {
-                data.avgStratAccumulator[i] += w * importanceSamplingRatio * rmProbs_[i];
+                data.avgStratAccumulator[i] += w * importanceSamplingRatio * usProbs_[i];
                 assert(data.avgStratAccumulator[i] > 0.0);
             }
             break;

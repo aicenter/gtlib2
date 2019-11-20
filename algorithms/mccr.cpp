@@ -200,12 +200,12 @@ double MCCRResolver::handlePlayerNode(const shared_ptr<EFGNode> &h, double rm_h_
 
     isBelowTargetIS_ = **playInfoset_ == *infoset;
     const bool exploringMoveInNode = h->getPlayer() == exploringPl;
-    calcRMProbs(data.regrets, &rmProbs_, cfg_.approxRegretMatching);
+    calcRMProbs(data.regrets, &usProbs_, cfg_.approxRegretMatching);
 
     const auto&[biasApplicableActions, bsum] = calcBiasing(h, actions, bs_h_all);
     const auto ai = 0; // always force follow!
 
-    const double rm_ha_all = rmProbs_[ai];
+    const double rm_ha_all = usProbs_[ai];
     const double bs_ha_prob = (*pBiasedProbs_)[ai];
     const double us_ha_all = 1.0;
     const double bs_ha_all = exploringMoveInNode

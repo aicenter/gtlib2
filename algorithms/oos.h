@@ -1,3 +1,5 @@
+#include <utility>
+
 /*
     Copyright 2019 Faculty of Electrical Engineering at CTU in Prague
 
@@ -60,6 +62,9 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
         double nominator = 0.;
         double denominator = 1.;
         inline double value() const {
+            return 0;
+        }
+        inline double summary_value() const {
             double v = nominator / denominator;
             assert(!isnan(v));
             assert(!isinf(v));
@@ -99,7 +104,7 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
         vector<double> cfvValues_;
         cfvValues_.reserve(topmostHistories_.size());
         for (const auto &h : topmostHistories_) {
-            cfvValues_.emplace_back(baselineValues.at(h).value());
+            cfvValues_.emplace_back(baselineValues.at(h).summary_value());
         }
 
         return PublicStateSummary(ps, topmostHistories_, topmostHistoriesReachProbs_, cfvValues_);
@@ -238,8 +243,7 @@ struct OnlineStats {
 
 class Targetor {
  public:
-    explicit inline Targetor(OOSData &cache, OOSSettings::Targeting type, double targetBiasing) :
-        cache_(cache), targeting_(type), targetBiasing_(targetBiasing) {};
+    explicit inline Targetor(OOSData &cache, OOSSettings cfg) : cache_(cache), cfg_(move(cfg)) {};
 
     bool updateCurrentPosition(const optional<shared_ptr<AOH>> &infoset,
                                const optional<shared_ptr<PublicState>> &pubState);
@@ -263,8 +267,7 @@ class Targetor {
     shared_ptr<PublicState> currentPubState_;
 
     const OOSData &cache_;
-    const OOSSettings::Targeting targeting_;
-    const double targetBiasing_;
+    const OOSSettings cfg_;
 
     pair<double, double>
     updateWeighting(const shared_ptr<EFGNode> &dist, double bs_h_all, double us_h_all);
@@ -275,7 +278,7 @@ class Targetor {
  * double rm_ha_all   probability of taking this action (according to RM)
  * double u_h         baseline-augmented estimate of expected utility for current history
  * double u_x         baseline-augmented estimate of expected utility for next history,
- *                       if we go there with 100% probability from current history
+ *                       if we go there with 100% probability from current history, i.e. u_b(h.a)
  */
 typedef tuple<unsigned int, double, double, double> PlayerNodeOutcome;
 
@@ -330,7 +333,7 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
         : GamePlayingAlgorithm(domain, playingPlayer),
           cache_(cache),
           cfg_(move(cfg)),
-          targetor_(Targetor(cache_, cfg_.targeting, cfg_.targetBiasing)) {
+          targetor_(Targetor(cache_, cfg_)) {
         generator_ = std::mt19937(cfg_.seed);
         dist_ = std::uniform_real_distribution<double>(0.0, 1.0);
     };
@@ -431,16 +434,21 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
 
     OnlineStats stats_;
 
+    // chance probs are used for chance player, since he doesn't have RM defined
     double rm_zh_all_ = -1;
+    // probability of sampling leaf
     double s_z_all_ = -1;
+    // current leaf value
     double u_z_ = 0.0;
 
     constexpr static int OOS_MAX_ACTIONS = 1000;
 
-    // Careful! Mutable data structures
-    // (values will change throughout the traversal of the tree) based on current state!!!
-    ProbDistribution rmProbs_ = ProbDistribution(OOS_MAX_ACTIONS);
-    // Array of actual biased probabilities, but pBiasedProbs_ can point to rmProbs_
+    // Careful! Following are mutable data structures.
+    // Values will change throughout the traversal of the tree, based on current state!!!
+
+    // unbiased probabilties of current strategy, i.e. RM current strategy or chance
+    ProbDistribution usProbs_ = ProbDistribution(OOS_MAX_ACTIONS);
+    // Array of actual biased probabilities, but pBiasedProbs_ can point to usProbs_
     // to prevent unnecessary copying of arrays
     ProbDistribution tmpProbs_ = ProbDistribution(OOS_MAX_ACTIONS);
     ProbDistribution *pBiasedProbs_ = &tmpProbs_;

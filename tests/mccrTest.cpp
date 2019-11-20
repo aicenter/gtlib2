@@ -83,7 +83,9 @@ FixedSamplingMCCRResolver::selectLeaf(const shared_ptr<EFGNode> &start,
     }
 
     out.utilities = h->getUtilities();
-    return pair(firstAction, out);
+
+    cache_.getChildFor(start, actions[firstAction]); // build the node in cache
+    return make_pair(firstAction, out);
 }
 
 
@@ -139,29 +141,60 @@ void prepareGambitFile(string loc) {
     myfile.close();
 }
 
-TEST(MCCR, ResolveDoublePoker) {
-    prepareGambitFile("/tmp/double_poker.gbt");
-    auto d = domains::GambitDomain("/tmp/double_poker.gbt");
+// quick hack to setup samples. A method would have to encapsulate MCCRData since
+// it's passed by reference and the allocation from stack would be removed.
+#define GTLIB_TEST_MCCR_SETUP()                                                     \
+    prepareGambitFile("/tmp/double_poker.gbt");                                     \
+    auto d = domains::GambitDomain("/tmp/double_poker.gbt");                        \
+    auto cache = MCCRData(d);                                                       \
+    MCCRSettings settings;                                                          \
+    settings.baseline = OOSSettings::WeightedActingPlayerBaseline;                  \
+    auto playingPlayer = Player(0);                                                 \
+    unique_ptr <MCCRResolver> resolver = make_unique<FixedSamplingMCCRResolver>(    \
+        d, playingPlayer, cache, settings, samples);                                \
+    auto mccr = MCCRAlgorithm(d, playingPlayer, cache, move(resolver), settings);
 
-    auto root = createRootEFGNode(d);
-    auto cache = MCCRData(d);
-    MCCRSettings settings;
-    settings.baseline = OOSSettings::WeightedActingPlayerBaseline;
-    auto playingPlayer = Player(0);
+
+TEST(MCCR, NoSamplesValuesShouldBeZero) {
+    auto samples = vector<vector<ActionId>>{};
+    GTLIB_TEST_MCCR_SETUP()
+
+    // Test
+    auto rootPs = mccr.getCache().getRootPublicState();
+    auto summary = mccr.getCache().getPublicStateSummary(rootPs);
+    EXPECT_EQ(summary.expectedValues[0], 0);
+}
+
+TEST(MCCR, IncrementallyBuildTree) {
     auto samples = vector<vector<ActionId>>{
-        {0, 0, 0},
-        {0, 0, 1, 0},
-        {1, 0, 0},
-        {1, 0, 1, 0},
+        {0, 0, 0}, {0, 0, 0}
     };
-    unique_ptr <MCCRResolver> resolver = make_unique<FixedSamplingMCCRResolver>(
-        d, playingPlayer, cache, settings, samples);
-    auto cr = MCCRAlgorithm(d, playingPlayer, cache, move(resolver), settings);
+    GTLIB_TEST_MCCR_SETUP()
     for (int i = 0; i < samples.size() / 2; ++i) {
-        cr.runPlayIteration(nullopt);
+        mccr.runPlayIteration(nullopt);
     }
 
-    cout << "expl ";
+    // Test
+    auto rootPs = mccr.getCache().getRootPublicState();
+    auto summary = mccr.getCache().getPublicStateSummary(rootPs);
+    EXPECT_DOUBLE_EQ(summary.expectedValues[0], -2/3.);
 }
+
+TEST(MCCR, PreBuildTree) {
+    auto samples = vector<vector<ActionId>>{
+        {0, 0, 0}, {0, 0, 0}
+    };
+    GTLIB_TEST_MCCR_SETUP()
+    cache.buildTree();
+    for (int i = 0; i < samples.size() / 2; ++i) {
+        mccr.runPlayIteration(nullopt);
+    }
+
+    // Test
+    auto rootPs = mccr.getCache().getRootPublicState();
+    auto summary = mccr.getCache().getPublicStateSummary(rootPs);
+    EXPECT_DOUBLE_EQ(summary.expectedValues[0], -2/3.);
+}
+
 
 }
