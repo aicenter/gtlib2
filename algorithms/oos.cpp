@@ -245,15 +245,11 @@ double OOSAlgorithm::handleChanceNode(const shared_ptr<EFGNode> &h,
     // We do not need to separate the computation into two pieces as in sampleExistingTree,
     // because chance probs do not change upon visit of the child node.
     double u_h = (u_ha - baseline(h, ai)) * probs[ai] / s_ha_all; // 2nd term of 1st case of eq. 9)
-    cout << h->getHistory() << " u_h before " << u_h << "\n";
     for (const auto &action : actions) { // 2nd case of eq. 10)
         u_h += probs[action->getId()] * baseline(h, action->getId());
     }
 
     assert(!isnan(u_h) && !isinf(u_h));
-
-    cout << h->getHistory() << " child: " << u_ha << "\n";
-    cout << h->getHistory() << " u_h after" << u_h << "\n";
     return u_h;
 }
 
@@ -282,7 +278,6 @@ double OOSAlgorithm::handlePlayerNode(const shared_ptr<EFGNode> &h,
     double rm_zha_all = rm_zh_all_;
     rm_zh_all_ *= rm_ha_both;
 
-    cout << h->getHistory() << " " << u_h << "\n";
     updateEFGNodeExpectedValue(exploringPl, h, u_h,
                                rm_h_pl, rm_h_opp,
                                us_h_cn, s_h_all);
@@ -347,7 +342,6 @@ PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
         if (i == ai) continue;
         u_h += usProbs_[i] * baseline(h, i);
     }
-    cout << h->getHistory() << " precomputed: " << u_h << "\n";
 
     const auto &nextNode = cache_.getChildFor(h, actions[ai]);
     const double u_ha = iteration(nextNode,
@@ -361,9 +355,6 @@ PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
     u_h += u_x * rm_ha_both;
 
     assert(!isnan(rm_ha_both) && !isnan(u_h) && !isnan(u_x));
-    cout << h->getHistory() << " child: " << u_ha << "\n";
-    cout << h->getHistory() << " u_x " << u_x << "\n";
-    cout << h->getHistory() << " u_h final " << u_h << "\n";
     return PlayerNodeOutcome(ai, rm_ha_both, u_h, u_x);
 }
 
@@ -465,9 +456,6 @@ void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
                                               double us_h_cn, double s_h_all) {
     // let's make sure that the utility is always for player 0
     // updateVal we get is for the exploring player
-    if (h->getParent() == nullptr) {
-        cout << "update root";
-    }
     u_h *= exploringPl == Player(0) ? 1 : -1;
 
     const auto &baselineIdx = cache_.baselineValues.find(h);

@@ -117,6 +117,10 @@ class CFRData: public virtual InfosetCache,
         updatingPolicy_ = other.updatingPolicy_;
     }
 
+    void reset() override {
+        for(auto &[aoh, data] : infosetData) data.reset();
+    }
+
     struct InfosetData {
         vector<double> regrets;
         vector<double> avgStratAccumulator;

@@ -74,6 +74,8 @@ class EFGCache {
         addCallback([&](const shared_ptr<EFGNode> &n) { this->createNode(n); });
     }
 
+    virtual void reset() {}
+
     /**
      * Check if cache contains all the children for given node (after following any action).
      */

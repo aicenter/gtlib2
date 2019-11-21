@@ -83,6 +83,12 @@ struct MCCRData: OOSData {
         probUpdates = other.probUpdates;
     }
 
+    void reset() override {
+        OOSData::reset();
+        lastReweighUpdate.clear();
+        probUpdates.clear();
+    }
+
  private:
     void trackWeightUpdate(const shared_ptr<EFGNode> &node) {
         lastReweighUpdate.emplace(make_pair(node, probUpdates.size() - 1));
@@ -105,6 +111,7 @@ class MCCRResolver: public OOSAlgorithm {
             exit(1);
         }
     }
+    virtual ~MCCRResolver() = default;
 
  protected:
     double handleChanceNode(const shared_ptr<EFGNode> &h, double rm_h_pl, double rm_h_opp,
@@ -184,6 +191,7 @@ class MCCRAlgorithm: public ContinualResolving {
     PlayControl preplayIteration(const shared_ptr<EFGNode> &rootNode) override;
     PlayControl resolveIteration(const shared_ptr<GadgetRootNode> &gadgetRoot,
                                  const shared_ptr<AOH> &currentInfoset) override;
+    MCCRResolver *getResolver() { return resolver_.get(); }
 
     double calcProbOfLastAction();
 };

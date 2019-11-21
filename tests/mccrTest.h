@@ -34,11 +34,17 @@ class FixedSamplingMCCRResolver: public MCCRResolver {
                               Player playingPlayer,
                               MCCRData &cache,
                               const MCCRSettings &cfg,
-                              vector<vector<ActionId>> samples)
-        : MCCRResolver(domain, playingPlayer, cache, cfg), samples_(move(samples)) {};
+                              vector<vector<ActionId>>& samples)
+        : MCCRResolver(domain, playingPlayer, cache, cfg), samples_(samples) {};
+
+    void reset() {
+        moveIdx_ = 0;
+        stats_.reset();
+        cache_.reset();
+    }
 
  protected:
-    const vector<vector<ActionId>> samples_;
+    const vector<vector<ActionId>> &samples_;
     int moveIdx_ = 0;
 
     inline int nextAction() {

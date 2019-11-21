@@ -166,18 +166,32 @@ TEST(MCCR, NoSamplesValuesShouldBeZero) {
 }
 
 TEST(MCCR, IncrementallyBuildTree) {
-    auto samples = vector<vector<ActionId>>{
-        {0, 0, 0}, {0, 0, 0}
-    };
+    auto samples = vector<vector<ActionId>>();
     GTLIB_TEST_MCCR_SETUP()
-    for (int i = 0; i < samples.size() / 2; ++i) {
-        mccr.runPlayIteration(nullopt);
-    }
+    auto* testResolver = dynamic_cast<FixedSamplingMCCRResolver*>(mccr.getResolver());
 
-    // Test
-    auto rootPs = mccr.getCache().getRootPublicState();
-    auto summary = mccr.getCache().getPublicStateSummary(rootPs);
-    EXPECT_DOUBLE_EQ(summary.expectedValues[0], -2/3.);
+    auto testsSamples = vector<vector<vector<ActionId>>>{
+        {{0, 0, 0}, {0, 0, 0}},
+        {{0, 0, 0}, {0, 0, 0}}, // make sure resolver is reset properly
+    };
+    auto expectedValues = vector<double>{
+        -2/3.,
+        -2/3.,
+    };
+
+    for (int test_case = 0; test_case < testsSamples.size(); ++test_case) {
+        testResolver->reset();
+        samples = testsSamples[test_case];
+
+        // Run
+        for (int i = 0; i < samples.size() / 2; ++i) mccr.runPlayIteration(nullopt);
+
+        // Test
+        const auto rootPs = mccr.getCache().getRootPublicState();
+        const auto summary = mccr.getCache().getPublicStateSummary(rootPs);
+        const auto actualValue = summary.expectedValues[0];
+        EXPECT_DOUBLE_EQ(actualValue, expectedValues[test_case]);
+    }
 }
 
 TEST(MCCR, PreBuildTree) {
