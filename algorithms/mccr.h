@@ -87,7 +87,18 @@ struct MCCRData: OOSData {
         OOSData::reset();
         lastReweighUpdate.clear();
         probUpdates.clear();
+        probUpdates.push_back(1.0); // for root (preplay) iterations
+        this->trackWeightUpdate(getRootNode());
     }
+
+    inline void clear() override {
+        OOSData::clear();
+        lastReweighUpdate.clear();
+        probUpdates.clear();
+        probUpdates.push_back(1.0); // for root (preplay) iterations
+        this->trackWeightUpdate(getRootNode());
+    }
+
 
  private:
     void trackWeightUpdate(const shared_ptr<EFGNode> &node) {

@@ -39,7 +39,7 @@ constexpr unsigned int LOGLEVEL_DEBUG = 10;
 constexpr unsigned int LOGLEVEL_VERBOSE = 5;
 constexpr unsigned int LOGLEVEL_NOTSET = 0;
 
-inline unsigned int log_level = LOGLEVEL_DEBUG;
+inline unsigned int log_level = LOGLEVEL_VERBOSE;
 inline bool log_thread = false;
 
 inline auto runStartTime = std::chrono::system_clock::now();

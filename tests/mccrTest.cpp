@@ -180,7 +180,7 @@ TEST(MCCR, IncrementallyBuildTree) {
     };
 
     for (int test_case = 0; test_case < testsSamples.size(); ++test_case) {
-        testResolver->reset();
+        testResolver->clear();
         samples = testsSamples[test_case];
 
         // Run
@@ -195,19 +195,48 @@ TEST(MCCR, IncrementallyBuildTree) {
 }
 
 TEST(MCCR, PreBuildTree) {
-    auto samples = vector<vector<ActionId>>{
-        {0, 0, 0}, {0, 0, 0}
-    };
+    auto samples = vector<vector<ActionId>>();
     GTLIB_TEST_MCCR_SETUP()
     cache.buildTree();
-    for (int i = 0; i < samples.size() / 2; ++i) {
-        mccr.runPlayIteration(nullopt);
-    }
+    auto* testResolver = dynamic_cast<FixedSamplingMCCRResolver*>(mccr.getResolver());
 
-    // Test
-    auto rootPs = mccr.getCache().getRootPublicState();
-    auto summary = mccr.getCache().getPublicStateSummary(rootPs);
-    EXPECT_DOUBLE_EQ(summary.expectedValues[0], -2/3.);
+    auto testsSamples = vector<vector<vector<ActionId>>>{
+        // make sure the whichever fold we sample doesnt matter
+        {{0, 0, 0}, {0, 0, 0}},
+        {{0, 0, 0}, {0, 0, 0}}, // make sure resolver is reset properly
+        {{0, 0, 0}, {1, 0, 0}},
+        {{1, 0, 0}, {0, 0, 0}},
+        {{1, 3, 0}, {0, 2, 0}},
+
+        // Make multiple visits of fold (utility -1). It converges to -0.5 if visited infinitely,
+        // because after first iteration player 0 does not want to go there (he has negative regret).
+        // However, we force him, and he receives almost 0 value (not exactly 0 due to approx RM.)
+        // The opponent goes there no problem. So we have a fraction (-x-1) / (2x+1), with x->inf
+        // it becomes -0.5
+        {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
+    };
+    auto expectedValues = vector<double>{
+        -2/3.,
+        -2/3.,
+        -2/3.,
+        -2/3.,
+        -2/3.,
+        -0.50769363071401552,
+    };
+
+    for (int test_case = 0; test_case < testsSamples.size(); ++test_case) {
+        testResolver->reset();
+        samples = testsSamples[test_case];
+
+        // Run
+        for (int i = 0; i < samples.size() / 2; ++i) mccr.runPlayIteration(nullopt);
+
+        // Test
+        const auto rootPs = mccr.getCache().getRootPublicState();
+        const auto summary = mccr.getCache().getPublicStateSummary(rootPs);
+        const auto actualValue = summary.expectedValues[0];
+        EXPECT_DOUBLE_EQ(actualValue, expectedValues[test_case]);
+    }
 }
 
 

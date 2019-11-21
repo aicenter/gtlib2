@@ -43,6 +43,11 @@ class FixedSamplingMCCRResolver: public MCCRResolver {
         cache_.reset();
     }
 
+    void clear() {
+        reset();
+        cache_.clear();
+    }
+
  protected:
     const vector<vector<ActionId>> &samples_;
     int moveIdx_ = 0;

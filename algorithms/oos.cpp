@@ -224,7 +224,10 @@ double OOSAlgorithm::handleChanceNode(const shared_ptr<EFGNode> &h,
                                       Player exploringPl) {
     const auto &actions = h->availableActions();
     const auto probs = h->chanceProbs();
-    usProbs_ = probs;
+    assert(probs.size() == actions.size());
+
+    // do not use assignment usProbs = probs, since we want usProbs to have size of OOS_MAX_ACTIONS
+    for (int i = 0; i < probs.size(); ++i) usProbs_[i] = probs[i];
 
     const auto[_, bsum] = calcBiasing(h, actions, bs_h_all);
     const auto ai = selectChanceAction(h, bsum);
@@ -312,10 +315,6 @@ PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
 
     const bool exploringMoveInNode = h->getPlayer() == exploringPl;
     calcRMProbs(data.regrets, &usProbs_, cfg_.approxRegretMatching);
-#ifndef NDEBUG
-    if (cfg_.approxRegretMatching > 0)
-        for (int i = 0; i < data.regrets.size(); ++i) assert(usProbs_[i] > 0);
-#endif
 
     const auto&[biasApplicableActions, bsum] = calcBiasing(h, actions, bs_h_all);
     const auto ai = exploringMoveInNode
@@ -342,6 +341,11 @@ PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
         if (i == ai) continue;
         u_h += usProbs_[i] * baseline(h, i);
     }
+
+//    cout << h->getHistory() << " " << u_h << endl;
+//    cout << h->getHistory() << " " << rm_h_pl << endl;
+//    cout << h->getHistory() << " " << rm_h_opp << endl;
+//    cout << h->getHistory() << " " << usProbs_ << endl;
 
     const auto &nextNode = cache_.getChildFor(h, actions[ai]);
     const double u_ha = iteration(nextNode,
@@ -492,6 +496,15 @@ void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
     }
     baseline.nominator += a;
     baseline.denominator += b;
+//    if (h->getParent() == nullptr) {
+//        LOG_VAR(int(exploringPl))
+//        LOG_VAR(u_h)
+//        LOG_VAR(a)
+//        LOG_VAR(b)
+//        LOG_VAR(baseline.nominator)
+//        LOG_VAR(baseline.denominator)
+//        cerr << "----\n";
+//    }
 }
 
 void OOSAlgorithm::updateInfosetAcc(const shared_ptr<EFGNode> &h, CFRData::InfosetData &data,

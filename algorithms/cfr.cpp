@@ -173,10 +173,11 @@ double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
 
 void calcRMProbs(const vector<double> &regrets, ProbDistribution *pProbs, double epsilonUniform) {
     assert(regrets.size() <= pProbs->size());
-    assert(regrets.size() > 0);
-    assert(pProbs->size() > 0);
+    assert(!regrets.empty());
+    assert(!pProbs->empty());
     assert(epsilonUniform >= 0.);
     assert(epsilonUniform <= 1.);
+    const auto n = regrets.size();
 
     double posRegretSum = 0.0;
     for (double r : regrets) {
@@ -184,13 +185,12 @@ void calcRMProbs(const vector<double> &regrets, ProbDistribution *pProbs, double
     }
 
     if (posRegretSum > 0) {
-        for (int i = 0; i < regrets.size(); i++) {
+        for (int i = 0; i < n; i++) {
             (*pProbs)[i] = (1 - epsilonUniform) * max(0.0, regrets[i] / posRegretSum)
-                + epsilonUniform / regrets.size();
+                + epsilonUniform / n;
         }
     } else {
-        // todo: check
-        std::fill(pProbs->begin(), pProbs->begin() + regrets.size(), 1.0 / regrets.size());
+        std::fill(pProbs->begin(), pProbs->begin() + n, 1.0 / n);
     }
 }
 

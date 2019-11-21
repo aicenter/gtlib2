@@ -74,7 +74,11 @@ class EFGCache {
         addCallback([&](const shared_ptr<EFGNode> &n) { this->createNode(n); });
     }
 
-    virtual void reset() {}
+    inline virtual void reset() {}
+    inline virtual void clear() {
+        nodesChildren_.clear();
+        this->createNode(rootNode_);
+    }
 
     /**
      * Check if cache contains all the children for given node (after following any action).
@@ -203,6 +207,13 @@ class InfosetCache: public virtual EFGCache {
         infoset2nodes_ = other.infoset2nodes_;
     }
 
+    inline void clear() override {
+        EFGCache::clear();
+        node2infosets_.clear();
+        infoset2nodes_.clear();
+        this->createAugInfosets(getRootNode());
+    }
+
     inline bool hasInfoset(const shared_ptr<AOH> &augInfoset) {
         return infoset2nodes_.find(augInfoset) != infoset2nodes_.end();
     }
@@ -279,6 +290,15 @@ class PublicStateCache: public virtual EFGCache {
         publicState2nodes_ = other.publicState2nodes_ ;
         infoset2publicState_ = other.infoset2publicState_ ;
         publicState2infosets_ = other.publicState2infosets_ ;
+    }
+
+    inline void clear() override {
+        EFGCache::clear();
+        node2publicState_.clear();
+        publicState2nodes_.clear();
+        infoset2publicState_.clear();
+        publicState2infosets_.clear();
+        this->createPublicState(getRootNode());
     }
 
     inline bool hasPublicState(const shared_ptr<PublicState> &pubState) const {

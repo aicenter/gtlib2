@@ -121,6 +121,12 @@ class CFRData: public virtual InfosetCache,
         for(auto &[aoh, data] : infosetData) data.reset();
     }
 
+    inline void clear() override {
+        InfosetCache::clear();
+        infosetData.clear();
+        this->createCFRInfosetData(getRootNode());
+    }
+
     struct InfosetData {
         vector<double> regrets;
         vector<double> avgStratAccumulator;

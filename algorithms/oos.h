@@ -58,6 +58,14 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
         for(auto &[node, data] : baselineValues) data.reset();
     }
 
+
+    inline void clear() override {
+        CFRData::clear();
+        PublicStateCache::clear();
+        baselineValues.clear();
+        this->createOOSBaselineData(getRootNode());
+    }
+
     inline double getBaselineFor(const shared_ptr<EFGNode>& h, ActionId action, Player exploringPl) {
         return baselineValues.at(h).value() * (exploringPl == Player(0) ? 1 : -1);
     }
