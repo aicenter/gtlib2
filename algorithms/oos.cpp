@@ -462,10 +462,21 @@ void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
     // updateVal we get is for the exploring player
     u_h *= exploringPl == Player(0) ? 1 : -1;
 
-    const auto &baselineIdx = cache_.baselineValues.find(h);
-    assert(baselineIdx != cache_.baselineValues.end());
-    auto &baseline = baselineIdx->second;
+    auto[a, b] = updateFractionUpdate(u_h, h->getPlayer() == exploringPl,
+                                      rm_h_pl, rm_h_opp, us_h_cn);
 
+    auto &baseline = cache_.baselineValues.at(h);
+    baseline.nominator += a;
+    baseline.denominator += b;
+
+    auto &value = cache_.nodeValues.at(h);
+    value.nominator += a;
+    value.denominator += b;
+}
+
+pair<double, double> OOSAlgorithm::updateFractionUpdate(double u_h, bool isExploringPlayer,
+                                                        double rm_h_pl, double rm_h_opp,
+                                                        double us_h_cn) {
     double a = 0.0, b = 0.0;
     double reach;
     switch (cfg_.baseline) {
@@ -474,7 +485,7 @@ void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
         // The opponent reach probability will be multiplied later,
         // when (possibly) the gadget is created.
         case OOSSettings::WeightedActingPlayerBaseline:
-            reach = h->getPlayer() == exploringPl ? rm_h_pl : rm_h_opp;
+            reach = isExploringPlayer ? rm_h_pl : rm_h_opp;
             a = reach * u_h;
             b = reach;
             break;
@@ -494,17 +505,7 @@ void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
         default:
             unreachable("unrecognized option!");
     }
-    baseline.nominator += a;
-    baseline.denominator += b;
-//    if (h->getParent() == nullptr) {
-//        LOG_VAR(int(exploringPl))
-//        LOG_VAR(u_h)
-//        LOG_VAR(a)
-//        LOG_VAR(b)
-//        LOG_VAR(baseline.nominator)
-//        LOG_VAR(baseline.denominator)
-//        cerr << "----\n";
-//    }
+    return make_pair(a, b);
 }
 
 void OOSAlgorithm::updateInfosetAcc(const shared_ptr<EFGNode> &h, CFRData::InfosetData &data,
@@ -538,7 +539,6 @@ void OOSAlgorithm::updateInfosetAcc(const shared_ptr<EFGNode> &h, CFRData::Infos
             unreachable("unrecognized option!");
     }
 }
-
 void OOSAlgorithm::updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exploringPl,
                                         CFRData::InfosetData &data, int ai,
                                         double u_x, double u_h, double w) {

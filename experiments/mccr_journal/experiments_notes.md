@@ -85,3 +85,31 @@ File: 2019-11-21.312450a.dbar.o
 
 Seems resets are better now (except for LD_tiny).
 So are reweighs. But still I was expecting the reweighs to be better than resets!
+
+---
+
+I largely simplified the reweighing, and baselines and node values
+have been separated out. Slightly worse results than reset: 
+
+    IIGS_4,MCCR,cfg/MCCR_reweighkeep.ini,1000,1000,iterations,0.12738
+    IIGS_4,MCCR,cfg/MCCR_reset.ini,1000,1000,iterations,0.123992
+    
+    IIOZ_5,MCCR,cfg/MCCR_reweighkeep.ini,1000,1000,iterations,0.0365062
+    IIOZ_5,MCCR,cfg/MCCR_reset.ini,1000,1000,iterations,0.0285156
+    
+    LD_tiny,MCCR,cfg/MCCR_reweighkeep.ini,1000,1000,iterations,0.384823
+    LD_tiny,MCCR,cfg/MCCR_reset.ini,1000,1000,iterations,0.374915
+    
+---
+
+I forgot to use (1-lambda) update!
+
+    IIGS_4,MCCR,cfg/MCCR_reweighkeep.ini,1000,1000,iterations,0.122971
+    IIGS_4,MCCR,cfg/MCCR_reset.ini,1000,1000,iterations,0.123992
+    
+    IIOZ_5,MCCR,cfg/MCCR_reweighkeep.ini,1000,1000,iterations,0.0365062
+    IIOZ_5,MCCR,cfg/MCCR_reset.ini,1000,1000,iterations,0.0285156
+    
+    LD_tiny,MCCR,cfg/MCCR_reweighkeep.ini,1000,1000,iterations,0.39886
+    LD_tiny,MCCR,cfg/MCCR_reset.ini,1000,1000,iterations,0.374915
+

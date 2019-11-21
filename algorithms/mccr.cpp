@@ -77,16 +77,18 @@ void MCCRAlgorithm::updateGadget() {
 
     if (cfg_.retentionPolicy == MCCRSettings::ResetData) {
         for (auto&[key, val] : cache_.baselineValues) val.reset();
+        for (auto&[key, val] : cache_.nodeValues) val.reset();
         for (auto&[key, val] : cache_.infosetData) val.reset();
     } else if (cfg_.retentionPolicy == MCCRSettings::ReweighKeepData) {
         // Calculate probability of reweighing -- i.e. the probability
         // of coming into current play infoset.
         const double p = calcProbOfLastAction();
-        const double updateMagnitude = (p / (1 + p));
+        resolver_->updateMagnitude_ = (p / (1 + p));
 
         for (auto&[key, val] : cache_.infosetData) val.reset();
-        for (auto&[key, val] : cache_.baselineValues) {
-            val.nominator *= updateMagnitude;
+        for (auto&[key, val] : cache_.baselineValues) val.reset();
+        for (auto&[key, val] : cache_.nodeValues) {
+            val.nominator *= resolver_->updateMagnitude_;
         }
     }
 }
@@ -279,9 +281,22 @@ void MCCRResolver::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
                                               double u_h, double rm_h_pl, double rm_h_opp,
                                               double us_h_cn, double s_h_all) {
     // undo the efffect of normalization of leaf utils
-    OOSAlgorithm::updateEFGNodeExpectedValue(
-        exploringPl, h, u_h / leafWeight_, rm_h_pl, rm_h_opp, us_h_cn, s_h_all
-    );
+    u_h /= leafWeight_;
+
+    // let's make sure that the utility is always for player 0
+    // updateVal we get is for the exploring player
+    u_h *= exploringPl == Player(0) ? 1 : -1;
+
+    auto[a, b] = updateFractionUpdate(u_h, h->getPlayer() == exploringPl,
+                                      rm_h_pl, rm_h_opp, us_h_cn);
+
+    auto &baseline = cache_.baselineValues.at(h);
+    baseline.nominator += a;
+    baseline.denominator += b;
+
+    auto &value = cache_.nodeValues.at(h);
+    value.nominator += a * (1 - updateMagnitude_);
+    value.denominator += b;
 }
 
 }

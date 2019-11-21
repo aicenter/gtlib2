@@ -111,6 +111,7 @@ class MCCRResolver: public OOSAlgorithm {
     MCCRData &keep_;
     MCCRSettings mccr_cfg_;
     double leafWeight_;
+    double updateMagnitude_ = 0.0;
 };
 
 class MCCRAlgorithm: public ContinualResolving {

@@ -51,11 +51,13 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
         PublicStateCache(other) {
         addCallback([&](const shared_ptr<EFGNode> &n) { this->createOOSBaselineData(n); });
         baselineValues = other.baselineValues;
+        nodeValues = other.nodeValues;
     }
 
     void reset() override {
         CFRData::reset();
         for(auto &[node, data] : baselineValues) data.reset();
+        for(auto &[node, data] : nodeValues) data.reset();
     }
 
 
@@ -63,6 +65,7 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
         CFRData::clear();
         PublicStateCache::clear();
         baselineValues.clear();
+        nodeValues.clear();
         this->createOOSBaselineData(getRootNode());
     }
 
@@ -71,13 +74,10 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
     }
 
     // always stored for Player(0)
-    struct Baseline {
+    struct Fraction {
         double nominator = 0.;
         double denominator = 1.;
         inline double value() const {
-            return 0;
-        }
-        inline double summary_value() const {
             double v = nominator / denominator;
             assert(!isnan(v));
             assert(!isinf(v));
@@ -89,7 +89,8 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
         }
     };
 
-    unordered_map<shared_ptr<EFGNode>, Baseline> baselineValues;
+    unordered_map<shared_ptr<EFGNode>, Fraction> baselineValues;
+    unordered_map<shared_ptr<EFGNode>, Fraction> nodeValues;
 
     PublicStateSummary getPublicStateSummary(const shared_ptr<PublicState> &ps) const {
         // todo: make more efficient
@@ -117,7 +118,7 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
         vector<double> cfvValues_;
         cfvValues_.reserve(topmostHistories_.size());
         for (const auto &h : topmostHistories_) {
-            cfvValues_.emplace_back(baselineValues.at(h).summary_value());
+            cfvValues_.emplace_back(nodeValues.at(h).value());
         }
 
         return PublicStateSummary(ps, topmostHistories_, topmostHistoriesReachProbs_, cfvValues_);
@@ -125,11 +126,14 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
 
  private:
     void createOOSBaselineData(const shared_ptr<EFGNode> &node) {
-        if(node->type_ == TerminalNode)
+        if(node->type_ == TerminalNode) {
             // todo: should we create this for NoBaseline?
-            baselineValues.emplace(node, Baseline{node->getUtilities()[0], 1.});
-        else
-            baselineValues.emplace(node, Baseline());
+            baselineValues.emplace(node, Fraction{node->getUtilities()[0], 1.});
+            nodeValues.emplace(node, Fraction{node->getUtilities()[0], 1.});
+        } else {
+            baselineValues.emplace(node, Fraction());
+            nodeValues.emplace(node, Fraction());
+        }
     }
 
 };
@@ -425,6 +429,8 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
     virtual void updateEFGNodeExpectedValue(Player exploringPl, const shared_ptr<EFGNode> &h,
                                             double u_h, double rm_h_pl, double rm_h_opp,
                                             double us_h_cn, double s_h_all);
+    pair<double, double> updateFractionUpdate(double u_h, bool isExploringPlayer,
+                                              double rm_h_pl, double rm_h_opp, double us_h_cn);
     virtual void updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exploringPl,
                                       CFRData::InfosetData &data, int ai,
                                       double u_x, double u_h, double w);
