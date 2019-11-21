@@ -57,54 +57,7 @@ struct MCCRSettings: OOSSettings {
     //@formatter:on
 };
 
-struct MCCRData: OOSData {
-    unordered_map<shared_ptr<EFGNode>, int> lastReweighUpdate;
-    vector<double> probUpdates;
-
-    inline explicit MCCRData(const Domain &domain) :
-        EFGCache(domain),
-        InfosetCache(domain),
-        CFRData(domain, HistoriesUpdating),
-        PublicStateCache(domain),
-        OOSData(domain) {
-        addCallback([&](const shared_ptr<EFGNode> &n) { this->trackWeightUpdate(n); });
-        probUpdates.push_back(1.0); // for root (preplay) iterations
-        this->trackWeightUpdate(getRootNode());
-    }
-
-    inline MCCRData(const MCCRData &other) :
-        EFGCache(other),
-        InfosetCache(other),
-        CFRData(other),
-        PublicStateCache(other),
-        OOSData(other) {
-        addCallback([&](const shared_ptr<EFGNode> &n) { this->trackWeightUpdate(n); });
-        lastReweighUpdate = other.lastReweighUpdate;
-        probUpdates = other.probUpdates;
-    }
-
-    void reset() override {
-        OOSData::reset();
-        lastReweighUpdate.clear();
-        probUpdates.clear();
-        probUpdates.push_back(1.0); // for root (preplay) iterations
-        this->trackWeightUpdate(getRootNode());
-    }
-
-    inline void clear() override {
-        OOSData::clear();
-        lastReweighUpdate.clear();
-        probUpdates.clear();
-        probUpdates.push_back(1.0); // for root (preplay) iterations
-        this->trackWeightUpdate(getRootNode());
-    }
-
-
- private:
-    void trackWeightUpdate(const shared_ptr<EFGNode> &node) {
-        lastReweighUpdate.emplace(make_pair(node, probUpdates.size() - 1));
-    }
-};
+typedef OOSData MCCRData;
 
 class MCCRResolver: public OOSAlgorithm {
  public:
@@ -134,14 +87,6 @@ class MCCRResolver: public OOSAlgorithm {
     double handleTerminalNode(const shared_ptr<EFGNode> &h,
                               double bs_h_all, double us_h_all,
                               Player exploringPl) override;
-
-    PlayerNodeOutcome sampleExistingTree(const shared_ptr<EFGNode> &h,
-                                         const vector<shared_ptr<Action>> &actions,
-                                         double rm_h_pl, double rm_h_opp,
-                                         double bs_h_all, double us_h_all, double us_h_cn,
-                                         CFRData::InfosetData &data,
-                                         const shared_ptr<AOH> &infoset,
-                                         Player exploringPl) override;
 
     void updateGadgetInfosetRegrets(const shared_ptr<EFGNode> &h, Player exploringPl,
                                     CFRData::InfosetData &data,

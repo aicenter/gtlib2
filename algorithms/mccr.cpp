@@ -71,6 +71,7 @@ PlayControl MCCRAlgorithm::resolveIteration(const shared_ptr<GadgetRootNode> &ga
 }
 
 void MCCRAlgorithm::updateGadget() {
+    // First build gadget, before applying any retention policy.
     ContinualResolving::updateGadget();
     resolver_->updateGadget(gadget_.get());
 
@@ -79,12 +80,14 @@ void MCCRAlgorithm::updateGadget() {
         for (auto&[key, val] : cache_.infosetData) val.reset();
     } else if (cfg_.retentionPolicy == MCCRSettings::ReweighKeepData) {
         // Calculate probability of reweighing -- i.e. the probability
-        // of coming into current play infoset. Updates will be done
-        // as we visit each history during sampling -- we will check
-        // when was the last time it was updated, and multiply regrets
-        // and baseline values appropriately.
-        double p = calcProbOfLastAction();
-        cache_.probUpdates.emplace_back(p / (1 + p));
+        // of coming into current play infoset.
+        const double p = calcProbOfLastAction();
+        const double updateMagnitude = (p / (1 + p));
+
+        for (auto&[key, val] : cache_.infosetData) val.reset();
+        for (auto&[key, val] : cache_.baselineValues) {
+            val.nominator *= updateMagnitude;
+        }
     }
 }
 double MCCRAlgorithm::calcProbOfLastAction() {
@@ -163,10 +166,14 @@ void MCCRResolver::updateGadgetBiasingProbs(double playInfosetReachProb) {
 double MCCRResolver::handleChanceNode(const shared_ptr<EFGNode> &h, double rm_h_pl, double rm_h_opp,
                                       double bs_h_all, double us_h_all, double us_h_cn,
                                       Player exploringPl) {
-    if (h->getSpecialization() == NoSpecialization)
-        return OOSAlgorithm::handleChanceNode(
-            h, rm_h_pl, rm_h_opp, bs_h_all, us_h_all, us_h_cn, exploringPl);
 
+    if (h->getSpecialization() == NoSpecialization) {
+        return OOSAlgorithm::handleChanceNode(h, rm_h_pl, rm_h_opp,
+                                              bs_h_all, us_h_all, us_h_cn,
+                                              exploringPl);
+    }
+
+    assert(h->getSpecialization() == GadgetSpecialization);
     pBiasedProbs_ = &gadgetChanceProbs_; // this is precomputed in "updateGadget"
     const auto ai = selectChanceAction(h, gadgetBsum_);
     const auto pai = h->chanceProbForAction(ai);
@@ -189,10 +196,16 @@ double MCCRResolver::handleChanceNode(const shared_ptr<EFGNode> &h, double rm_h_
 double MCCRResolver::handlePlayerNode(const shared_ptr<EFGNode> &h, double rm_h_pl, double rm_h_opp,
                                       double bs_h_all, double us_h_all, double us_h_cn,
                                       Player exploringPl) {
-    if (h->getSpecialization() == NoSpecialization)
-        return OOSAlgorithm::handlePlayerNode(
-            h, rm_h_pl, rm_h_opp, bs_h_all, us_h_all, us_h_cn, exploringPl);
+    if (h->getSpecialization() == NoSpecialization) {
+        // Reweighing is done in sampleExistingTree.
+        // This should be safe, because the beginning of OOSAlgorithm::handlePlayerNode
+        // just figures out whether you should sample existing tree or simulate the result.
+        return OOSAlgorithm::handlePlayerNode(h, rm_h_pl, rm_h_opp,
+                                              bs_h_all, us_h_all, us_h_cn,
+                                              exploringPl);
+    }
 
+    assert(h->getSpecialization() == GadgetSpecialization);
     const auto &actions = h->availableActions();
     const auto &infoset = h->getAOHInfSet();
     const double s_h_all = bias(bs_h_all, us_h_all);
@@ -233,46 +246,14 @@ double MCCRResolver::handlePlayerNode(const shared_ptr<EFGNode> &h, double rm_h_
     return u_h;
 }
 
-PlayerNodeOutcome MCCRResolver::sampleExistingTree(const shared_ptr<EFGNode> &h,
-                                                   const vector<shared_ptr<Action>> &actions,
-                                                   double rm_h_pl, double rm_h_opp,
-                                                   double bs_h_all, double us_h_all, double us_h_cn,
-                                                   CFRData::InfosetData &data,
-                                                   const shared_ptr<AOH> &infoset,
-                                                   Player exploringPl) {
-    assert(h->type_ == PlayerNode);
+double MCCRResolver::handleTerminalNode(const shared_ptr<EFGNode> &h,
+                                        double bs_h_all, double us_h_all,
+                                        Player exploringPl) {
 
-    // we may need to reweight data at infoset
-    if (mccr_cfg_.retentionPolicy == MCCRSettings::ReweighKeepData) {
-        const auto lastUpdate = keep_.lastReweighUpdate.find(h);
-        const auto currentUpdateIdx = keep_.probUpdates.size() - 1;
-
-        // we should keep track of all update indices!
-        assert(lastUpdate != keep_.lastReweighUpdate.end());
-
-        int &idx = lastUpdate->second;
-        assert(idx >= 0);
-
-        if (currentUpdateIdx != idx) { // should update
-            assert(idx < currentUpdateIdx);
-
-            double update = 1.0;
-            for (int i = idx + 1; i <= currentUpdateIdx; ++i) update *= keep_.probUpdates.at(i);
-
-            std::fill(data.regrets.begin(), data.regrets.end(), 0.);
-            std::fill(data.avgStratAccumulator.begin(), data.avgStratAccumulator.end(), 0.);
-            cache_.baselineValues.at(h).nominator *= update;
-
-            idx = currentUpdateIdx;
-        }
-    }
-
-    return OOSAlgorithm::sampleExistingTree(h, actions,
-                                            rm_h_pl, rm_h_opp,
-                                            bs_h_all, us_h_all, us_h_cn,
-                                            data, infoset, exploringPl);
+    // We must multiply leaf utilities by pub state reach,
+    // to eliminate normalization in the gadget chance node
+    return leafWeight_ * OOSAlgorithm::handleTerminalNode(h, bs_h_all, us_h_all, exploringPl);
 }
-
 
 void MCCRResolver::updateGadgetInfosetRegrets(const shared_ptr<EFGNode> &h, Player exploringPl,
                                               CFRData::InfosetData &data,
@@ -293,6 +274,7 @@ void MCCRResolver::updateGadgetInfosetRegrets(const shared_ptr<EFGNode> &h, Play
     data.regrets[1] += -p_follow * diff;
 }
 
+
 void MCCRResolver::updateEFGNodeExpectedValue(Player exploringPl, const shared_ptr<EFGNode> &h,
                                               double u_h, double rm_h_pl, double rm_h_opp,
                                               double us_h_cn, double s_h_all) {
@@ -300,16 +282,6 @@ void MCCRResolver::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
     OOSAlgorithm::updateEFGNodeExpectedValue(
         exploringPl, h, u_h / leafWeight_, rm_h_pl, rm_h_opp, us_h_cn, s_h_all
     );
-}
-
-
-double MCCRResolver::handleTerminalNode(const shared_ptr<EFGNode> &h,
-                                        double bs_h_all, double us_h_all,
-                                        Player exploringPl) {
-
-    // We must multiply leaf utilities by pub state reach,
-    // to eliminate normalization in the gadget chance node
-    return leafWeight_ * OOSAlgorithm::handleTerminalNode(h, bs_h_all, us_h_all, exploringPl);
 }
 
 }

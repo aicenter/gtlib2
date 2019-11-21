@@ -154,7 +154,7 @@ BehavioralStrategy MCCR_AverageStrategyForPlayer(Player traversingPlayer,
         if(currentData.hasPublicState(node)) {
             const auto efgNodes = currentData.getNodesForPubState(node);
             for (const auto&efgNode : efgNodes) {
-                if(efgNode->getPlayer() == traversingPlayer)  {
+                if(efgNode->type_ == PlayerNode && efgNode->getPlayer() == traversingPlayer)  {
                     playerIsOwnerOfSomeIS = true;
                     anInfoset = efgNode->getAOHInfSet();
                     break;
