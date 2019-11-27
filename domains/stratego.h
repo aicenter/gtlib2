@@ -47,6 +47,10 @@ struct Lake {
 vector<unsigned int> decodeStrategoObservation(unsigned int obsid);
 Rank getRank(CellState cell);
 
+enum GameState {
+    Setup, Playing, Finished
+};
+
 struct StrategoSettings {
     int boardHeight = 3;
     int boardWidth = 3;
@@ -54,13 +58,13 @@ struct StrategoSettings {
 
     // initial list of ranks available for player
     vector<Rank> figures = {'1', '2', '3'};
-    vector<CellState> generateBoard();
+    vector<CellState> generateEmptyBoard();
     int getBoardSize() const { return boardHeight * boardWidth; };
 };
 
-struct StrategoRevealedInfo: public Constraint {
-    explicit StrategoRevealedInfo(bool moved) : moved(moved), revealedRank(EMPTY) {};
-    explicit StrategoRevealedInfo(Rank rank) : revealedRank(rank), moved(false) {};
+struct StrategoConstraint: public Constraint {
+    explicit StrategoConstraint(bool moved) : moved(moved), revealedRank(EMPTY) {};
+    explicit StrategoConstraint(Rank rank) : revealedRank(rank), moved(false) {};
  public:
     Rank revealedRank;
     bool moved;
@@ -107,13 +111,13 @@ class StrategoDomain: public Domain, public ConstrainingDomain {
     bool updateConstraints(const shared_ptr<AOH> &currentInfoset, long &startIndex,
                            ConstraintsMap &revealedFigures) const override;
     void generateNodes(const shared_ptr<AOH> &currentInfoset,
-                       const ConstraintsMap &revealedFigures,
+                       const ConstraintsMap &revealedInfo,
                        int max, const EFGNodeCallback &newNodeCallback) const override;
     void initializeEnumerativeConstraints(ConstraintsMap &revealedInfo) const override {};
  private:
     void recursiveNodeGeneration(const shared_ptr<AOH> &currentInfoset,
                                  const shared_ptr<EFGNode> &node, int depth,
-                                 const vector<shared_ptr<StrategoRevealedInfo>> &mask,
+                                 const vector<shared_ptr<StrategoConstraint>> &mask,
                                  const vector<Rank> &remaining, int &counter,
                                  const EFGNodeCallback &newNodeCallback) const;
     void simulateMoves(const vector<ActionObservationIds> &aoids,
@@ -177,11 +181,10 @@ class StrategoSetupObservation: public Observation {
 class StrategoState: public State {
  public:
     inline StrategoState(const Domain *domain, vector<CellState> boardState,
-                         bool setupState, bool finished, int player, int noAttackCounter) :
-        State(domain, hashCombine(98612345434231, boardState, setupState, finished, player)),
+                         GameState(state), int player, int noAttackCounter) :
+        State(domain, hashCombine(98612345434231, boardState, state == Setup, state == Finished, player, noAttackCounter)),
         boardState_(move(boardState)),
-        isSetupState_(setupState),
-        isFinished_(finished),
+        gameState_(state),
         currentPlayer_(player),
         boardIDToPlace_(0),
         noAttackCounter_(noAttackCounter) {
@@ -202,11 +205,9 @@ class StrategoState: public State {
     // noAttackCounter prevent games from looping. After a fixed number of moves without attacks game is stopped with a draw.
     const int noAttackCounter_;
     const Player currentPlayer_;
-    const bool isFinished_;
-    const bool isSetupState_;
+    const GameState gameState_;
     const vector<CellState> boardState_;
-    vector<Rank> pl0FiguresToPlace_;
-    vector<Rank> pl1FiguresToPlace_;
+    array<vector<Rank>, 2> remainingFiguresToPlace_;
     int boardIDToPlace_;
 };
 }

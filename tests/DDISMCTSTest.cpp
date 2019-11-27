@@ -30,9 +30,8 @@ namespace GTLib2::algorithms {
 TEST(DDISMCTS, CheckInfosetConsistency) {
     vector<pair<shared_ptr<ConstrainingDomain>, int>> domains = {forward_as_tuple(GTLib2::domains::StrategoDomain::STRAT2x2(), 3),
                                                                  forward_as_tuple(GTLib2::domains::GoofSpielDomain::IIGS(5), 0)};
-    for(int i = 0; i < domains.size(); ++i)
+    for(const auto & [domain, depth] : domains)
     {
-        const auto domain = domains[i].first;
         auto cache = InfosetCache(dynamic_cast<const Domain &>(*domain));
         cache.buildTree();
         auto mapping = cache.getInfoset2NodeMapping();
@@ -40,7 +39,7 @@ TEST(DDISMCTS, CheckInfosetConsistency) {
             return a->getHistory() < b->getHistory();
         };
         for (auto&[infoset, expectedNodes] : mapping) {
-            if (expectedNodes[0]->efgDepth() < 2*domains[i].second) continue; //no need for nodes in setup state
+            if (expectedNodes[0]->efgDepth() < 2*depth) continue; //no need for nodes in setup state
             if (expectedNodes[0]->type_ != PlayerNode) continue;
             // a shorthand for distinguishing augmented infosets from ordinary ones
             if (expectedNodes[0]->getPlayer() != infoset->getPlayer()) continue;

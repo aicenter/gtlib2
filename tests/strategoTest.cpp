@@ -30,10 +30,10 @@ namespace GTLib2::domains {
 TEST(Stratego, CannotMovePastBounds) {
     const auto domain = make_shared<StrategoDomain>(StrategoSettings{2, 1, {}, {'1'}});
     vector<CellState> b = {createCell('1', 0), LAKE};
-    auto s = make_shared<StrategoState>(&(*domain), b, false, false, 0, 0);
+    auto s = make_shared<StrategoState>(&(*domain), b, Playing, 0, 0);
     EXPECT_TRUE((*s).getAvailableActionsFor(0).empty());
     b = {LAKE, createCell('1', 0)};
-    s = make_shared<StrategoState>(&(*domain), b, false, false, 0, 0);
+    s = make_shared<StrategoState>(&(*domain), b, Playing, 0, 0);
     EXPECT_TRUE((*s).getAvailableActionsFor(0).empty());
 }
 
@@ -43,7 +43,7 @@ TEST(Stratego, CannotMoveIntoLake) {
                                                                       {2, 1, 1, 1}, {1, 2, 1, 1}},
                                                                      {'1'}});
     vector<CellState> b = {' ', LAKE, ' ', LAKE, createCell('1', 0), LAKE, ' ', LAKE, ' '};
-    auto s = make_shared<StrategoState>(&(*domain), b, false, false, 0, 0);
+    auto s = make_shared<StrategoState>(&(*domain), b, Playing, 0, 0);
     EXPECT_TRUE((*s).getAvailableActionsFor(0).empty());
 }
 
@@ -55,28 +55,28 @@ TEST(Stratego, CannotMoveOnSamePlayerFigure) {
     vector<CellState> b =
         {LAKE, createCell('1', 0), LAKE, createCell('1', 0), createCell('1', 0),
          createCell('1', 0), LAKE, createCell('1', 0), LAKE};
-    auto s = make_shared<StrategoState>(&(*domain), b, false, false, 0, 0);
+    auto s = make_shared<StrategoState>(&(*domain), b, Playing, 0, 0);
     EXPECT_TRUE((*s).getAvailableActionsFor(0).empty());
 }
 
 TEST(Stratego, BombCannotMove) {
     const auto domain = make_shared<StrategoDomain>(StrategoSettings{2, 1, {}, {'1'}});
     vector<CellState> b = {createCell(BOMB, 0), createCell('1', 1)};
-    auto s = make_shared<StrategoState>(&(*domain), b, false, false, 0, 0);
+    auto s = make_shared<StrategoState>(&(*domain), b, Playing, 0, 0);
     EXPECT_TRUE((*s).getAvailableActionsFor(0).empty());
 }
 
 TEST(Stratego, FlagCannotMove) {
     const auto domain = make_shared<StrategoDomain>(StrategoSettings{2, 1, {}, {'1'}});
     vector<CellState> b = {createCell(FLAG, 0), createCell('1', 1)};
-    auto s = make_shared<StrategoState>(&(*domain), b, false, false, 0, 0);
+    auto s = make_shared<StrategoState>(&(*domain), b, Playing, 0, 0);
     EXPECT_TRUE((*s).getAvailableActionsFor(0).empty());
 }
 
 TEST(Stratego, SameRankAttack) {
     const auto domain = make_shared<StrategoDomain>(StrategoSettings{2, 1, {}, {'1'}});
     vector<CellState> b = {createCell('1', 0), createCell('1', 1)};
-    auto s = make_shared<StrategoState>(&(*domain), b, false, false, 0, 0);
+    auto s = make_shared<StrategoState>(&(*domain), b, Playing, 0, 0);
     vector<shared_ptr<Action>> actions;
     actions = (*s).getAvailableActionsFor(0);
     EXPECT_EQ(actions.size(), 1);
@@ -86,13 +86,13 @@ TEST(Stratego, SameRankAttack) {
     const vector<CellState> newboard = {' ', ' '};
     EXPECT_EQ(state.boardState_, newboard);
     EXPECT_EQ(state.currentPlayer_, 1);
-    EXPECT_TRUE(state.isFinished_);
+    EXPECT_TRUE(state.gameState_ == Finished);
 }
 
 TEST(Stratego, DiffRankAttack1) {
     const auto domain = make_shared<StrategoDomain>(StrategoSettings{2, 1, {}, {'1'}});
     vector<CellState> b = {createCell('1', 0), createCell('2', 1)};
-    auto s = make_shared<StrategoState>(&(*domain), b, false, false, 0, 0);
+    auto s = make_shared<StrategoState>(&(*domain), b, Playing, 0, 0);
     auto actions = (*s).getAvailableActionsFor(0);
     EXPECT_EQ(actions.size(), 1);
     auto newstates = (*s).performActions(actions);
@@ -101,13 +101,13 @@ TEST(Stratego, DiffRankAttack1) {
     const vector<CellState> newboard = {' ', createCell('2', 1)};
     EXPECT_EQ(state.boardState_, newboard);
     EXPECT_EQ(state.currentPlayer_, 1);
-    EXPECT_TRUE(state.isFinished_);
+    EXPECT_TRUE(state.gameState_ == Finished);
 }
 
 TEST(Stratego, DiffRankAttack2) {
     const auto domain = make_shared<StrategoDomain>(StrategoSettings{2, 1, {}, {'1'}});
     vector<CellState> b = {createCell('2', 0), createCell('1', 1)};
-    auto s = make_shared<StrategoState>(&(*domain), b, false, false, 0, 0);
+    auto s = make_shared<StrategoState>(&(*domain), b, Playing, 0, 0);
     auto actions = (*s).getAvailableActionsFor(0);
     EXPECT_EQ(actions.size(), 1);
     auto newstates = (*s).performActions(actions);
@@ -116,13 +116,13 @@ TEST(Stratego, DiffRankAttack2) {
     const vector<CellState> newboard = {' ', createCell('2', 0)};
     EXPECT_EQ(state.boardState_, newboard);
     EXPECT_EQ(state.currentPlayer_, 1);
-    EXPECT_TRUE(state.isFinished_);
+    EXPECT_TRUE(state.gameState_ == Finished);
 }
 
 TEST(Stratego, AttackOnBomb) {
     const auto domain = make_shared<StrategoDomain>(StrategoSettings{2, 1, {}, {'1'}});
     vector<CellState> b = {createCell('1', 0), createCell(BOMB, 1)};
-    auto s = make_shared<StrategoState>(&(*domain), b, false, false, 0, 0);
+    auto s = make_shared<StrategoState>(&(*domain), b, Playing, 0, 0);
     auto actions = (*s).getAvailableActionsFor(0);
     EXPECT_EQ(actions.size(), 1);
     auto newstates = (*s).performActions(actions);
@@ -131,13 +131,13 @@ TEST(Stratego, AttackOnBomb) {
     const vector<CellState> newboard = {' ', createCell(BOMB, 1)};
     EXPECT_EQ(state.boardState_, newboard);
     EXPECT_EQ(state.currentPlayer_, 1);
-    EXPECT_TRUE(state.isFinished_);
+    EXPECT_TRUE(state.gameState_ == Finished);
 }
 
 TEST(Stratego, AttackOnFlag) {
     const auto domain = make_shared<StrategoDomain>(StrategoSettings{2, 1, {}, {'1'}});
     vector<CellState> b = {createCell('1', 0), createCell(FLAG, 1)};
-    auto s = make_shared<StrategoState>(&(*domain), b, false, false, 0, 0);
+    auto s = make_shared<StrategoState>(&(*domain), b, Playing, 0, 0);
     auto actions = (*s).getAvailableActionsFor(0);
     EXPECT_EQ(actions.size(), 1);
     auto newstates = (*s).performActions(actions);
@@ -146,7 +146,7 @@ TEST(Stratego, AttackOnFlag) {
     const vector<CellState> newboard = {' ', createCell('1', 0)};
     EXPECT_EQ(state.boardState_, newboard);
     EXPECT_EQ(state.currentPlayer_, 1);
-    EXPECT_TRUE(state.isFinished_);
+    EXPECT_TRUE(state.gameState_ == Finished);
 }
 
 }
