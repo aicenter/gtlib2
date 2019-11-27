@@ -27,9 +27,13 @@
 
 namespace GTLib2::algorithms {
 
-enum AccumulatorWeighting { UniformAccWeighting, LinearAccWeighting };
+    enum AccumulatorWeighting {
+        UniformAccWeighting, LinearAccWeighting
+    };
 
-enum RegretMatching { RegretMatchingNormal, RegretMatchingPlus };
+    enum RegretMatching {
+        RegretMatchingNormal, RegretMatchingPlus
+    };
 
 /**
  * Should the "CFR iteration" update regret matching strategy after passing through individual
@@ -39,211 +43,217 @@ enum RegretMatching { RegretMatchingNormal, RegretMatchingPlus };
  * [1] Zinkevich, Martin, et al. "Regret minimization in games with incomplete information."
  *     Advances in neural information processing systems. 2008.
  */
-enum CFRUpdating { HistoriesUpdating, InfosetsUpdating };
+    enum CFRUpdating {
+        HistoriesUpdating, InfosetsUpdating
+    };
 
 
-struct CFRSettings: AlgConfig {
-    // todo: CFR+
-    AccumulatorWeighting accumulatorWeighting = UniformAccWeighting;
-    RegretMatching regretMatching = RegretMatchingNormal;
-    CFRUpdating cfrUpdating = HistoriesUpdating;
+    struct CFRSettings : AlgConfig {
+        // todo: CFR+
+        AccumulatorWeighting accumulatorWeighting = UniformAccWeighting;
+        RegretMatching regretMatching = RegretMatchingNormal;
+        CFRUpdating cfrUpdating = HistoriesUpdating;
 
-    //@formatter:off
-    void update(const string &k, const string &v) override {
-        if(k == "accumulatorWeighting" && v == "UniformAccWeighting")  accumulatorWeighting = UniformAccWeighting;  else
-        if(k == "accumulatorWeighting" && v == "LinearAccWeighting")  accumulatorWeighting = LinearAccWeighting;   else
-        if(k == "regretMatching"       && v == "RegretMatchingNormal") regretMatching       = RegretMatchingNormal; else
-        if(k == "regretMatching"       && v == "RegretMatchingPlus")  regretMatching       = RegretMatchingPlus;   else
-        if(k == "cfrUpdating"          && v == "HistoriesUpdating")    cfrUpdating          = HistoriesUpdating;    else
-        if(k == "cfrUpdating"          && v == "InfosetsUpdating")    cfrUpdating          = InfosetsUpdating;     else
-        AlgConfig::update(k, v);
+        //@formatter:off
+        void update(const string &k, const string &v) override {
+            if (k == "accumulatorWeighting" && v == "UniformAccWeighting") accumulatorWeighting = UniformAccWeighting;
+            else if (k == "accumulatorWeighting" && v == "LinearAccWeighting")
+                accumulatorWeighting = LinearAccWeighting;
+            else if (k == "regretMatching" && v == "RegretMatchingNormal") regretMatching = RegretMatchingNormal;
+            else if (k == "regretMatching" && v == "RegretMatchingPlus") regretMatching = RegretMatchingPlus;
+            else if (k == "cfrUpdating" && v == "HistoriesUpdating") cfrUpdating = HistoriesUpdating;
+            else if (k == "cfrUpdating" && v == "InfosetsUpdating") cfrUpdating = InfosetsUpdating;
+            else
+                AlgConfig::update(k, v);
+        }
+
+        inline string toString() const override {
+            std::stringstream ss;
+            ss << "; CFR" << endl;
+            if (accumulatorWeighting == UniformAccWeighting) ss << "accumulatorWeighting = UniformAccWeighting" << endl;
+            if (accumulatorWeighting == LinearAccWeighting) ss << "accumulatorWeighting = LinearAccWeighting" << endl;
+            if (regretMatching == RegretMatchingNormal) ss << "regretMatching       = RegretMatchingNormal" << endl;
+            if (regretMatching == RegretMatchingPlus) ss << "regretMatching       = RegretMatchingPlus" << endl;
+            if (cfrUpdating == HistoriesUpdating) ss << "cfrUpdating          = HistoriesUpdating" << endl;
+            if (cfrUpdating == InfosetsUpdating) ss << "cfrUpdating          = InfosetsUpdating" << endl;
+            return ss.str();
+        }
+        //@formatter:on
+    };
+
+
+    void calcRMProbs(const vector<double> &regrets, ProbDistribution *pProbs, double epsilonUniform);
+
+    void calcAvgProbs(const vector<double> &acc, ProbDistribution *pProbs);
+
+    inline void calcRMProbs(const vector<double> &regrets, ProbDistribution *pProbs) {
+        calcRMProbs(regrets, pProbs, 0);
     }
 
-    inline string toString() const override {
-        std::stringstream ss;
-        ss << "; CFR" << endl;
-        if(accumulatorWeighting == UniformAccWeighting)   ss << "accumulatorWeighting = UniformAccWeighting"  << endl;
-        if(accumulatorWeighting == LinearAccWeighting )   ss << "accumulatorWeighting = LinearAccWeighting"   << endl;
-        if(regretMatching       == RegretMatchingNormal)  ss << "regretMatching       = RegretMatchingNormal" << endl;
-        if(regretMatching       == RegretMatchingPlus )   ss << "regretMatching       = RegretMatchingPlus"   << endl;
-        if(cfrUpdating          == HistoriesUpdating)     ss << "cfrUpdating          = HistoriesUpdating"    << endl;
-        if(cfrUpdating          == InfosetsUpdating )     ss << "cfrUpdating          = InfosetsUpdating"     << endl;
-        return ss.str();
+    inline ProbDistribution calcRMProbs(const vector<double> &regrets) {
+        auto rmProbs = vector<double>(regrets.size());
+        calcRMProbs(regrets, &rmProbs);
+        return rmProbs;
     }
-    //@formatter:on
-};
 
-
-void calcRMProbs(const vector<double> &regrets, ProbDistribution *pProbs, double epsilonUniform);
-void calcAvgProbs(const vector<double> &acc, ProbDistribution *pProbs);
-
-inline void calcRMProbs(const vector<double> &regrets, ProbDistribution *pProbs) {
-    calcRMProbs(regrets, pProbs, 0);
-}
-inline ProbDistribution calcRMProbs(const vector<double> &regrets) {
-    auto rmProbs = vector<double>(regrets.size());
-    calcRMProbs(regrets, &rmProbs);
-    return rmProbs;
-}
-inline ProbDistribution calcAvgProbs(const vector<double> &acc) {
-    auto avgProbs = vector<double>(acc.size());
-    calcAvgProbs(acc, &avgProbs);
-    return avgProbs;
-}
+    inline ProbDistribution calcAvgProbs(const vector<double> &acc) {
+        auto avgProbs = vector<double>(acc.size());
+        calcAvgProbs(acc, &avgProbs);
+        return avgProbs;
+    }
 
 
 /**
  * Container for regrets and average strategy accumulators
  */
-class CFRData: public virtual InfosetCache,
-               public StrategyCache {
+    class CFRData : public virtual InfosetCache,
+                    public StrategyCache {
 
- public:
-    inline explicit CFRData(const Domain &domain) : CFRData(domain, HistoriesUpdating) {}
+    public:
+        inline explicit CFRData(const Domain &domain) : CFRData(domain, HistoriesUpdating) {}
 
-    inline explicit CFRData(const Domain &domain, CFRUpdating updatingPolicy) :
-        EFGCache(domain),
-        InfosetCache(domain),
-        updatingPolicy_(updatingPolicy) {
-        addCallback([&](const shared_ptr<EFGNode> &n) { this->createCFRInfosetData(n); });
-        this->createCFRInfosetData(getRootNode());
-    }
-
-    inline CFRData(const CFRData &other) :
-        EFGCache(other),
-        InfosetCache(other) {
-        addCallback([&](const shared_ptr<EFGNode> &n) { this->createCFRInfosetData(n); });
-        infosetData = other.infosetData;
-        updatingPolicy_ = other.updatingPolicy_;
-    }
-
-    struct InfosetData {
-        vector<double> regrets;
-        vector<double> avgStratAccumulator;
-        vector<double> regretUpdates;
-        unsigned int numUpdates = 0;
-
-        /**
-         * Disable updating RM strategy in this infoset
-         */
-        bool fixRMStrategy = false;
-
-        /**
-         * Disable updating avg strategy accumulator in this infoset
-         */
-        bool fixAvgStrategy = false;
-
-        explicit InfosetData(unsigned long numActions, CFRUpdating updatingPolicy) {
-            regrets = vector<double>(numActions, 0.0);
-            avgStratAccumulator = vector<double>(numActions, 0.0);
-            if (updatingPolicy == HistoriesUpdating) regretUpdates = vector<double>(0);
-            else regretUpdates = vector<double>(numActions, 0.);
+        inline explicit CFRData(const Domain &domain, CFRUpdating updatingPolicy) :
+                EFGCache(domain),
+                InfosetCache(domain),
+                updatingPolicy_(updatingPolicy) {
+            addCallback([&](const shared_ptr<EFGNode> &n) { this->createCFRInfosetData(n); });
+            this->createCFRInfosetData(getRootNode());
         }
 
-        void reset() {
-            std::fill(regrets.begin(), regrets.end(), 0.);
-            std::fill(avgStratAccumulator.begin(), avgStratAccumulator.end(), 0.);
-            std::fill(regretUpdates.begin(), regretUpdates.end(), 0.);
-            numUpdates = 0;
+        inline CFRData(const CFRData &other) :
+                EFGCache(other),
+                InfosetCache(other) {
+            addCallback([&](const shared_ptr<EFGNode> &n) { this->createCFRInfosetData(n); });
+            infosetData = other.infosetData;
+            updatingPolicy_ = other.updatingPolicy_;
+        }
+
+        struct InfosetData {
+            vector<double> regrets;
+            vector<double> avgStratAccumulator;
+            vector<double> regretUpdates;
+            unsigned int numUpdates = 0;
+
+            /**
+             * Disable updating RM strategy in this infoset
+             */
+            bool fixRMStrategy = false;
+
+            /**
+             * Disable updating avg strategy accumulator in this infoset
+             */
+            bool fixAvgStrategy = false;
+
+            explicit InfosetData(unsigned long numActions, CFRUpdating updatingPolicy) {
+                regrets = vector<double>(numActions, 0.0);
+                avgStratAccumulator = vector<double>(numActions, 0.0);
+                if (updatingPolicy == HistoriesUpdating) regretUpdates = vector<double>(0);
+                else regretUpdates = vector<double>(numActions, 0.);
+            }
+
+            void reset() {
+                std::fill(regrets.begin(), regrets.end(), 0.);
+                std::fill(avgStratAccumulator.begin(), avgStratAccumulator.end(), 0.);
+                std::fill(regretUpdates.begin(), regretUpdates.end(), 0.);
+                numUpdates = 0;
+            }
+        };
+
+        unordered_map<shared_ptr<AOH>, InfosetData> infosetData;
+
+        inline optional<ProbDistribution> strategyFor(const shared_ptr<AOH> &currentInfoset) override {
+            if (infosetData.find(currentInfoset) == infosetData.end()) return nullopt;
+            return calcAvgProbs(infosetData.at(currentInfoset).avgStratAccumulator);
+        }
+
+    protected:
+        CFRUpdating updatingPolicy_ = HistoriesUpdating;
+
+        void createCFRInfosetData(const shared_ptr<EFGNode> &node) {
+            if (node->type_ != PlayerNode) return;
+
+            auto infoSet = node->getAOHInfSet();
+            if (infosetData.find(infoSet) == infosetData.end()) {
+                infosetData.emplace(make_pair(
+                        infoSet, CFRData::InfosetData(node->countAvailableActions(), updatingPolicy_)));
+            }
         }
     };
-
-    unordered_map<shared_ptr<AOH>, InfosetData> infosetData;
-
-    inline optional<ProbDistribution> strategyFor(const shared_ptr<AOH> &currentInfoset) override {
-        if (infosetData.find(currentInfoset) == infosetData.end()) return nullopt;
-        return calcAvgProbs(infosetData.at(currentInfoset).avgStratAccumulator);
-    }
-
- protected:
-    CFRUpdating updatingPolicy_ = HistoriesUpdating;
-
- private:
-    void createCFRInfosetData(const shared_ptr<EFGNode> &node) {
-        if (node->type_ != PlayerNode) return;
-
-        auto infoSet = node->getAOHInfSet();
-        if (infosetData.find(infoSet) == infosetData.end()) {
-            infosetData.emplace(make_pair(
-                infoSet, CFRData::InfosetData(node->countAvailableActions(), updatingPolicy_)));
-        }
-    }
-};
 
 
 /**
  * Index of the chance (nature) player
  */
-constexpr int CHANCE_PLAYER = 2;
+    constexpr int CHANCE_PLAYER = 2;
 
 
 /**
  * Run CFR on EFG tree for a number of iterations for both players.
  * This implementation is based on Algorithm 1 in M. Lanctot PhD thesis.
  */
-class CFRAlgorithm: public GamePlayingAlgorithm {
- public:
-    CFRAlgorithm(const Domain &domain,
-                 Player playingPlayer,
-                 CFRData &cache,
-                 CFRSettings settings);
-    PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
-    optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override;
+    class CFRAlgorithm : public GamePlayingAlgorithm {
+    public:
+        CFRAlgorithm(const Domain &domain,
+                     Player playingPlayer,
+                     CFRData &cache,
+                     CFRSettings settings);
 
-    inline double runIteration(const Player updatingPl) {
-        return runIteration(cache_.getRootNode(), array<double, 3>{1., 1., 1.}, updatingPl);
-    }
+        PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
 
-    /**
-     * Run an updating iteration for specified player starting at some node.
-     * @return counterfactual value for infoset under current (regret-matching) strategy.
-     */
-    double runIteration(const shared_ptr<EFGNode> &node, const array<double, 3> reachProbs,
-                        const Player updatingPl);
-    void runIterations(int numIterations);
+        optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override;
 
-    inline CFRData &getCache() {
-        return cache_;
-    }
+        inline double runIteration(const Player updatingPl) {
+            return runIteration(cache_.getRootNode(), array<double, 3>{1., 1., 1.}, updatingPl);
+        }
 
-    // todo: move into private!
-    void delayedApplyRegretUpdates();
+        /**
+         * Run an updating iteration for specified player starting at some node.
+         * @return counterfactual value for infoset under current (regret-matching) strategy.
+         */
+        double runIteration(const shared_ptr<EFGNode> &node, const array<double, 3> reachProbs,
+                            const Player updatingPl);
 
- private:
-    CFRData &cache_;
-    CFRSettings settings_;
+        void runIterations(int numIterations);
 
-    void nodeUpdateRegrets(const shared_ptr<EFGNode> &node);
+        inline CFRData &getCache() {
+            return cache_;
+        }
 
-};
+        void UpdateInfosetRegrets(Player updatingPl);
 
-struct ExpectedUtility {
-    double rmUtility;
-    double avgUtility;
+    private:
+        CFRData &cache_;
+        CFRSettings settings_;
 
-    ExpectedUtility(double rmUtility, double avgUtility) {
-        this->rmUtility = rmUtility;
-        this->avgUtility = avgUtility;
-    }
+    };
 
-    bool operator==(const ExpectedUtility &rhs) const {
-        return rmUtility == rhs.rmUtility && avgUtility == rhs.avgUtility;
-    }
+    struct ExpectedUtility {
+        double rmUtility;
+        double avgUtility;
 
-    friend std::ostream &
-    operator<<(std::ostream &ss, ExpectedUtility const &utils) {
-        ss << "RM:  " << utils.rmUtility << "\n";
-        ss << "AVG: " << utils.avgUtility << "\n";
-        return ss;
-    }
-};
+        ExpectedUtility(double rmUtility, double avgUtility) {
+            this->rmUtility = rmUtility;
+            this->avgUtility = avgUtility;
+        }
+
+        bool operator==(const ExpectedUtility &rhs) const {
+            return rmUtility == rhs.rmUtility && avgUtility == rhs.avgUtility;
+        }
+
+        friend std::ostream &
+        operator<<(std::ostream &ss, ExpectedUtility const &utils) {
+            ss << "RM:  " << utils.rmUtility << "\n";
+            ss << "AVG: " << utils.avgUtility << "\n";
+            return ss;
+        }
+    };
 
 /**
  * Calculate expected utilities under RM / avg strategy for specified node
  */
-ExpectedUtility calcExpectedUtility(CFRData &cache,
-                                    const shared_ptr<EFGNode> &node,
-                                    Player pl);
+    ExpectedUtility calcExpectedUtility(CFRData &cache,
+                                        const shared_ptr<EFGNode> &node,
+                                        Player pl);
 
 }  // namespace GTLib2
 
