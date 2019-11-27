@@ -232,6 +232,7 @@ set(SOURCE_FILES
         utils/logging.h
         utils/range.h
         utils/utils.h
+        utils/nn_transform_data.h utils/nn_transform_data.cpp
         # cli
         cli/benchmark_cfr.h
         cli/calc_expl.h
