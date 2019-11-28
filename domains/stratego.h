@@ -44,7 +44,9 @@ struct Lake {
     const int x, y, height, width;
 };
 
-vector<unsigned int> decodeStrategoObservation(unsigned int obsid);
+struct decodedObservation;
+
+decodedObservation decodeStrategoObservation(unsigned int obsid);
 Rank getRank(CellState cell);
 
 enum GameState {
@@ -114,6 +116,7 @@ class StrategoDomain: public Domain, public ConstrainingDomain {
                        const ConstraintsMap &revealedInfo,
                        int max, const EFGNodeCallback &newNodeCallback) const override;
     void initializeEnumerativeConstraints(ConstraintsMap &revealedInfo) const override {};
+    unsigned long inversePosition(unsigned long pos) const;
  private:
     void recursiveNodeGeneration(const shared_ptr<AOH> &currentInfoset,
                                  const shared_ptr<EFGNode> &node, int depth,
