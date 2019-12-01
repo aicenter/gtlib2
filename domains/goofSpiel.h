@@ -26,6 +26,7 @@
 #define DOMAINS_GOOFSPIEL_H_
 
 #include <utility>
+#include <base/algorithm.h>
 
 #include "base/base.h"
 #include "base/constrainingDomain.h"
@@ -101,7 +102,8 @@ class GoofSpielDomain: public Domain, public ConstrainingDomain {
                            ConstraintsMap &revealedInfo) const override;
     void generateNodes(const shared_ptr<AOH> &currentInfoset,
                        const ConstraintsMap &revealedInfo,
-                       int max, const EFGNodeCallback &newNodeCallback) const override;
+                       BudgetType budgetType,
+                       int budget,const EFGNodeCallback &newNodeCallback) const override;
     void initializeEnumerativeConstraints(ConstraintsMap &revealedInfo) const override;
 
  private:
@@ -110,8 +112,12 @@ class GoofSpielDomain: public Domain, public ConstrainingDomain {
     void recursiveNodeGeneration(const shared_ptr<AOH> &currentInfoset,
                                  const shared_ptr<EFGNode> &node, int depth, int maxDepth,
                                  const ConstraintsMap &revealedInfo,
-                                 vector<int> remaining, int &counter,
+                                 const vector<int> &remaining, BudgetType budgetType, int &counter,
                                  const EFGNodeCallback &newNodeCallback) const;
+    int nodeGenerationTerminalPhase(const vector<ActionObservationIds> &currentAOids,
+                                    Player currentPlayer, const shared_ptr<EFGNode> &node,
+                                    int maxDepth, const ConstraintsMap &revealedInfo,
+                                    const vector<int> &remaining, const EFGNodeCallback &newNodeCallback) const;
 };
 
 constexpr int NO_NATURE_CARD = 0;

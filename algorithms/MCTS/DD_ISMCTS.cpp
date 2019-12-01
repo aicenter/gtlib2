@@ -35,13 +35,17 @@ PlayControl DD_ISMCTS::runPlayIteration(const optional<shared_ptr<AOH>> &current
     }
 
     if (!currentISChecked_) {
-        bool newFigureRevealed = dynamic_cast<const ConstrainingDomain &>(domain_).updateConstraints(
+        validState |= dynamic_cast<const ConstrainingDomain &>(domain_).updateConstraints(
             currentInfoset_,
             lastRevealAoid_,
             revealed_);
-        if (newFigureRevealed)
-            dynamic_cast<const ConstrainingDomain&>(domain_).generateNodes(currentInfoset_, revealed_, generateIters_,
-                                                                        [this](const shared_ptr<EFGNode> & node) -> double{ return this->iteration(node);});
+        if (validState) dynamic_cast<const ConstrainingDomain &>(domain_).generateNodes(currentInfoset_,
+                                                                        revealed_,
+                                                                        budgetType,
+                                                                        generateIters_,
+                                                                        [this](const shared_ptr<EFGNode> &node) -> double {
+                                                                            return this->iteration(node);
+                                                                        });
 
         currentISChecked_ = true;
     }

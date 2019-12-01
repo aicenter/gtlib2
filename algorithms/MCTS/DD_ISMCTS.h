@@ -28,7 +28,7 @@ namespace GTLib2::algorithms {
 class DD_ISMCTS : public CPW_ISMCTS {
  public:
     explicit DD_ISMCTS(const Domain &domain, Player playingPlayer, ISMCTSSettings config) :
-        CPW_ISMCTS(domain, playingPlayer, std::move(config)), generateIters_(config.generateIters), iterateRoot_(config.iterateRoot) {
+        CPW_ISMCTS(domain, playingPlayer, std::move(config)), budgetType(config.hgBudgetType), generateIters_(config.hgBudget), iterateRoot_(config.hgIterateRoot) {
         dynamic_cast<const ConstrainingDomain &>(domain).initializeEnumerativeConstraints(revealed_); // check is domain is appliable and prepare map
     };
 
@@ -43,6 +43,7 @@ class DD_ISMCTS : public CPW_ISMCTS {
     unordered_map<unsigned long, shared_ptr<Constraint>> revealed_;
     long  lastRevealAoid_ = -1;
     bool currentISChecked_ = true;
+    const BudgetType budgetType = BudgetIterations;
     const int generateIters_ = 1000;
     bool iterateRoot_ = false;
 };

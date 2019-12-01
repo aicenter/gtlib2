@@ -377,23 +377,25 @@ void removeRest(ConstraintsMap &revealedInfo)
         removeRest(revealedInfo);
 }
 
-bool GoofSpielDomain::updateConstraints(const shared_ptr<AOH> & currentInfoset, long &startIndex,
+bool GoofSpielDomain::updateConstraints(const shared_ptr<AOH> &currentInfoset, long &startIndex,
                                    ConstraintsMap &revealedInfo) const {
-    for (unsigned long i = startIndex + 1; i < currentInfoset->getAOids().size(); i++) {
-        if (i == 0 || currentInfoset->getAOids()[i].observation >= OBSERVATION_PLAYER_MOVE)
+    const auto currentAOids = currentInfoset->getAOids();
+    const auto currentPlayer = currentInfoset->getPlayer();
+    for (size_t i = startIndex + 1; i < currentAOids.size(); i++) {
+        if (i == 0 || currentAOids[i].observation >= OBSERVATION_PLAYER_MOVE)
             continue;
-        const auto currentObservation = decodeGoofSpielObservation(currentInfoset->getAOids()[i].observation);
+        const auto currentObservation = decodeGoofSpielObservation(currentAOids[i].observation);
         startIndex = i;
-        const int card = currentInfoset->getPlayer() == 0 ? currentObservation->player0LastCard_ : currentObservation->player1LastCard_ ;
+        const int card = currentPlayer == 0 ? currentObservation->player0LastCard_ : currentObservation->player1LastCard_ ;
         if (currentObservation->roundResult_ == PL0_DRAW) {
             auto cardsList = {card};
-            revealedInfo[currentInfoset->getPlayer() == 0 ? i/2-1: i-1] = make_shared<GoofSpielRevealedInfo>(cardsList);
+            revealedInfo[currentPlayer == 0 ? i/2-1: i-1] = make_shared<GoofSpielRevealedInfo>(cardsList);
             removeRest(revealedInfo);
             continue;
         }
-        const auto currentConstraint = dynamic_cast<GoofSpielRevealedInfo *>(revealedInfo[currentInfoset->getPlayer() == 0 ? i/2-1 : i-1].get());
-        if ((currentInfoset->getPlayer() == 0 && currentObservation->roundResult_ == PL0_WIN) ||
-        (currentInfoset->getPlayer() == 1 && currentObservation->roundResult_ == PL0_LOSE)) {
+        const auto currentConstraint = dynamic_cast<GoofSpielRevealedInfo *>(revealedInfo[currentPlayer == 0 ? i/2-1 : i-1].get());
+        if ((currentPlayer == 0 && currentObservation->roundResult_ == PL0_WIN) ||
+        (currentPlayer == 1 && currentObservation->roundResult_ == PL0_LOSE)) {
             currentConstraint->cardOptions.erase(
                 std::remove_if(
                     currentConstraint->cardOptions.begin(), currentConstraint->cardOptions.end(),
@@ -402,52 +404,61 @@ bool GoofSpielDomain::updateConstraints(const shared_ptr<AOH> & currentInfoset, 
             removeRest(revealedInfo);
             continue;
         }
-        currentConstraint->cardOptions.erase(
-            std::remove_if(
-                currentConstraint->cardOptions.begin(), currentConstraint->cardOptions.end(),
-                [card](int i){ return i <= card;}),
+        currentConstraint->cardOptions.erase( std::remove_if(
+            currentConstraint->cardOptions.begin(), currentConstraint->cardOptions.end(),
+            [card](int i){ return i <= card;}),
                 currentConstraint->cardOptions.end());
         removeRest(revealedInfo);
     }
     return true;
 }
 
-void GoofSpielDomain::recursiveNodeGeneration(const shared_ptr<AOH> & currentInfoset,
-                                             const shared_ptr<EFGNode> & node, int depth, int maxDepth, const ConstraintsMap &revealedInfo,
-                                             vector<int> remaining, int & counter, const EFGNodeCallback& newNodeCallback) const {
-    if (counter <= 0) return;
-    if (depth == maxDepth) {
-        if (currentInfoset->getPlayer() == 1) {
-            const auto extraTurn = dynamic_cast<GoofSpielRevealedInfo *>(revealedInfo.at(maxDepth).get());
-            for (auto card : extraTurn->cardOptions) {
-                auto newNode = node;
-                const auto position = std::find(remaining.begin(), remaining.end(), card);
-                if (position == remaining.end())
-                    continue;
-                for (const auto& action : newNode->availableActions()) {
-                    if (dynamic_cast<GoofSpielAction *>(action.get())->cardNumber_ != card) continue;
-                    newNode = newNode->performAction(action);
-                    if (newNode->getAOHInfSet()->getAOids() == currentInfoset->getAOids()) {
-                        counter--;
-                        newNodeCallback(newNode);
-                    }
-                    else
-                        unreachable("Wrong revealing");
-                    break;
-                }
-            }
-        }
-        else if (node->getAOHInfSet()->getAOids() == currentInfoset->getAOids()) {
-            counter--;
-            newNodeCallback(node);
-        }
-        else
+int GoofSpielDomain::nodeGenerationTerminalPhase(const vector<ActionObservationIds> &currentAOids,
+                                                 const Player currentPlayer, const shared_ptr<EFGNode> &node,
+                                                 const int maxDepth, const ConstraintsMap &revealedInfo,
+                                                 const vector<int> &remaining, const EFGNodeCallback &newNodeCallback) const {
+    if (currentPlayer == 0) {
+        if (node->getAOHInfSet()->getAOids() != currentAOids)
             unreachable("Wrong revealing");
+        newNodeCallback(node);
+        return 1;
+    }
+    int res = 0;
+    const auto extraTurn = dynamic_cast<GoofSpielRevealedInfo *>(revealedInfo.at(maxDepth).get());
+    for (auto card : extraTurn->cardOptions) {
+        const auto position = std::find(remaining.begin(), remaining.end(), card);
+        if (position == remaining.end())
+            continue;
+        for (const auto &action : node->availableActions()) {
+            auto newNode = node;
+            if (dynamic_cast<GoofSpielAction *>(action.get())->cardNumber_ != card) continue;
+            newNode = newNode->performAction(action);
+            if (newNode->getAOHInfSet()->getAOids() != currentAOids)
+                unreachable("Wrong revealing");
+            newNodeCallback(newNode);
+            ++res;
+            break;
+
+        }
+    }
+    return res;
+}
+
+void GoofSpielDomain::recursiveNodeGeneration(const shared_ptr<AOH> &currentInfoset,
+                                              const shared_ptr<EFGNode> &node, const int depth, const int maxDepth,
+                                              const ConstraintsMap &revealedInfo, const vector<int> &remaining,
+                                              const BudgetType budgetType, int &counter, const EFGNodeCallback &newNodeCallback) const {
+    if ((budgetType == BudgetIterations && counter <= 0) || (budgetType == BudgetTime && counter - int(clock())/1000 <= 0)) return;
+    const auto currentAOids = currentInfoset->getAOids();
+    const auto currentPlayer = currentInfoset->getPlayer();
+    if (depth == maxDepth) {
+        int generatedNum = nodeGenerationTerminalPhase(currentAOids, currentPlayer, node, maxDepth, revealedInfo, remaining, newNodeCallback);
+        if (budgetType == BudgetIterations) counter -= generatedNum;
         return;
     }
     auto currentNode = node;
-    if (currentInfoset->getPlayer() == 0)
-        currentNode = currentNode->performAction(currentNode->getActionByID(currentInfoset->getAOids()[2*depth+1].action));
+    if (currentPlayer == 0)
+        currentNode = currentNode->performAction(currentNode->getActionByID(currentAOids[2*depth+1].action));
     const auto currentConstraints = dynamic_cast<GoofSpielRevealedInfo *>(revealedInfo.at(depth).get());
     for (auto card : currentConstraints->cardOptions) {
         auto newNode = currentNode;
@@ -455,23 +466,25 @@ void GoofSpielDomain::recursiveNodeGeneration(const shared_ptr<AOH> & currentInf
         const auto position = std::find(newRemaining.begin(), newRemaining.end(), card);
         if (position == newRemaining.end())
             continue;
-        for (const auto& action : newNode->availableActions()) {
+        for (const auto &action : newNode->availableActions()) {
             if (dynamic_cast<GoofSpielAction *>(action.get())->cardNumber_ != card)
                 continue;
             newNode = newNode->performAction(action);
             newRemaining.erase(position);
             break;
         }
-        if (currentInfoset->getPlayer() == 1)
-            newNode = newNode->performAction(newNode->getActionByID(currentInfoset->getAOids()[depth+1].action));
-        recursiveNodeGeneration(currentInfoset, newNode, depth+1, maxDepth, revealedInfo, newRemaining, counter, newNodeCallback);
+        if (currentPlayer == 1)
+            newNode = newNode->performAction(newNode->getActionByID(currentAOids[depth+1].action));
+        recursiveNodeGeneration(currentInfoset, newNode, depth+1, maxDepth, revealedInfo, newRemaining,
+                                                                           budgetType, counter, newNodeCallback);
     }
 }
 
-void GoofSpielDomain::generateNodes(const shared_ptr<AOH> & currentInfoset,
-                                    const ConstraintsMap & revealedInfo,
-                                    const int max,
-                                    const EFGNodeCallback& newNodeCallback) const {
+void GoofSpielDomain::generateNodes(const shared_ptr<AOH> &currentInfoset,
+                                    const ConstraintsMap &revealedInfo,
+                                    const BudgetType budgetType,
+                                    const int budget,
+                                    const EFGNodeCallback &newNodeCallback) const {
     const auto root = createRootEFGNode(*this);
     vector<int> deck = vector<int>(numberOfCards_);
     std::iota(deck.begin(), deck.end(), 1);
@@ -480,8 +493,8 @@ void GoofSpielDomain::generateNodes(const shared_ptr<AOH> & currentInfoset,
         if (i == 0 || currentInfoset->getAOids()[i].observation >= OBSERVATION_PLAYER_MOVE) continue;
         maxDepth++;
     }
-    int a = max;
-    recursiveNodeGeneration(currentInfoset, root, 0, maxDepth, revealedInfo, deck, a, newNodeCallback);
+    int a = budgetType == BudgetIterations ? budget : int(clock())/1000 + budget;
+    recursiveNodeGeneration(currentInfoset, root, 0, maxDepth, revealedInfo, deck, budgetType, a, newNodeCallback);
 }
 
 void GoofSpielDomain::initializeEnumerativeConstraints(ConstraintsMap &revealedInfo) const {

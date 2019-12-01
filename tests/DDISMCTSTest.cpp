@@ -21,15 +21,12 @@
 
 #include <domains/goofSpiel.h>
 #include <domains/stratego.h>
-#include <algorithms/MCTS/ISMCTS.h>
-#include <algorithms/MCTS/CPW_ISMCTS.h>
-#include <algorithms/MCTS/DD_ISMCTS.h>
 #include "gtest/gtest.h"
 
 namespace GTLib2::algorithms {
 TEST(DDISMCTS, CheckInfosetConsistency) {
-    vector<pair<shared_ptr<ConstrainingDomain>, int>> domains = {forward_as_tuple(GTLib2::domains::StrategoDomain::STRAT2x2(), 3),
-                                                                 forward_as_tuple(GTLib2::domains::GoofSpielDomain::IIGS(5), 0)};
+    vector<pair<shared_ptr<ConstrainingDomain>, int>> domains = {make_pair(GTLib2::domains::StrategoDomain::STRAT2x2(), 3),
+                                                                 make_pair(GTLib2::domains::GoofSpielDomain::IIGS(5), 0)};
     for(const auto & [domain, depth] : domains)
     {
         auto cache = InfosetCache(dynamic_cast<const Domain &>(*domain));
@@ -45,10 +42,10 @@ TEST(DDISMCTS, CheckInfosetConsistency) {
             if (expectedNodes[0]->getPlayer() != infoset->getPlayer()) continue;
             ConstraintsMap revealed_;
             domain->initializeEnumerativeConstraints(revealed_);
-            long ind = 1;
+            long ind = depth-1;
             domain->updateConstraints(infoset, ind, revealed_);
             vector<shared_ptr<EFGNode>> actualNodes;
-            domain->generateNodes(infoset, revealed_,
+            domain->generateNodes(infoset, revealed_, BudgetIterations,
                                   expectedNodes.size() + 1, // let's make sure we get all the nodes
                                   [&](const shared_ptr<EFGNode> &node) -> double {
                                       actualNodes.push_back(node);

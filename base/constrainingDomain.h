@@ -23,7 +23,7 @@
 #ifndef BASE_HISTORY_CONSTRAINTS_H_
 #define BASE_HISTORY_CONSTRAINTS_H_
 
-#include "fogefg.h"
+#include "base/algorithm.h"
 
 // This file contains interfaces for domains that are needed
 // for additional generation of histories in infosets.
@@ -122,9 +122,40 @@ class ConstrainingDomain {
     //       the constriants that are provided by previous methods
     virtual void generateNodes(const shared_ptr<AOH> &targetInfoset,
                                const ConstraintsMap &constraints,
-                               int maxGenerateNodes,
+                               BudgetType budgetType,
+                               int budget,
                                const EFGNodeCallback &maybeNewNodeCallback) const = 0;
 };
+
+
+typedef function<void(const ConstrainingDomain &domain,
+    const shared_ptr<AOH> &targetInfoset,
+    int maxGenerateNodes,
+    const EFGNodeCallback &maybeNewNodeCallback)> EFGNodeGenerator;
+
+
+inline void domainSpecificGenerateNodes(const ConstrainingDomain &domain,
+                   const shared_ptr<AOH> &targetInfoset,
+                   const BudgetType budgetType,
+                   const int budget,
+                   const EFGNodeCallback &maybeNewNodeCallback) {
+    ConstraintsMap constraints;
+    long start = -1;
+    domain.initializeEnumerativeConstraints(constraints);
+
+    // checks is the game at current state lets us generate node
+    // for example, not valid for stratego during the setup state
+    bool validState = domain.updateConstraints(targetInfoset, start, constraints);
+    if (validState) domain.generateNodes(targetInfoset, constraints, budgetType, budget, maybeNewNodeCallback);
+}
+
+inline void cspGenerateNodes(const ConstrainingDomain &domain,
+                      const shared_ptr<AOH> &targetInfoset,
+                      BudgetType budgetType,
+                      int budget,
+                      const EFGNodeCallback &maybeNewNodeCallback);
+
+
 
 }
 #endif  // BASE_HISTORY_CONSTRAINTS_H_

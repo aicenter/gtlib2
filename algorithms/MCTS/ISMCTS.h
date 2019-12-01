@@ -21,11 +21,13 @@
 
 #ifndef GTLIB2_ISMCTS_H
 #define GTLIB2_ISMCTS_H
+#include <base/constrainingDomain.h>
 #include "base/algorithm.h"
 #include "selectors/UCTSelector.h"
 #include "base/random.h"
 
 namespace GTLib2::algorithms {
+
 
 struct ISMCTSSettings {
     /**
@@ -49,9 +51,13 @@ struct ISMCTSSettings {
 
     int randomSeed = 0;
 
+    //history generation settings
     //max number of new histories generated
-    int generateIters = 1000;//for DD_ISMCTS
-    bool iterateRoot = false;
+    bool enableHistoryGeneration = false;
+    BudgetType hgBudgetType = BudgetIterations;
+    int hgBudget = 1000;
+    bool hgIterateRoot = false;
+    EFGNodeGenerator* hgNodeGenerator;
 };
 
 /**

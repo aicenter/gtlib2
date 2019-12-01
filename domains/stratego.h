@@ -23,6 +23,7 @@
 #ifndef GTLIB2_STRATEGO_H
 #define GTLIB2_STRATEGO_H
 
+#include <base/algorithm.h>
 #include "base/base.h"
 #include "base/constrainingDomain.h"
 
@@ -54,22 +55,29 @@ enum GameState {
 };
 
 struct StrategoSettings {
+    StrategoSettings() {
+        sort(figures.begin(), figures.end());
+    }
+    StrategoSettings(int height, int width, vector<Lake> lakes, vector<Rank> figures) : boardHeight(height),
+                                                    boardWidth(width), lakes(move(lakes)), figures(move(figures)) {
+        sort(this->figures.begin(), this->figures.end());
+    }
     int boardHeight = 3;
     int boardWidth = 3;
     vector<Lake> lakes = {{1, 1, 1, 1}};
 
     // initial list of ranks available for player
     vector<Rank> figures = {'1', '2', '3'};
-    vector<CellState> generateEmptyBoard();
+    vector<CellState> generateEmptyBoard() const;
     int getBoardSize() const { return boardHeight * boardWidth; };
 };
 
 struct StrategoConstraint: public Constraint {
-    explicit StrategoConstraint(bool moved) : moved(moved), revealedRank(EMPTY) {};
-    explicit StrategoConstraint(Rank rank) : revealedRank(rank), moved(false) {};
+    explicit StrategoConstraint(bool moved) : moved(moved) {};
+    explicit StrategoConstraint(Rank rank) : revealedRank(rank) {};
  public:
-    Rank revealedRank;
-    bool moved;
+    Rank revealedRank = EMPTY;
+    bool moved = false;
 };
 
 /**
@@ -113,18 +121,20 @@ class StrategoDomain: public Domain, public ConstrainingDomain {
     bool updateConstraints(const shared_ptr<AOH> &currentInfoset, long &startIndex,
                            ConstraintsMap &revealedFigures) const override;
     void generateNodes(const shared_ptr<AOH> &currentInfoset,
-                       const ConstraintsMap &revealedInfo,
-                       int max, const EFGNodeCallback &newNodeCallback) const override;
+                       const ConstraintsMap &revealedInfo, BudgetType budgetType,
+                       int budget, const EFGNodeCallback &newNodeCallback) const override;
     void initializeEnumerativeConstraints(ConstraintsMap &revealedInfo) const override {};
     unsigned long inversePosition(unsigned long pos) const;
+
  private:
     void recursiveNodeGeneration(const shared_ptr<AOH> &currentInfoset,
                                  const shared_ptr<EFGNode> &node, int depth,
                                  const vector<shared_ptr<StrategoConstraint>> &mask,
-                                 const vector<Rank> &remaining, int &counter,
+                                 const vector<Rank> &remaining,
+                                 BudgetType budgetType, int &counter,
                                  const EFGNodeCallback &newNodeCallback) const;
-    void simulateMoves(const vector<ActionObservationIds> &aoids,
-                       shared_ptr<EFGNode> node, const EFGNodeCallback &newNodeCallback) const;
+    void nodeGenerationTerminalPhase(const vector<ActionObservationIds> &aoids,
+                                     const shared_ptr<EFGNode> &node, const EFGNodeCallback &newNodeCallback) const;
 };
 
 CellState createCell(Rank figure, Player player);
@@ -140,30 +150,28 @@ bool isFigureSlain(CellState attacker, CellState defender);
 class StrategoSetupAction: public Action {
  public:
     inline StrategoSetupAction(ActionId id, Rank rank, int board)
-        : Action(id), figureRank(rank), boardID(board) {}
+        : Action(id), figureRank_(rank), boardID_(board) {};
     inline string toString() const override;
     bool operator==(const Action &that) const override;
     inline HashType getHash() const override { return id_; };
-    const Rank figureRank;
-    const int boardID;
+    const Rank figureRank_;
+    const int boardID_;
 };
 
 class StrategoMoveAction: public Action {
  public:
-    inline StrategoMoveAction(ActionId id, int start, int end, int width)
-        : Action(id), startPos(start), endPos(end), boardWidth_(width) {}
+    StrategoMoveAction(ActionId id, int start, int end, int width)
+        : Action(id), startPos_(start), endPos_(end), boardWidth_(width) {}
     inline string toString() const override;
     bool operator==(const Action &that) const override;
     inline HashType getHash() const override { return id_; };
-    const int startPos;
-    const int endPos;
+    const int startPos_;
+    const int endPos_;
     const int boardWidth_;
 };
 
 class StrategoMoveObservation: public Observation {
  public:
-    inline StrategoMoveObservation() :
-        Observation(), startPos_(0), endPos_(0), startCell_(0), endCell_(0) {}
     StrategoMoveObservation(int startPos, int endPos, Rank startCell, Rank endCell);
     const int startPos_;
     const int endPos_;
@@ -173,8 +181,6 @@ class StrategoMoveObservation: public Observation {
 
 class StrategoSetupObservation: public Observation {
  public:
-    inline StrategoSetupObservation() :
-        Observation(), figureRank_(0), boardID_(0), playerID_(0) {}
     StrategoSetupObservation(Rank figureRank, int boardID, int playerID);
     const Rank figureRank_;
     const int boardID_;
@@ -186,11 +192,13 @@ class StrategoState: public State {
     inline StrategoState(const Domain *domain, vector<CellState> boardState,
                          GameState(state), int player, int noAttackCounter) :
         State(domain, hashCombine(98612345434231, boardState, state == Setup, state == Finished, player, noAttackCounter)),
-        boardState_(move(boardState)),
-        gameState_(state),
-        currentPlayer_(player),
-        boardIDToPlace_(0),
-        noAttackCounter_(noAttackCounter) {
+        boardState_(move(boardState)), gameState_(state), currentPlayer_(player),
+        noAttackCounter_(noAttackCounter), domain_(dynamic_cast<const StrategoDomain *>(domain)) {
+    }
+
+    void setFiguresToPlace(const vector<Rank> &figures) {
+        remainingFiguresToPlace_[0] = figures;
+        remainingFiguresToPlace_[1] = figures;
     }
 
     unsigned long countAvailableActionsFor(Player player) const override;
@@ -204,14 +212,17 @@ class StrategoState: public State {
     bool isTerminal() const override;
     inline string toString() const override;
     bool operator==(const State &rhs) const override;
-
-    // noAttackCounter prevent games from looping. After a fixed number of moves without attacks game is stopped with a draw.
-    const int noAttackCounter_;
     const Player currentPlayer_;
     const GameState gameState_;
     const vector<CellState> boardState_;
+
+
+ private:
+    int boardIDToPlace_ = 0;
     array<vector<Rank>, 2> remainingFiguresToPlace_;
-    int boardIDToPlace_;
+    const StrategoDomain * domain_;
+    // noAttackCounter prevent games from looping. After a fixed number of moves without attacks game is stopped with a draw.
+    const int noAttackCounter_;
 };
 }
 
