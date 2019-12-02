@@ -101,7 +101,7 @@ struct StrategoConstraint: public Constraint {
  * emptyBoard_ contains only empty cells and lakes
  * startFigures_ are ranks available to every player they can place on the board during the setup action.
  */
-class StrategoDomain: public Domain, public ConstrainingDomain<StrategoConstraint> {
+class StrategoDomain: public Domain, public ConstrainingDomain {
  public:
     explicit StrategoDomain(StrategoSettings settings);
     string getInfo() const override;
@@ -119,11 +119,11 @@ class StrategoDomain: public Domain, public ConstrainingDomain<StrategoConstrain
     const vector<Rank> startFigures_;
     const vector<CellState> emptyBoard_;
     bool updateConstraints(const shared_ptr<AOH> &currentInfoset, long &startIndex,
-                           ConstraintsMap<StrategoConstraint> &revealedFigures) const override;
+                           ConstraintsMap &revealedFigures) const override;
     void generateNodes(const shared_ptr<AOH> &currentInfoset,
-                       const ConstraintsMap<StrategoConstraint> &revealedInfo, BudgetType budgetType,
+                       const ConstraintsMap &revealedInfo, BudgetType budgetType,
                        int budget, const EFGNodeCallback &newNodeCallback) const override;
-    void initializeEnumerativeConstraints(ConstraintsMap<StrategoConstraint> &revealedInfo) const override {};
+    void initializeEnumerativeConstraints(ConstraintsMap &revealedInfo) const override {};
     unsigned long inversePosition(unsigned long pos) const;
 
  private:

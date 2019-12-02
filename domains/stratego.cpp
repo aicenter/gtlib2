@@ -518,7 +518,7 @@ unsigned int backtrackPosition(const vector<ActionObservationIds> &aoids, const 
 }
 
 bool StrategoDomain::updateConstraints(const shared_ptr<AOH> &currentInfoset,
-                                        long &startIndex, ConstraintsMap<StrategoConstraint> &revealedFigures) const {
+                                        long &startIndex, ConstraintsMap &revealedFigures) const {
     bool isValid = false;
     const auto currentAOids = currentInfoset->getAOids();
     const auto currentPlayer = currentInfoset->getPlayer();
@@ -528,8 +528,7 @@ bool StrategoDomain::updateConstraints(const shared_ptr<AOH> &currentInfoset,
         const auto currentObservation = decodeStrategoObservation(currentAOids[i].observation);
         if (currentObservation.type != MoveObs) continue;
         isValid = true;
-        // move observation
-        if (currentObservation.endCell == EMPTY) {
+        if (currentObservation.endCell == EMPTY) { // move observation
             const unsigned long pos = currentPlayer == 0 ? inversePosition(currentObservation.startPos)
                                                                        : currentObservation.startPos;
             if (pos < startFigures_.size() && revealedFigures.find(pos) == revealedFigures.end())
@@ -542,12 +541,13 @@ bool StrategoDomain::updateConstraints(const shared_ptr<AOH> &currentInfoset,
         if (currentPlayer == 0)
             pos = inversePosition(pos); // position of pl1's figure is on the other side of the board
         const Rank val = getRank(isOpponentsTurn ? currentObservation.startCell : currentObservation.endCell);
-        if (revealedFigures.find(pos) == revealedFigures.end())
+        if (revealedFigures.find(pos) == revealedFigures.end()) {
             revealedFigures[pos] = make_shared<StrategoConstraint>(val);
-        else {
-            if (revealedFigures[pos]->revealedRank == EMPTY)
-                revealedFigures[pos]->revealedRank = val;
-            else if (revealedFigures[pos]->revealedRank != val)
+        } else {
+            auto currentConstraint = dynamic_cast<StrategoConstraint *>(revealedFigures[pos].get());
+            if (currentConstraint->revealedRank == EMPTY)
+                currentConstraint->revealedRank = val;
+            else if (currentConstraint->revealedRank != val)
                 unreachable("Incorrect revealing");
         }
         startIndex = i;
@@ -636,14 +636,15 @@ void StrategoDomain::recursiveNodeGeneration(const shared_ptr<AOH> &currentInfos
     }
 }
 
-void StrategoDomain::generateNodes(const shared_ptr<AOH> &currentInfoset, const ConstraintsMap<StrategoConstraint> &revealedInfo,
+void StrategoDomain::generateNodes(const shared_ptr<AOH> &currentInfoset, const ConstraintsMap &revealedInfo,
                                    const BudgetType budgetType,
                                    const int budget, const EFGNodeCallback &newNodeCallback) const {
     vector<shared_ptr<StrategoConstraint>> mask = vector<shared_ptr<StrategoConstraint>>(startFigures_.size());
     for (auto &i : mask)
         i = make_shared<StrategoConstraint>(Rank(EMPTY));
     vector<Rank> remaining = startFigures_;
-    for (auto &[turn, currentConstraint] : revealedInfo) {
+    for (auto &[turn, constraint] : revealedInfo) {
+        const auto currentConstraint = dynamic_cast<StrategoConstraint*>(constraint.get());
         if (currentConstraint->revealedRank != EMPTY) {
             const auto position = std::find(remaining.begin(), remaining.end(), currentConstraint->revealedRank);
             if (position != remaining.end())

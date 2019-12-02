@@ -83,18 +83,15 @@ struct Constraint {
 // for that turn (the player did not receive any observation relevant for this turn).
 //
 // Note: This map contains info about the turn when it should apply, not when player learns it!
-template<class T>
-using ConstraintsMap = unordered_map<unsigned long, shared_ptr<T>> ;
+typedef unordered_map<unsigned long, shared_ptr<Constraint>> ConstraintsMap;
 
 // An interface that domain must implement so we can collect it's constraints.
-
-template<class T>
 class ConstrainingDomain {
  public:
 
     // Initializes enumerative constraints before the start of the game.
     // See Constraint struct for more details.
-    virtual void initializeEnumerativeConstraints(ConstraintsMap<T> &constraints) const = 0;
+    virtual void initializeEnumerativeConstraints(ConstraintsMap &constraints) const = 0;
 
     // Update constraint map when target infoset changes.
     // This will update all constraints after specified turn number.
@@ -102,7 +99,7 @@ class ConstrainingDomain {
     // Returns whether any constraint has been updated.
     virtual bool updateConstraints(const shared_ptr<AOH> &targetInfoset,
                                    long &startAtTurnNumber,
-                                   ConstraintsMap<T> &constraints) const = 0;
+                                   ConstraintsMap &constraints) const = 0;
 
     // Generate new nodes by applying the constraints.
     //
@@ -124,25 +121,25 @@ class ConstrainingDomain {
     //       we can have a domain-indepenedent history generation in the sense that it only uses
     //       the constriants that are provided by previous methods
     virtual void generateNodes(const shared_ptr<AOH> &targetInfoset,
-                               const ConstraintsMap<T> &constraints,
+                               const ConstraintsMap &constraints,
                                BudgetType budgetType,
                                int budget,
                                const EFGNodeCallback &maybeNewNodeCallback) const = 0;
 };
 
-template<class T>
-using EFGNodeGenerator = function<void(const ConstrainingDomain<T> &domain,
+
+typedef function<void(const ConstrainingDomain &domain,
     const shared_ptr<AOH> &targetInfoset,
     int maxGenerateNodes,
-    const EFGNodeCallback &maybeNewNodeCallback)> ;
+    const EFGNodeCallback &maybeNewNodeCallback)> EFGNodeGenerator;
 
-template<class T>
-inline void domainSpecificGenerateNodes(const ConstrainingDomain<T> &domain,
+
+inline void domainSpecificGenerateNodes(const ConstrainingDomain &domain,
                    const shared_ptr<AOH> &targetInfoset,
                    const BudgetType budgetType,
                    const int budget,
                    const EFGNodeCallback &maybeNewNodeCallback) {
-    ConstraintsMap<T> constraints;
+    ConstraintsMap constraints;
     long start = -1;
     domain.initializeEnumerativeConstraints(constraints);
 
@@ -152,8 +149,7 @@ inline void domainSpecificGenerateNodes(const ConstrainingDomain<T> &domain,
     if (validState) domain.generateNodes(targetInfoset, constraints, budgetType, budget, maybeNewNodeCallback);
 }
 
-template<class T>
-inline void cspGenerateNodes(const ConstrainingDomain<T> &domain,
+inline void cspGenerateNodes(const ConstrainingDomain &domain,
                       const shared_ptr<AOH> &targetInfoset,
                       BudgetType budgetType,
                       int budget,

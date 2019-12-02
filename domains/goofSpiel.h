@@ -63,8 +63,8 @@ class GoofSpielAction: public Action {
     const int cardNumber_;
 };
 
-struct GoofSpielConstraint: Constraint {
-    GoofSpielConstraint(vector<int> cards) : cardOptions(std::move(cards)) {};
+struct GoofSpielRevealedInfo: Constraint {
+    GoofSpielRevealedInfo(vector<int> cards) : cardOptions(std::move(cards)) {};
     vector<int> cardOptions;
 };
 
@@ -84,7 +84,7 @@ struct GoofSpielConstraint: Constraint {
  * who won or lost a bid, but not the bid cards played. This way all actions are private
  * and information sets have various sizes.
  */
-class GoofSpielDomain: public Domain, public ConstrainingDomain<GoofSpielConstraint> {
+class GoofSpielDomain: public Domain, public ConstrainingDomain {
  public:
     explicit GoofSpielDomain(GoofSpielSettings settings);
     string getInfo() const override;
@@ -99,24 +99,24 @@ class GoofSpielDomain: public Domain, public ConstrainingDomain<GoofSpielConstra
     static unique_ptr<GoofSpielDomain> IIGS(unsigned int n);
     static unique_ptr<GoofSpielDomain> GS(unsigned int n);
     bool updateConstraints(const shared_ptr<AOH> &currentInfoset, long &startIndex,
-                           ConstraintsMap<GoofSpielConstraint> &revealedInfo) const override;
+                           ConstraintsMap &revealedInfo) const override;
     void generateNodes(const shared_ptr<AOH> &currentInfoset,
-                       const ConstraintsMap<GoofSpielConstraint> &revealedInfo,
+                       const ConstraintsMap &revealedInfo,
                        BudgetType budgetType,
                        int budget,const EFGNodeCallback &newNodeCallback) const override;
-    void initializeEnumerativeConstraints(ConstraintsMap<GoofSpielConstraint> &revealedInfo) const override;
+    void initializeEnumerativeConstraints(ConstraintsMap &revealedInfo) const override;
 
  private:
     void initRandomCards(const vector<int> &natureCards);
     void initFixedCards(const vector<int> &natureCards);
     void recursiveNodeGeneration(const shared_ptr<AOH> &currentInfoset,
                                  const shared_ptr<EFGNode> &node, int depth, int maxDepth,
-                                 const ConstraintsMap<GoofSpielConstraint> &revealedInfo,
+                                 const ConstraintsMap &revealedInfo,
                                  const vector<int> &remaining, BudgetType budgetType, int &counter,
                                  const EFGNodeCallback &newNodeCallback) const;
     int nodeGenerationTerminalPhase(const vector<ActionObservationIds> &currentAOids,
                                     Player currentPlayer, const shared_ptr<EFGNode> &node,
-                                    int maxDepth, const ConstraintsMap<GoofSpielConstraint> &revealedInfo,
+                                    int maxDepth, const ConstraintsMap &revealedInfo,
                                     const vector<int> &remaining, const EFGNodeCallback &newNodeCallback) const;
 };
 
