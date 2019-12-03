@@ -63,8 +63,8 @@ class GoofSpielAction: public Action {
     const int cardNumber_;
 };
 
-struct GoofSpielRevealedInfo: Constraint {
-    GoofSpielRevealedInfo(vector<int> cards) : cardOptions(std::move(cards)) {};
+struct GoofSpielConstraint: Constraint {
+    GoofSpielConstraint(vector<int> cards) : cardOptions(std::move(cards)) {};
     vector<int> cardOptions;
 };
 
