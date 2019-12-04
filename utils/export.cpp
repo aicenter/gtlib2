@@ -211,13 +211,17 @@ void exportGambit(const shared_ptr<EFGNode>& node, std::ostream &fs) {
                 } else {
                     isId = infoset2id.find(infoset)->second;
                 }
-                auto pubstate = node->getPublicState();
-                int psId;
-                if (pubstate2id.find(pubstate) == pubstate2id.end()) {
-                    pubstate2id.emplace(make_pair(pubstate, ++pubStateIdx));
-                    psId = pubStateIdx;
-                } else {
-                    psId = pubstate2id.find(pubstate)->second;
+
+                // May be undefined for some nodes (like in gadget)
+                int psId = -1;
+                if(node->getSpecialization() == NoSpecialization) {
+                    auto pubstate = node->getPublicState();
+                    if (pubstate2id.find(pubstate) == pubstate2id.end()) {
+                        pubstate2id.emplace(make_pair(pubstate, ++pubStateIdx));
+                        psId = pubStateIdx;
+                    } else {
+                        psId = pubstate2id.find(pubstate)->second;
+                    }
                 }
 
                 auto actions = node->availableActions();
