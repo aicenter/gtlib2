@@ -37,6 +37,33 @@ bool isDomainZeroSum(const Domain &domain) {
     return num_violations == 0;
 }
 
+bool isPerfectRecall(const Domain &domain) {
+    auto cache = InfosetCache(domain);
+    cache.buildTree();
+
+    for(const auto&[aoh, histories] : cache.getInfoset2NodeMapping()) {
+        if(!aoh->isPlayerActing())
+            continue;
+        const auto player = aoh->getPlayer();
+        const auto refHistory = histories.at(0);
+        const auto refActionSequence = refHistory->getActionsSeqOfPlayer(player);
+        for(const auto& history : histories) {
+            const auto testActionSequence = history->getActionsSeqOfPlayer(player);
+            if(*testActionSequence != *refActionSequence) {
+                LOG_ERROR("Found histories h,g violating perfect recall:\n"
+                          "h: " << refHistory->getHistory() << "\n"
+                          "g: " << history->getHistory() << "\n"
+                          "with action sequences for player " <<int(player) << "\n"
+                          "seq(h): " << *refActionSequence << "\n"
+                          "seq(g): " << *testActionSequence)
+                return false;
+            }
+        }
+
+    }
+    return true;
+}
+
 // todo: needs friend
 //bool isEFGNodeAndStateConsistent(const Domain &domain) {
 //    int num_violations = 0;
@@ -215,6 +242,14 @@ TEST(Domain, ZeroSumGame) {
         EXPECT_TRUE(isDomainZeroSum(*domain));
     }
 }
+
+TEST(Domain, GameIsPerfectRecall) {
+    for (auto domain : testDomains) {
+        cout << "\nchecking " << domain->getInfo() << "\n";
+        EXPECT_TRUE(isPerfectRecall(*domain));
+    }
+}
+
 
 //TEST(Domain, CheckEFGNodeStateEqualityConsistency) {
 //    for (auto domain : testDomains) {
