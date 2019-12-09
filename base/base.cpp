@@ -62,7 +62,8 @@ bool AOH::operator==(const InformationSet &rhs) const {
     const auto rhsAOH = static_cast<const AOH *>(&rhs);
     if (hash_ != rhsAOH->hash_
         || player_ != rhsAOH->player_
-        || aoh_.size() != rhsAOH->aoh_.size()) {
+        || aoh_.size() != rhsAOH->aoh_.size()
+        || isPlayerActing_ != rhsAOH->isPlayerActing_) {
         return false;
     }
     for (int i = 0; i < aoh_.size(); ++i) {
