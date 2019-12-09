@@ -47,6 +47,7 @@
 #include "domains/randomGame.h"
 #include "domains/simple_games.h"
 #include "domains/kriegspiel.h"
+#include "domains/simplePoker.h"
 #include "domains/stratego.h"
 
 namespace GTLib2::CLI {
@@ -156,6 +157,7 @@ unique_ptr<Domain> constructDomain(const string &description) {
         {"LD_tiny",    [ ](vector<string> p) { return make_unique<LiarsDiceDomain>(vector<int>{1, 1}, 3); }},
         {"LD_small",   [ ](vector<string> p) { return make_unique<LiarsDiceDomain>(vector<int>{1, 1}, 6); }},
         {"LD_large",   [ ](vector<string> p) { return make_unique<LiarsDiceDomain>(vector<int>{2, 2}, 6); }},
+        {"simple_poker", [ ](vector<string> p) { return make_unique<SimplePokerDomain>(); }},
         {"STRAT2x2",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{2,2,{},{'1', '2'}}); }},
         {"STRAT2x3",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{2,3,{},{'1', '2', '3'}});}},
         {"STRAT3x2",   [ ](vector<string> p) { return make_unique<StrategoDomain>(StrategoSettings{3,2,{},{'1', '2'}});}},
@@ -173,7 +175,7 @@ unique_ptr<Domain> constructDomain(const string &description) {
     // @formatter:on
 
     if (domainsTable.find(domain) == domainsTable.end()) {
-        LOG_ERROR("Domain not found: " << domain);
+        LOG_ERROR("Domain not found: " << domain)
         LOG_ERROR("List of available domains:")
         for (const auto &[domain, cb] : domainsTable) {
             cerr << domain << endl;

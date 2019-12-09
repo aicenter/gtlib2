@@ -29,8 +29,8 @@ using GoofSpielVariant::CompleteObservations;
 bool isDomainZeroSum(const Domain &domain) {
     int num_violations = 0;
     auto countViolations = [&num_violations](shared_ptr<EFGNode> node) {
-      if (node->type_ != TerminalNode) return;
-      if (node->getUtilities()[0] != -node->getUtilities()[1]) num_violations++;
+        if (node->type_ != TerminalNode) return;
+        if (node->getUtilities()[0] != -node->getUtilities()[1]) num_violations++;
     };
 
     treeWalk(domain, countViolations);
@@ -41,21 +41,23 @@ bool isPerfectRecall(const Domain &domain) {
     auto cache = InfosetCache(domain);
     cache.buildTree();
 
-    for(const auto&[aoh, histories] : cache.getInfoset2NodeMapping()) {
-        if(!aoh->isPlayerActing())
+    for (const auto&[aoh, histories] : cache.getInfoset2NodeMapping()) {
+        if (!aoh->isPlayerActing())
             continue;
         const auto player = aoh->getPlayer();
         const auto refHistory = histories.at(0);
         const auto refActionSequence = refHistory->getActionsSeqOfPlayer(player);
-        for(const auto& history : histories) {
+        for (const auto &history : histories) {
             const auto testActionSequence = history->getActionsSeqOfPlayer(player);
-            if(*testActionSequence != *refActionSequence) {
+            if (*testActionSequence != *refActionSequence) {
                 LOG_ERROR("Found histories h,g violating perfect recall:\n"
                           "h: " << refHistory->getHistory() << "\n"
-                          "g: " << history->getHistory() << "\n"
-                          "with action sequences for player " <<int(player) << "\n"
-                          "seq(h): " << *refActionSequence << "\n"
-                          "seq(g): " << *testActionSequence)
+                                                               "g: " << history->getHistory()
+                                << "\n"
+                                   "with action sequences for player " << int(player) << "\n"
+                                                                                         "seq(h): "
+                                << *refActionSequence << "\n"
+                                                         "seq(g): " << *testActionSequence)
                 return false;
             }
         }
@@ -83,11 +85,11 @@ bool isPerfectRecall(const Domain &domain) {
 bool areAvailableActionsSorted(const Domain &domain) {
     int num_violations = 0;
     auto countViolations = [&num_violations](shared_ptr<EFGNode> node) {
-      if (node->type_ == TerminalNode) return;
-      auto actions = node->availableActions();
-      for (int j = 0; j < actions.size(); ++j) {
-          if (actions[j]->getId() != j) num_violations++;
-      }
+        if (node->type_ == TerminalNode) return;
+        auto actions = node->availableActions();
+        for (int j = 0; j < actions.size(); ++j) {
+            if (actions[j]->getId() != j) num_violations++;
+        }
     };
 
     treeWalk(domain, countViolations);
@@ -97,8 +99,8 @@ bool areAvailableActionsSorted(const Domain &domain) {
 double domainFindMaxUtility(const Domain &domain) {
     double maxLeafUtility = 0;
     auto traverse = [&maxLeafUtility](shared_ptr<EFGNode> node) {
-      if (node->type_ != TerminalNode) return;
-      maxLeafUtility = max({node->getUtilities()[0], node->getUtilities()[1], maxLeafUtility});
+        if (node->type_ != TerminalNode) return;
+        maxLeafUtility = max({node->getUtilities()[0], node->getUtilities()[1], maxLeafUtility});
 //      std::cout << node->getUtilities()[0] << " " << node->getUtilities()[1] << " "<< maxLeafUtility << std::endl;
     };
 
@@ -122,33 +124,44 @@ bool isActionGenerationAndAOHConsistent(const Domain &domain) {
          std::unordered_map<size_t, std::vector<shared_ptr<Action>>>());
 
     auto countViolations = [&num_violation, &maps](shared_ptr<EFGNode> node) {
-      if (node->type_ != PlayerNode) return;
-      auto aoh = node->getAOHInfSet();
-      if (aoh) {
-          size_t hashAOH = aoh->getHash();
-          Player currentPlayer = node->getPlayer();
-          auto actionsNode = node->availableActions();
-          auto mappedAOH = maps[currentPlayer].find(hashAOH);
-          if (mappedAOH != maps[currentPlayer].end()) {
-              auto actionsMappedAOH = mappedAOH->second;
+        if (node->type_ != PlayerNode) return;
+        auto aoh = node->getAOHInfSet();
+        if (aoh) {
+            size_t hashAOH = aoh->getHash();
+            Player currentPlayer = node->getPlayer();
+            auto actionsNode = node->availableActions();
+            auto mappedAOH = maps[currentPlayer].find(hashAOH);
+            if (mappedAOH != maps[currentPlayer].end()) {
+                auto actionsMappedAOH = mappedAOH->second;
 
-              if (actionsNode.size() == actionsMappedAOH.size()) {
-                  for (int j = 0; j < actionsNode.size(); ++j) {
-                      if (!(*actionsNode[j] == *actionsMappedAOH[j])) {
-                          num_violation++;
-                      }
-                  }
-              } else {
-                  num_violation++;
-              }
-          } else {
-              maps[currentPlayer].insert({hashAOH, actionsNode});
-          }
-      }
+                if (actionsNode.size() == actionsMappedAOH.size()) {
+                    for (int j = 0; j < actionsNode.size(); ++j) {
+                        if (!(*actionsNode[j] == *actionsMappedAOH[j])) {
+                            num_violation++;
+                        }
+                    }
+                } else {
+                    num_violation++;
+                }
+            } else {
+                maps[currentPlayer].insert({hashAOH, actionsNode});
+            }
+        }
     };
     treeWalk(domain, countViolations);
 
     return num_violation == 0;
+}
+
+bool canBeExported(const Domain &domain) {
+    std::stringstream ss;
+    utils::exportGambit(domain, ss); // check that no exception is thrown
+    utils::exportGraphViz(domain, ss); // check that no exception is thrown
+
+    PublicStateCache cache(domain);
+    cache.buildTree();
+    utils::exportGraphViz(cache, ss); // check that no exception is thrown
+    return true;
 }
 
 // todo: needs friend
@@ -227,6 +240,8 @@ GenericPokerDomain gp5(1, 3, 2, 2, 2);
 MatchingPenniesDomain mp1(AlternatingMoves);
 MatchingPenniesDomain mp2(SimultaneousMoves);
 
+SimplePokerDomain sp;
+
 Domain *testDomains[] = { // NOLINT(cert-err58-cpp)
     &gs1, &gs2, &gs3, &gs1_fix, &gs2_fix, &gs3_fix,
     &iigs1, &iigs2, &iigs3, &iigs1_fix, &iigs2_fix, &iigs3_fix,
@@ -234,6 +249,7 @@ Domain *testDomains[] = { // NOLINT(cert-err58-cpp)
     &oz1, &oz2, &oz3, &oz4, &oz5, &iioz1, &iioz2, &iioz3, &iioz4, &iioz5,
     &mp1, &mp2,
     &rg1, &rg2, &rg3, &rg4, &rg5, &rg6, &rg7, &rg8, &rg9,
+    &sp
 };
 
 TEST(Domain, ZeroSumGame) {
@@ -301,6 +317,13 @@ TEST(Domain, ActionGenerationConsistentWithAOH) {
     for (auto &domain : testDomains) {
         cout << "checking " << domain->getInfo() << endl;
         EXPECT_TRUE(isActionGenerationAndAOHConsistent(*domain));
+    }
+}
+
+TEST(Domain, CanBeExported) {
+    for (auto &domain : testDomains) {
+        cout << "checking " << domain->getInfo() << endl;
+        EXPECT_TRUE(canBeExported(*domain));
     }
 }
 

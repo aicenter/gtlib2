@@ -26,22 +26,26 @@
 #include "base/base.h"
 #include "base/cache.h"
 #include "algorithms/common.h"
+#include "utils/export.h"
 
 #include "domains/genericPoker.h"
 #include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"
 #include "domains/oshiZumo.h"
 #include "domains/randomGame.h"
+#include "domains/simplePoker.h"
 
 #include "gtest/gtest.h"
 
 using GTLib2::Domain;
 
 bool isDomainZeroSum(const Domain &domain);
+bool isPerfectRecall(const Domain &domain);
 //bool isEFGNodeAndStateConsistent(const Domain &domain);
 bool areAvailableActionsSorted(const Domain &domain);
 double domainMaxUtility(const Domain &domain);
 double domainMaxDepth(const Domain &domain);
 bool isNumPlayersCountActionsConsistentInState(const Domain &domain);
+bool canBeExportedToGambit(const Domain &domain);
 
 #endif  // TESTS_TESTUTILS_H_

@@ -108,7 +108,7 @@ inline string getColor(const shared_ptr<EFGNode> &node) {
     }
 }
 
-void exportGraphViz(const PublicStateCache& cache, std::ostream &fs) {
+void exportGraphViz(const PublicStateCache &cache, std::ostream &fs) {
     // Print header
     fs << "digraph {" << endl;
     fs << "\trankdir=LR" << endl;
@@ -159,7 +159,7 @@ void exportGraphViz(const PublicStateCache& cache, std::ostream &fs) {
     fs << "}\n";
 }
 
-void exportGraphViz(const PublicStateCache& cache, const string &fileToSave) {
+void exportGraphViz(const PublicStateCache &cache, const string &fileToSave) {
     ofstream fs(fileToSave);
     if (!fs.is_open()) {
         LOG_ERROR("Could not open " << fileToSave << " for writing.")
@@ -189,15 +189,18 @@ void exportGraphViz(const Domain &domain, std::ostream &fs) {
 //    labelloc = "t"; // place the label at the top (b seems to be default)
 
     auto walkPrint = [&fs, &domain](shared_ptr<FOG2EFGNode> node) {
-        string color = getColor(node);
-        string shape = getShape(node);
+        const string color = getColor(node);
+        const string shape = getShape(node);
+        const auto tooltip = (node->type_ == ChanceNode && !node->parent_)
+                             ? ""
+                             : node->getState()->toString();
 
         if (node->type_ == TerminalNode) {
             // Print nodes
             fs << "\t\"" << node->toString() << "\" "
                << "[fillcolor=\"" << color << "\""
                << ",label=\"" << node->getUtilities() << "\""
-               << ",tooltip=\"" << Escaped{node->getState()->toString()} << "\""
+               << ",tooltip=\"" << Escaped{tooltip} << "\""
                << ",shape=\"" << shape << "\"]\n";
             return;
         }
@@ -206,7 +209,7 @@ void exportGraphViz(const Domain &domain, std::ostream &fs) {
         fs << "\t\"" << node->toString() << "\" "
            << "[fillcolor=\"" << color << "\""
            << ",label=\"" << node->toString() << "\""
-           << ",tooltip=\"" << Escaped{node->getState()->toString()} << "\""
+           << ",tooltip=\"" << Escaped{tooltip} << "\""
            << ",shape=\"" << shape << "\"]\n";
 
         for (auto &action : node->availableActions()) {
@@ -235,7 +238,7 @@ void exportGraphViz(const Domain &domain, const string &fileToSave) {
     fs.close();
 }
 
-void exportGambit(const shared_ptr<EFGNode>& node, std::ostream &fs) {
+void exportGambit(const shared_ptr<EFGNode> &node, std::ostream &fs) {
     // Print header
     fs << "EFG 2 R \"" << R"(" { "Pl0" "Pl1" })" << "\n";
 
@@ -278,7 +281,7 @@ void exportGambit(const shared_ptr<EFGNode>& node, std::ostream &fs) {
 
                 // May be undefined for some nodes (like in gadget)
                 int psId = -1;
-                if(node->getSpecialization() == NoSpecialization) {
+                if (node->getSpecialization() == NoSpecialization) {
                     auto pubstate = node->getPublicState();
                     if (pubstate2id.find(pubstate) == pubstate2id.end()) {
                         pubstate2id.emplace(make_pair(pubstate, ++pubStateIdx));
@@ -314,7 +317,7 @@ void exportGambit(const shared_ptr<EFGNode>& node, std::ostream &fs) {
 }
 
 void exportGambit(const Domain &domain, std::ostream &fs) {
-   exportGambit(createRootEFGNode(domain), fs);
+    exportGambit(createRootEFGNode(domain), fs);
 }
 
 void exportGambit(const Domain &domain, const string &fileToSave) {
