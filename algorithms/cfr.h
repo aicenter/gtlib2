@@ -117,7 +117,7 @@ class CFRData: public virtual InfosetCache,
         updatingPolicy_ = other.updatingPolicy_;
     }
 
-    void reset() override {
+        void reset() override {
         for(auto &[aoh, data] : infosetData) data.reset();
     }
 
@@ -160,10 +160,10 @@ class CFRData: public virtual InfosetCache,
 
     unordered_map<shared_ptr<AOH>, InfosetData> infosetData;
 
-    inline optional<ProbDistribution> strategyFor(const shared_ptr<AOH> &currentInfoset) const override {
-        if (infosetData.find(currentInfoset) == infosetData.end()) return nullopt;
-        return calcAvgProbs(infosetData.at(currentInfoset).avgStratAccumulator);
-    }
+        inline optional<ProbDistribution> strategyFor(const shared_ptr<AOH> &currentInfoset) const override {
+            if (infosetData.find(currentInfoset) == infosetData.end()) return nullopt;
+            return calcAvgProbs(infosetData.at(currentInfoset).avgStratAccumulator);
+        }
 
  protected:
     CFRUpdating updatingPolicy_ = HistoriesUpdating;
@@ -223,9 +223,7 @@ class CFRAlgorithm: public GamePlayingAlgorithm {
     CFRData &cache_;
     CFRSettings settings_;
 
-    void nodeUpdateRegrets(const shared_ptr<EFGNode> &node);
-
-};
+    };
 
 struct ExpectedUtility {
     double rmUtility;

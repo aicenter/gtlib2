@@ -28,43 +28,43 @@
 
 namespace GTLib2::CLI {
 
-void Command_CFRRegrets(args::Subparser &parser) {
-    args::PositionalList<double> regrets(parser, "REGRETS",
-                                         "initial regrets at the root", {0., 0.});
-    initializeParser(parser); // always include this line in command
+    void Command_CFRRegrets(args::Subparser &parser) {
+        args::PositionalList<double> regrets(parser, "REGRETS",
+                                             "initial regrets at the root", {0., 0.});
+        initializeParser(parser); // always include this line in command
 
-    unique_ptr<Domain> domain = constructDomain(args::get(args::domain));
+        unique_ptr<Domain> domain = constructDomain(args::get(args::domain));
 
-    auto settings = CFRSettings();
-    settings.cfrUpdating = algorithms::InfosetsUpdating;
-    auto data = CFRData(*domain, settings.cfrUpdating);
-    data.buildTree();
+        auto settings = CFRSettings();
+        settings.cfrUpdating = algorithms::InfosetsUpdating;
+        auto data = CFRData(*domain, settings.cfrUpdating);
+        data.buildTree();
 
-    auto rootNode = data.getRootNode();
-    auto rootInfoset = rootNode->getAOHInfSet();
-    auto childNode = rootNode->performAction(rootNode->availableActions()[0]);
-    auto childInfoset = childNode->getAOHInfSet();
-    auto &rootData = data.infosetData.at(rootInfoset);
-    auto &childData = data.infosetData.at(childInfoset);
-    assert(rootData.regrets.size() == args::get(regrets).size());
-    rootData.regrets = args::get(regrets);
+        auto rootNode = data.getRootNode();
+        auto rootInfoset = rootNode->getAOHInfSet();
+        auto childNode = rootNode->performAction(rootNode->availableActions()[0]);
+        auto childInfoset = childNode->getAOHInfSet();
+        auto &rootData = data.infosetData.at(rootInfoset);
+        auto &childData = data.infosetData.at(childInfoset);
+        assert(rootData.regrets.size() == args::get(regrets).size());
+        rootData.regrets = args::get(regrets);
 
-    CFRAlgorithm cfr(*domain, Player(0), data, settings);
+        CFRAlgorithm cfr(*domain, Player(0), data, settings);
 
-    cout << "reg0,reg1,sigma_curr0,sigma_avg0" << endl;
-    for (int i = 0; i < 1000; ++i) {
-        cfr.runIteration(Player(0));
-        cfr.delayedApplyRegretUpdates();
+        cout << "reg0,reg1,sigma_curr0,sigma_avg0" << endl;
+        for (int i = 0; i < 1000; ++i) {
+            cfr.runIteration(Player(0));
+            cfr.UpdateInfosetRegrets(Player(0));
 
-        cfr.runIteration(Player(1));
-        cfr.delayedApplyRegretUpdates();
+            cfr.runIteration(Player(1));
+            cfr.UpdateInfosetRegrets(Player(1));
 
-        cout << rootData.regrets[0] << ","
-             << rootData.regrets[1] << ","
-             << algorithms::calcRMProbs(rootData.regrets)[0] << ","
-             << algorithms::calcAvgProbs(rootData.avgStratAccumulator)[0] << endl;
+            cout << rootData.regrets[0] << ","
+                 << rootData.regrets[1] << ","
+                 << algorithms::calcRMProbs(rootData.regrets)[0] << ","
+                 << algorithms::calcAvgProbs(rootData.avgStratAccumulator)[0] << endl;
+        }
     }
-}
 
 }
 

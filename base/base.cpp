@@ -47,8 +47,9 @@ bool Outcome::operator==(const Outcome &rhs) const {
 }
 
 
-AOH::AOH(Player player, const vector<ActionObservationIds> &aoHistory)
-    : player_(player), aoh_(aoHistory), hash_(hashCombine(5645138468, aoh_, player_)) {}
+AOH::AOH(Player player, bool isPlayerActing, vector<ActionObservationIds> aoHistory)
+    : player_(player), isPlayerActing_(isPlayerActing), aoh_(move(aoHistory)),
+      hash_(hashCombine(5645138468, aoh_, player_)) {}
 
 bool AOH::operator==(const InformationSet &rhs) const {
     // cheap alternative to dynamic_cast,
@@ -61,7 +62,8 @@ bool AOH::operator==(const InformationSet &rhs) const {
     const auto rhsAOH = static_cast<const AOH *>(&rhs);
     if (hash_ != rhsAOH->hash_
         || player_ != rhsAOH->player_
-        || aoh_.size() != rhsAOH->aoh_.size()) {
+        || aoh_.size() != rhsAOH->aoh_.size()
+        || isPlayerActing_ != rhsAOH->isPlayerActing_) {
         return false;
     }
     for (int i = 0; i < aoh_.size(); ++i) {
@@ -83,16 +85,20 @@ bool ActionSequence::operator==(const ActionSequence &rhs) const {
     if (sequence_.size() != rhs.sequence_.size()) return false;
     for (int i = 0; i < sequence_.size(); ++i) {
         if (sequence_[i].getHash() != rhs.sequence_[i].getHash()
-            || !(sequence_[i] == rhs.sequence_[i])) {
+            || (sequence_[i] != rhs.sequence_[i])) {
             return false;
         }
     }
     return true;
 }
+std::ostream &operator<<(std::ostream &os, const ActionSequence &sequence) {
+    os << sequence.sequence_;
+    return os;
+}
 
 State::State(const Domain *domain, HashType hash) : domain_(domain), hash_(hash) {}
 
-OutcomeDistribution State::performPartialActions(const vector<PlayerAction> & plActions) const {
+OutcomeDistribution State::performPartialActions(const vector<PlayerAction> &plActions) const {
     // no padding is necessary (but we don't check if the players are indeed the correct ones!)
     auto actions = vector<shared_ptr<Action>>();
     actions.reserve(domain_->getNumberOfPlayers());
@@ -124,11 +130,11 @@ Domain::Domain(unsigned int maxStateDepth, unsigned int numberOfPlayers, bool is
 const OutcomeDistribution &Domain::getRootStatesDistribution() const {
 #ifndef NDEBUG // equivalent to assert
     double sum = 0.;
-    for(const auto&[_, prob] : rootStatesDistribution_) {
+    for (const auto&[_, prob] : rootStatesDistribution_) {
         sum += prob;
     }
-    assert(sum > (1-1e-6));
-    assert(sum < (1+1e-6));
+    assert(sum > (1 - 1e-6));
+    assert(sum < (1 + 1e-6));
 #endif
     return rootStatesDistribution_;
 }
