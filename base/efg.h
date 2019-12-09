@@ -226,7 +226,8 @@ class EFGNode {
      * when the requested player is acting in this node.
      */
     inline shared_ptr<AOH> getAOHAugInfSet(Player player) const {
-        return make_shared<AOH>(player, getAOids(player));
+        const bool isActingPlayer = type_ == PlayerNode && getPlayer() == player;
+        return make_shared<AOH>(player, isActingPlayer, getAOids(player));
     };
 
     /**

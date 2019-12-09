@@ -29,7 +29,7 @@ namespace GTLib2::algorithms {
 
 bool Targetor::updateCurrentPosition(const optional<shared_ptr<AOH>> &infoset,
                                      const optional<shared_ptr<PublicState>> &pubState) {
-    if(targeting_ == OOSSettings::Targeting::NoTargeting) {
+    if (targeting_ == OOSSettings::Targeting::NoTargeting) {
         weightingFactor_ = 1.0;
         return true;
     }
@@ -103,15 +103,19 @@ pair<double, double> Targetor::updateWeighting(const shared_ptr<EFGNode> &h,
 }
 
 bool Targetor::isAllowedAction(const shared_ptr<EFGNode> &h, const shared_ptr<Action> &action) {
+    const auto nextH = h->performAction(action);
+
     switch (targeting_) {
         case OOSSettings::InfosetTargeting:
             return isAOCompatible(currentInfoset_->getAOids(),
-                                  h->performAction(action)->getAOids(currentInfoset_->getPlayer()));
+                                  nextH->getAOids(currentInfoset_->getPlayer()));
+
         case OOSSettings::PublicStateTargeting:
-            unreachable("todo: finish public state targeting");
-            return false;
+            return isCompatible(currentPubState_->getHistory(), nextH->getPubObsIds());
+
         case OOSSettings::NoTargeting:
             return true;
+
         default:
             unreachable("unrecognized option!");
     }
@@ -288,7 +292,7 @@ PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
     const bool exploringMoveInNode = h->getPlayer() == exploringPl;
     calcRMProbs(data.regrets, &rmProbs_, cfg_.approxRegretMatching);
 #ifndef NDEBUG
-    if(cfg_.approxRegretMatching > 0)
+    if (cfg_.approxRegretMatching > 0)
         for (int i = 0; i < data.regrets.size(); ++i) assert(rmProbs_[i] > 0);
 #endif
 
@@ -519,7 +523,5 @@ void OOSAlgorithm::updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exp
             unreachable("unrecognized option!");
     }
 }
-
-
 
 }  // namespace GTLib2

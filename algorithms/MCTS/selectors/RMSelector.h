@@ -27,15 +27,16 @@
 #include "RMSelectorFactory.h"
 
 namespace GTLib2::algorithms {
+
 class RMSelector: public Selector {
  public:
-    RMSelector(const vector<shared_ptr<Action>> &actions, const RMSelectorFactory *fact) : fact_(
+    RMSelector(const vector<shared_ptr<Action>> &actions, const RMSelectorFactory *fact) : factory_(
         fact) {
         actionProbability = vector<double>(actions.size());
         actionMeanProbability = vector<double>(actions.size());
         regretEstimate = vector<double>(actions.size());
     }
-    RMSelector(int actionsNumber, const RMSelectorFactory *fact) : fact_(fact) {
+    RMSelector(int actionsNumber, const RMSelectorFactory *fact) : factory_(fact) {
         actionProbability = vector<double>(actionsNumber);
         actionMeanProbability = vector<double>(actionsNumber);
         regretEstimate = vector<double>(actionsNumber);
@@ -46,7 +47,7 @@ class RMSelector: public Selector {
     ProbDistribution getActionsProbDistribution() override;
 
  private:
-    const RMSelectorFactory *fact_;
+    const RMSelectorFactory *factory_;
     /** Current probability of playing this action. */
     ProbDistribution actionProbability;
     vector<double> actionMeanProbability;
@@ -55,6 +56,7 @@ class RMSelector: public Selector {
 
     void updateProb();
 };
+
 }
 
 #endif //GTLIB2_RMSELECTOR_H

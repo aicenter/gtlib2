@@ -1,6 +1,6 @@
 /*
-
     Copyright 2019 Faculty of Electrical Engineering at CTU in Prague
+
     This file is part of Game Theoretic Library.
 
     Game Theoretic Library is free software: you can redistribute it and/or
@@ -13,26 +13,33 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with Game Theoretic Library.
+    You should have received a copy of the GNU Lesser General Public
+    License along with Game Theoretic Library.
 
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef GTLIB2_SELECTORFACTORY_H
-#define GTLIB2_SELECTORFACTORY_H
 
-#include "selector.h"
 
-namespace GTLib2::algorithms {
+#include "base/tree.h"
+#include "base/fogefg.h"
+#include "base/gadget.h"
+#include "domains/gambit.h"
+#include "domains/goofSpiel.h"
+#include "utils/export.h"
+#include "gtest/gtest.h"
 
-class SelectorFactory {
- public:
-    virtual ~SelectorFactory() = default;
-    virtual unique_ptr <Selector> createSelector(vector <shared_ptr<Action>> actions) const = 0;
-    virtual unique_ptr <Selector> createSelector(int actionsNumber) const = 0;
-    virtual std::mt19937 getRandom() const = 0;
-};
+namespace GTLib2 {
+
+TEST(Gambit, ImportExampleFile) {
+    // Player 0 plays with probs 0.2, 0.3, 0.5
+    const auto iigs = domains::GoofSpielDomain::IIGS(3);
+    utils::exportGambit(*iigs, "/tmp/test_gambit.gbt");
+    const auto gbt = domains::GambitDomain("/tmp/test_gambit.gbt");
+    utils::exportGambit(gbt, "/tmp/test_gambit2.gbt");
+    // trees should be identical up to labelling -- no time to implement that now
+}
 
 }
-#endif //GTLIB2_SELECTORFACTORY_H
+
+

@@ -21,23 +21,48 @@
 
 #ifndef GTLIB2_UCTSELECTORFACTORY_H
 #define GTLIB2_UCTSELECTORFACTORY_H
-#include "selectorFactory.h"
 
+#include "algorithms/MCTS/ISMCTS_settings.h"
+#include "algorithms/MCTS/selectors/selectorFactory.h"
 
 namespace GTLib2::algorithms {
 
+struct UCT_ISMCTSSettings;
+
 class UCTSelectorFactory: public SelectorFactory {
  public:
-    const double c;
-    explicit UCTSelectorFactory(double c, std::mt19937 random) : c(c), generator_(random) {};
-    explicit UCTSelectorFactory(double c, int seed) : c(c) { generator_ = std::mt19937(seed); };
-    explicit UCTSelectorFactory(double c) : c(c) { generator_ = std::mt19937(0); };
+    const UCT_ISMCTSSettings &cfg_;
+    explicit UCTSelectorFactory(const UCT_ISMCTSSettings &cfg);
     unique_ptr<Selector> createSelector(int actionsNumber) const override;
     unique_ptr<Selector> createSelector(vector<shared_ptr<Action>> actions) const override;
     std::mt19937 getRandom() const override;
  private:
     std::mt19937 generator_;
 };
+
+struct UCT_ISMCTSSettings: public ISMCTSSettings {
+    double c = sqrt(2);
+
+    unique_ptr<SelectorFactory> createFactory() const override {
+        return make_unique<UCTSelectorFactory>(*this);
+    }
+
+    //@formatter:off
+    inline void update(const string &k, const string &v)  override {
+        if(k == "c") c = std::stod(v); else
+        ISMCTSSettings::update(k,v);
+    };
+    inline string toString() const override  {
+        std::stringstream ss;
+        ss << "; UCT selector" << endl;
+        ss << "c         = "   << c << endl;
+        ss << ISMCTSSettings::toString();
+        return ss.str();
+    }
+    //@formatter:on
+};
+
+
 
 }
 #endif //GTLIB2_UCTSELECTORFACTORY_H

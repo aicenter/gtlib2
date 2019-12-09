@@ -42,7 +42,7 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
         this->createOOSBaselineData(getRootNode());
     }
 
-    inline OOSData(const OOSData& other) :
+    inline OOSData(const OOSData &other) :
         EFGCache(other),
         InfosetCache(other),
         CFRData(other),
@@ -112,7 +112,7 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
 };
 
 
-struct OOSSettings {
+struct OOSSettings: AlgConfig {
     enum SamplingBlock { OutcomeSampling, ExternalSampling };
     enum AccumulatorWeighting { UniformAccWeighting, LinearAccWeighting, XLogXAccWeighting };
     enum RegretMatching { RegretMatchingNormal, RegretMatchingPlus };
@@ -147,22 +147,68 @@ struct OOSSettings {
 
     unsigned long seed = 0;
 
-    template<class Archive>
-    void serialize(Archive &archive) {
-        archive(CEREAL_NVP(samplingBlock),
-                CEREAL_NVP(accumulatorWeighting),
-                CEREAL_NVP(regretMatching),
-                CEREAL_NVP(targeting),
-                CEREAL_NVP(playStrategy),
-                CEREAL_NVP(samplingScheme),
-                CEREAL_NVP(avgStrategyComputation),
-                CEREAL_NVP(baseline),
-                CEREAL_NVP(exploration),
-                CEREAL_NVP(targetBiasing),
-                CEREAL_NVP(approxRegretMatching),
-                CEREAL_NVP(batchSize),
-                CEREAL_NVP(seed));
+    //@formatter:off
+    void update(const string &k, const string &v) override {
+        if(k == "samplingBlock"          && v == "OutcomeSampling")                 samplingBlock        = OutcomeSampling;                   else
+        if(k == "samplingBlock"          && v == "ExternalSampling")                samplingBlock        = ExternalSampling;                  else
+        if(k == "accumulatorWeighting"   && v == "UniformAccWeighting")             accumulatorWeighting = UniformAccWeighting;               else
+        if(k == "accumulatorWeighting"   && v == "LinearAccWeighting")              accumulatorWeighting = LinearAccWeighting;                else
+        if(k == "accumulatorWeighting"   && v == "XLogXAccWeighting ")              accumulatorWeighting = XLogXAccWeighting ;                else
+        if(k == "regretMatching"         && v == "RegretMatchingNormal")            regretMatching       = RegretMatchingNormal;              else
+        if(k == "regretMatching"         && v == "RegretMatchingPlus")              regretMatching       = RegretMatchingPlus;                else
+        if(k == "targeting"              && v == "NoTargeting")                     targeting            = NoTargeting;                       else
+        if(k == "targeting"              && v == "InfosetTargeting")                targeting            = InfosetTargeting;                  else
+        if(k == "targeting"              && v == "PublicStateTargeting")            targeting            = PublicStateTargeting;              else
+        if(k == "playStrategy"           && v == "PlayUsingAvgStrategy")            playStrategy         = PlayUsingAvgStrategy;              else
+        if(k == "playStrategy"           && v == "PlayUsingRMStrategy")             playStrategy         = PlayUsingRMStrategy;               else
+        if(k == "samplingScheme"         && v == "EpsilonOnPolicySampling")         samplingScheme       = EpsilonOnPolicySampling;           else
+        if(k == "samplingScheme"         && v == "UniformSampling")                 samplingScheme       = UniformSampling;                   else
+        if(k == "avgStrategyComputation" && v == "StochasticallyWeightedAveraging") avgStrategyComputation = StochasticallyWeightedAveraging; else
+        if(k == "avgStrategyComputation" && v == "LazyWeightedAveraging")           avgStrategyComputation = LazyWeightedAveraging;           else
+        if(k == "baseline"               && v == "NoBaseline")                      baseline             = NoBaseline;                        else
+        if(k == "baseline"               && v == "OracleBaseline")                  baseline             = OracleBaseline;                    else
+        if(k == "baseline"               && v == "WeightedActingPlayerBaseline")    baseline             = WeightedActingPlayerBaseline;      else
+        if(k == "baseline"               && v == "WeightedAllPlayerBaseline")       baseline             = WeightedAllPlayerBaseline;         else
+        if(k == "baseline"               && v == "WeightedTimeBaseline")            baseline             = WeightedTimeBaseline;              else
+        if(k == "exploration")           exploration           = std::stod(v); else
+        if(k == "targetBiasing")         targetBiasing         = std::stod(v); else
+        if(k == "approxRegretMatching")  approxRegretMatching  = std::stod(v); else
+        if(k == "batchSize")             batchSize             = std::stoi(v); else
+        if(k == "seed")                  seed                  = std::stoi(v); else
+        AlgConfig::update(k, v);
     }
+
+    inline string toString() const override {
+        std::stringstream ss;
+        ss << "; OOS" << endl;
+        if(samplingBlock          == OutcomeSampling)                 ss << "samplingBlock          = OutcomeSampling"                 << endl;
+        if(samplingBlock          == ExternalSampling )               ss << "samplingBlock          = ExternalSampling"                << endl;        if(accumulatorWeighting   == UniformAccWeighting)             ss << "accumulatorWeighting   = UniformAccWeighting"              << endl;
+        if(accumulatorWeighting   == LinearAccWeighting)              ss << "accumulatorWeighting   = LinearAccWeighting"              << endl;
+        if(accumulatorWeighting   == XLogXAccWeighting)               ss << "accumulatorWeighting   = XLogXAccWeighting "              << endl;
+        if(regretMatching         == RegretMatchingNormal)            ss << "regretMatching         = RegretMatchingNormal"            << endl;
+        if(regretMatching         == RegretMatchingPlus)              ss << "regretMatching         = RegretMatchingPlus"              << endl;
+        if(targeting              == NoTargeting)                     ss << "targeting              = NoTargeting"                     << endl;
+        if(targeting              == InfosetTargeting)                ss << "targeting              = InfosetTargeting"                << endl;
+        if(targeting              == PublicStateTargeting)            ss << "targeting              = PublicStateTargeting"            << endl;
+        if(playStrategy           == PlayUsingAvgStrategy)            ss << "playStrategy           = PlayUsingAvgStrategy"            << endl;
+        if(playStrategy           == PlayUsingRMStrategy)             ss << "playStrategy           = PlayUsingRMStrategy"             << endl;
+        if(samplingScheme         == EpsilonOnPolicySampling)         ss << "samplingScheme         = EpsilonOnPolicySampling"         << endl;
+        if(samplingScheme         == UniformSampling)                 ss << "samplingScheme         = UniformSampling"                 << endl;
+        if(avgStrategyComputation == StochasticallyWeightedAveraging) ss << "avgStrategyComputation = StochasticallyWeightedAveraging" << endl;
+        if(avgStrategyComputation == LazyWeightedAveraging)           ss << "avgStrategyComputation = LazyWeightedAveraging"           << endl;
+        if(baseline               == NoBaseline)                      ss << "baseline               = NoBaseline"                      << endl;
+        if(baseline               == OracleBaseline)                  ss << "baseline               = OracleBaseline"                  << endl;
+        if(baseline               == WeightedActingPlayerBaseline)    ss << "baseline               = WeightedActingPlayerBaseline"    << endl;
+        if(baseline               == WeightedAllPlayerBaseline)       ss << "baseline               = WeightedAllPlayerBaseline"       << endl;
+        if(baseline               == WeightedTimeBaseline)            ss << "baseline               = WeightedTimeBaseline"            << endl;
+        ss << "exploration            = " << exploration           << endl;
+        ss << "targetBiasing          = " << targetBiasing         << endl;
+        ss << "approxRegretMatching   = " << approxRegretMatching  << endl;
+        ss << "batchSize              = " << batchSize             << endl;
+        ss << "seed                   = " << seed                  << endl;
+        return ss.str();
+    }
+    //@formatter:on
 };
 
 /**
@@ -288,8 +334,8 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
     optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset,
                                                    const long actionsNum) override;
 
-    const OOSData & getCache() { return cache_; }
-    const OOSSettings & getSettings() { return cfg_; }
+    const OOSData &getCache() { return cache_; }
+    const OOSSettings &getSettings() { return cfg_; }
 
  protected:
     virtual void rootIteration(double compensation, Player exploringPl);

@@ -25,13 +25,17 @@
 
 namespace GTLib2::algorithms {
 
+Exp3SelectorFactory::Exp3SelectorFactory(const EXP3_ISMCTSSettings &cfg)
+    : cfg_(cfg), generator_(cfg_.seed) {}
+
+
 unique_ptr<Selector> Exp3SelectorFactory::createSelector(int actionsNumber) const {
-    if (useExp3L) return make_unique<Exp3LSelector>(actionsNumber, this);
+    if (cfg_.type == EXP3_ISMCTSSettings::Exp3L) return make_unique<Exp3LSelector>(actionsNumber, this);
     else return make_unique<Exp3Selector>(actionsNumber, this);
 }
 
 unique_ptr<Selector> Exp3SelectorFactory::createSelector(vector<shared_ptr<Action>> actions) const {
-    if (useExp3L) return make_unique<Exp3LSelector>(actions, this);
+    if (cfg_.type == EXP3_ISMCTSSettings::Exp3L) return make_unique<Exp3LSelector>(actions, this);
     else return make_unique<Exp3Selector>(actions, this);
 }
 
@@ -40,7 +44,8 @@ std::mt19937 Exp3SelectorFactory::getRandom() const {
 }
 
 double Exp3SelectorFactory::normalizeValue(double value) const {
-    assert (minUtility_ <= value + 1e-5 && value <= maxUtility_ + 1e-5);
-    return (value - minUtility_) / (maxUtility_ - minUtility_);
+    assert (cfg_.minUtility_ <= value + 1e-5 && value <= cfg_.maxUtility_ + 1e-5);
+    return (value - cfg_.minUtility_) / (cfg_.maxUtility_ - cfg_.minUtility_);
 }
+
 }

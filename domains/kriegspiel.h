@@ -267,6 +267,7 @@ class King: public AbstractPiece {
     shared_ptr<AbstractPiece> clone() const override;
 };
 
+// See https://en.wikipedia.org/wiki/Minichess for variants description
 enum BOARD: int { STANDARD, SILVERMAN4BY4, MINIMAL3x3, MICROCHESS, DEMICHESS };
 class BoardFactory;
 struct boardInfo;

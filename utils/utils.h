@@ -324,7 +324,7 @@ struct Indented {
   (assert(0 && MSG), abort())
 #else
 #define unreachable(MSG) \
-  (std::fprintf(stderr, "UNREACHABLE executed at %s:%d\n", __FILE__, __LINE__), abort())
+  (cerr << "UNREACHABLE executed at " << __FILE__<<":"<<__LINE__<< " with error " << MSG << endl, abort())
 #endif
 
 namespace std { // NOLINT(cert-dcl58-cpp)

@@ -82,10 +82,12 @@ struct ISMCTSSettings {
  */
 class ISMCTS: public GamePlayingAlgorithm {
  public:
-    explicit ISMCTS(const Domain &domain, Player playingPlayer, const ISMCTSSettings &config) :
-        GamePlayingAlgorithm(domain, playingPlayer), config_(config),
+    explicit inline ISMCTS(const Domain &domain, Player playingPlayer, const ISMCTSSettings &config) :
+        GamePlayingAlgorithm(domain, playingPlayer),
+        config_(config),
+        factory_(move(config_.createFactory())),
         rootNode_(createRootEFGNode(domain)) {
-        generator_ = std::mt19937(config.randomSeed);
+        generator_ = std::mt19937(config.seed);
     };
 
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
@@ -95,7 +97,8 @@ class ISMCTS: public GamePlayingAlgorithm {
     virtual double iteration(const shared_ptr<EFGNode> &h);
 
  protected:
-    const ISMCTSSettings config_;
+    const ISMCTSSettings &config_;
+    const unique_ptr<SelectorFactory> factory_;
     std::mt19937 generator_;
     unordered_map<shared_ptr<AOH>, unique_ptr<Selector>> infosetSelectors_;
     const shared_ptr<EFGNode> rootNode_;

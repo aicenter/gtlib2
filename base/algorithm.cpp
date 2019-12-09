@@ -151,8 +151,9 @@ vector<double> playMatch(const Domain &domain,
                 const auto probs = node->chanceProbs();
                 LOG_PLAYER(2, "Chance picked p[" << playerAction << "]=" << probs[playerAction]
                                                  << " from p="
-                                                 << (Either{probs.size() < 10, probs, "(too many)"}))
-                LOG_INFO("Selected action is: " << *node->getActionByID(playerAction))
+                                                 << (Either{probs.size() < 10, probs,
+                                                            "(too many to show - "+to_string(probs.size())+" actions)"}))
+                LOG_INFO("Selected action is: " << *actions[playerAction])
                 break;
             }
 
@@ -193,8 +194,9 @@ vector<double> playMatch(const Domain &domain,
 
                 LOG_PLAYER(pl, "Player " << int(pl) << " picked p[" << playerAction
                                          << "]=" << probs[playerAction] << " from p="
-                                         << (Either{probs.size() < 10, probs, "(too many)"}))
-                LOG_INFO("Selected action is: " << *node->getActionByID(playerAction))
+                                         << (Either{probs.size() < 10, probs,
+                                                    "(too many to show - "+to_string(probs.size())+" actions)"}))
+                LOG_INFO("Selected action is: " << *actions[playerAction])
                 break;
             }
 

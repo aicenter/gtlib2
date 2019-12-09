@@ -63,7 +63,7 @@ double ISMCTS::handlePlayerNode(const shared_ptr<EFGNode> &h) {
     int actionIndex;
     double simulationResult;
     if (selectorPtr == infosetSelectors_.end()) {
-        infosetSelectors_.emplace(infoset, config_.fact_->createSelector(h->countAvailableActions()));
+        infosetSelectors_.emplace(infoset, factory_->createSelector(h->availableActions()));
         selector = infosetSelectors_[infoset].get();
         actionIndex = selector->select();
         simulationResult = simulate(h);

@@ -19,8 +19,9 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <base/random.h>
+#include "base/random.h"
 #include "UCTSelector.h"
+
 namespace GTLib2::algorithms {
 void UCTSelector::update(ActionId ai, double value) {
     totalVisits++;
@@ -37,11 +38,11 @@ double getUCBRate(double v, int ni, int n, double c) {
 }
 
 double UCTSelector::getBestRateIndex() {
-    double bestVal = getUCBRate(values_[0], visits_[0], totalVisits, fact_->c);
+    double bestVal = getUCBRate(values_[0], visits_[0], totalVisits, factory_->cfg_.c);
     int bestIdx = 0;
 
     for (int i = 1; i < values_.size(); i++) {
-        double curVal = getUCBRate(values_[i], visits_[i], totalVisits, fact_->c);
+        double curVal = getUCBRate(values_[i], visits_[i], totalVisits, factory_->cfg_.c);
 
         if (curVal > bestVal) {
             bestVal = curVal;
@@ -54,7 +55,7 @@ double UCTSelector::getBestRateIndex() {
 int UCTSelector::getBestRateCount(double eps, double bestVal) {
     int count = 0;
     for (int i = 0; i < values_.size(); i++) {
-        double curVal = getUCBRate(values_[i], visits_[i], totalVisits, fact_->c);
+        double curVal = getUCBRate(values_[i], visits_[i], totalVisits, factory_->cfg_.c);
         if (curVal > bestVal - eps) count++;
     }
     return count;
@@ -62,7 +63,7 @@ int UCTSelector::getBestRateCount(double eps, double bestVal) {
 
 ActionId UCTSelector::select() {
     if (totalVisits < values_.size()) {
-        int j = pickRandomInt(1, values_.size() - totalVisits, fact_->getRandom());
+        int j = pickRandomInt(1, values_.size() - totalVisits, factory_->getRandom());
         int i = -1;
 
         while (j > 0) {
@@ -75,12 +76,12 @@ ActionId UCTSelector::select() {
     const double epsilon = 0.01;
     const double bestIndex = getBestRateIndex();
     const double bestVal = getUCBRate(values_[bestIndex], visits_[bestIndex],
-                                      totalVisits, fact_->c);
+                                      totalVisits, factory_->cfg_.c);
     const int bestCount = getBestRateCount(epsilon, bestVal);
-    int index = pickRandomInt(0, bestCount - 1, fact_->getRandom());
+    int index = pickRandomInt(0, bestCount - 1, factory_->getRandom());
     // if there is a number of actions with the same value equal to the best, choose a random one
     for (int i = 0; i < values_.size(); i++) {
-        const double curVal = getUCBRate(values_[i], visits_[i], totalVisits, fact_->c);
+        const double curVal = getUCBRate(values_[i], visits_[i], totalVisits, factory_->cfg_.c);
 
         if (curVal >= bestVal - epsilon) {
             if (index == 0)

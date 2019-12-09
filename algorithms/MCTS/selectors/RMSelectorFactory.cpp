@@ -25,6 +25,9 @@
 
 namespace GTLib2::algorithms {
 
+RMSelectorFactory::RMSelectorFactory(const RM_ISMCTSSettings &cfg)
+    : cfg_(cfg), generator_(cfg_.seed) {}
+
 unique_ptr<Selector> RMSelectorFactory::createSelector(int actionsNumber) const {
     return make_unique<RMSelector>(actionsNumber, this);
 }
@@ -38,8 +41,9 @@ std::mt19937 RMSelectorFactory::getRandom() const {
 }
 
 double RMSelectorFactory::normalizeValue(double value) const {
-    assert (minUtility_ <= value + 1e-5 && value <= maxUtility_ + 1e-5);
-    return (value - minUtility_) / (maxUtility_ - minUtility_);
+    assert (cfg_.minUtility_ <= value + 1e-5 && value <= cfg_.maxUtility_ + 1e-5);
+    return (value - cfg_.minUtility_) / (cfg_.maxUtility_ - cfg_.minUtility_);
 }
+
 
 }

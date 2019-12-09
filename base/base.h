@@ -25,9 +25,9 @@
 #ifndef BASE_BASE_H_
 #define BASE_BASE_H_
 
+#include <ostream>
 #include "base/includes.h"
 #include "base/hashing.h"
-#include "external/cereal/cereal.hpp"
 #include "utils/utils.h"
 #include "utils/logging.h"
 
@@ -274,7 +274,7 @@ class InformationSet {
     inline bool operator!=(const InformationSet &rhs) const { return !(rhs == *this); };
     virtual HashType getHash() const = 0;
     virtual string toString() const = 0;
-    friend inline std::ostream &operator<<(std::ostream &ss, InformationSet &infoset) {
+    friend inline std::ostream &operator<<(std::ostream &ss, const InformationSet &infoset) {
         ss << infoset.toString();
         return ss;
     }
@@ -293,18 +293,24 @@ class InformationSet {
  */
 class AOH: public InformationSet {
  public:
-    AOH(Player player, const vector<ActionObservationIds> &aoHistory);
+    AOH(Player player, bool isPlayerActing, vector<ActionObservationIds> aoHistory);
 
     inline HashType getHash() const final { return hash_; }
     bool operator==(const InformationSet &rhs) const override;
 
     inline Player getPlayer() const { return player_; }
+    /**
+     * If the player is not the acting player at given AOH, it means this AOH
+     * represents an augmented infoset, not a normal one.
+     */
+    inline Player isPlayerActing() const { return isPlayerActing_; }
     inline ObservationId getInitialObservationId() const { return aoh_.front().observation; }
     inline vector<ActionObservationIds> getAOids() const { return aoh_; }
     string toString() const override;
 
  private:
     const Player player_;
+    const bool isPlayerActing_;
     const vector<ActionObservationIds> aoh_;
     const HashType hash_;
 };
@@ -318,6 +324,11 @@ struct InfosetAction {
     inline bool operator==(const InfosetAction &rhs) const {
         return getHash() == rhs.getHash() && *infoset == *rhs.infoset && *action == *rhs.action;
     };
+    inline bool operator!=(const InfosetAction &rhs) const { return !(*this == rhs); }
+    inline friend std::ostream & operator<<(std::ostream &ss, const InfosetAction &a) {
+        ss << "{" << a.infoset->toString() << ", " << *a.action << "}";
+        return ss;
+    }
 };
 
 /**
@@ -328,9 +339,11 @@ class ActionSequence {
     explicit ActionSequence(vector<InfosetAction> sequence)
         : sequence_(move(sequence)), hash_(hashCombine(2315468453135153, sequence_)) {}
     bool operator==(const ActionSequence &rhs) const;
+    bool operator!=(const ActionSequence &rhs) const { return !(*this == rhs); };
     inline HashType getHash() const { return hash_; };
     const vector<InfosetAction> sequence_;
     const HashType hash_;
+    friend std::ostream &operator<<(std::ostream &os, const ActionSequence &sequence);
 };
 
 /**

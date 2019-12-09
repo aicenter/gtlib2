@@ -29,9 +29,9 @@ namespace GTLib2::algorithms {
 ActionId RMSelector::select() {
     updateProb();
     const auto numActions = actionProbability.size();
-    double rand = pickRandomDouble(fact_->getRandom());
+    double rand = pickRandomDouble(factory_->getRandom());
     for (int i = 0; i < numActions; i++) {
-        const double pa = (1 - fact_->gamma) * actionProbability[i] + fact_->gamma / numActions;
+        const double pa = (1 - factory_->cfg_.gamma) * actionProbability[i] + factory_->cfg_.gamma / numActions;
 
         if (rand > pa) {
             rand -= pa;
@@ -43,9 +43,9 @@ ActionId RMSelector::select() {
 }
 
 void RMSelector::update(ActionId ai, double value) {
-    const double v = fact_->normalizeValue(value);
-    const double pa = (1 - fact_->gamma) * actionProbability[ai]
-        + fact_->gamma / actionProbability.size();
+    const double v = factory_->normalizeValue(value);
+    const double pa = (1 - factory_->cfg_.gamma) * actionProbability[ai]
+        + factory_->cfg_.gamma / actionProbability.size();
     regretEstimate[ai] += v / pa;
     for (int i = 0; i < regretEstimate.size(); i++) {
         regretEstimate[i] -= v;

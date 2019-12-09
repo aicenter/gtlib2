@@ -22,39 +22,17 @@
 #ifndef GTLIB2_EXP3SELECTORFACTORY_H
 #define GTLIB2_EXP3SELECTORFACTORY_H
 
-#include "selectorFactory.h"
+#include "algorithms/MCTS/ISMCTS_settings.h"
+#include "algorithms/MCTS/selectors/selectorFactory.h"
 
 namespace GTLib2::algorithms {
+
+struct EXP3_ISMCTSSettings;
+
 class Exp3SelectorFactory: public SelectorFactory {
  public:
-    const double gamma = 0.05;
-    const bool storeExploration = false; //not used in Exp3L
-    const bool useExp3L = false;
-
-    Exp3SelectorFactory(double minUtility, double maxUtility, double gamma,
-                        bool storeExploration, std::mt19937 random) :
-        minUtility_(minUtility), maxUtility_(maxUtility), gamma(gamma),
-        storeExploration(storeExploration), generator_(random) {}
-    Exp3SelectorFactory(double minUtility, double maxUtility, double gamma,
-                        bool storeExploration, int seed) :
-        minUtility_(minUtility), maxUtility_(maxUtility), gamma(gamma),
-        storeExploration(storeExploration) { generator_ = std::mt19937(seed); }
-    Exp3SelectorFactory(double minUtility, double maxUtility, double gamma, bool storeExploration) :
-        minUtility_(minUtility), maxUtility_(maxUtility), gamma(gamma),
-        storeExploration(storeExploration) { generator_ = std::mt19937(0); }
-    Exp3SelectorFactory(bool useExp3L, double minUtility, double maxUtility, double gamma,
-                        std::mt19937 random) :
-        minUtility_(minUtility), maxUtility_(maxUtility), gamma(gamma), useExp3L(useExp3L),
-        generator_(random) {}
-    Exp3SelectorFactory(bool useExp3L, double minUtility, double maxUtility, double gamma, int seed)
-        : minUtility_(minUtility), maxUtility_(maxUtility), gamma(gamma), useExp3L(useExp3L) {
-        generator_ = std::mt19937(seed);
-    }
-    Exp3SelectorFactory(bool useExp3L, double minUtility, double maxUtility, double gamma) :
-        minUtility_(minUtility), maxUtility_(maxUtility), gamma(gamma), useExp3L(useExp3L) {
-        generator_ = std::mt19937(0);
-    }
-
+    const EXP3_ISMCTSSettings &cfg_;
+    explicit Exp3SelectorFactory(const EXP3_ISMCTSSettings &cfg);
     unique_ptr<Selector> createSelector(int actionsNumber) const override;
     unique_ptr<Selector> createSelector(vector<shared_ptr<Action>> actions) const override;
     std::mt19937 getRandom() const override;
@@ -62,9 +40,48 @@ class Exp3SelectorFactory: public SelectorFactory {
     double normalizeValue(double value) const;
  private:
     std::mt19937 generator_;
-    const double minUtility_;
-    const double maxUtility_;
 };
+
+
+struct EXP3_ISMCTSSettings: public ISMCTSSettings {
+    // domain specific values
+    const double minUtility_ = -1;
+    const double maxUtility_ = 1;
+
+    enum EXP3_Type { Exp3, Exp3L };
+    EXP3_Type type = Exp3;
+    double gamma = 0.05;
+    bool storeExploration = false; //not used in Exp3L
+
+    EXP3_ISMCTSSettings(const double minUtility, const double maxUtility)
+        : minUtility_(minUtility), maxUtility_(maxUtility) {}
+
+    unique_ptr<SelectorFactory> createFactory() const override {
+        return make_unique<Exp3SelectorFactory>(*this);
+    }
+
+    //@formatter:off
+    inline void update(const string &k, const string &v) override {
+        if(k == "gamma")                            gamma             = std::stod(v); else
+        if(k == "type" && v == "Exp3")              type              = Exp3;         else
+        if(k == "type" && v == "Exp3L")             type              = Exp3L;        else
+        if(k == "storeExploration" && v == "true")  storeExploration  = true;         else
+        if(k == "storeExploration" && v == "false") storeExploration  = false;        else
+        ISMCTSSettings::update(k,v);
+    };
+    inline string toString() const override {
+        std::stringstream ss;
+        ss << "; Exp3 selector" << endl;
+        ss << "gamma     = " << gamma << endl;
+        if(type == Exp3)  ss << "type      = Exp3"  << endl;
+        if(type == Exp3L) ss << "type      = Exp3L" << endl;
+        ss << "storeExploration = " << storeExploration << endl;
+        ss << ISMCTSSettings::toString();
+        return ss.str();
+    }
+    //@formatter:on
+};
+
 }
 
 #endif //GTLIB2_EXP3SELECTORFACTORY_H

@@ -329,8 +329,8 @@ vector<ActionObservationIds> FOG2EFGNode::getAOids(Player player) const {
     }
 
     // Must always hold, after we made all of the above.
-    //assert(algorithms::isAOCompatible(parent_->getAOids(player), aoh));
-    //makes game run increeeeedibly slow!
+//    assert(algorithms::isAOCompatible(parent_->getAOids(player), aoh));
+
     return aoh;
 }
 
@@ -348,7 +348,8 @@ vector<ObservationId> FOG2EFGNode::getPubObsIds() const {
 
     // Add that it's player's move, if it is not player's repeated move
     // If it is repeated, it means it might be secret.
-    // If it's not secret, it should be revealed via new public observation.
+    // If it's not secret, it should be revealed via new public observation,
+    // in a domain dependent way.
     if (type_ == PlayerNode &&
         (parent_->type_ == ChanceNode
             || (parent_->type_ == PlayerNode && parent_->getPlayer() != getPlayer())
