@@ -113,3 +113,44 @@ I forgot to use (1-lambda) update!
     LD_tiny,MCCR,cfg/MCCR_reweighkeep.ini,1000,1000,iterations,0.39886
     LD_tiny,MCCR,cfg/MCCR_reset.ini,1000,1000,iterations,0.374915
 
+---
+
+Not reseting baselines:
+
+    IIGS_4,MCCR,cfg/MCCR_reweighkeep.ini,1000,1000,iterations,0.13219
+    IIGS_4,MCCR,cfg/MCCR_reset.ini,1000,1000,iterations,0.123992
+
+    IIOZ_5,MCCR,cfg/MCCR_reweighkeep.ini,1000,1000,iterations,0.0289625
+    IIOZ_5,MCCR,cfg/MCCR_reset.ini,1000,1000,iterations,0.0285156
+
+    LD_tiny,MCCR,cfg/MCCR_reweighkeep.ini,1000,1000,iterations,0.560497
+    LD_tiny,MCCR,cfg/MCCR_reset.ini,1000,1000,iterations,0.374915
+
+---
+
+Same treatment of baselines and nodes (i.e. 1-lambda)
+
+    IIGS_4,MCCR,cfg/MCCR_reweighkeep.ini,1000,1000,iterations,0.0660759
+    IIGS_4,MCCR,cfg/MCCR_reset.ini,1000,1000,iterations,0.123992
+    
+    IIOZ_5,MCCR,cfg/MCCR_reweighkeep.ini,1000,1000,iterations,0.136621
+    IIOZ_5,MCCR,cfg/MCCR_reset.ini,1000,1000,iterations,0.0285156
+    
+    LD_tiny,MCCR,cfg/MCCR_reweighkeep.ini,1000,1000,iterations,0.445176
+    LD_tiny,MCCR,cfg/MCCR_reset.ini,1000,1000,iterations,0.374915
+
+Finally managed to make IIGS better :) but everything else is broken lol
+
+---
+
+    IIGS_4,MCCR,cfg/MCCR_naivekeep.ini,1000,1000,iterations,0.0289363
+    IIGS_4,MCCR,cfg/MCCR_reweighkeep.ini,1000,1000,iterations,0.0823888
+    IIGS_4,MCCR,cfg/MCCR_reset.ini,1000,1000,iterations,0.151848
+
+    IIOZ_5,MCCR,cfg/MCCR_naivekeep.ini,1000,1000,iterations,0.0652906
+    IIOZ_5,MCCR,cfg/MCCR_reweighkeep.ini,1000,1000,iterations,0.0207208
+    IIOZ_5,MCCR,cfg/MCCR_reset.ini,1000,1000,iterations,0.0350273
+
+    LD_tiny,MCCR,cfg/MCCR_naivekeep.ini,1000,1000,iterations,0.302449
+    LD_tiny,MCCR,cfg/MCCR_reweighkeep.ini,1000,1000,iterations,0.40525
+    LD_tiny,MCCR,cfg/MCCR_reset.ini,1000,1000,iterations,0.494662

@@ -134,9 +134,6 @@ double MCCRResolver::updateGadgetInfosetData() {
     double playInfosetReachProb = 0.;
     for (int i = 0; i < numGadgetHistories; ++i) {
         const auto &h = summary.topmostHistories.at(i);
-        const auto infoset = h->getAOHAugInfSet(gadget_->viewingPlayer_);
-        gadgetInfosetData_.emplace(infoset, CFRData::InfosetData(2, HistoriesUpdating));
-
         if (gadget_->targetAOH_->getAOids() == h->getAOids(gadget_->resolvingPlayer_)) {
             playInfosetReachProb += gadget_->chanceProbForAction(i);
         }
@@ -215,7 +212,9 @@ double MCCRResolver::handlePlayerNode(const shared_ptr<EFGNode> &h, double rm_h_
     const auto &actions = h->availableActions();
     const auto &infoset = h->getAOHInfSet();
     const double s_h_all = bias(bs_h_all, us_h_all);
-    CFRData::InfosetData &data = gadgetInfosetData_.at(infoset);
+    CFRData::InfosetData &data = (*((gadgetInfosetData_.insert(
+        make_pair(infoset, CFRData::InfosetData(2, HistoriesUpdating))
+    )).first)).second;
 
     isBelowTargetIS_ = **playInfoset_ == *infoset;
     const bool exploringMoveInNode = h->getPlayer() == exploringPl;

@@ -58,7 +58,6 @@ computeTerminateCFVValues(const PublicStateSummary &summary, Player resolvingPla
 
     for (int i = 0; i < numHistories; ++i) {
         const auto &h = summary.topmostHistories.at(i);
-//        const auto &aoh = h->getAOHAugInfSet(resolvingPlayer);
         const auto &augAoh = augInfosets.emplace_back(h->getAOHAugInfSet(viewingPlayer));
         const auto addReach = reachProbs[i][resolvingPlayer] * reachProbs[i][2];
         const auto addUtility = addReach * summary.expectedUtilities[i];

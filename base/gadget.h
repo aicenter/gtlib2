@@ -186,7 +186,7 @@ class GadgetInnerNode: public EFGNode,
                              shared_ptr<EFGNode> underlyingNode,
                              vector<ActionObservationIds> viewingPlAOids,
                              const EdgeId transitionId) :
-        EFGNode(opponent(game.resolvingPlayer_)),
+        EFGNode(game.viewingPlayer_),
         game_(game), parent_(parent), underlyingNode_(move(underlyingNode)),
         viewingPlAOIds_(move(viewingPlAOids)), history_({transitionId}) {}
 
