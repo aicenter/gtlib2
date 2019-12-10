@@ -94,6 +94,11 @@ NFGDomain::NFGDomain(NFGSettings settings) :
     vector<double> rewards(numPlayers_, 0.0);
     vector<shared_ptr<Observation>> privateObs(numPlayers_, noObservation_);
 
+    maxUtility_ = -INFINITY;
+    for(const auto &util : utilities_)
+        for(const double u : util)
+            maxUtility_ = std::max(u, maxUtility_);
+
     rootStatesDistribution_.emplace_back(OutcomeEntry(Outcome(
         newState, privateObs, noObservation_, rewards)));
 }
