@@ -220,6 +220,7 @@ set(SOURCE_FILES
         domains/oshiZumo.h domains/oshiZumo.cpp
         domains/randomGame.h domains/randomGame.cpp
         domains/stratego.h domains/stratego.cpp
+        domains/simplePoker.h domains/simplePoker.cpp
         # LPSolvers
         LPsolvers/AbstractLPSolver.h
         LPsolvers/LPSolver.h

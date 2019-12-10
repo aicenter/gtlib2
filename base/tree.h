@@ -98,6 +98,12 @@ using NodeChildExpander = function<shared_ptr<Node>(const shared_ptr < Node > &,
 template<class Node>
 shared_ptr <Node> nodeChildExpander(const shared_ptr <Node> &, EdgeId);
 
+template<class Node>
+bool nodeCompare(const shared_ptr <Node> &a, const shared_ptr <Node> &b) {
+    if(a->getHistory().size() < b->getHistory().size()) return true;
+    return a->getHistory() < b->getHistory();
+}
+
 /**
  * Call supplied function at each node of the tree, including leaves,
  * with no restriction to depth of the tree walk.

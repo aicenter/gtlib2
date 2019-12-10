@@ -35,7 +35,7 @@ struct PublicStateSummary {
     const shared_ptr<PublicState> publicState;
     const vector<shared_ptr<EFGNode>> topmostHistories;
     const vector<array<double, 3>> topmostHistoriesReachProbs;
-    const vector<double> expectedValues; // for player 0 for each topmost history
+    const vector<double> expectedUtilities; // for player 0 for each topmost history
 
     PublicStateSummary(shared_ptr<PublicState> _publicState,
                        vector<shared_ptr<EFGNode>> _topmostHistories,
@@ -44,7 +44,7 @@ struct PublicStateSummary {
         : publicState(move(_publicState)),
           topmostHistories(move(_topmostHistories)),
           topmostHistoriesReachProbs(move(_topmostHistoriesReachProbs)),
-          expectedValues(move(_expectedValues)) {
+          expectedUtilities(move(_expectedValues)) {
 #ifndef NDEBUG
         for (const auto &h : topmostHistories) {
             assert(h->getPubObsIds() == publicState->getHistory());
@@ -60,6 +60,12 @@ enum GadgetVariant {
     UNSAFE_RESOLVING,
     MAX_MARGIN // todo: paper Solving Endgames in Large Imperfect-Information Games such as Poker
 };
+
+double computePubStateReach(const PublicStateSummary &summary,
+                            GadgetVariant variant,
+                            Player resolvingPlayer);
+vector<double> computeTerminateCFVValues(const PublicStateSummary &summary, Player resolvingPlayer);
+
 
 class GadgetGame {
  public:
@@ -90,18 +96,14 @@ class GadgetGame {
         viewingPlayer_(opponent(resolvingPlayer)),
         targetAOH_(move(targetAOH)),
         variant_(variant),
-        pubStateReach_(computePubStateReach()),
-        cfvValues_(computeTerminateCFVValues()) {}
+        pubStateReach_(computePubStateReach(summary_, variant, resolvingPlayer)),
+        cfvValues_(computeTerminateCFVValues(summary_, resolvingPlayer)) {}
 
     inline const shared_ptr<GadgetRootNode> getRootNode() {
         return make_shared<GadgetRootNode>(*this);
     }
 
     double chanceProbForAction(const ActionId &action) const;
-
- private:
-    double computePubStateReach();
-    vector<double> computeTerminateCFVValues();
 };
 
 class GadgetRootNode: public EFGNode,

@@ -162,7 +162,7 @@ TEST(MCCR, NoSamplesValuesShouldBeZero) {
     // Test
     auto rootPs = mccr.getCache().getRootPublicState();
     auto summary = mccr.getCache().getPublicStateSummary(rootPs);
-    EXPECT_EQ(summary.expectedValues[0], 0);
+    EXPECT_EQ(summary.expectedUtilities[0], 0);
 }
 
 TEST(MCCR, IncrementallyBuildTree) {
@@ -189,7 +189,7 @@ TEST(MCCR, IncrementallyBuildTree) {
         // Test
         const auto rootPs = mccr.getCache().getRootPublicState();
         const auto summary = mccr.getCache().getPublicStateSummary(rootPs);
-        const auto actualValue = summary.expectedValues[0];
+        const auto actualValue = summary.expectedUtilities[0];
         EXPECT_DOUBLE_EQ(actualValue, expectedValues[test_case]);
     }
 }
@@ -234,7 +234,7 @@ TEST(MCCR, PreBuildTree) {
         // Test
         const auto rootPs = mccr.getCache().getRootPublicState();
         const auto summary = mccr.getCache().getPublicStateSummary(rootPs);
-        const auto actualValue = summary.expectedValues[0];
+        const auto actualValue = summary.expectedUtilities[0];
         EXPECT_DOUBLE_EQ(actualValue, expectedValues[test_case]);
     }
 }

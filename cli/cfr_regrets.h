@@ -54,10 +54,10 @@ namespace GTLib2::CLI {
         cout << "reg0,reg1,sigma_curr0,sigma_avg0" << endl;
         for (int i = 0; i < 1000; ++i) {
             cfr.runIteration(Player(0));
-            cfr.UpdateInfosetRegrets(Player(0));
+            cfr.updateInfosetRegrets(Player(0));
 
             cfr.runIteration(Player(1));
-            cfr.UpdateInfosetRegrets(Player(1));
+            cfr.updateInfosetRegrets(Player(1));
 
             cout << rootData.regrets[0] << ","
                  << rootData.regrets[1] << ","

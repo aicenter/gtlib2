@@ -79,13 +79,13 @@ SimplePokerState::performActions(const vector<shared_ptr<Action>> &actions) cons
         case kActionFold:
             return OutcomeDistribution{OutcomeEntry(Outcome(
                 make_shared<SimplePokerState>(domain_, NO_PLAYER, cards_, true),
-                {noObs, noObs}, noObs, {-1. * sign, 1. * sign}
+                {noObs, noObs}, make_shared<SimplePokerObservation>(0), {-1. * sign, 1. * sign}
             ))};
         case kActionBet:
             assert(actingPlayer_ == Player(0));
             return OutcomeDistribution{OutcomeEntry(Outcome(
                 make_shared<SimplePokerState>(domain_, opponent(actingPlayer_), cards_, false),
-                {noObs, noObs}, noObs, {0, 0}
+                {noObs, noObs}, make_shared<SimplePokerObservation>(1), {0, 0}
             ))};
         case kActionCall: {
             assert(actingPlayer_ == Player(1));
@@ -93,7 +93,7 @@ SimplePokerState::performActions(const vector<shared_ptr<Action>> &actions) cons
                        (cards_[0] > cards_[1] ? 3 : -3);
             return OutcomeDistribution{OutcomeEntry(Outcome(
                 make_shared<SimplePokerState>(domain_, NO_PLAYER, cards_, true),
-                {noObs, noObs}, noObs, {v, -v}
+                {noObs, noObs}, make_shared<SimplePokerObservation>(1), {v, -v}
             ))};
         }
         default:

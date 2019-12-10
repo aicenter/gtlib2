@@ -24,13 +24,15 @@
 
 namespace GTLib2 {
 
-double GadgetGame::computePubStateReach() {
-    const auto &reachProbs = summary_.topmostHistoriesReachProbs;
+double computePubStateReach(const PublicStateSummary &summary,
+                            GadgetVariant variant,
+                            Player resolvingPlayer) {
+    const auto &reachProbs = summary.topmostHistoriesReachProbs;
     double pubStateReach = 0.0;
-    switch (variant_) {
+    switch (variant) {
         case SAFE_RESOLVING:
             for (const array<double, 3> h : reachProbs)
-                pubStateReach += h[resolvingPlayer_] * h[2];
+                pubStateReach += h[resolvingPlayer] * h[2];
             break;
         case UNSAFE_RESOLVING:
             for (const array<double, 3> h : reachProbs)
@@ -44,33 +46,36 @@ double GadgetGame::computePubStateReach() {
     return pubStateReach;
 }
 
-vector<double> GadgetGame::computeTerminateCFVValues() {
-    const auto numHistories = summary_.topmostHistories.size();
-    auto augInfosetse = vector<shared_ptr<AOH>>();
-    augInfosetse.reserve(numHistories);
-    auto infosetValues = unordered_map<shared_ptr<AOH>, double>{}; // for player 0
+vector<double>
+computeTerminateCFVValues(const PublicStateSummary &summary, Player resolvingPlayer) {
+    const auto numHistories = summary.topmostHistories.size();
+    auto augInfosets = vector<shared_ptr<AOH>>();
+    augInfosets.reserve(numHistories);
+    auto infosetUtils = unordered_map<shared_ptr<AOH>, double>{}; // for player 0
     auto infosetReaches = unordered_map<shared_ptr<AOH>, double>{};
-    const auto &reachProbs = summary_.topmostHistoriesReachProbs;
+    const auto &reachProbs = summary.topmostHistoriesReachProbs;
+    const Player viewingPlayer = opponent(resolvingPlayer);
 
     for (int i = 0; i < numHistories; ++i) {
-        const auto &h = summary_.topmostHistories.at(i);
-        const shared_ptr<AOH> aoh = augInfosetse.emplace_back(h->getAOHAugInfSet(viewingPlayer_));
-        const auto addReach = reachProbs[i][resolvingPlayer_] * reachProbs[i][2];
-        const auto addValue = addReach * summary_.expectedValues[i];
+        const auto &h = summary.topmostHistories.at(i);
+//        const auto &aoh = h->getAOHAugInfSet(resolvingPlayer);
+        const auto &augAoh = augInfosets.emplace_back(h->getAOHAugInfSet(viewingPlayer));
+        const auto addReach = reachProbs[i][resolvingPlayer] * reachProbs[i][2];
+        const auto addUtility = addReach * summary.expectedUtilities[i];
 
-        infosetValues[aoh] += addValue;
-        infosetReaches[aoh] += addReach;
+        infosetUtils[augAoh] += addUtility;
+        infosetReaches[augAoh] += addReach;
     }
 
     auto cfvValues = vector<double>();
     cfvValues.reserve(numHistories);
     for (int i = 0; i < numHistories; ++i) {
         // the pubStateReach_ term must be added by the resolver when accessing terminal node!
-        cfvValues.emplace_back(
-            infosetValues.at(augInfosetse.at(i)) / infosetReaches.at(augInfosetse.at(i)));
+        const auto &aoh = augInfosets.at(i);
+        cfvValues.emplace_back(infosetUtils.at(aoh) / infosetReaches.at(aoh));
     }
 
-    return cfvValues; // again, defined for player 0
+    return cfvValues; // again, utilities are defined for player 0
 }
 double GadgetGame::chanceProbForAction(const ActionId &action) const {
     const auto reach = summary_.topmostHistoriesReachProbs.at(action);

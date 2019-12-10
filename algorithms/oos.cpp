@@ -462,8 +462,8 @@ void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
     // updateVal we get is for the exploring player
     u_h *= exploringPl == Player(0) ? 1 : -1;
 
-    auto[a, b] = updateFractionUpdate(u_h, h->getPlayer() == exploringPl,
-                                      rm_h_pl, rm_h_opp, us_h_cn);
+    auto[a, b] = calcEFGNodeUpdate(u_h, h->getPlayer() == exploringPl,
+                                   rm_h_pl, rm_h_opp, us_h_cn);
 
     auto &baseline = cache_.baselineValues.at(h);
     baseline.nominator += a;
@@ -474,9 +474,9 @@ void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
     value.denominator += b;
 }
 
-pair<double, double> OOSAlgorithm::updateFractionUpdate(double u_h, bool isExploringPlayer,
-                                                        double rm_h_pl, double rm_h_opp,
-                                                        double us_h_cn) {
+pair<double, double> OOSAlgorithm::calcEFGNodeUpdate(double u_h, bool isExploringPlayer,
+                                                     double rm_h_pl, double rm_h_opp,
+                                                     double us_h_cn) {
     double a = 0.0, b = 0.0;
     double reach;
     switch (cfg_.baseline) {

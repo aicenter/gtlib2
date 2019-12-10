@@ -85,8 +85,12 @@ void MCCRAlgorithm::updateGadget() {
         const double p = calcProbOfLastAction();
         resolver_->updateMagnitude_ = (p / (1 + p));
 
-        for (auto&[key, val] : cache_.infosetData) val.reset();
-        for (auto&[key, val] : cache_.baselineValues) val.reset();
+        for (auto&[key, val] : cache_.infosetData)  // we will reset only avg strategy acc
+            std::fill(val.avgStratAccumulator.begin(), val.avgStratAccumulator.end(), 0.);
+
+        for (auto&[key, val] : cache_.baselineValues) {
+            val.reset(); //nominator *= resolver_->updateMagnitude_;
+        }
         for (auto&[key, val] : cache_.nodeValues) {
             val.nominator *= resolver_->updateMagnitude_;
         }
@@ -280,23 +284,28 @@ void MCCRResolver::updateGadgetInfosetRegrets(const shared_ptr<EFGNode> &h, Play
 void MCCRResolver::updateEFGNodeExpectedValue(Player exploringPl, const shared_ptr<EFGNode> &h,
                                               double u_h, double rm_h_pl, double rm_h_opp,
                                               double us_h_cn, double s_h_all) {
-    // undo the efffect of normalization of leaf utils
-    u_h /= leafWeight_;
-
     // let's make sure that the utility is always for player 0
     // updateVal we get is for the exploring player
     u_h *= exploringPl == Player(0) ? 1 : -1;
 
-    auto[a, b] = updateFractionUpdate(u_h, h->getPlayer() == exploringPl,
-                                      rm_h_pl, rm_h_opp, us_h_cn);
+    {
+        auto[a, b] = calcEFGNodeUpdate(u_h, h->getPlayer() == exploringPl,
+                                       rm_h_pl, rm_h_opp, us_h_cn);
 
-    auto &baseline = cache_.baselineValues.at(h);
-    baseline.nominator += a;
-    baseline.denominator += b;
+        auto &baseline = cache_.baselineValues.at(h);
+        baseline.nominator += a;
+        baseline.denominator += b;
+    }
 
-    auto &value = cache_.nodeValues.at(h);
-    value.nominator += a * (1 - updateMagnitude_);
-    value.denominator += b;
+    {
+        // undo the efffect of normalization of leaf utils
+        auto[a, b] = calcEFGNodeUpdate(u_h / leafWeight_, h->getPlayer() == exploringPl,
+                                       rm_h_pl, rm_h_opp, us_h_cn);
+
+        auto &value = cache_.nodeValues.at(h);
+        value.nominator += a * (1 - updateMagnitude_);
+        value.denominator += b;
+    }
 }
 
 }
