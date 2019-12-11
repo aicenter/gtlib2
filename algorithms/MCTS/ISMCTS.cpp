@@ -89,7 +89,7 @@ double ISMCTS::simulate(const shared_ptr<EFGNode> &h) {
     return currentNode->getUtilities()[playingPlayer_];
 }
 
-optional<ProbDistribution> ISMCTS::getPlayDistribution(const shared_ptr<AOH> &currentInfoset, const long actionsNum) {
+optional<ProbDistribution> ISMCTS::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
     const auto selectorPtr = infosetSelectors_.find(currentInfoset);
     if (selectorPtr != infosetSelectors_.end()) {
         return selectorPtr->second->getActionsProbDistribution();

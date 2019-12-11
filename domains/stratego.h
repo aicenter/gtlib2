@@ -58,8 +58,15 @@ struct StrategoSettings {
     StrategoSettings() {
         sort(figures.begin(), figures.end());
     }
-    StrategoSettings(int height, int width, vector<Lake> lakes, vector<Rank> figures) : boardHeight(height),
-                                                    boardWidth(width), lakes(move(lakes)), figures(move(figures)) {
+    StrategoSettings(int height, int width, vector<Lake> lakes, const vector<pair<Rank, int>>& figurePairs) :
+                                                            boardHeight(height), boardWidth(width), lakes(move(lakes)) {
+        for (auto &[f , n] : figurePairs) {
+            for(int i = 0; i < n; i++) figures.push_back(f);
+        }
+        sort(this->figures.begin(), this->figures.end());
+    }
+    StrategoSettings(int height, int width, vector<Lake> lakes, vector<Rank> figures) :
+                                    boardHeight(height), figures(move(figures)), boardWidth(width), lakes(move(lakes)) {
         sort(this->figures.begin(), this->figures.end());
     }
     int boardHeight = 3;

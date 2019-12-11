@@ -109,17 +109,8 @@ class ConstrainingDomain {
     // efficiently (they would prune it only for those given histories).
     //
     // In the online scenario (described above) we'd like to generate as many histories as possible
-    // given some time budget. However, we do not know how long it takes to generate given number
-    // of histories. One possibility would be to generate one history at time, and do it until
-    // we run out of the budget. This would require repeated calls to the solver, and specifying
-    // we want some new, undiscovered histories (the solver is deterministic).
-    // This would make it too complicated/inefficient, as already mentioned.
-    //
-    // So for the online scenario we assume we have an oracle that would tell us how many histories
-    // we should want to fit within given time budget. (This could be learned on specific domains).
-    // todo: move out of the class, as it is domain-specific implementation of history generation
-    //       we can have a domain-indepenedent history generation in the sense that it only uses
-    //       the constriants that are provided by previous methods
+    // given some time budget. It can be done by calling this function with parameter BudgetType = BudgetTime, and
+    // budget equal to time in ms. Otherwise budget is the number of nodes to be generated.
     virtual void generateNodes(const shared_ptr<AOH> &targetInfoset,
                                const ConstraintsMap &constraints,
                                BudgetType budgetType,
@@ -130,11 +121,18 @@ class ConstrainingDomain {
 
 typedef function<void(const ConstrainingDomain &domain,
     const shared_ptr<AOH> &targetInfoset,
-    int maxGenerateNodes,
+    const BudgetType budgetType,
+    const int budget,
     const EFGNodeCallback &maybeNewNodeCallback)> EFGNodeGenerator;
 
 
-inline void domainSpecificGenerateNodes(const ConstrainingDomain &domain,
+inline void emptyNodeGenerator(const ConstrainingDomain &domain,
+                                        const shared_ptr<AOH> &targetInfoset,
+                                        const BudgetType budgetType,
+                                        const int budget,
+                                        const EFGNodeCallback &maybeNewNodeCallback) { }
+
+inline void domainSpecificNodeGenerator(const ConstrainingDomain &domain,
                    const shared_ptr<AOH> &targetInfoset,
                    const BudgetType budgetType,
                    const int budget,
@@ -149,7 +147,7 @@ inline void domainSpecificGenerateNodes(const ConstrainingDomain &domain,
     if (validState) domain.generateNodes(targetInfoset, constraints, budgetType, budget, maybeNewNodeCallback);
 }
 
-inline void cspGenerateNodes(const ConstrainingDomain &domain,
+inline void cspNodeGenerator(const ConstrainingDomain &domain,
                       const shared_ptr<AOH> &targetInfoset,
                       BudgetType budgetType,
                       int budget,

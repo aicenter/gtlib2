@@ -49,7 +49,9 @@ bool Outcome::operator==(const Outcome &rhs) const {
 
 AOH::AOH(Player player, bool isPlayerActing, vector<ActionObservationIds> aoHistory)
     : player_(player), isPlayerActing_(isPlayerActing), aoh_(move(aoHistory)),
-      hash_(hashCombine(5645138468, aoh_, player_)) {}
+      hash_(hashCombine(5645138468, aoh_, player_)) {
+
+}
 
 bool AOH::operator==(const InformationSet &rhs) const {
     // cheap alternative to dynamic_cast,

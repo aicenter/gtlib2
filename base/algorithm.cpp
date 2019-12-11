@@ -92,7 +92,7 @@ PlayControl FixedActionPlayer::runPlayIteration(const optional<shared_ptr<AOH>> 
 }
 
 optional<ProbDistribution>
-FixedActionPlayer::getPlayDistribution(const shared_ptr<AOH> &currentInfoset, const long actionsNum) {
+FixedActionPlayer::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
     auto nodes = cache_.getNodesFor(currentInfoset);
     // must be signed due to modulo operations
     int numActions = int(nodes[0]->countAvailableActions());
@@ -100,6 +100,8 @@ FixedActionPlayer::getPlayDistribution(const shared_ptr<AOH> &currentInfoset, co
     dist[(numActions + (actionIdx_ % numActions)) % numActions] = 1.;
     return dist;
 }
+
+
 
 vector<double> playMatch(const Domain &domain,
                          vector<PreparedAlgorithm> algorithmInitializers,
@@ -153,7 +155,7 @@ vector<double> playMatch(const Domain &domain,
                                                  << " from p="
                                                  << (Either{probs.size() < 10, probs,
                                                             "(too many to show - "+to_string(probs.size())+" actions)"}))
-                LOG_INFO("Selected action is: " << *actions[playerAction])
+                LOG_INFO("Selected action is: " << node->getActionByID(playerAction))
                 break;
             }
 
@@ -173,7 +175,7 @@ vector<double> playMatch(const Domain &domain,
 
                 ProbDistribution probs;
                 if (continuePlay[pl]) {
-                    auto maybeProbs = algs[pl]->getPlayDistribution(infoset, node->countAvailableActions());
+                    auto maybeProbs = algs[pl]->getPlayDistribution(infoset);
                     if (maybeProbs == nullopt) continuePlay[pl] = false;
                     else probs = *maybeProbs;
                 }
@@ -196,7 +198,7 @@ vector<double> playMatch(const Domain &domain,
                                          << "]=" << probs[playerAction] << " from p="
                                          << (Either{probs.size() < 10, probs,
                                                     "(too many to show - "+to_string(probs.size())+" actions)"}))
-                LOG_INFO("Selected action is: " << *actions[playerAction])
+                LOG_INFO("Selected action is: " << node->getActionByID(playerAction))
                 break;
             }
 

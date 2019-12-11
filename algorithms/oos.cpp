@@ -149,7 +149,7 @@ PlayControl OOSAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &curr
 }
 
 optional<ProbDistribution>
-OOSAlgorithm::getPlayDistribution(const shared_ptr<AOH> &currentInfoset, const long actionsNum) {
+OOSAlgorithm::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
     const auto infosetLoc = cache_.infosetData.find(currentInfoset);
     if (infosetLoc == cache_.infosetData.end()) return nullopt;
     const auto strategyData = infosetLoc->second;

@@ -24,6 +24,35 @@
 #include "gtest/gtest.h"
 
 namespace GTLib2::algorithms {
+struct testParams {
+    const ConstrainingDomain &domain;
+    const shared_ptr<AOH> &targetInfoset;
+    const int expectedNodesCount;
+};
+
+TEST(DDISMCTS, CheckExactInfosets) {
+    vector<testParams> params;
+    auto domain1 = GTLib2::domains::GoofSpielDomain::IIGS(5);
+    vector<ActionObservationIds> history1 = {{4294967295,21}, {0,4294967280},
+                                             {4294967295,4113}, {3,4294967280},
+                                             {4294967295,20494}, {1,4294967280},
+                                             {4294967295,12296}, {1,4294967280},
+                                             {4294967295,16390},{4294967295,4294967280}};
+    auto is1 = make_shared<AOH>(Player(0), true, history1);
+    params.push_back({*domain1, is1, 6}); //2180429681363479064
+    for (auto &p : params) {
+        vector<shared_ptr<EFGNode>> actualNodes;
+        domainSpecificGenerateNodes(p.domain, p.targetInfoset, BudgetIterations,
+                              p.expectedNodesCount + 1,
+                              [&](const shared_ptr<EFGNode> &node) -> double {
+                                  actualNodes.push_back(node);
+                                  return 0;
+                              });
+        EXPECT_EQ(actualNodes.size(), p.expectedNodesCount);
+    }
+}
+
+
 TEST(DDISMCTS, CheckInfosetConsistency) {
     vector<pair<shared_ptr<ConstrainingDomain>, int>> domains = {make_pair(GTLib2::domains::StrategoDomain::STRAT2x2(), 3),
                                                                  make_pair(GTLib2::domains::GoofSpielDomain::IIGS(5), 0)};

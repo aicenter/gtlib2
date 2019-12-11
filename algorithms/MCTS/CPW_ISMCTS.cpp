@@ -29,14 +29,22 @@ PlayControl CPW_ISMCTS::runPlayIteration(const optional<shared_ptr<AOH>> &curren
         return ContinueImproving;
     }
 
-    if (infosetSelectors_.find(*currentInfoset) == infosetSelectors_.end()) 
-        return GiveUp;
+    if (currentInfoset_ != *currentInfoset) setCurrentInfoset(*currentInfoset);
+
+    if (config_.enableHistoryGeneration && !currentISChecked_) {
+        hgNodeGenerator_(dynamic_cast<const ConstrainingDomain &>(domain_), currentInfoset_, config_.hgBudgetType, config_.hgBudget,
+                         [this](const shared_ptr<EFGNode> &node) -> double {
+                             return this->iteration(node);
+                         });
+        currentISChecked_ = true;
+    }
 
     const auto nodes = nodesMap_.find(*currentInfoset);
-    if (nodes == nodesMap_.end()) 
-        return GiveUp;
+    if (infosetSelectors_.find(*currentInfoset) == infosetSelectors_.end() || nodes == nodesMap_.end()) {
+        if (config_.iterateRoot) iteration(rootNode_);
+        else return GiveUp;
+    }
 
-    if (currentInfoset_ != *currentInfoset) setCurrentInfoset(*currentInfoset);
     const int nodeIndex = config_.useBelief
                           ? pickRandom(belief_, generator_)
                           : pickRandomInt(0, nodes->second.size() - 1, generator_);

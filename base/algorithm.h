@@ -90,7 +90,7 @@ class GamePlayingAlgorithm {
      * any valid distribution and the consequence is that it gives up the game.
      */
     virtual optional<ProbDistribution>
-    getPlayDistribution(const shared_ptr<AOH> &currentInfoset, const long actionsNum) = 0;
+    getPlayDistribution(const shared_ptr<AOH> &currentInfoset) = 0;
 };
 
 
@@ -133,7 +133,7 @@ class RandomPlayer: public GamePlayingAlgorithm {
         : GamePlayingAlgorithm(domain, playingPlayer) {}
     inline PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset)
     override { return StopImproving; };
-    inline optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset, const long actionsNum)
+    inline optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset)
     override { return nullopt; };
 };
 
@@ -145,8 +145,7 @@ class FixedActionPlayer: public GamePlayingAlgorithm {
  public:
     explicit FixedActionPlayer(const Domain &domain, Player playingPlayer, int actionIdx);
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
-    optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset,
-                                                   const long actionsNum) override;
+    optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset) override;
  private:
     InfosetCache cache_;
     const int actionIdx_;
