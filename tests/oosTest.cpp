@@ -89,6 +89,43 @@ using domains::GoofSpielVariant::IncompleteObservations;
 using domains::GoofSpielVariant::CompleteObservations;
 
 
+TEST(OOS, CheckExploitabilityInTinyDomain) {
+    const auto domain = MatchingPenniesDomain(AlternatingMoves);
+    const auto settings = OOSSettings();
+
+    auto data = OOSData(domain);
+    data.buildTree();
+    OOSAlgorithm oos(domain, Player(0), data, settings);
+
+    const auto expectedExploitabilities = vector<double>{
+        0.,         // 1       [0ms]
+        0.229193,   // 10      [0ms]
+        0.0950689,  // 100     [0ms]
+        0.0303711,  // 1000    [5ms]
+        0.0125893,  // 10000   [48ms]
+        0.00155795, // 100000  [421ms]
+//        0.00032966  // 1000000 [3876ms]
+    };
+    int j = 0;
+    cout << endl;
+    double prevIters = 1.0;
+    for (int iters = 1; iters <= 1e5; iters*=10) {
+        const auto timems = utils::benchmarkRuntime([&]() {
+            for (int i = 0; i < (iters - prevIters); ++i) oos.runPlayIteration(nullopt);
+        });
+        const auto actualExpl = calcExploitability(domain, getAverageStrategy(data)).expl;
+
+        cout << floor(iters) << " "
+             << floor(iters - prevIters) << " "
+             << "[" << timems << "ms]: "
+             << actualExpl << endl;
+        prevIters = iters;
+
+        EXPECT_LE(fabs(floor(pow(10, j)) - floor(iters)), 1e-5);
+        EXPECT_LE(fabs(expectedExploitabilities[j++] - actualExpl), 1e-5);
+    }
+}
+
 TEST(OOS, CheckExploitabilityInSmallDomain) {
     const auto domain = GoofSpielDomain::IIGS(4);
     const auto settings = OOSSettings();
