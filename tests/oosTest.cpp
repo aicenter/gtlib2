@@ -91,38 +91,41 @@ using domains::GoofSpielVariant::CompleteObservations;
 
 TEST(OOS, CheckExploitabilityInTinyDomain) {
     const auto domain = MatchingPenniesDomain(AlternatingMoves);
-    const auto settings = OOSSettings();
 
-    auto data = OOSData(domain);
-    data.buildTree();
-    OOSAlgorithm oos(domain, Player(0), data, settings);
-
-    const auto expectedExploitabilities = vector<double>{
-        0.,         // 1       [0ms]
-        0.229193,   // 10      [0ms]
-        0.0950689,  // 100     [0ms]
-        0.0303711,  // 1000    [5ms]
-        0.0125893,  // 10000   [48ms]
-        0.00155795, // 100000  [421ms]
-//        0.00032966  // 1000000 [3876ms]
+    const auto expectedExploitabilities = vector<vector<double>>{
+        {0., 0.229193, 0.095068, 0.0303711, 0.0125893, 0.0015579},
+        {0., 0.081293, 0.109923, 0.0288684, 0.0088281, 0.0027234},
+        {0., 0.111962, 0.049450, 0.0219258, 0.0130955, 0.0049220},
+        {0., 0.351849, 0.023594, 0.0138713, 0.0077722, 0.0016546},
+        {0., 0.351849, 0.013582, 0.0076840, 0.0018699, 0.0033092},
     };
-    int j = 0;
-    cout << endl;
-    double prevIters = 1.0;
-    for (int iters = 1; iters <= 1e5; iters*=10) {
-        const auto timems = utils::benchmarkRuntime([&]() {
-            for (int i = 0; i < (iters - prevIters); ++i) oos.runPlayIteration(nullopt);
-        });
-        const auto actualExpl = calcExploitability(domain, getAverageStrategy(data)).expl;
 
-        cout << floor(iters) << " "
-             << floor(iters - prevIters) << " "
-             << "[" << timems << "ms]: "
-             << actualExpl << endl;
-        prevIters = iters;
+    for (int seed = 0; seed < 5; ++seed) {
+        auto settings = OOSSettings();
+        settings.seed = seed;
 
-        EXPECT_LE(fabs(floor(pow(10, j)) - floor(iters)), 1e-5);
-        EXPECT_LE(fabs(expectedExploitabilities[j++] - actualExpl), 1e-5);
+        auto data = OOSData(domain);
+        data.buildTree();
+        OOSAlgorithm oos(domain, Player(0), data, settings);
+
+        int j = 0;
+        cout << endl;
+        double prevIters = 1.0;
+        for (int iters = 1; iters <= 1e5; iters *= 10) {
+            const auto timems = utils::benchmarkRuntime([&]() {
+                for (int i = 0; i < (iters - prevIters); ++i) oos.runPlayIteration(nullopt);
+            });
+            const auto actualExpl = calcExploitability(domain, getAverageStrategy(data)).expl;
+
+            cout << floor(iters) << " "
+                 << floor(iters - prevIters) << " "
+                 << "[" << timems << "ms]: "
+                 << actualExpl << endl;
+            prevIters = iters;
+
+            EXPECT_LE(fabs(floor(pow(10, j)) - floor(iters)), 1e-5);
+            EXPECT_LE(fabs(expectedExploitabilities[seed][j++] - actualExpl), 1e-5);
+        }
     }
 }
 
