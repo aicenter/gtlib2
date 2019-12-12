@@ -30,6 +30,7 @@
 #include "algorithms/evaluation.h"
 #include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"
+#include "domains/gambit/gambit_games.h"
 #include "utils/range.h"
 #include "utils/benchmark.h"
 
@@ -226,6 +227,42 @@ TEST(OOS, PlayManyMatches) {
         auto actualOutcome = playMatch(*domain, algs, {10, 10}, {5, 5}, BudgetIterations, seed);
         auto expectedOutcome = vector<double>{r, -r};
         EXPECT_EQ(expectedOutcome, actualOutcome);
+    }
+}
+
+TEST(MCCR, OOSonMatchingPenniesGadget) {
+    const auto d = domains::gambit::matchingPenniesGadgetGame();
+    const auto rootNode = createRootEFGNode(*d);
+    const auto aNode = rootNode->performAction(rootNode->availableActions()[0]);
+    const auto bNode = aNode->performAction(aNode->availableActions()[0]);
+    const auto targetAoh = bNode->getAOHInfSet();
+
+    // not derived from any calculations, just by seeing the results.
+    const auto expectedUBonDiffs = vector<double>{0.5, 0.2, 0.1, 0.02, 0.005};
+
+    for (int seed = 0; seed < 5; seed++) {
+        for (int i = 0; i < 5; i++) {
+            int iters = pow(10, (i + 1));
+            auto data = OOSData(*d);
+            OOSSettings settings;
+            settings.seed = seed;
+            OOSAlgorithm oos(*d, Player(0), data, settings);
+
+            playForIterations(oos, nullopt, iters);
+
+            for (const auto&[aoh, data] : data.infosetData) {
+                if (*targetAoh == *aoh) {
+                    auto probs = calcAvgProbs(data.avgStratAccumulator);
+                    cout << "seed " << seed << "\n";
+                    cout << "iters " << iters << "\n";
+                    cout << "reg: " << data.regrets << "\n";
+                    cout << "avg: " << data.avgStratAccumulator << "\n";
+                    cout << "probs: " << probs << "\n";
+                    cout << "----\n";
+                    EXPECT_LT(abs(probs[0] - 0.5), expectedUBonDiffs[i]);
+                }
+            }
+        }
     }
 }
 
