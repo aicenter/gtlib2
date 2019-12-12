@@ -54,7 +54,7 @@ class CPW_ISMCTS: public ISMCTS {
     unordered_map<shared_ptr<AOH>, vector<shared_ptr<EFGNode>>> nodesMap_;
     ProbDistribution belief_;
     shared_ptr<AOH> currentInfoset_;
-    bool currentISChecked_ = true;
+    bool currentISChecked_ = false;
 
     /** Pointer to the node generation function, which we will call in case enableHistoryGeneration == true;
      * can point to different functions for the same domain - domain-specific, csp solver, etc

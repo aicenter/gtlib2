@@ -54,10 +54,9 @@ struct ISMCTSSettings: public AlgConfig {
     /** History generation settings:
      * BudgetType - Iterations (number of nodes to be generated) or Time (ms)
      */
-    bool enableHistoryGeneration = false;
     BudgetType hgBudgetType = BudgetIterations;
     int hgBudget = 1000;
-    const EFGNodeGenerator &hgNodeGenerator = emptyNodeGenerator;
+    EFGNodeGenerator hgNodeGenerator = &emptyNodeGenerator;
     /**
      * Creates the factory that should make the selectors
      */
@@ -67,18 +66,21 @@ struct ISMCTSSettings: public AlgConfig {
     inline void update(const string &k, const string &v) override {
         if(k == "useBelief") useBelief = (v == "true");  else
         if(k == "iterateRoot") iterateRoot = (v == "true");  else
-        if(k == "enableHistoryGeneration") enableHistoryGeneration = (v == "true");  else
         if(k == "hgBudgetType") hgBudgetType = (v == "BudgetIterations") ? BudgetIterations : BudgetTime;  else
         if(k == "seed") seed = std::stoi(v); else
         if(k == "hgBudget") hgBudget = std::stoi(v); else
-        AlgConfig::update(k,v);
+        if(k == "hgNodeGenerator" )  {
+            if(v == "emptyNodeGenerator") hgNodeGenerator = &emptyNodeGenerator; else
+            if(v == "cspNodeGenerator") hgNodeGenerator = &cspNodeGenerator; else
+            if(v == "domainSpecificNodeGenerator") hgNodeGenerator = &domainSpecificNodeGenerator;
+        }
+        else AlgConfig::update(k,v);
     };
     inline string toString() const override {
         std::stringstream ss;
         ss << "; ISMCTS" << endl;
         ss << "useBelief = " << useBelief  << endl;
         ss << "iterateRoot = " << iterateRoot  << endl;
-        ss << "enableHistoryGeneration = " << enableHistoryGeneration  << endl;
         ss << "hgBudgetType = " << hgBudgetType  << endl;
         ss << "hgBudget = " << hgBudget  << endl;
         ss << "seed      = " << seed << endl;

@@ -39,10 +39,10 @@ TEST(DDISMCTS, CheckExactInfosets) {
                                              {4294967295,12296}, {1,4294967280},
                                              {4294967295,16390},{4294967295,4294967280}};
     auto is1 = make_shared<AOH>(Player(0), true, history1);
-    params.push_back({*domain1, is1, 6}); //2180429681363479064
+    params.push_back({*domain1, is1, 6});
     for (auto &p : params) {
         vector<shared_ptr<EFGNode>> actualNodes;
-        domainSpecificGenerateNodes(p.domain, p.targetInfoset, BudgetIterations,
+        domainSpecificNodeGenerator(p.domain, p.targetInfoset, BudgetIterations,
                               p.expectedNodesCount + 1,
                               [&](const shared_ptr<EFGNode> &node) -> double {
                                   actualNodes.push_back(node);

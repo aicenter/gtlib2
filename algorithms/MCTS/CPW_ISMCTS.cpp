@@ -93,6 +93,7 @@ void CPW_ISMCTS::setCurrentInfoset(const shared_ptr<AOH> &newInfoset) {
         for (double & i : belief_) i /= sum;
     }
     currentInfoset_ = newInfoset;
+    currentISChecked_ = false;
 }
 
 void CPW_ISMCTS::fillBelief(const shared_ptr<EFGNode> &currentNode,

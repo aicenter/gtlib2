@@ -130,7 +130,10 @@ inline void emptyNodeGenerator(const ConstrainingDomain &domain,
                                         const shared_ptr<AOH> &targetInfoset,
                                         const BudgetType budgetType,
                                         const int budget,
-                                        const EFGNodeCallback &maybeNewNodeCallback) { }
+                                        const EFGNodeCallback &maybeNewNodeCallback)
+                                        {
+
+                                        }
 
 inline void domainSpecificNodeGenerator(const ConstrainingDomain &domain,
                    const shared_ptr<AOH> &targetInfoset,
