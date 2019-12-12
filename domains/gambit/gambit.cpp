@@ -21,49 +21,72 @@
 
 #include "gambit.h"
 
-#include <algorithm>
-#include <array>
-#include <numeric>
-#include <utility>
-#include <filesystem>
 #include <fstream>
 
-namespace GTLib2::domains {
+namespace GTLib2::domains::gambit {
 
-
-GambitDomain::GambitDomain(string file) : Domain(1000, 2, true,
-                                                 make_shared<Action>(),
-                                                 make_shared<Observation>()),
-                                          file_(std::move(file)) {
+unique_ptr<GambitDomain> loadFromFile(const string &file) {
     // open file for reading
-    std::ifstream in(file_);
+    std::ifstream in(file);
     if (in.fail()) {
-        cerr << "Cannot open " + file_ + " for reading" << endl;
+        cerr << "Cannot open " + file + " for reading" << endl;
         exit(1);
     }
+    auto d = make_unique<GambitDomain>(in);
+    in.close();
+
+    return d;
+}
+
+GambitDomain::GambitDomain(std::istream &in)
+    : Domain(1000, 2, true, make_shared<Action>(), make_shared<Observation>()) {
 
     // read header
     std::string header;
     std::getline(in, header);
     if (in.fail()) {
-        cerr << "Cannot read line 1 in " + file_ << endl;
+        cerr << "Cannot read line 1 in input stream" << endl;
         exit(1);
     }
     // now all the nodes should be listed
     std::string line;
     std::getline(in, line);
     int line_num = 1;
-    root_ = move(ParseNodeLine(in, line, line_num));
-
-    in.close();
+    root_ = move(parseSubtree(in, line, line_num));
 
     rootStatesDistribution_ = createOutcomes(root_.get());
 }
 
 std::unique_ptr<Node>
-GambitDomain::ParseNodeLine(std::istream &in, const std::string &line, int &line_num) {
+GambitDomain::parseSubtree(std::istream &in, const std::string &line, int &line_num) {
     line_num++;
+    auto node = parseNodeLine(line, line_num);
 
+    // create the node
+    for (int i = 0; i < node->num_actions; ++i) {
+        std::string next_line;
+        std::getline(in, next_line);
+        if (in.fail()) {
+            cerr << "Cannot read line " + std::to_string(line_num + 1) << "\n";
+            exit(1);
+        }
+        if (in.eof()) {
+            cerr << "Premature end of file on line " + std::to_string(line_num + 1) << "\n";
+            exit(1);
+        }
+        node->children.emplace_back(move(parseSubtree(in, next_line, line_num)));
+    }
+
+    // update game stats
+    if (node->node_type == 't')
+        maxUtility_ = std::max(maxUtility_,
+                               *max_element(node->utils.begin(),
+                                            node->utils.end()));
+
+    return node;
+}
+
+std::unique_ptr<Node> parseNodeLine(const std::string &line, const int &line_num) {
     // A node line is something like:
     // c "∅ " 0 "" { "0" 0.333 "1" 0.333 "2" 0.333 } 0
     // p "∅ 0 1" 1 1 "" { "0" "1" } 0
@@ -83,8 +106,10 @@ GambitDomain::ParseNodeLine(std::istream &in, const std::string &line, int &line
     // what we want to parse out:
     char node_type = 'c'; // invalid node type
     int player = 2;
-    int infoset_idx = 0;
-    int pubstate_idx = 0;
+    unsigned long infoset_idx = 0;
+    unsigned long pubstate_idx = 0;
+    int infoset_len = 0;
+    int pubstate_len = 0;
     int num_actions = 0;
     std::vector<double> utils;
     std::vector<double> probs;
@@ -94,7 +119,7 @@ GambitDomain::ParseNodeLine(std::istream &in, const std::string &line, int &line
 
         switch (state) {
             case OPEN:
-                if(c == '#') { // comment
+                if (c == '#') { // comment
                     return nullptr;
                 }
 
@@ -127,13 +152,27 @@ GambitDomain::ParseNodeLine(std::istream &in, const std::string &line, int &line
             case INFOSET_IDX:
                 assert(node_type == 'p');
                 // now infoset id comes, can be multiple digits
-                if (c != '"') infoset_idx = infoset_idx * 10 + (c - '0');
-                else state = PUBSTATE_LABEL;
+                if (c != '"') {
+                    infoset_idx = infoset_idx * 10 + (c - '0');
+                    infoset_len++;
+                    if (infoset_len > 20) { // 18446744073709551615
+                        cerr << "Infoset identifier is too lengthy for unsigned long: "
+                                "at line " + std::to_string(line_num) + ". Line is: " + line;
+                        exit(1);
+                    }
+                } else state = PUBSTATE_LABEL;
                 break;
 
             case PUBSTATE_LABEL:
-                if (c != '"') pubstate_idx = pubstate_idx * 10 + (c - '0');
-                else state = PUBSTATE_LABEL_CLOSE;
+                if (c != '"') {
+                    pubstate_idx = pubstate_idx * 10 + (c - '0');
+                    pubstate_len++;
+                    if (pubstate_len > 20) { // 18446744073709551615
+                        cerr << "Pubstate identifier is too lengthy for unsigned long: "
+                                "at line " + std::to_string(line_num) + ". Line is: " + line;
+                        exit(1);
+                    }
+                } else state = PUBSTATE_LABEL_CLOSE;
                 break;
 
             case PUBSTATE_LABEL_CLOSE:
@@ -145,12 +184,11 @@ GambitDomain::ParseNodeLine(std::istream &in, const std::string &line, int &line
                     // count the number of occurences of " -- div/2 is number of actions
                     if (c == '"') {
                         num_action_quotes++;
-                        continue;
                     }
                 }
 
                 if (node_type == 'c') {
-                    if (num_action_quotes % 2 == 0) { // not a node label, i.e. a prob
+                    if (num_action_quotes % 2 == 0 && c != '"') { // not a node label, i.e. a prob
                         buf += c; // collect the prob into a buffer
                     } else if (!buf.empty()) {
                         probs.push_back(std::stod(buf));
@@ -200,31 +238,14 @@ GambitDomain::ParseNodeLine(std::istream &in, const std::string &line, int &line
     node->player = player;
     node->infoset_idx = infoset_idx;
     node->pubstate_idx = pubstate_idx;
+    node->num_actions = num_actions;
     node->utils = utils;
     node->probs = probs;
     node->description = ""; // todo:
 
-    if(node_type == 't') maxUtility_ = max(maxUtility_, max(utils[0], utils[1]));
-
-    // create the node
-    for (int i = 0; i < num_actions; ++i) {
-        std::string next_line;
-        std::getline(in, next_line);
-        if (in.fail()) {
-            cerr <<
-                 "Cannot read line " + std::to_string(line_num + 1) + " in " + file_ << endl;
-            exit(1);
-        }
-        if (in.eof()) {
-            cerr << ("Premature end of file on line " + std::to_string(line_num + 1) + " in "
-                + file_) << endl;
-            exit(1);
-        }
-        node->children.emplace_back(move(ParseNodeLine(in, next_line, line_num)));
-    }
-
     return node;
 }
+
 
 OutcomeDistribution GambitDomain::createOutcomes(Node *next) const {
     if (next->node_type == 'c') { // assumes no repeated chance nodes
@@ -242,7 +263,7 @@ OutcomeDistribution GambitDomain::createOutcomes(Node *next) const {
     }
 
     auto utils = vector<double>(2);
-    if(next->node_type == 't') {
+    if (next->node_type == 't') {
         utils = next->utils;
     }
 
@@ -256,7 +277,7 @@ OutcomeDistribution GambitDomain::createOutcomes(Node *next) const {
 
 vector<shared_ptr<Observation>> GambitDomain::createPrivateObs(Node *next) const {
     auto obs = vector<shared_ptr<Observation>>{noObservation_, noObservation_};
-    if(next->node_type == 't') {
+    if (next->node_type == 't') {
         return obs;
     }
     obs[next->player] = make_shared<Observation>(next->infoset_idx);
@@ -264,7 +285,7 @@ vector<shared_ptr<Observation>> GambitDomain::createPrivateObs(Node *next) const
 }
 
 shared_ptr<Observation> GambitDomain::createPublicObs(Node *next) const {
-    if(next->node_type == 't') {
+    if (next->node_type == 't') {
         return noObservation_;
     }
     return make_shared<Observation>(next->pubstate_idx);
@@ -273,7 +294,7 @@ shared_ptr<Observation> GambitDomain::createPublicObs(Node *next) const {
 OutcomeDistribution GambitState::performActions(const vector<shared_ptr<Action>> &actions) const {
     int actionId = actions.at(n_->player)->getId();
     Node *nextNode = n_->children.at(actionId).get();
-    const auto g = static_cast<const GambitDomain*>(domain_);
+    const auto g = static_cast<const GambitDomain *>(domain_);
     return g->createOutcomes(nextNode);
 }
 

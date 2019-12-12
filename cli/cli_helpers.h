@@ -39,7 +39,7 @@
 #include "algorithms/MCTS/selectors/RMSelectorFactory.h"
 #include "algorithms/MCTS/selectors/Exp3SelectorFactory.h"
 
-#include "domains/gambit.h"
+#include "domains/gambit/gambit.h"
 #include "domains/goofSpiel.h"
 #include "domains/oshiZumo.h"
 #include "domains/genericPoker.h"
@@ -98,7 +98,7 @@ unique_ptr<Domain> constructDomain(const string &description) {
         }
         auto file = p.at(0);
         LOG_INFO("Loading domain from gambit file " + file)
-        return make_unique<GambitDomain>(file);
+        return gambit::loadFromFile(file);
     };
 
     const auto parseOshizumo = [](vector<string> p, OshiZumoVariant v) {
