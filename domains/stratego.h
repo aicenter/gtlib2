@@ -55,18 +55,19 @@ enum GameState {
 };
 
 struct StrategoSettings {
-    StrategoSettings() {
-        sort(figures.begin(), figures.end());
-    }
-    StrategoSettings(int height, int width, vector<Lake> lakes, const vector<pair<Rank, int>>& figurePairs) :
-                                                            boardHeight(height), boardWidth(width), lakes(move(lakes)) {
-        for (auto &[f , n] : figurePairs) {
-            for(int i = 0; i < n; i++) figures.push_back(f);
+    StrategoSettings() { sort(figures.begin(), figures.end()); }
+
+    StrategoSettings(int height, int width, vector<Lake> lakes,
+                     const vector<pair<Rank, int>> &figureCounts) :
+        boardHeight(height), boardWidth(width), lakes(move(lakes)) {
+        for (auto &[f, n] : figureCounts) {
+            for (int i = 0; i < n; i++) figures.push_back(f);
         }
         sort(this->figures.begin(), this->figures.end());
     }
+
     StrategoSettings(int height, int width, vector<Lake> lakes, vector<Rank> figures) :
-                                    boardHeight(height), figures(move(figures)), boardWidth(width), lakes(move(lakes)) {
+        boardHeight(height), figures(move(figures)), boardWidth(width), lakes(move(lakes)) {
         sort(this->figures.begin(), this->figures.end());
     }
     int boardHeight = 3;
@@ -117,9 +118,7 @@ class StrategoDomain: public Domain, public ConstrainingDomain {
     static unique_ptr<StrategoDomain> STRAT3x2();
     static unique_ptr<StrategoDomain> STRAT3x3();
 
-    vector<Player> getPlayers() const {
-        return {0, 1};
-    }
+    vector<Player> getPlayers() const { return {Player(0), Player(1)}; }
 
     const int boardHeight_;
     const int boardWidth_;
@@ -141,7 +140,8 @@ class StrategoDomain: public Domain, public ConstrainingDomain {
                                  BudgetType budgetType, int &counter,
                                  const EFGNodeCallback &newNodeCallback) const;
     void nodeGenerationTerminalPhase(const vector<ActionObservationIds> &aoids,
-                                     const shared_ptr<EFGNode> &node, const EFGNodeCallback &newNodeCallback) const;
+                                     const shared_ptr<EFGNode> &node,
+                                     const EFGNodeCallback &newNodeCallback) const;
 };
 
 CellState createCell(Rank figure, Player player);
@@ -198,7 +198,13 @@ class StrategoState: public State {
  public:
     inline StrategoState(const Domain *domain, vector<CellState> boardState,
                          GameState(state), int player, int noAttackCounter) :
-        State(domain, hashCombine(98612345434231, boardState, state == Setup, state == Finished, player, noAttackCounter)),
+        State(domain,
+              hashCombine(98612345434231,
+                          boardState,
+                          state == Setup,
+                          state == Finished,
+                          player,
+                          noAttackCounter)),
         boardState_(move(boardState)), gameState_(state), currentPlayer_(player),
         noAttackCounter_(noAttackCounter), domain_(dynamic_cast<const StrategoDomain *>(domain)) {
     }
@@ -227,7 +233,7 @@ class StrategoState: public State {
  private:
     int boardIDToPlace_ = 0;
     array<vector<Rank>, 2> remainingFiguresToPlace_;
-    const StrategoDomain * domain_;
+    const StrategoDomain *domain_;
     // noAttackCounter prevent games from looping. After a fixed number of moves without attacks game is stopped with a draw.
     const int noAttackCounter_;
 };

@@ -410,7 +410,7 @@ shared_ptr<Action> FOG2EFGNode::getActionByID(ActionId id) const {
         case PlayerNode:
             return lastOutcome_->state->getActionByID(currentPlayer_, id);
         case ChanceNode:
-            return createChanceActions()[id];
+            return createChanceActions().at(id);
         case TerminalNode:
             unreachable("Not defined for terminal nodes!");
         default:

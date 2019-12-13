@@ -124,9 +124,8 @@ class GadgetRootNode: public EFGNode,
         }
         return actions;
     }
-    inline shared_ptr<Action> getActionByID(ActionId id) const override
-    {
-        return availableActions()[id];
+    inline shared_ptr<Action> getActionByID(ActionId id) const override {
+        return availableActions().at(id);
     }
 
     shared_ptr<EFGNode> performAction(const shared_ptr<Action> &action) const override;
@@ -204,9 +203,8 @@ class GadgetInnerNode: public EFGNode,
             make_shared<GadgetAction>(GADGET_TERMINATE)
         };
     }
-    inline shared_ptr<Action> getActionByID(ActionId id) const override
-    {
-        return availableActions()[id];
+    inline shared_ptr<Action> getActionByID(ActionId id) const override {
+        return availableActions().at(id);
     }
 
     inline double chanceProbForAction(const ActionId &action) const override {

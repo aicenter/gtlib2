@@ -26,9 +26,14 @@
 #include "gtest/gtest.h"
 
 namespace GTLib2::domains {
+namespace {
+
+// Stratego with board 2x1 and 1 piece for each player
+StrategoSettings tinyStratego(2, 1, vector<Lake>{}, vector<Rank>{'1'});
+}
 
 TEST(Stratego, CannotMovePastBounds) {
-    const auto domain = make_shared<StrategoDomain>(StrategoSettings(2, 1, {}, {'1'}));
+    const auto domain = make_shared<StrategoDomain>(tinyStratego);
     vector<CellState> b = {createCell('1', 0), LAKE};
     auto s = make_shared<StrategoState>(&(*domain), b, Playing, 0, 0);
     EXPECT_TRUE((*s).getAvailableActionsFor(0).empty());
@@ -39,9 +44,11 @@ TEST(Stratego, CannotMovePastBounds) {
 
 TEST(Stratego, CannotMoveIntoLake) {
     const auto domain = make_shared<StrategoDomain>(StrategoSettings(3, 3,
-                                                                     {{0, 1, 1, 1}, {1, 0, 1, 1},
-                                                                      {2, 1, 1, 1}, {1, 2, 1, 1}},
-                                                                     {'1'}));
+                                                                     vector<Lake>{{0, 1, 1, 1},
+                                                                                  {1, 0, 1, 1},
+                                                                                  {2, 1, 1, 1},
+                                                                                  {1, 2, 1, 1}},
+                                                                     vector<Rank>{'1'}));
     vector<CellState> b = {' ', LAKE, ' ', LAKE, createCell('1', 0), LAKE, ' ', LAKE, ' '};
     auto s = make_shared<StrategoState>(&(*domain), b, Playing, 0, 0);
     EXPECT_TRUE((*s).getAvailableActionsFor(0).empty());
@@ -49,9 +56,11 @@ TEST(Stratego, CannotMoveIntoLake) {
 
 TEST(Stratego, CannotMoveOnSamePlayerFigure) {
     const auto domain = make_shared<StrategoDomain>(StrategoSettings(3, 3,
-                                                                     {{0, 0, 1, 1}, {2, 2, 1, 1},
-                                                                      {2, 0, 1, 1}, {0, 2, 1, 1}},
-                                                                     {'1'}));
+                                                                     vector<Lake>{{0, 0, 1, 1},
+                                                                                  {2, 2, 1, 1},
+                                                                                  {2, 0, 1, 1},
+                                                                                  {0, 2, 1, 1}},
+                                                                     vector<Rank>{'1'}));
     vector<CellState> b =
         {LAKE, createCell('1', 0), LAKE, createCell('1', 0), createCell('1', 0),
          createCell('1', 0), LAKE, createCell('1', 0), LAKE};
@@ -60,21 +69,21 @@ TEST(Stratego, CannotMoveOnSamePlayerFigure) {
 }
 
 TEST(Stratego, BombCannotMove) {
-    const auto domain = make_shared<StrategoDomain>(StrategoSettings(2, 1, {}, {'1'}));
+    const auto domain = make_shared<StrategoDomain>(tinyStratego);
     vector<CellState> b = {createCell(BOMB, 0), createCell('1', 1)};
     auto s = make_shared<StrategoState>(&(*domain), b, Playing, 0, 0);
     EXPECT_TRUE((*s).getAvailableActionsFor(0).empty());
 }
 
 TEST(Stratego, FlagCannotMove) {
-    const auto domain = make_shared<StrategoDomain>(StrategoSettings(2, 1, {}, {'1'}));
+    const auto domain = make_shared<StrategoDomain>(tinyStratego);
     vector<CellState> b = {createCell(FLAG, 0), createCell('1', 1)};
     auto s = make_shared<StrategoState>(&(*domain), b, Playing, 0, 0);
     EXPECT_TRUE((*s).getAvailableActionsFor(0).empty());
 }
 
 TEST(Stratego, SameRankAttack) {
-    const auto domain = make_shared<StrategoDomain>(StrategoSettings(2, 1, {}, {'1'}));
+    const auto domain = make_shared<StrategoDomain>(tinyStratego);
     vector<CellState> b = {createCell('1', 0), createCell('1', 1)};
     auto s = make_shared<StrategoState>(&(*domain), b, Playing, 0, 0);
     vector<shared_ptr<Action>> actions;
@@ -90,7 +99,7 @@ TEST(Stratego, SameRankAttack) {
 }
 
 TEST(Stratego, DiffRankAttack1) {
-    const auto domain = make_shared<StrategoDomain>(StrategoSettings(2, 1, {}, {'1'}));
+    const auto domain = make_shared<StrategoDomain>(tinyStratego);
     vector<CellState> b = {createCell('1', 0), createCell('2', 1)};
     auto s = make_shared<StrategoState>(&(*domain), b, Playing, 0, 0);
     auto actions = (*s).getAvailableActionsFor(0);
@@ -105,7 +114,7 @@ TEST(Stratego, DiffRankAttack1) {
 }
 
 TEST(Stratego, DiffRankAttack2) {
-    const auto domain = make_shared<StrategoDomain>(StrategoSettings(2, 1, {}, {'1'}));
+    const auto domain = make_shared<StrategoDomain>(tinyStratego);
     vector<CellState> b = {createCell('2', 0), createCell('1', 1)};
     auto s = make_shared<StrategoState>(&(*domain), b, Playing, 0, 0);
     auto actions = (*s).getAvailableActionsFor(0);
@@ -120,7 +129,7 @@ TEST(Stratego, DiffRankAttack2) {
 }
 
 TEST(Stratego, AttackOnBomb) {
-    const auto domain = make_shared<StrategoDomain>(StrategoSettings(2, 1, {}, {'1'}));
+    const auto domain = make_shared<StrategoDomain>(tinyStratego);
     vector<CellState> b = {createCell('1', 0), createCell(BOMB, 1)};
     auto s = make_shared<StrategoState>(&(*domain), b, Playing, 0, 0);
     auto actions = (*s).getAvailableActionsFor(0);
@@ -135,7 +144,7 @@ TEST(Stratego, AttackOnBomb) {
 }
 
 TEST(Stratego, AttackOnFlag) {
-    const auto domain = make_shared<StrategoDomain>(StrategoSettings(2, 1, {}, {'1'}));
+    const auto domain = make_shared<StrategoDomain>(tinyStratego);
     vector<CellState> b = {createCell('1', 0), createCell(FLAG, 1)};
     auto s = make_shared<StrategoState>(&(*domain), b, Playing, 0, 0);
     auto actions = (*s).getAvailableActionsFor(0);

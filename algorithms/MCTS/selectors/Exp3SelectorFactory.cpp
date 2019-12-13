@@ -30,8 +30,10 @@ Exp3SelectorFactory::Exp3SelectorFactory(const EXP3_ISMCTSSettings &cfg)
 
 
 unique_ptr<Selector> Exp3SelectorFactory::createSelector(int actionsNumber) const {
-    if (cfg_.type == EXP3_ISMCTSSettings::Exp3L) return make_unique<Exp3LSelector>(actionsNumber, this);
-    else return make_unique<Exp3Selector>(actionsNumber, this);
+    if (cfg_.type == EXP3_ISMCTSSettings::Exp3L)
+        return make_unique<Exp3LSelector>(actionsNumber, this);
+    else
+        return make_unique<Exp3Selector>(actionsNumber, this);
 }
 
 unique_ptr<Selector> Exp3SelectorFactory::createSelector(vector<shared_ptr<Action>> actions) const {

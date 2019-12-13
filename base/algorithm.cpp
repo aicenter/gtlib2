@@ -102,7 +102,6 @@ FixedActionPlayer::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
 }
 
 
-
 vector<double> playMatch(const Domain &domain,
                          vector<PreparedAlgorithm> algorithmInitializers,
                          vector<unsigned int> preplayBudget,
@@ -145,7 +144,7 @@ vector<double> playMatch(const Domain &domain,
     auto reachProbPlayers = vector<double>(numAlgs, 1.0);
     while (node->type_ != TerminalNode) {
         int playerAction;
-        auto actionsnum = node->countAvailableActions();
+        auto numActions = node->countAvailableActions();
 
         switch (node->type_) {
             case ChanceNode: {
@@ -183,10 +182,10 @@ vector<double> playMatch(const Domain &domain,
                     if (givenUpMove[pl] == -1) givenUpMove[pl] = playerMoveCnt[pl];
                     LOG_PLAYER(pl, "Player " << int(pl) << " has given up, so plays "
                                              << "randomly in move #" << playerMoveCnt[pl])
-                    probs = ProbDistribution(actionsnum, 1. / actionsnum);
+                    probs = ProbDistribution(numActions, 1. / numActions);
                 }
 
-                assert(probs.size() == actionsnum);
+                assert(probs.size() == numActions);
                 double sumProbs = 0.0;
                 for (double prob : probs) sumProbs += prob;
                 assert(fabs(1.0 - sumProbs) < 1e-9);
@@ -197,7 +196,8 @@ vector<double> playMatch(const Domain &domain,
                 LOG_PLAYER(pl, "Player " << int(pl) << " picked p[" << playerAction
                                          << "]=" << probs[playerAction] << " from p="
                                          << (Either{probs.size() < 10, probs,
-                                                    "(too many to show - "+to_string(probs.size())+" actions)"}))
+                                                    "(too many to show - " + to_string(probs.size())
+                                                        + " actions)"}))
                 LOG_INFO("Selected action is: " << node->getActionByID(playerAction))
                 break;
             }

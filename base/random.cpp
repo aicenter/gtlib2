@@ -25,10 +25,11 @@
 
 namespace GTLib2 {
 
-std::uniform_real_distribution<double> uniformDist = std::uniform_real_distribution<double>(0.0, 1.0);
+std::uniform_real_distribution<double>
+    uniformDist = std::uniform_real_distribution<double>(0.0, 1.0);
 
 int pickRandom(const ProbDistribution &probs, std::mt19937 &generator) {
-    if(probs[0] == 1.0) return 0; // do not use generator unnecessarily
+    if (probs[0] == 1.0) return 0; // do not use generator unnecessarily
 
     double p = uniformDist(generator);
     int i = -1;
@@ -38,9 +39,9 @@ int pickRandom(const ProbDistribution &probs, std::mt19937 &generator) {
 }
 
 int pickRandom(const Distribution &probs, double probSum, std::mt19937 &generator) {
-    if(probs[0] == probSum) return 0; // do not use generator unnecessarily
+    if (probs[0] == probSum) return 0; // do not use generator unnecessarily
 
-    double p = uniformDist(generator)*probSum;
+    double p = uniformDist(generator) * probSum;
     int i = -1;
     while (p > 0) p -= probs[++i];
     assert(i < probs.size());
@@ -48,7 +49,7 @@ int pickRandom(const Distribution &probs, double probSum, std::mt19937 &generato
 }
 
 int pickUniform(unsigned long numOutcomes, std::mt19937 &generator) {
-    if(numOutcomes == 1) return 0; // do not use generator unnecessarily
+    if (numOutcomes == 1) return 0; // do not use generator unnecessarily
 
     double p = uniformDist(generator);
     int idxOutcome = floor(p * numOutcomes);

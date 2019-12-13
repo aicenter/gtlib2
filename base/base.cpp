@@ -46,12 +46,9 @@ bool Outcome::operator==(const Outcome &rhs) const {
         && rewards == rhs.rewards;
 }
 
-
 AOH::AOH(Player player, bool isPlayerActing, vector<ActionObservationIds> aoHistory)
     : player_(player), isPlayerActing_(isPlayerActing), aoh_(move(aoHistory)),
-      hash_(hashCombine(5645138468, aoh_, player_)) {
-
-}
+      hash_(hashCombine(5645138468, aoh_, player_)) {}
 
 bool AOH::operator==(const InformationSet &rhs) const {
     // cheap alternative to dynamic_cast,
@@ -151,6 +148,7 @@ bool State::isPlayerMakingMove(Player pl) const {
 string State::toString() const {
     return std::string("not implemented");
 }
+
 shared_ptr<Action> State::getActionByID(Player player, ActionId action) const {
     return getAvailableActionsFor(player).at(action);
 }
@@ -159,9 +157,11 @@ bool ActionObservationIds::operator==(const ActionObservationIds &rhs) const {
     return action == rhs.action
         && observation == rhs.observation;
 }
+
 bool ActionObservationIds::operator!=(const ActionObservationIds &rhs) const {
     return !(rhs == *this);
 }
+
 }  // namespace GTLib2
 
 #pragma clang diagnostic pop

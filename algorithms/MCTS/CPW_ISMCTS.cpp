@@ -31,8 +31,11 @@ PlayControl CPW_ISMCTS::runPlayIteration(const optional<shared_ptr<AOH>> &curren
 
     if (currentInfoset_ != *currentInfoset) setCurrentInfoset(*currentInfoset);
 
-    if (config_.enableHistoryGeneration && !currentISChecked_) {
-        hgNodeGenerator_(dynamic_cast<const ConstrainingDomain &>(domain_), currentInfoset_, config_.hgBudgetType, config_.hgBudget,
+    if (!currentISChecked_) {
+        hgNodeGenerator_(dynamic_cast<const ConstrainingDomain &>(domain_),
+                         currentInfoset_,
+                         config_.hgBudgetType,
+                         config_.hgBudget,
                          [this](const shared_ptr<EFGNode> &node) -> double {
                              return this->iteration(node);
                          });
@@ -40,7 +43,8 @@ PlayControl CPW_ISMCTS::runPlayIteration(const optional<shared_ptr<AOH>> &curren
     }
 
     const auto nodes = nodesMap_.find(*currentInfoset);
-    if (infosetSelectors_.find(*currentInfoset) == infosetSelectors_.end() || nodes == nodesMap_.end()) {
+    if (infosetSelectors_.find(*currentInfoset) == infosetSelectors_.end()
+        || nodes == nodesMap_.end()) {
         if (config_.iterateRoot) iteration(rootNode_);
         else return GiveUp;
     }
@@ -90,7 +94,7 @@ void CPW_ISMCTS::setCurrentInfoset(const shared_ptr<AOH> &newInfoset) {
         double sum = 0;
         for (double d : belief_) sum += d;
         assert(sum > 0);
-        for (double & i : belief_) i /= sum;
+        for (double &i : belief_) i /= sum;
     }
     currentInfoset_ = newInfoset;
     currentISChecked_ = false;
