@@ -46,8 +46,8 @@ const StrategyValue &_bestResponse(const BehavioralStrategy &opoStrat,
         const double reachOpponent = node->getProbabilityOfActionSeq(opponent(responder), opoStrat);
         const double nodeValue = node->getUtilities()[responder]
             * reachOpponent * chanceReachProb;
-        assert(nodeValue <= domain.getMaxUtility());
-        assert(nodeValue >= domain.getMinUtility());
+        assert(node->getUtilities()[responder] <= domain.getMaxUtility());
+        assert(node->getUtilities()[responder] >= domain.getMinUtility());
         auto[it, result] = cache.emplace(node, StrategyValue(BehavioralStrategy(), nodeValue));
 //        cout << node->getHistory() << " ::  " << node->getUtilities() << " :: " << it->second.value << "\n";
         return it->second;
