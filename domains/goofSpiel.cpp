@@ -65,7 +65,8 @@ void GoofSpielSettings::shuffleChanceCards(unsigned long seed) {
 //    std::default_random_engine eng{static_cast<std::default_random_engine::result_type>(seed)};
 //    std::mt19937 randEng(eng());
     std::mt19937 randEng(seed);
-    shuffleVector(chanceCards, randEng);//std::shuffle(chanceCards.begin(), chanceCards.end(), randEng);
+    shuffleVector(chanceCards,
+                  randEng);//std::shuffle(chanceCards.begin(), chanceCards.end(), randEng);
 }
 
 vector<int> GoofSpielSettings::getNatureCards() {
@@ -116,7 +117,7 @@ void GoofSpielDomain::initFixedCards(const vector<int> &natureCards) {
     playedCards[1] = {};
     playedCards[2] = {natureFirstCard};
 
-    auto newState = make_shared<GoofSpielState>(this, playerDecks, natureFirstCard, playedCards);
+    auto newState = make_shared<GoofSpielState>(this, playerDecks, natureFirstCard, playedCards, 0);
 
     auto publicObs = make_shared<GoofSpielObservation>(
         numberOfCards_, array<int, 3>{
@@ -144,7 +145,7 @@ void GoofSpielDomain::initRandomCards(const vector<int> &natureCards) {
         playedCards[2] = {natureFirstCard};
 
         auto newState = make_shared<GoofSpielState>(
-            this, playerDecks, natureFirstCard, playedCards);
+            this, playerDecks, natureFirstCard, playedCards, 0);
 
         auto publicObs = make_shared<GoofSpielObservation>(
             numberOfCards_, array<int, 3>{
@@ -217,13 +218,18 @@ GoofSpielState::performActions(const vector<shared_ptr<Action>> &actions) const 
     };
     const auto &natureDeck = playerDecks_[2];
 
+    bool isLastRound = natureDeck.empty();
     const GoofspielRoundOutcome roundResult = chosenCards[0] == chosenCards[1]
                                               ? PL0_DRAW : chosenCards[0] > chosenCards[1] ? PL0_WIN
                                                                                            : PL0_LOSE;
     const double roundReward = goofdomain->binaryTerminalRewards_
-                               ? (double) roundResult / goofdomain->numberOfCards_
-                               : (double) roundResult * natureSelectedCard_;
-    const vector<double> newRewards = {roundReward, -roundReward};
+                               ? 0 : (double) roundResult * natureSelectedCard_;
+    const double cumulativeRewards = cumulativeRewards_ + roundResult * natureSelectedCard_;
+    vector<double> newRewards;
+    if (isLastRound && goofdomain->binaryTerminalRewards_) {
+        const double finalReward = cumulativeRewards == 0 ? 0 : cumulativeRewards > 0 ? 1 : -1;
+        newRewards = {finalReward, -finalReward};
+    } else newRewards = { roundReward, -roundReward };
 
     OutcomeDistribution newOutcomes;
 
@@ -240,7 +246,8 @@ GoofSpielState::performActions(const vector<shared_ptr<Action>> &actions) const 
             nextPlayedCards[j].push_back(chosenCards[j]);
         }
         const auto newState = make_shared<GoofSpielState>(
-            goofdomain, nextPlayerDecks, nextNatureSelectedCard, nextPlayedCards);
+            goofdomain, nextPlayerDecks, nextNatureSelectedCard, nextPlayedCards,
+            cumulativeRewards);
 
         shared_ptr<GoofSpielObservation> publicObs;
         shared_ptr<GoofSpielObservation> obs0;
@@ -271,10 +278,10 @@ GoofSpielState::performActions(const vector<shared_ptr<Action>> &actions) const 
     };
 
     if (goofdomain->fixChanceCards_) {
-        const auto natureCard = natureDeck.empty() ? NO_NATURE_CARD : natureDeck[0];
+        const auto natureCard = isLastRound ? NO_NATURE_CARD : natureDeck[0];
         addOutcome({chosenCards[0], chosenCards[1], natureCard}, 1.0);
     } else {
-        if (natureDeck.empty()) {
+        if (isLastRound) {
             addOutcome({chosenCards[0], chosenCards[1], NO_NATURE_CARD}, 1.0);
         } else {
             for (const auto natureCard : natureDeck) {
@@ -297,7 +304,7 @@ vector<Player> GoofSpielState::getPlayers() const {
 string GoofSpielState::toString() const {
     std::stringstream ss;
     for (int pl = 0; pl < 3; ++pl) {
-        ss << ((pl < 2) ? "P" + to_string(pl) +": " : "N:  ");
+        ss << ((pl < 2) ? "P" + to_string(pl) + ": " : "N:  ");
         ss << playedCards_[pl];
 
         ss << endl;
