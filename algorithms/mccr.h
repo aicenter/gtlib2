@@ -36,21 +36,32 @@ struct MCCRSettings: OOSSettings {
     enum RetentionPolicy { ResetData, NaiveKeepData, ReweighKeepData };
 
     RetentionPolicy retentionPolicy = ResetData;
+    NodeAvgValueCalculation terminateCFVs = WeightedAllPlayers;
 
     //@formatter:off
     inline void update(const string  &k, const string &v) override {
-        if(k == "retentionPolicy" && v == "ResetData")       retentionPolicy = ResetData;       else
-        if(k == "retentionPolicy" && v == "NaiveKeepData")   retentionPolicy = NaiveKeepData;   else
-        if(k == "retentionPolicy" && v == "ReweighKeepData") retentionPolicy = ReweighKeepData; else
+        if(k == "retentionPolicy" && v == "ResetData")              retentionPolicy = ResetData;              else
+        if(k == "retentionPolicy" && v == "NaiveKeepData")          retentionPolicy = NaiveKeepData;          else
+        if(k == "retentionPolicy" && v == "ReweighKeepData")        retentionPolicy = ReweighKeepData;        else
+        if(k == "terminateCFVs"   && v == "NoAvgValueCalculation")  terminateCFVs   = NoAvgValueCalculation;  else
+        if(k == "terminateCFVs"   && v == "OracleExactCalculation") terminateCFVs   = OracleExactCalculation; else
+        if(k == "terminateCFVs"   && v == "WeightedActingPlayer")   terminateCFVs   = WeightedActingPlayer;   else
+        if(k == "terminateCFVs"   && v == "WeightedAllPlayers")     terminateCFVs   = WeightedAllPlayers;     else
+        if(k == "terminateCFVs"   && v == "WeightedTime")           terminateCFVs   = WeightedTime;           else
         OOSSettings::update(k, v);
     }
 
     inline string toString() const override {
         std::stringstream ss;
         ss << "; MCCR" << endl;
-        if(retentionPolicy == ResetData)       ss << "retentionPolicy        = ResetData"       << endl;
-        if(retentionPolicy == NaiveKeepData)   ss << "retentionPolicy        = NaiveKeepData"   << endl;
-        if(retentionPolicy == ReweighKeepData) ss << "retentionPolicy        = ReweighKeepData" << endl;
+        if(retentionPolicy == ResetData)                ss << "retentionPolicy        = ResetData"               << endl;
+        if(retentionPolicy == NaiveKeepData)            ss << "retentionPolicy        = NaiveKeepData"           << endl;
+        if(retentionPolicy == ReweighKeepData)          ss << "retentionPolicy        = ReweighKeepData"         << endl;
+        if(terminateCFVs   == NoAvgValueCalculation)    ss << "terminateCFVs          = NoAvgValueCalculation"   << endl;
+        if(terminateCFVs   == OracleExactCalculation)   ss << "terminateCFVs          = OracleExactCalculation"  << endl;
+        if(terminateCFVs   == WeightedActingPlayer)     ss << "terminateCFVs          = WeightedActingPlayer"    << endl;
+        if(terminateCFVs   == WeightedAllPlayers)       ss << "terminateCFVs          = WeightedAllPlayers"      << endl;
+        if(terminateCFVs   == WeightedTime)             ss << "terminateCFVs          = WeightedTime"            << endl;
         ss << OOSSettings::toString();
         return ss.str();
     }
@@ -69,8 +80,8 @@ class MCCRResolver: public OOSAlgorithm {
           mccr_cfg_(cfg),
           keep_(cache) {
 
-        if (mccr_cfg_.baseline == OOSSettings::NoBaseline) {
-            LOG_ERROR("There cannot be NoBaseline for MCCR! "
+        if (mccr_cfg_.terminateCFVs == OOSSettings::NoAvgValueCalculation) {
+            LOG_ERROR("There cannot be NoAvgValueCalculation for MCCR! "
                       "It needs to save values for resolving.")
             exit(1);
         }
@@ -88,9 +99,9 @@ class MCCRResolver: public OOSAlgorithm {
                               double bs_h_all, double us_h_all,
                               Player exploringPl) override;
 
-    void updateGadgetInfosetRegrets(const shared_ptr<EFGNode> &h, Player exploringPl,
-                                    CFRData::InfosetData &data,
-                                    double us_h_cn, double rm_zha_all, double rm_ha_all);
+    void updateGadgetInfosetRegrets(const shared_ptr<EFGNode> &h,
+                                    Player exploringPl, CFRData::InfosetData &data,
+                                    double p_follow, double u_follow);
 
     void updateEFGNodeExpectedValue(Player exploringPl, const shared_ptr<EFGNode> &h,
                                     double u_h, double rm_h_pl, double rm_h_opp,
@@ -101,7 +112,7 @@ class MCCRResolver: public OOSAlgorithm {
     friend MCCRAlgorithm;
     void updateGadget(GadgetGame *newGadget);
 
-    double updateGadgetInfosetData();
+    double calcPlayInfosetReachProb();
     void updateGadgetBiasingProbs(double playInfosetReachProb);
 
     GadgetGame *gadget_ = nullptr; // in root, we don't have a gadget
@@ -120,23 +131,15 @@ class MCCRAlgorithm: public ContinualResolving {
     MCCRSettings cfg_;
 
  public:
-    MCCRAlgorithm(const Domain &domain,
-                  Player playingPlayer,
-                  MCCRData &data,
-                  unique_ptr<MCCRResolver> resolver,
-                  MCCRSettings settings)
+    MCCRAlgorithm(const Domain &domain, Player playingPlayer, MCCRData &data,
+                  unique_ptr<MCCRResolver> resolver, MCCRSettings settings)
         : ContinualResolving(domain, playingPlayer),
           cache_(data),
           resolver_(move(resolver)),
           cfg_(move(settings)) {}
 
-    MCCRAlgorithm(const Domain &domain,
-                  Player playingPlayer,
-                  MCCRData &data,
-                  MCCRSettings settings)
-        : MCCRAlgorithm(domain,
-                        playingPlayer,
-                        data,
+    MCCRAlgorithm(const Domain &domain, Player playingPlayer, MCCRData &data, MCCRSettings settings)
+        : MCCRAlgorithm(domain, playingPlayer, data,
                         make_unique<MCCRResolver>(domain, playingPlayer, data, settings),
                         settings) {}
     ~MCCRAlgorithm() override = default;
@@ -153,6 +156,6 @@ class MCCRAlgorithm: public ContinualResolving {
     double calcProbOfLastAction();
 };
 
-};
+}
 
 #endif //GTLIB2_MCCR_H

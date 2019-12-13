@@ -131,7 +131,7 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
  private:
     void createOOSBaselineData(const shared_ptr<EFGNode> &node) {
         if (node->type_ == TerminalNode) {
-            // todo: should we create this for NoBaseline?
+            // todo: should we create this for NoAvgValueCalculation?
             baselineValues.emplace(node, Fraction{node->getUtilities()[0], 1.});
             nodeValues.emplace(node, Fraction{node->getUtilities()[0], 1.});
         } else {
@@ -151,10 +151,17 @@ struct OOSSettings: AlgConfig {
     enum PlayStrategy { PlayUsingAvgStrategy, PlayUsingRMStrategy };
     enum SamplingScheme { EpsilonOnPolicySampling, UniformSampling };
     enum AvgStrategyComputation { StochasticallyWeightedAveraging, LazyWeightedAveraging };
-    // enum NodeAvgValueWeighting { WeightingActingPlayer, WeightingAllPlayers, WeightingTime };
-    enum Baseline { // equivalent to NodeAvgValueWeighting
-        NoBaseline, OracleBaseline,
-        WeightedActingPlayerBaseline, WeightedAllPlayerBaseline, WeightedTimeBaseline
+    enum NodeAvgValueCalculation {
+        // i.e. put zeros
+        NoAvgValueCalculation,
+        // for the avg strategy, i.e. u(h) under avg strategy specified by the avgStratAccumulator
+        OracleExactCalculation,
+        // Ordinary average without weights
+        WeightedTime,
+        // Acting + Chance
+        WeightedActingPlayer,
+        // Acting + opponent + chance
+        WeightedAllPlayers,
     };
 
     SamplingBlock samplingBlock = OutcomeSampling;
@@ -162,10 +169,9 @@ struct OOSSettings: AlgConfig {
     RegretMatching regretMatching = RegretMatchingNormal;
     Targeting targeting = InfosetTargeting;
     PlayStrategy playStrategy = PlayUsingAvgStrategy;
-    // NodeAvgValueWeighting nodeAvgValueWeighting = WeightingActingPlayer;
     SamplingScheme samplingScheme = EpsilonOnPolicySampling;
     AvgStrategyComputation avgStrategyComputation = StochasticallyWeightedAveraging;
-    Baseline baseline = NoBaseline;
+    NodeAvgValueCalculation baseline = NoAvgValueCalculation;
 
     double exploration = 0.6;
     double targetBiasing = 0.0;
@@ -196,11 +202,11 @@ struct OOSSettings: AlgConfig {
         if(k == "samplingScheme"         && v == "UniformSampling")                 samplingScheme       = UniformSampling;                   else
         if(k == "avgStrategyComputation" && v == "StochasticallyWeightedAveraging") avgStrategyComputation = StochasticallyWeightedAveraging; else
         if(k == "avgStrategyComputation" && v == "LazyWeightedAveraging")           avgStrategyComputation = LazyWeightedAveraging;           else
-        if(k == "baseline"               && v == "NoBaseline")                      baseline             = NoBaseline;                        else
-        if(k == "baseline"               && v == "OracleBaseline")                  baseline             = OracleBaseline;                    else
-        if(k == "baseline"               && v == "WeightedActingPlayerBaseline")    baseline             = WeightedActingPlayerBaseline;      else
-        if(k == "baseline"               && v == "WeightedAllPlayerBaseline")       baseline             = WeightedAllPlayerBaseline;         else
-        if(k == "baseline"               && v == "WeightedTimeBaseline")            baseline             = WeightedTimeBaseline;              else
+        if(k == "baseline"               && v == "NoAvgValueCalculation")           baseline             = NoAvgValueCalculation;             else
+        if(k == "baseline"               && v == "OracleExactCalculation")          baseline             = OracleExactCalculation;            else
+        if(k == "baseline"               && v == "WeightedActingPlayer")            baseline             = WeightedActingPlayer;              else
+        if(k == "baseline"               && v == "WeightedAllPlayers")              baseline             = WeightedAllPlayers;                else
+        if(k == "baseline"               && v == "WeightedTime")                    baseline             = WeightedTime;                      else
         if(k == "exploration")           exploration           = std::stod(v); else
         if(k == "targetBiasing")         targetBiasing         = std::stod(v); else
         if(k == "approxRegretMatching")  approxRegretMatching  = std::stod(v); else
@@ -213,7 +219,8 @@ struct OOSSettings: AlgConfig {
         std::stringstream ss;
         ss << "; OOS" << endl;
         if(samplingBlock          == OutcomeSampling)                 ss << "samplingBlock          = OutcomeSampling"                 << endl;
-        if(samplingBlock          == ExternalSampling )               ss << "samplingBlock          = ExternalSampling"                << endl;        if(accumulatorWeighting   == UniformAccWeighting)             ss << "accumulatorWeighting   = UniformAccWeighting"              << endl;
+        if(samplingBlock          == ExternalSampling )               ss << "samplingBlock          = ExternalSampling"                << endl;
+        if(accumulatorWeighting   == UniformAccWeighting)             ss << "accumulatorWeighting   = UniformAccWeighting"             << endl;
         if(accumulatorWeighting   == LinearAccWeighting)              ss << "accumulatorWeighting   = LinearAccWeighting"              << endl;
         if(accumulatorWeighting   == XLogXAccWeighting)               ss << "accumulatorWeighting   = XLogXAccWeighting "              << endl;
         if(regretMatching         == RegretMatchingNormal)            ss << "regretMatching         = RegretMatchingNormal"            << endl;
@@ -227,11 +234,11 @@ struct OOSSettings: AlgConfig {
         if(samplingScheme         == UniformSampling)                 ss << "samplingScheme         = UniformSampling"                 << endl;
         if(avgStrategyComputation == StochasticallyWeightedAveraging) ss << "avgStrategyComputation = StochasticallyWeightedAveraging" << endl;
         if(avgStrategyComputation == LazyWeightedAveraging)           ss << "avgStrategyComputation = LazyWeightedAveraging"           << endl;
-        if(baseline               == NoBaseline)                      ss << "baseline               = NoBaseline"                      << endl;
-        if(baseline               == OracleBaseline)                  ss << "baseline               = OracleBaseline"                  << endl;
-        if(baseline               == WeightedActingPlayerBaseline)    ss << "baseline               = WeightedActingPlayerBaseline"    << endl;
-        if(baseline               == WeightedAllPlayerBaseline)       ss << "baseline               = WeightedAllPlayerBaseline"       << endl;
-        if(baseline               == WeightedTimeBaseline)            ss << "baseline               = WeightedTimeBaseline"            << endl;
+        if(baseline               == NoAvgValueCalculation)           ss << "baseline               = NoAvgValueCalculation"           << endl;
+        if(baseline               == OracleExactCalculation)          ss << "baseline               = OracleExactCalculation"          << endl;
+        if(baseline               == WeightedActingPlayer)            ss << "baseline               = WeightedActingPlayer"            << endl;
+        if(baseline               == WeightedAllPlayers)              ss << "baseline               = WeightedAllPlayers"              << endl;
+        if(baseline               == WeightedTime)                    ss << "baseline               = WeightedTime"                    << endl;
         ss << "exploration            = " << exploration           << endl;
         ss << "targetBiasing          = " << targetBiasing         << endl;
         ss << "approxRegretMatching   = " << approxRegretMatching  << endl;
@@ -435,7 +442,8 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
                                             double u_h, double rm_h_pl, double rm_h_opp,
                                             double us_h_cn, double s_h_all);
     pair<double, double> calcEFGNodeUpdate(double u_h, bool isExploringPlayer,
-                                           double rm_h_pl, double rm_h_opp, double us_h_cn);
+                                           double rm_h_pl, double rm_h_opp, double us_h_cn,
+                                           OOSSettings::NodeAvgValueCalculation setting);
     virtual void updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exploringPl,
                                       CFRData::InfosetData &data, int ai,
                                       double u_x, double u_h, double w);

@@ -27,6 +27,10 @@ namespace GTLib2::algorithms {
 PlayControl MCCRAlgorithm::preplayIteration(const shared_ptr<EFGNode> &rootNode) {
     const auto &r = resolver_;
 
+    // make sure there is no invalid cache manipulation
+    // (i.e. resolver operates over the same cache as this class)
+    assert(&cache_ == &r->getCache());
+
     r->isBiasedIteration_ = false; // nothing to bias towards in preplay
     r->isBelowTargetIS_ = true; // everything is below "target IS"
     r->leafWeight_ = 1; // from root, no gadget is built
@@ -44,13 +48,18 @@ PlayControl MCCRAlgorithm::preplayIteration(const shared_ptr<EFGNode> &rootNode)
 PlayControl MCCRAlgorithm::resolveIteration(const shared_ptr<GadgetRootNode> &gadgetRoot,
                                             const shared_ptr<AOH> &currentInfoset) {
     const auto &r = resolver_;
+
+    // make sure there is no invalid cache manipulation
+    // (i.e. resolver operates over the same cache as this class)
+    assert(&cache_ == &r->getCache());
+
     // Since CR has called resolve iteration, we have gadget at our disposal.
     // We thus also must have current infoset in cache.
-    assert(r->cache_.hasInfoset(currentInfoset));
-    assert(r->cache_.hasPublicStateFor(currentInfoset));
+    assert(cache_.hasInfoset(currentInfoset));
+    assert(cache_.hasPublicStateFor(currentInfoset));
 
     r->playInfoset_ = currentInfoset;
-    r->playPublicState_ = r->cache_.getPublicStateFor(*r->playInfoset_);
+    r->playPublicState_ = cache_.getPublicStateFor(*r->playInfoset_);
 
     // todo: take another look at weighting?
 //    const auto successfulUpdate = r->targetor_.updateCurrentPosition(
@@ -94,8 +103,12 @@ void MCCRAlgorithm::updateGadget() {
         for (auto&[key, val] : cache_.nodeValues) {
             val.nominator *= resolver_->updateMagnitude_;
         }
-    }
+    } else if (cfg_.retentionPolicy == MCCRSettings::NaiveKeepData) {
+        // Do not modify anything.
+    } else
+        unreachable("Unrecognized retention policy");
 }
+
 double MCCRAlgorithm::calcProbOfLastAction() {
     const auto currentNode = (*cache_.getNodesFor(*playInfoset_).begin());
 
@@ -107,11 +120,10 @@ double MCCRAlgorithm::calcProbOfLastAction() {
     if (aNode == nullptr) return 1.0;
 
     // assumes that trunk strategy has not changed!
-    auto lastAction = currentNode->getHistory().at(aNode->getHistory().size());
+    const auto lastAction = currentNode->getHistory().at(aNode->getHistory().size());
     double p = (*cache_.strategyFor(aNode->getAOHInfSet())).at(lastAction);
     return p;
 }
-
 
 // -----------------------------------------------------------------------------------------------
 // MCCRResolver
@@ -121,14 +133,12 @@ double MCCRAlgorithm::calcProbOfLastAction() {
 void MCCRResolver::updateGadget(GadgetGame *newGadget) {
     gadget_ = newGadget;
 
-    double playInfosetReachProb = updateGadgetInfosetData();
-    updateGadgetBiasingProbs(playInfosetReachProb);
+    gadgetInfosetData_.clear(); // Gadget infosets will be created lazily
+    updateGadgetBiasingProbs(calcPlayInfosetReachProb());
     leafWeight_ = gadget_->pubStateReach_;
 }
 
-double MCCRResolver::updateGadgetInfosetData() {
-    gadgetInfosetData_.clear();
-
+double MCCRResolver::calcPlayInfosetReachProb() {
     const auto &summary = gadget_->summary_;
     const auto numGadgetHistories = summary.topmostHistories.size();
     double playInfosetReachProb = 0.;
@@ -152,10 +162,11 @@ void MCCRResolver::updateGadgetBiasingProbs(double playInfosetReachProb) {
     gadgetBsum_ = 0.0;
     for (int i = 0; i < numGadgetHistories; ++i) {
         const auto h = summary.topmostHistories.at(i);
+        const auto isTargetAOH = gadget_->targetAOH_->getAOids()
+            == h->getAOids(gadget_->resolvingPlayer_);
         // todo: take another look at this
         // @formatter:off
-        double p = explore(p_unif, bias(
-            (gadget_->targetAOH_->getAOids() == h->getAOids(gadget_->resolvingPlayer_))
+        double p = explore(p_unif, bias(isTargetAOH
               ? gadget_->chanceProbForAction(i) / playInfosetReachProb
               : 0,
             gadget_->chanceProbForAction(i))
@@ -211,7 +222,7 @@ double MCCRResolver::handlePlayerNode(const shared_ptr<EFGNode> &h, double rm_h_
     assert(h->getSpecialization() == GadgetSpecialization);
     const auto &actions = h->availableActions();
     const auto &infoset = h->getAOHInfSet();
-    const double s_h_all = bias(bs_h_all, us_h_all);
+    // Create or get existing data
     CFRData::InfosetData &data = (*((gadgetInfosetData_.insert(
         make_pair(infoset, CFRData::InfosetData(2, HistoriesUpdating))
     )).first)).second;
@@ -245,7 +256,7 @@ double MCCRResolver::handlePlayerNode(const shared_ptr<EFGNode> &h, double rm_h_
     rm_zh_all_ *= rm_ha_all;
 
     if (exploringMoveInNode)
-        updateGadgetInfosetRegrets(h, exploringPl, data, us_h_cn, rm_zha_all, rm_ha_all);
+        updateGadgetInfosetRegrets(h, exploringPl, data, rm_ha_all, u_h);
     // no need to update avg strategy -- we will not need it because it's a gadget node
 
     return u_h;
@@ -260,9 +271,9 @@ double MCCRResolver::handleTerminalNode(const shared_ptr<EFGNode> &h,
     return leafWeight_ * OOSAlgorithm::handleTerminalNode(h, bs_h_all, us_h_all, exploringPl);
 }
 
-void MCCRResolver::updateGadgetInfosetRegrets(const shared_ptr<EFGNode> &h, Player exploringPl,
-                                              CFRData::InfosetData &data,
-                                              double us_h_cn, double rm_zha_all, double rm_ha_all) {
+void MCCRResolver::updateGadgetInfosetRegrets(const shared_ptr <EFGNode> &h,
+                                              Player exploringPl, CFRData::InfosetData &data,
+                                              double p_follow, double u_follow) {
     // If there is only follow action, we don't need to update anything
     // This means the gadget is "fake", the opponent cannot discern any histories
     // apart, so he doesn't need to resolve really.
@@ -270,10 +281,7 @@ void MCCRResolver::updateGadgetInfosetRegrets(const shared_ptr<EFGNode> &h, Play
 
     assert(data.regrets.size() == 2);
     const auto terminateNode = h->performAction(make_shared<Action>(1));
-    const double u_terminate = terminateNode->getUtilities()[exploringPl] * gadget_->pubStateReach_;
-    const double u_follow = u_z_ * us_h_cn * rm_zha_all / s_z_all_;
-    const double p_follow = rm_ha_all;
-
+    const double u_terminate = terminateNode->getUtilities()[exploringPl] * leafWeight_;
     const double diff = u_follow - u_terminate;
     data.regrets[0] += (1 - p_follow) * diff;
     data.regrets[1] += -p_follow * diff;
@@ -288,22 +296,39 @@ void MCCRResolver::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
     u_h *= exploringPl == Player(0) ? 1 : -1;
 
     {
-        auto[a, b] = calcEFGNodeUpdate(u_h, h->getPlayer() == exploringPl,
-                                       rm_h_pl, rm_h_opp, us_h_cn);
+//         todo: somehow baselines diverge??
+        auto[a, b] = calcEFGNodeUpdate(u_h / leafWeight_, h->getPlayer() == exploringPl,
+                                       rm_h_pl, rm_h_opp, us_h_cn, cfg_.baseline);
 
         auto &baseline = cache_.baselineValues.at(h);
         baseline.nominator += a;
         baseline.denominator += b;
+
+        assert(!isnan(baseline.nominator));
+        assert(!isinf(baseline.nominator));
+        assert(!isnan(baseline.denominator));
+        assert(!isinf(baseline.denominator));
+        assert(baseline.denominator != 0);
+        assert(abs(a) < 1e10);
+        assert(abs(b) < 1e10);
     }
 
     {
         // undo the efffect of normalization of leaf utils
         auto[a, b] = calcEFGNodeUpdate(u_h / leafWeight_, h->getPlayer() == exploringPl,
-                                       rm_h_pl, rm_h_opp, us_h_cn);
+                                       rm_h_pl, rm_h_opp, us_h_cn, mccr_cfg_.terminateCFVs);
 
         auto &value = cache_.nodeValues.at(h);
         value.nominator += a * (1 - updateMagnitude_);
         value.denominator += b;
+
+        assert(!isnan(value.nominator));
+        assert(!isinf(value.nominator));
+        assert(!isnan(value.denominator));
+        assert(!isinf(value.denominator));
+        assert(value.denominator != 0);
+        assert(abs(a) < 1e10);
+        assert(abs(b) < 1e10);
     }
 }
 

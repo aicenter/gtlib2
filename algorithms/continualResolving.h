@@ -89,7 +89,8 @@ class ContinualResolving: public GamePlayingAlgorithm {
         gadget_ = make_unique<GadgetGame>(summary, playingPlayer_, *playInfoset_, variant);
         gadgetRoot_ = gadget_->getRootNode();
         // for debugging:
-//        utils::exportGambit(gadgetRoot_, "export_" + (*playPublicState_)->toString() + ".gbt");
+//        utils::exportGambit(gadgetRoot_, "export_" + (*playPublicState_)->toString()
+//        + "_pl"+to_string(int(playingPlayer_))+".gbt");
     }
 
     virtual const OOSData &getCache() const = 0;

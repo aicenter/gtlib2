@@ -72,7 +72,7 @@ class Node {
 
     string toString() const {
         std::stringstream ss;
-        ss << "empty";
+        ss << "∅";
         for (unsigned int edgeId : history_) ss << "," << edgeId;
         return ss.str();
     }

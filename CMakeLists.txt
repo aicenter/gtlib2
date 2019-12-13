@@ -178,6 +178,7 @@ set(SOURCE_FILES
         algorithms/mccr.h algorithms/mccr.cpp
         algorithms/normalFormLP.h algorithms/normalFormLP.cpp
         algorithms/oos.h algorithms/oos.cpp
+        algorithms/onlineAvgStrategy.h
         algorithms/stats.h algorithms/stats.cpp
         algorithms/strategy.cpp algorithms/strategy.h
         algorithms/utility.h algorithms/utility.cpp
@@ -206,7 +207,8 @@ set(SOURCE_FILES
         base/tree.h
         # domains
         domains/chessboard_factory.h domains/chessboard_factory.cpp
-        domains/gambit.h domains/gambit.cpp
+        domains/gambit/gambit.h domains/gambit/gambit.cpp
+        domains/gambit/gambit_games.h domains/gambit/gambit_games.cpp
         domains/genericPoker.h domains/genericPoker.cpp
         domains/goofSpiel.h domains/goofSpiel.cpp
         domains/kriegspiel.h domains/kriegspiel.cpp

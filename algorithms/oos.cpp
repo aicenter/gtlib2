@@ -212,6 +212,9 @@ double OOSAlgorithm::iteration(const shared_ptr<EFGNode> &h,
 double OOSAlgorithm::handleTerminalNode(const shared_ptr<EFGNode> &h,
                                         double bs_h_all, double us_h_all,
                                         Player exploringPl) {
+    assert(h->getSpecialization() == NoSpecialization);
+    assert(h->type_ == TerminalNode);
+
     s_z_all_ = bias(bs_h_all, us_h_all);
     u_z_ = h->getUtilities()[exploringPl];
     assert(!isnan(u_z_) && !isinf(u_z_));
@@ -222,6 +225,9 @@ double OOSAlgorithm::handleChanceNode(const shared_ptr<EFGNode> &h,
                                       double rm_h_pl, double rm_h_opp,
                                       double bs_h_all, double us_h_all, double us_h_cn,
                                       Player exploringPl) {
+    assert(h->getSpecialization() == NoSpecialization);
+    assert(h->type_ == ChanceNode);
+
     const auto &actions = h->availableActions();
     const auto probs = h->chanceProbs();
     assert(probs.size() == actions.size());
@@ -260,6 +266,9 @@ double OOSAlgorithm::handlePlayerNode(const shared_ptr<EFGNode> &h,
                                       double rm_h_pl, double rm_h_opp,
                                       double bs_h_all, double us_h_all, double us_h_cn,
                                       Player exploringPl) {
+    assert(h->getSpecialization() == NoSpecialization);
+    assert(h->type_ == PlayerNode);
+
     const auto &actions = h->availableActions();
     assert(actions.size() < OOS_MAX_ACTIONS);
     const auto &infoset = cache_.getInfosetFor(h);
@@ -463,44 +472,41 @@ void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
     u_h *= exploringPl == Player(0) ? 1 : -1;
 
     auto[a, b] = calcEFGNodeUpdate(u_h, h->getPlayer() == exploringPl,
-                                   rm_h_pl, rm_h_opp, us_h_cn);
+                                   rm_h_pl, rm_h_opp, us_h_cn, cfg_.baseline);
 
     auto &baseline = cache_.baselineValues.at(h);
     baseline.nominator += a;
     baseline.denominator += b;
-
-    auto &value = cache_.nodeValues.at(h);
-    value.nominator += a;
-    value.denominator += b;
 }
 
 pair<double, double> OOSAlgorithm::calcEFGNodeUpdate(double u_h, bool isExploringPlayer,
                                                      double rm_h_pl, double rm_h_opp,
-                                                     double us_h_cn) {
+                                                     double us_h_cn,
+                                                     OOSSettings::NodeAvgValueCalculation setting) {
     double a = 0.0, b = 0.0;
     double reach;
-    switch (cfg_.baseline) {
+    switch (setting) {
         // Following two cases calculate expected values of utilities
         // using weighted averages, as in Eq. (6) in MCCR paper.
         // The opponent reach probability will be multiplied later,
         // when (possibly) the gadget is created.
-        case OOSSettings::WeightedActingPlayerBaseline:
+        case OOSSettings::WeightedActingPlayer:
             reach = isExploringPlayer ? rm_h_pl : rm_h_opp;
             a = reach * u_h;
             b = reach;
             break;
-        case OOSSettings::WeightedAllPlayerBaseline:
+        case OOSSettings::WeightedAllPlayers:
             reach = rm_h_pl * rm_h_opp * us_h_cn;
             a = reach * u_h;
             b = reach;
             break;
-        case OOSSettings::WeightedTimeBaseline:
+        case OOSSettings::WeightedTime:
             a = u_h;
             b = 1.0;
             break;
-        case OOSSettings::NoBaseline: // nothing to do
+        case OOSSettings::NoAvgValueCalculation: // nothing to do
             break;
-        case OOSSettings::OracleBaseline:
+        case OOSSettings::OracleExactCalculation:
             unreachable("todo:");
         default:
             unreachable("unrecognized option!");

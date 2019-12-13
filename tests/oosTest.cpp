@@ -230,7 +230,7 @@ TEST(OOS, PlayManyMatches) {
     }
 }
 
-TEST(MCCR, OOSonMatchingPenniesGadget) {
+TEST(OOS, MatchingPenniesGadget) {
     const auto d = domains::gambit::matchingPenniesGadgetGame();
     const auto rootNode = createRootEFGNode(*d);
     const auto aNode = rootNode->performAction(rootNode->availableActions()[0]);
