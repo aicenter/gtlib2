@@ -92,7 +92,7 @@ unique_ptr<Domain> constructDomain(const string &description) {
     };
 
     const auto parseGambit = [](vector<string> p) {
-        if(p.size() == 0) {
+        if (p.size() == 0) {
             LOG_ERROR("Gambit domain needs input file as first argument")
             exit(1);
         }
@@ -189,14 +189,14 @@ template<typename A, typename C, typename D>
 struct Wrapper: public AlgorithmWithData {
     D data;
     C cfg;
-    inline Wrapper(D d) : data(move(d)) {}
+    inline Wrapper(const CLI::AlgParams &params, D d) : data(move(d)) { cfg.updateAll(params); }
     PreparedAlgorithm prepare() override { return createInitializer<A>(data, cfg); }
     C &config() override { return cfg; }
 };
 template<typename A, typename C>
 struct WrapperCfg: public AlgorithmWithData {
     C cfg;
-    inline WrapperCfg() {}
+    inline WrapperCfg(const CLI::AlgParams &params) { cfg.updateAll(params); }
     PreparedAlgorithm prepare() override { return createInitializer<A>(cfg); }
     C &config() override { return cfg; }
 };
@@ -217,7 +217,7 @@ typedef WrapperCfg<CPW_ISMCTS,    EXP3_ISMCTSSettings>           WrapperCPW_EXP3
 template<>
 struct WrapperCfg<RandomPlayer, AlgConfig> : public AlgorithmWithData {
     AlgConfig cfg;
-    WrapperCfg() : cfg(AlgConfig{}) {}
+    WrapperCfg(const CLI::AlgParams &params) : cfg(AlgConfig{}) { cfg.updateAll(params); }
     PreparedAlgorithm prepare() { return createInitializer<RandomPlayer>(); }
     AlgConfig& config() { return cfg; }
 };
@@ -225,28 +225,32 @@ struct WrapperCfg<RandomPlayer, AlgConfig> : public AlgorithmWithData {
 template<>
 struct WrapperCfg<ISMCTS, RM_ISMCTSSettings> : public AlgorithmWithData {
     RM_ISMCTSSettings cfg;
-    WrapperCfg(const Domain &d) : cfg(RM_ISMCTSSettings(d.getMinUtility(), d.getMaxUtility())) {}
+    WrapperCfg(const CLI::AlgParams &params, const Domain &d)
+    : cfg(RM_ISMCTSSettings(d.getMinUtility(), d.getMaxUtility())) { cfg.updateAll(params); }
     PreparedAlgorithm prepare() override { return createInitializer<ISMCTS>(cfg); }
     RM_ISMCTSSettings &config() override { return cfg; }
 };
 template<>
 struct WrapperCfg<ISMCTS, EXP3_ISMCTSSettings> : public AlgorithmWithData {
     EXP3_ISMCTSSettings cfg;
-    WrapperCfg(const Domain &d) : cfg(EXP3_ISMCTSSettings(d.getMinUtility(), d.getMaxUtility())) {}
+    WrapperCfg(const CLI::AlgParams &params, const Domain &d)
+    : cfg(EXP3_ISMCTSSettings(d.getMinUtility(), d.getMaxUtility())) { cfg.updateAll(params); }
     PreparedAlgorithm prepare() override { return createInitializer<ISMCTS>(cfg); }
     EXP3_ISMCTSSettings &config() override { return cfg; }
 };
 template<>
 struct WrapperCfg<CPW_ISMCTS, RM_ISMCTSSettings> : public AlgorithmWithData {
     RM_ISMCTSSettings cfg;
-    WrapperCfg(const Domain &d) : cfg(RM_ISMCTSSettings(d.getMinUtility(), d.getMaxUtility())) {}
+    WrapperCfg(const CLI::AlgParams &params, const Domain &d)
+    : cfg(RM_ISMCTSSettings(d.getMinUtility(), d.getMaxUtility())) { cfg.updateAll(params); }
     PreparedAlgorithm prepare() override { return createInitializer<CPW_ISMCTS>(cfg); }
     RM_ISMCTSSettings &config() override { return cfg; }
 };
 template<>
 struct WrapperCfg<CPW_ISMCTS, EXP3_ISMCTSSettings> : public AlgorithmWithData {
     EXP3_ISMCTSSettings cfg;
-    WrapperCfg(const Domain &d) : cfg(EXP3_ISMCTSSettings(d.getMinUtility(), d.getMaxUtility())) {}
+    WrapperCfg(const CLI::AlgParams &params, const Domain &d)
+    : cfg(EXP3_ISMCTSSettings(d.getMinUtility(), d.getMaxUtility())) { cfg.updateAll(params); }
     PreparedAlgorithm prepare() override { return createInitializer<CPW_ISMCTS>(cfg); }
     EXP3_ISMCTSSettings &config() override { return cfg; }
 };
@@ -265,18 +269,18 @@ unique_ptr<AlgorithmWithData> constructAlgWithData(const Domain &d,
 
     // @formatter:off
     unordered_map<string, function<unique_ptr<AlgorithmWithData>()>> algorithmsTable = {
-        {"RND",         [&]() { return make_unique<WrapperRND>         ();            }},
-        {"CFR",         [&]() { return make_unique<WrapperCFR>         (CFRData(d));  }},
-        {"OOS",         [&]() { return make_unique<WrapperOOS>         (OOSData(d));  }},
-        {"MCCR",        [&]() { return make_unique<WrapperMCCR>        (MCCRData(d)); }},
-        {"ISMCTS",      [&]() { return make_unique<WrapperISMCTS_UCT>  ();            }},
-        {"ISMCTS_UCT",  [&]() { return make_unique<WrapperISMCTS_UCT>  ();            }},
-        {"ISMCTS_RM",   [&]() { return make_unique<WrapperISMCTS_RM>   (d);           }},
-        {"ISMCTS_EXP3", [&]() { return make_unique<WrapperISMCTS_EXP3> (d);           }},
-        {"CPW",         [&]() { return make_unique<WrapperCPW_UCT>     ();            }},
-        {"CPW_UCT",     [&]() { return make_unique<WrapperCPW_UCT>     ();            }},
-        {"CPW_RM",      [&]() { return make_unique<WrapperCPW_RM>      (d);           }},
-        {"CPW_EXP3",    [&]() { return make_unique<WrapperCPW_EXP3>    (d);           }},
+        {"RND",         [&]() { return make_unique<WrapperRND>         (params);              }},
+        {"CFR",         [&]() { return make_unique<WrapperCFR>         (params, CFRData(d));  }},
+        {"OOS",         [&]() { return make_unique<WrapperOOS>         (params, OOSData(d));  }},
+        {"MCCR",        [&]() { return make_unique<WrapperMCCR>        (params, MCCRData(d)); }},
+        {"ISMCTS",      [&]() { return make_unique<WrapperISMCTS_UCT>  (params);              }},
+        {"ISMCTS_UCT",  [&]() { return make_unique<WrapperISMCTS_UCT>  (params);              }},
+        {"ISMCTS_RM",   [&]() { return make_unique<WrapperISMCTS_RM>   (params, d);           }},
+        {"ISMCTS_EXP3", [&]() { return make_unique<WrapperISMCTS_EXP3> (params, d);           }},
+        {"CPW",         [&]() { return make_unique<WrapperCPW_UCT>     (params);              }},
+        {"CPW_UCT",     [&]() { return make_unique<WrapperCPW_UCT>     (params);              }},
+        {"CPW_RM",      [&]() { return make_unique<WrapperCPW_RM>      (params, d);           }},
+        {"CPW_EXP3",    [&]() { return make_unique<WrapperCPW_EXP3>    (params, d);           }},
     };
     // @formatter:on
 
@@ -288,7 +292,6 @@ unique_ptr<AlgorithmWithData> constructAlgWithData(const Domain &d,
     }
 
     auto algWithData = algorithmsTable.at(algName)();
-    algWithData->config().updateAll(params);
     return algWithData;
 }
 
