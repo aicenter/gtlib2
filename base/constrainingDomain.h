@@ -120,26 +120,25 @@ class ConstrainingDomain {
 
 
 typedef function<void(const ConstrainingDomain &domain,
-    const shared_ptr<AOH> &targetInfoset,
-    const BudgetType budgetType,
-    const int budget,
-    const EFGNodeCallback &maybeNewNodeCallback)> EFGNodeGenerator;
+                      const shared_ptr<AOH> &targetInfoset,
+                      const BudgetType budgetType,
+                      const int budget,
+                      const EFGNodeCallback &maybeNewNodeCallback)> EFGNodeGenerator;
 
 
 inline void emptyNodeGenerator(const ConstrainingDomain &domain,
+                               const shared_ptr<AOH> &targetInfoset,
+                               const BudgetType budgetType,
+                               const int budget,
+                               const EFGNodeCallback &maybeNewNodeCallback) {
+
+}
+
+inline void domainSpecificNodeGenerator(const ConstrainingDomain &domain,
                                         const shared_ptr<AOH> &targetInfoset,
                                         const BudgetType budgetType,
                                         const int budget,
-                                        const EFGNodeCallback &maybeNewNodeCallback)
-                                        {
-
-                                        }
-
-inline void domainSpecificNodeGenerator(const ConstrainingDomain &domain,
-                   const shared_ptr<AOH> &targetInfoset,
-                   const BudgetType budgetType,
-                   const int budget,
-                   const EFGNodeCallback &maybeNewNodeCallback) {
+                                        const EFGNodeCallback &maybeNewNodeCallback) {
     ConstraintsMap constraints;
     long start = -1;
     domain.initializeEnumerativeConstraints(constraints);
@@ -147,16 +146,18 @@ inline void domainSpecificNodeGenerator(const ConstrainingDomain &domain,
     // checks is the game at current state lets us generate node
     // for example, not valid for stratego during the setup state
     bool validState = domain.updateConstraints(targetInfoset, start, constraints);
-    if (validState) domain.generateNodes(targetInfoset, constraints, budgetType, budget, maybeNewNodeCallback);
+    if (validState)
+        domain.generateNodes(targetInfoset, constraints,
+                             budgetType, budget, maybeNewNodeCallback);
 }
 
 inline void cspNodeGenerator(const ConstrainingDomain &domain,
-                      const shared_ptr<AOH> &targetInfoset,
-                      BudgetType budgetType,
-                      int budget,
-                      const EFGNodeCallback &maybeNewNodeCallback);
-
-
+                             const shared_ptr<AOH> &targetInfoset,
+                             BudgetType budgetType,
+                             int budget,
+                             const EFGNodeCallback &maybeNewNodeCallback) {
+    unreachable("cspNodeGenerator is not implemented yet");
+}
 
 }
 #endif  // BASE_HISTORY_CONSTRAINTS_H_

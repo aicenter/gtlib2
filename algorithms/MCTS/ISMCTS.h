@@ -56,9 +56,11 @@ namespace GTLib2::algorithms {
  */
 class ISMCTS: public GamePlayingAlgorithm {
  public:
-    explicit inline ISMCTS(const Domain &domain, Player playingPlayer, const ISMCTSSettings &config) :
+    explicit inline ISMCTS(const Domain &domain, Player playingPlayer, const ISMCTSSettings &config)
+        :
         GamePlayingAlgorithm(domain, playingPlayer),
-        config_(move(config)), factory_(move(config_.createFactory())), rootNode_(createRootEFGNode(domain)) {
+        config_(move(config)), factory_(move(config_.createFactory())),
+        rootNode_(createRootEFGNode(domain)) {
         generator_ = std::mt19937(config.seed);
     }
 

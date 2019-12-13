@@ -37,7 +37,8 @@ namespace GTLib2::algorithms {
 class CPW_ISMCTS: public ISMCTS {
  public:
     explicit CPW_ISMCTS(const Domain &domain, Player playingPlayer, const ISMCTSSettings &config) :
-        ISMCTS(domain, playingPlayer, config), belief_({1.0}), hgNodeGenerator_(config.hgNodeGenerator) {}
+        ISMCTS(domain, playingPlayer, config), belief_({1.0}),
+        hgNodeGenerator_(config.hgNodeGenerator) {}
 
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
 

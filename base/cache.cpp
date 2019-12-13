@@ -105,7 +105,7 @@ const EFGChildNodes &EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node) {
     }
     if (missingIdx == -1) return nodes;
 
-    auto actions = node->availableActions();
+    const auto actions = node->availableActions();
     // Add missing actions
     for (unsigned long i = missingIdx; i < actions.size(); ++i) {
         if (nodes[i]) continue;

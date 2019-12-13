@@ -62,7 +62,5 @@ struct UCT_ISMCTSSettings: public ISMCTSSettings {
     //@formatter:on
 };
 
-
-
 }
 #endif //GTLIB2_UCTSELECTORFACTORY_H
