@@ -32,7 +32,7 @@ namespace GTLib2::algorithms {
 TEST(ISMCTS, UCTTest) {
     auto rewards = vector<double>(100);
 
-    for (int seed = 0; seed < 100; ++seed) {
+    for (int seed = 0; seed < 1; ++seed) {
         domains::GoofSpielSettings settings
             ({.variant = domains::IncompleteObservations, .numCards =  5, .fixChanceCards = true});
         settings.shuffleChanceCards(seed);
@@ -51,11 +51,11 @@ TEST(ISMCTS, UCTTest) {
         auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
         rewards[seed] = actualOutcome[0];
     }
-    const double expsumm = -2;
+    const double expsumm = -1;
     double summ = 0;
     cout << rewards << endl;
     for (auto r : rewards)summ += r;
-    //EXPECT_EQ(summ, expsumm);
+    EXPECT_EQ(summ, expsumm);
     // todo: This might fail for release (sum=44), we're not sure why.
     //       Maybe it has something to do with randomization compiled differently.
 }
@@ -63,7 +63,7 @@ TEST(ISMCTS, UCTTest) {
 TEST(ISMCTS, RMTest) {
     auto rewards = vector<double>(100);
 
-    for (int seed = 0; seed < 100; ++seed) {
+    for (int seed = 0; seed < 1; ++seed) {
         domains::GoofSpielSettings settings
             ({.variant =   domains::IncompleteObservations, .numCards =  5, .fixChanceCards =  true});
         settings.shuffleChanceCards(seed);
@@ -82,16 +82,16 @@ TEST(ISMCTS, RMTest) {
         auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
         rewards[seed] = actualOutcome[0];
     }
-    const double expsumm = -8;
+    const double expsumm = 3;
     double summ = 0;
     for (auto r : rewards)summ += r;
-    //EXPECT_EQ(summ, expsumm);
+    EXPECT_EQ(summ, expsumm);
 }
 
 TEST(ISMCTS, Exp3StoreObsTest) {
     auto rewards = vector<double>(100);
 
-    for (int seed = 0; seed < 100; ++seed) {
+    for (int seed = 0; seed < 1; ++seed) {
         domains::GoofSpielSettings settings
             ({.variant =   domains::IncompleteObservations, .numCards =  5, .fixChanceCards = true});
         settings.shuffleChanceCards(seed);
@@ -110,16 +110,16 @@ TEST(ISMCTS, Exp3StoreObsTest) {
         auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
         rewards[seed] = actualOutcome[0];
     }
-    const double expsumm = -10;
+    const double expsumm = 3;
     double summ = 0;
     for (auto r : rewards) summ += r;
-    //EXPECT_EQ(summ, expsumm);
+    EXPECT_EQ(summ, expsumm);
 }
 
 TEST(ISMCTS, Exp3Test) {
     auto rewards = vector<double>(100);
 
-    for (int seed = 0; seed < 100; ++seed) {
+    for (int seed = 0; seed < 1; ++seed) {
         domains::GoofSpielSettings settings
             ({.variant =  domains::IncompleteObservations, .numCards = 5, .fixChanceCards = true});
         settings.shuffleChanceCards(seed);
@@ -138,16 +138,16 @@ TEST(ISMCTS, Exp3Test) {
         auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
         rewards[seed] = actualOutcome[0];
     }
-    const double expsumm = -12;
+    const double expsumm = 3;
     double summ = 0;
     for (auto r : rewards)summ += r;
-    //EXPECT_EQ(summ, expsumm);
+    EXPECT_EQ(summ, expsumm);
 }
 
 TEST(ISMCTS, Exp3LTest) {
     auto rewards = vector<double>(100);
 
-    for (int seed = 0; seed < 100; ++seed) {
+    for (int seed = 0; seed < 1; ++seed) {
         domains::GoofSpielSettings settings
             ({.variant =   domains::IncompleteObservations, .numCards =  5, .fixChanceCards =  true});
         settings.shuffleChanceCards(seed);
@@ -166,16 +166,16 @@ TEST(ISMCTS, Exp3LTest) {
         auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
         rewards[seed] = actualOutcome[0];
     }
-    const double expsumm = -27;
+    const double expsumm = 6;
     double summ = 0;
     for (auto r : rewards)summ += r;
-    //EXPECT_EQ(summ, expsumm);
+    EXPECT_EQ(summ, expsumm);
 }
 
 TEST(ISMCTS, MidgameTest) {
     auto rewards = vector<double>(100);
 
-    for (int seed = 0; seed < 100; ++seed) {
+    for (int seed = 0; seed < 1; ++seed) {
         domains::GoofSpielSettings settings
             ({.variant =   domains::IncompleteObservations, .numCards =  7, .fixChanceCards =  true});
         settings.shuffleChanceCards(seed);
@@ -193,16 +193,16 @@ TEST(ISMCTS, MidgameTest) {
         auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
         rewards[seed] = actualOutcome[0];
     }
-    const double expsumm = -7;
+    const double expsumm = 1;
     double summ = 0;
     for (auto r : rewards)summ += r;
-    //EXPECT_EQ(summ, expsumm);
+    EXPECT_EQ(summ, expsumm);
 }
 
 TEST(ISMCTS, BiggameTest) {
     auto rewards = vector<double>(100);
 
-    for (int seed = 0; seed < 100; ++seed) {
+    for (int seed = 0; seed < 1; ++seed) {
         domains::GoofSpielSettings settings
             ({.variant =   domains::IncompleteObservations, .numCards =  10, .fixChanceCards =  true});
         settings.shuffleChanceCards(seed);
@@ -220,10 +220,10 @@ TEST(ISMCTS, BiggameTest) {
         auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
         rewards[seed] = actualOutcome[0];
     }
-    const double expsumm = 51;
+    const double expsumm = -6;
     double summ = 0;
     for (auto r : rewards)summ += r;
-    //EXPECT_EQ(summ, expsumm);
+    EXPECT_EQ(summ, expsumm);
 }
 
 }
