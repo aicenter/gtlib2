@@ -32,7 +32,7 @@ namespace GTLib2::algorithms {
 TEST(ISMCTS, UCTTest) {
     auto rewards = vector<double>(100);
 
-    for (int seed = 0; seed < 1; ++seed) {
+    for (int seed = 0; seed < 100; ++seed) {
         domains::GoofSpielSettings settings
             ({.variant = domains::IncompleteObservations, .numCards =  5, .fixChanceCards = true});
         settings.shuffleChanceCards(seed);
@@ -63,7 +63,7 @@ TEST(ISMCTS, UCTTest) {
 TEST(ISMCTS, RMTest) {
     auto rewards = vector<double>(100);
 
-    for (int seed = 0; seed < 1; ++seed) {
+    for (int seed = 0; seed < 100; ++seed) {
         domains::GoofSpielSettings settings
             ({.variant =   domains::IncompleteObservations, .numCards =  5, .fixChanceCards =  true});
         settings.shuffleChanceCards(seed);
@@ -91,7 +91,7 @@ TEST(ISMCTS, RMTest) {
 TEST(ISMCTS, Exp3StoreObsTest) {
     auto rewards = vector<double>(100);
 
-    for (int seed = 0; seed < 1; ++seed) {
+    for (int seed = 0; seed < 100; ++seed) {
         domains::GoofSpielSettings settings
             ({.variant =   domains::IncompleteObservations, .numCards =  5, .fixChanceCards = true});
         settings.shuffleChanceCards(seed);
@@ -119,7 +119,7 @@ TEST(ISMCTS, Exp3StoreObsTest) {
 TEST(ISMCTS, Exp3Test) {
     auto rewards = vector<double>(100);
 
-    for (int seed = 0; seed < 1; ++seed) {
+    for (int seed = 0; seed < 100; ++seed) {
         domains::GoofSpielSettings settings
             ({.variant =  domains::IncompleteObservations, .numCards = 5, .fixChanceCards = true});
         settings.shuffleChanceCards(seed);
@@ -147,7 +147,7 @@ TEST(ISMCTS, Exp3Test) {
 TEST(ISMCTS, Exp3LTest) {
     auto rewards = vector<double>(100);
 
-    for (int seed = 0; seed < 1; ++seed) {
+    for (int seed = 0; seed < 100; ++seed) {
         domains::GoofSpielSettings settings
             ({.variant =   domains::IncompleteObservations, .numCards =  5, .fixChanceCards =  true});
         settings.shuffleChanceCards(seed);
@@ -175,7 +175,7 @@ TEST(ISMCTS, Exp3LTest) {
 TEST(ISMCTS, MidgameTest) {
     auto rewards = vector<double>(100);
 
-    for (int seed = 0; seed < 1; ++seed) {
+    for (int seed = 0; seed < 100; ++seed) {
         domains::GoofSpielSettings settings
             ({.variant =   domains::IncompleteObservations, .numCards =  7, .fixChanceCards =  true});
         settings.shuffleChanceCards(seed);
@@ -202,7 +202,7 @@ TEST(ISMCTS, MidgameTest) {
 TEST(ISMCTS, BiggameTest) {
     auto rewards = vector<double>(100);
 
-    for (int seed = 0; seed < 1; ++seed) {
+    for (int seed = 0; seed < 100; ++seed) {
         domains::GoofSpielSettings settings
             ({.variant =   domains::IncompleteObservations, .numCards =  10, .fixChanceCards =  true});
         settings.shuffleChanceCards(seed);

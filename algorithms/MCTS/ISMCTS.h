@@ -60,7 +60,7 @@ class ISMCTS: public GamePlayingAlgorithm {
         :
         GamePlayingAlgorithm(domain, playingPlayer),
         config_(move(config)), factory_(move(config_.createFactory())),
-        rootNode_(createRootEFGNode(domain)) {
+        rootNode_(createRootEFGNode(domain)), useBelief_(config_.useBelief) {
         generator_ = std::mt19937(config.seed);
     }
 
@@ -76,6 +76,7 @@ class ISMCTS: public GamePlayingAlgorithm {
     double simulate(const shared_ptr<EFGNode> &h);
 
     const ISMCTSSettings &config_;
+    bool useBelief_;
     const unique_ptr<SelectorFactory> factory_;
     std::mt19937 generator_;
     unordered_map<shared_ptr<AOH>, unique_ptr<Selector>> infosetSelectors_;

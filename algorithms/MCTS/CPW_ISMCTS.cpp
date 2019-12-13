@@ -49,7 +49,7 @@ PlayControl CPW_ISMCTS::runPlayIteration(const optional<shared_ptr<AOH>> &curren
         else return GiveUp;
     }
 
-    const int nodeIndex = config_.useBelief
+    const int nodeIndex = useBelief_
                           ? pickRandom(belief_, generator_)
                           : pickRandomInt(0, nodes->second.size() - 1, generator_);
     iteration(nodes->second[nodeIndex]);
@@ -75,8 +75,15 @@ double CPW_ISMCTS::handlePlayerNode(const shared_ptr<EFGNode> &h) {
 }
 
 void CPW_ISMCTS::setCurrentInfoset(const shared_ptr<AOH> &newInfoset) {
-    if (config_.useBelief) {
+    if (useBelief_) {
         const auto newNodesIt = nodesMap_.find(newInfoset);
+        if (newNodesIt == nodesMap_.end()) {
+            belief_ = {};
+            currentInfoset_ = newInfoset;
+            currentISChecked_ = false;
+            useBelief_ = false;
+            return;
+        }
         vector<shared_ptr<EFGNode>> oldNodes;
         if (currentInfoset_ == nullptr) {
             oldNodes = {rootNode_};
