@@ -29,3 +29,18 @@ add_library(domains OBJECT
         stratego.cpp
         )
 target_include_directories (domains PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+set(TEST_FILES ${TEST_FILES}
+        domains/domainsTest.h
+        domains/domainsTest.cpp
+        domains/gambitTest.cpp
+        domains/genericPokerTest.cpp
+        domains/goofSpielTest.cpp
+        domains/kriegSpielTest.cpp
+        domains/liarsDiceTest.cpp
+        domains/matchingPenniesTest.cpp
+        domains/normalFormGameTest.cpp
+        domains/oshiZumoTest.cpp
+        domains/randomGameTest.cpp
+        domains/strategoTest.cpp
+        PARENT_SCOPE)

@@ -24,7 +24,6 @@
 
 #include "base/base.h"
 #include "algorithms/common.h"
-#include "tests/domainsTest.h"
 
 #include "gtest/gtest.h"
 

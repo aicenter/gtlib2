@@ -4,6 +4,11 @@ add_library(LPsolvers OBJECT
         )
 target_include_directories(LPsolvers PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
+set(TEST_FILES ${TEST_FILES}
+        LPsolvers/LPTest.cpp
+        PARENT_SCOPE)
+
+
 # ----------------------- Try to find LP library -------------------------------
 
 # ------ CPLEX

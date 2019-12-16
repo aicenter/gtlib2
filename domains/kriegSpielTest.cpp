@@ -21,9 +21,10 @@
 
 #include <base/random.h>
 #include "base/base.h"
+#include "base/fogefg.h"
+
 #include "domains/kriegspiel.h"
 
-#include "tests/domainsTest.h"
 #include "gtest/gtest.h"
 
 namespace GTLib2::domains {

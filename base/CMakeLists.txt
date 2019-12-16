@@ -1,10 +1,10 @@
 add_library(base OBJECT
         algorithm.h
-        algorithm.cpp 
+        algorithm.cpp
         base.h
         base.cpp
         cache.h
-        cache.cpp 
+        cache.cpp
         efg.h
         fogefg.h
         fogefg.cpp
@@ -18,3 +18,12 @@ add_library(base OBJECT
         tree.h
         )
 target_include_directories(base PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+set(TEST_FILES ${TEST_FILES}
+        base/algorithmTest.cpp
+        base/cacheTest.cpp
+        base/efgTest.cpp
+        base/gadgetTest.cpp
+        base/hashingTest.cpp
+        base/treeTest.cpp
+        PARENT_SCOPE)

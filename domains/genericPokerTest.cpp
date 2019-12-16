@@ -28,7 +28,6 @@
 #include "algorithms/utility.h"
 #include "algorithms/stats.h"
 #include "domains/genericPoker.h"
-#include "tests/domainsTest.h"
 
 #include "gtest/gtest.h"
 

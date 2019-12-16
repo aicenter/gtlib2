@@ -33,8 +33,7 @@
 #include "utils/range.h"
 #include "utils/benchmark.h"
 
-#include "tests/domainsTest.h"
-#include "tests/oosTest.h"
+#include "oosTest.h"
 #include <iostream>
 #include <fstream>
 

@@ -30,7 +30,6 @@
 
 #include "algorithms/utility.h"
 #include "domains/goofSpiel.h"
-#include "tests/domainsTest.h"
 
 #include "gtest/gtest.h"
 

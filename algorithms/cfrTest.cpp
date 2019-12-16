@@ -29,8 +29,6 @@
 #include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"
 
-#include "tests/domainsTest.h"
-
 #include "gtest/gtest.h"
 
 

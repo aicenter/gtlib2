@@ -13,3 +13,8 @@ add_library(utils OBJECT
         nn_transform_data.cpp
         )
 target_include_directories(utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+set(TEST_FILES ${TEST_FILES}
+        utils/exportTest.cpp
+        utils/rangeTest.cpp
+        PARENT_SCOPE)

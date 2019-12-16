@@ -30,7 +30,6 @@
 #include "domains/matching_pennies.h"
 
 #include "LPsolvers/LPSolver.h"
-#include "tests/domainsTest.h"
 #include "gtest/gtest.h"
 
 

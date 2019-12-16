@@ -3,13 +3,15 @@ add_library(algorithms OBJECT
         bestResponse.cpp
         cfr.h
         cfr.cpp
-        cfr_cr.cpp cfr_cr.h
+        cfr_cr.h
+        cfr_cr.cpp
         common.h
         common.cpp
         continualResolving.h
         equilibrium.h
         equilibrium.cpp
-        evaluation.cpp evaluation.h
+        evaluation.h
+        evaluation.cpp
         mccr.h
         mccr.cpp
         normalFormLP.h
@@ -18,7 +20,8 @@ add_library(algorithms OBJECT
         oos.cpp
         stats.h
         stats.cpp
-        strategy.cpp strategy.h
+        strategy.h
+        strategy.cpp
         utility.h
         utility.cpp
         MCTS/ISMCTS.h
@@ -45,3 +48,14 @@ add_library(algorithms OBJECT
         )
 target_include_directories(algorithms PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
+set(TEST_FILES ${TEST_FILES}
+        algorithms/bestResponseTest.cpp
+        algorithms/cfrTest.cpp
+        algorithms/commonTest.cpp
+        algorithms/crTest.cpp
+        algorithms/MCTS/ISMCTSTest.cpp
+        algorithms/mccrTest.cpp
+        algorithms/oosTest.h
+        algorithms/oosTest.cpp
+        algorithms/utilityTest.cpp
+        PARENT_SCOPE)

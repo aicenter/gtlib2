@@ -19,7 +19,7 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "tests/domainsTest.h"
+#include "domainsTest.h"
 
 namespace GTLib2::domains {
 
