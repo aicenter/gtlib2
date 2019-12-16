@@ -214,6 +214,12 @@ string StrategoDomain::getInfo() const {
     return "Stratego game with " + to_string(emptyBoard_.size()) + " cells";
 }
 
+unique_ptr<StrategoDomain> StrategoDomain::STRAT4x4() {
+    return make_unique<StrategoDomain>(StrategoSettings{
+        4, 4, {{1, 1, 2, 2}}, vector<Rank>{'3', '2', '2', '1'}
+    });
+}
+
 unique_ptr<StrategoDomain> StrategoDomain::STRAT3x3() {
     return make_unique<StrategoDomain>(StrategoSettings(3, 3, {{1, 1, 1, 1}}, {'1', '2', '3'}));
 }

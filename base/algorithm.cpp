@@ -163,6 +163,8 @@ vector<double> playMatch(const Domain &domain,
                 Player pl = node->getPlayer();
                 playerMoveCnt[pl]++;
 
+                LOG_INFO("Current AOids are: " << infoset->getAOids());
+
                 if (continuePlay[pl]) {
                     LOG_PLAYER(pl, "Player " << int(pl) << " is thinking in move #"
                                              << playerMoveCnt[pl] << " for " << moveBudget[pl]
