@@ -117,6 +117,7 @@ class StrategoDomain: public Domain, public ConstrainingDomain {
     static unique_ptr<StrategoDomain> STRAT2x2();
     static unique_ptr<StrategoDomain> STRAT3x2();
     static unique_ptr<StrategoDomain> STRAT3x3();
+    static unique_ptr<StrategoDomain> STRAT4x4();
 
     vector<Player> getPlayers() const { return {Player(0), Player(1)}; }
 
