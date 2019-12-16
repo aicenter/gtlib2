@@ -679,8 +679,8 @@ void StrategoDomain::recursiveNodeGeneration(const shared_ptr<AOH> &currentInfos
                                 budgetType, counter, newNodeCallback);
         return;
     }
-
-    for (auto rank : mask[depth]->moved ? getMovableRanks(remaining) : remaining) {
+    auto unrepeatedRanks = distinctRanks(remaining);
+    for (auto rank : mask[depth]->moved ? getMovableRanks(unrepeatedRanks) : unrepeatedRanks) {
         auto newNode = currentNode;
         vector<Rank> newRemaining = remaining;
         bool found = false;
