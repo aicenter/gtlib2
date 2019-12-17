@@ -69,7 +69,6 @@ TEST(ConstrainingDomain, CheckExactInfosets) {
     };
     auto targetInfoset20 = make_shared<AOH>(Player(0), true, targetAOids20);
     testCases.push_back({*domain2, targetInfoset20, 12});
-
     // (1 figure revealed, revealed a rank '3')
     vector<ActionObservationIds> targetAOids21 = {
         {NO_ACTION, NO_OBSERVATION}, {0, 1074544640},
@@ -87,7 +86,8 @@ TEST(ConstrainingDomain, CheckExactInfosets) {
         {NO_ACTION, 101523488}, {1, 8527904},
         {NO_ACTION, 92741664}, {4, 67379232},
         {NO_ACTION, 126558240}, {1, 16850976},
-        {NO_ACTION, 118431776}, {NO_ACTION, observationPlayerMove(0)},
+        {NO_ACTION, 118431776}, {2, 25637811},
+        {NO_ACTION, 92741664}, {NO_ACTION, observationPlayerMove(0)},
     };
     auto targetInfoset21 = make_shared<AOH>(Player(0), true, targetAOids21);
     testCases.push_back({*domain2, targetInfoset21, 3});
