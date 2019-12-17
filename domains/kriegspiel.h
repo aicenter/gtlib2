@@ -413,12 +413,12 @@ class KriegspielState: public State {
      */
     inline vector<Player> getPlayers() const final {
         vector<Player> v;
-        if (!this->gameHasEnded || this->moveHistory->size() == domain_->getMaxStateDepth())
-            v.emplace_back(playerOnTheMove);
+        if (!this->gameHasEnded_ || this->moveHistory_->size() == domain_->getMaxStateDepth())
+            v.emplace_back(playerOnTheMove_);
         return v;
     }
 
-    inline bool isTerminal() const override { return gameHasEnded; };
+    inline bool isTerminal() const override { return gameHasEnded_; };
 
     bool operator==(const State &rhs) const override;
 
@@ -591,22 +591,22 @@ class KriegspielState: public State {
     shared_ptr<vector<shared_ptr<KriegspielAction>>> copyMoveHistory() const;
     shared_ptr<vector<shared_ptr<KriegspielAction>>> copyAttemptedMoves() const;
  protected:
-    shared_ptr<vector<shared_ptr<AbstractPiece>>> pieces;  // players' board
-    vector<shared_ptr<AbstractPiece>> checkingFigures;
-    const shared_ptr<vector<shared_ptr<KriegspielAction>>> moveHistory;
-    const shared_ptr<vector<shared_ptr<KriegspielAction>>> attemptedMoveHistory;
-    Player playerOnTheMove;
-    int lastCut = 0;
-    chess::Square enPassantSquare;
-    Player playerInCheck = -1;
-    const int legalMaxDepth;
-    bool gameHasEnded = false;
+    shared_ptr<vector<shared_ptr<AbstractPiece>>> pieces_;  // players' board
+    vector<shared_ptr<AbstractPiece>> checkingFigures_;
+    const shared_ptr<vector<shared_ptr<KriegspielAction>>> moveHistory_;
+    const shared_ptr<vector<shared_ptr<KriegspielAction>>> attemptedMoveHistory_;
+    Player playerOnTheMove_;
+    int lastCut_ = 0;
+    chess::Square enPassantSquare_;
+    Player playerInCheck_ = -1;
+    const int legalMaxDepth_;
+    bool gameHasEnded_ = false;
  private:
     void initBoard(chess::BOARD);
     void initBoard(string);
-    int xSize;
-    int ySize;
-    bool canPlayerCastle;
+    int xSize_;
+    int ySize_;
+    bool canPlayerCastle_;
 };
 
 }

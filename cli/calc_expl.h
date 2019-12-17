@@ -76,8 +76,8 @@ StrategyProfile OOS_AverageStrategy(const Domain &domain, const AlgParams &cfg,
                 playerData.begin() + (d + 1),
                 new OOSData(*playerData.at(d)));
 
-            auto alg = OOSAlgorithm(domain, pl, *playerData.at(d + 1), settings);
-            playForBudget(alg, node->getAOHInfSet(), moveBudget, budgetType);
+            auto oosAlg = OOSAlgorithm(domain, pl, *playerData.at(d + 1), settings);
+            playForBudget(oosAlg, node->getAOHInfSet(), moveBudget, budgetType);
 
             // copy to evaluated strategy
             if (playerData.at(d + 1)->infosetData.find(infoset)
@@ -176,10 +176,10 @@ StrategyProfile MCCR_AverageStrategy(const Domain &domain, const AlgParams &cfg,
             OOSData &currentData = *playerData.at(d + 1);
 
             if (currentData.hasPublicState(node)) {
-                auto alg = OOSAlgorithm(domain, traversingPlayer, currentData, settings);
+                auto oosAlg = OOSAlgorithm(domain, traversingPlayer, currentData, settings);
                 auto infosets = currentData.getInfosetsForPubStatePlayer(node, traversingPlayer);
                 const shared_ptr<AOH> anInfoset = *infosets.begin(); // todo: random enough? :)
-                playForBudget(alg, anInfoset, moveBudget, budgetType);
+                playForBudget(oosAlg, anInfoset, moveBudget, budgetType);
 
                 // copy to evaluated strategy
                 for (const auto &infoset : targetData.getInfosetsForPubStatePlayer(node,

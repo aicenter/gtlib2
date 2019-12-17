@@ -34,7 +34,7 @@ void exportGraphViz(const Domain &domain, std::ostream &fs);
 void exportGambit(const Domain &domain, const string &fileToSave);
 void exportGambit(const Domain &domain, std::ostream &fs);
 
-void exportGambit(const shared_ptr<EFGNode>& node, std::ostream &fs);
+void exportGambit(const shared_ptr<EFGNode>& rootNode, std::ostream &fs);
 
 }
 

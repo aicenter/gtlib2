@@ -40,8 +40,8 @@ struct NFGSettings {
 #endif
     }
 
-    NFGSettings(vector <vector<double>> utilities, vector <uint32> dimensions) :
-        NFGSettings(move(utilities), move(dimensions), 2, {}) {}
+    NFGSettings(vector <vector<double>> _utilities, vector <uint32> _dimensions) :
+        NFGSettings(move(_utilities), move(_dimensions), 2, {}) {}
 
     explicit NFGSettings(vector <vector<double>> twoPlayerZeroSumMatrix) :
         NFGSettings(getUtilities(twoPlayerZeroSumMatrix), {

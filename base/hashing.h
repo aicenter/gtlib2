@@ -71,7 +71,7 @@
 #include <cstring>
 #include <vector>
 #include <memory>
-
+#include "utils/utils.h"
 
 namespace GTLib2 {
 
@@ -190,6 +190,7 @@ _hashCombineSize(T v, Rest... rest) {
 template<typename Hashable, typename... Rest>
 inline typename enable_if<is_same<HashType,decltype(declval<shared_ptr<Hashable>>()->getHash())>::value,size_t>::type
 _hashCombineSize(const shared_ptr<Hashable> &v, Rest... rest) {
+    UNUSED_EXPR(v);
     return sizeof(HashType) + _hashCombineSize(rest...);
 }
 template<typename Hashable, typename... Rest>
@@ -200,6 +201,7 @@ _hashCombineSize(const shared_ptr<Hashable> &v, Rest... rest) {
 template<typename Hashable, typename... Rest>
 inline typename enable_if<is_same<HashType,decltype(declval<Hashable>().getHash())>::value,size_t>::type
 _hashCombineSize(const Hashable &v, Rest... rest) {
+    UNUSED_EXPR(v);
     return sizeof(HashType) + _hashCombineSize(rest...);
 }
 template<typename Hashable, typename... Rest>
@@ -224,7 +226,8 @@ inline size_t _hashCombineSize(const pair<Hashable, Hashable> &v, Rest... rest) 
 }
 
 // Signatures for copy
-inline void _hashCpy(char *buf, size_t offset) {}
+inline void _hashCpy(char *buf, size_t offset)
+{ UNUSED_EXPR(buf); UNUSED_EXPR(offset); } // unused because it is base case of copy
 template<typename... Rest>
 inline void _hashCpy(char *buf, size_t offset, const std::string &v, Rest... rest);
 template<typename T, typename... Rest>
@@ -269,6 +272,7 @@ template<typename Hashable, typename... Rest>
 inline typename enable_if<!is_same<HashType,decltype(declval<shared_ptr<Hashable>>()->getHash())>::value,void>::type
 _hashCpy(char *buf, size_t offset, const shared_ptr<Hashable> &v, Rest... rest) {
     _hashCpy(buf, offset, *v);
+    UNUSED_VARIADIC(rest);
 }
 template<typename Hashable, typename... Rest>
 inline typename enable_if<is_same<HashType, decltype(declval<Hashable>().getHash())>::value,void>::type

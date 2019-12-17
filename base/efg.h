@@ -162,7 +162,7 @@ class EFGNode {
      */
     inline virtual ProbDistribution chanceProbs() const {
         assert(type_ == ChanceNode);
-        const auto numActions = countAvailableActions();
+        const int numActions = countAvailableActions();
         auto dist = ProbDistribution();
         dist.reserve(numActions);
         for (int i = 0; i < numActions; ++i) dist.push_back(chanceProbForAction(i));
@@ -274,7 +274,7 @@ class EFGNode {
     const vector<double> utilities_;
 };
 
-};  // namespace GTLib2
+}  // namespace GTLib2
 
 MAKE_EQ(GTLib2::EFGNode)
 MAKE_HASHABLE(GTLib2::EFGNode)

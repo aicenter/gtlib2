@@ -22,8 +22,6 @@
 #include "base/cache.h"
 
 
-
-
 namespace GTLib2 {
 
 bool EFGCache::hasAllChildren(const shared_ptr<EFGNode> &node) const {
@@ -190,7 +188,7 @@ void PublicStateCache::createPublicState(const shared_ptr<EFGNode> &node) {
 }
 
 void treeWalk(EFGCache &cache, EFGNodeCallback function) {
-    auto traverse = [&](const shared_ptr<EFGNode> &node, const auto &traverse) {
+    auto traverse = [&](const shared_ptr<EFGNode> &node, const auto &traverseChild) {
 
         // Call the provided function on the current node.
         function(node);
@@ -198,7 +196,7 @@ void treeWalk(EFGCache &cache, EFGNodeCallback function) {
         if (node->type_ == TerminalNode) return;
 
         for (const auto &action : node->availableActions()) {
-            traverse(cache.getChildFor(node, action), traverse);
+            traverseChild(cache.getChildFor(node, action), traverseChild);
         }
     };
 
@@ -206,7 +204,7 @@ void treeWalk(EFGCache &cache, EFGNodeCallback function) {
 }
 
 bool treeWalk(EFGCache &cache, EFGNodeCallback function, int maxEfgDepth) {
-    auto traverse = [&](const shared_ptr<EFGNode> &node, const auto &traverse) {
+    auto traverse = [&](const shared_ptr<EFGNode> &node, const auto &traverseChild) {
 
         // Call the provided function on the current node.
         function(node);
@@ -216,13 +214,13 @@ bool treeWalk(EFGCache &cache, EFGNodeCallback function, int maxEfgDepth) {
 
         bool entireTreeWalked = true;
         for (const auto &action : node->availableActions()) {
-            entireTreeWalked = traverse(cache.getChildFor(node, action), traverse) && entireTreeWalked;
+            entireTreeWalked = traverseChild(cache.getChildFor(node, action), traverseChild)
+                && entireTreeWalked;
         }
         return entireTreeWalked;
     };
 
     return traverse(cache.getRootNode(), traverse);
 }
-
 
 } // namespace GTLib2

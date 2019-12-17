@@ -162,10 +162,11 @@ unique_ptr<Domain> constructDomain(const string &description) {
     if (domainsTable.find(domain) == domainsTable.end()) {
         LOG_ERROR("Domain not found: " << domain);
         LOG_ERROR("List of available domains:")
-        for (const auto &[domain, cb] : domainsTable) {
-            cerr << domain << endl;
+        for (const auto &[availableDomain, cb] : domainsTable) {
+            cerr << availableDomain << endl;
         }
         abort();
+        exit(1);
     }
     return domainsTable.at(domain)(params);
 }

@@ -316,8 +316,8 @@ class AOH: public InformationSet {
 struct InfosetAction {
     const shared_ptr<InformationSet> infoset;
     const shared_ptr<Action> action;
-    InfosetAction(shared_ptr<InformationSet> infoset, shared_ptr<Action> action)
-        : infoset(move(infoset)), action(move(action)) {}
+    InfosetAction(shared_ptr<InformationSet> _infoset, shared_ptr<Action> _action)
+        : infoset(move(_infoset)), action(move(_action)) {}
     inline HashType getHash() const { return infoset->getHash() + action->getHash(); }
     inline bool operator==(const InfosetAction &rhs) const {
         return getHash() == rhs.getHash() && *infoset == *rhs.infoset && *action == *rhs.action;

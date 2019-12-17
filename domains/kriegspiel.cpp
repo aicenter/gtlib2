@@ -47,8 +47,8 @@ AbstractPiece::AbstractPiece(chess::pieceName k,
                              const KriegspielState *s)
     : position(pos), kind(k), color(c), board(s) {}
 
-Pawn::Pawn(chess::pieceName k, int c, chess::Square p, const KriegspielState *b, int id)
-    : AbstractPiece(k, c, p, b), id(id) {}
+Pawn::Pawn(chess::pieceName k, int c, chess::Square p, const KriegspielState *b, int _id)
+    : AbstractPiece(k, c, p, b), id(_id) {}
 Rook::Rook(chess::pieceName k, int c, chess::Square p, const KriegspielState *b)
     : AbstractPiece(k, c, p, b) {}
 Queen::Queen(chess::pieceName k, int c, chess::Square p, const KriegspielState *b)
@@ -766,21 +766,21 @@ KriegspielDomain::KriegspielDomain(unsigned int maxDepth,
 }
 KriegspielObservation::KriegspielObservation(int id) : Observation(id) {}
 KriegspielState::KriegspielState(const Domain *domain, int legalMaxDepth, chess::BOARD b) :
-    State(domain, hashCombine(56456654521424531, legalMaxDepth, int(b))), enPassantSquare(-1, -1),
-    moveHistory(make_shared<vector<shared_ptr<KriegspielAction>>>()),
-    attemptedMoveHistory(make_shared<vector<shared_ptr<KriegspielAction>>>()),
-    playerOnTheMove(chess::WHITE),
-    legalMaxDepth(legalMaxDepth) {
+    State(domain, hashCombine(56456654521424531, legalMaxDepth, int(b))), enPassantSquare_(-1, -1),
+    moveHistory_(make_shared<vector<shared_ptr<KriegspielAction>>>()),
+    attemptedMoveHistory_(make_shared<vector<shared_ptr<KriegspielAction>>>()),
+    playerOnTheMove_(chess::WHITE),
+    legalMaxDepth_(legalMaxDepth) {
     this->initBoard(b);
     this->updateState(chess::WHITE);
 }
 
 KriegspielState::KriegspielState(const Domain *domain, int legalMaxDepth, string s)
-    : State(domain, hashCombine(6545315341531531, legalMaxDepth, s)), enPassantSquare(-1, -1),
-      moveHistory(make_shared<vector<shared_ptr<KriegspielAction>>>()),
-      attemptedMoveHistory(make_shared<vector<shared_ptr<KriegspielAction>>>()),
-      playerOnTheMove(chess::WHITE),
-      legalMaxDepth(legalMaxDepth) {
+    : State(domain, hashCombine(6545315341531531, legalMaxDepth, s)), enPassantSquare_(-1, -1),
+      moveHistory_(make_shared<vector<shared_ptr<KriegspielAction>>>()),
+      attemptedMoveHistory_(make_shared<vector<shared_ptr<KriegspielAction>>>()),
+      playerOnTheMove_(chess::WHITE),
+      legalMaxDepth_(legalMaxDepth) {
     this->initBoard(std::move(s));
     this->updateAllPieces();
 }
@@ -793,12 +793,12 @@ KriegspielState::KriegspielState(const Domain *domain, int legalMaxDepth, int x,
                                  shared_ptr<vector<shared_ptr<KriegspielAction>>> attemptedMoves)
 // todo: hash is not computed from shared_ptr<vec<shared_ptr>> as there is not support for that atm
     : State(domain, hashCombine(3156841351231, enPassantSquare, x, y, legalMaxDepth, p, castle)),
-      enPassantSquare(enPassantSquare), xSize(x), ySize(y),
-      pieces(std::move(pieces)), moveHistory(move(moves)), legalMaxDepth(legalMaxDepth),
-      attemptedMoveHistory(std::move(attemptedMoves)), canPlayerCastle(castle), playerOnTheMove(p) {
+      enPassantSquare_(enPassantSquare), xSize_(x), ySize_(y),
+      pieces_(std::move(pieces)), moveHistory_(move(moves)), legalMaxDepth_(legalMaxDepth),
+      attemptedMoveHistory_(std::move(attemptedMoves)), canPlayerCastle_(castle), playerOnTheMove_(p) {
 
     //rebind to new board state
-    for (shared_ptr<AbstractPiece> &piece: *this->pieces) {
+    for (shared_ptr<AbstractPiece> &piece: *this->pieces_) {
         piece->setBoard(this);
     }
 }
@@ -853,20 +853,20 @@ unsigned long KriegspielState::countAvailableActionsFor(Player player) const {
 
 vector<shared_ptr<Action>> KriegspielState::getAvailableActionsFor(Player player) const {
     auto list = vector<shared_ptr<Action>>();
-    if (player != this->playerOnTheMove || this->gameHasEnded
-        || this->moveHistory->size() == this->legalMaxDepth) {
+    if (player != this->playerOnTheMove_ || this->gameHasEnded_
+        || this->moveHistory_->size() == this->legalMaxDepth_) {
         return list;
     }
     int count = 0;
-    for (shared_ptr<AbstractPiece> p: *this->pieces) {
+    for (shared_ptr<AbstractPiece> p: *this->pieces_) {
         if (p->getColor() != player) continue;
         auto moves = p->getAllMoves();
         for (Square move: *moves) {
             auto ksa = make_shared<KriegspielAction>(
                 count, pair<shared_ptr<AbstractPiece>, Square>(p, move),
                 p->getPosition());
-            if (std::find(attemptedMoveHistory->begin(), attemptedMoveHistory->end(), ksa)
-                == attemptedMoveHistory->end()) {
+            if (std::find(attemptedMoveHistory_->begin(), attemptedMoveHistory_->end(), ksa)
+                == attemptedMoveHistory_->end()) {
                 list.push_back(ksa);
                 ++count;
             }
@@ -877,10 +877,10 @@ vector<shared_ptr<Action>> KriegspielState::getAvailableActionsFor(Player player
 
 void KriegspielState::promote(shared_ptr<AbstractPiece> p, Square pos) const {
     auto q = make_shared<chess::Queen>(chess::QUEEN, p->getColor(), pos, this);
-    for (auto It = this->pieces->begin(); It != this->pieces->end();) {
+    for (auto It = this->pieces_->begin(); It != this->pieces_->end();) {
         if (*(*It) == *p) {
-            this->pieces->erase(It);
-            this->pieces->push_back(q);
+            this->pieces_->erase(It);
+            this->pieces_->push_back(q);
             break;
         } else {
             ++It;
@@ -890,7 +890,7 @@ void KriegspielState::promote(shared_ptr<AbstractPiece> p, Square pos) const {
 
 vector<shared_ptr<AbstractPiece>> KriegspielState::getPiecesOfColor(int color) const {
     vector<shared_ptr<AbstractPiece>> v;
-    for (shared_ptr<AbstractPiece> &p: *this->pieces) {
+    for (shared_ptr<AbstractPiece> &p: *this->pieces_) {
         if (p->getColor() == color) {
             v.push_back(p);
         }
@@ -899,17 +899,17 @@ vector<shared_ptr<AbstractPiece>> KriegspielState::getPiecesOfColor(int color) c
 }
 
 int KriegspielState::isPlayerInCheck() const {
-    return this->playerInCheck;
+    return this->playerInCheck_;
 }
 
 vector<shared_ptr<AbstractPiece>> KriegspielState::getCheckingFigures() const {
-    return this->checkingFigures;
+    return this->checkingFigures_;
 }
 
 int KriegspielState::checkGameOverCheck(int c) const {
     int inCheck = -1;
     shared_ptr<AbstractPiece> king = this->getPiecesOfColorAndKind(c, chess::KING)[0];
-    for (const shared_ptr<AbstractPiece> &p: *this->pieces) {
+    for (const shared_ptr<AbstractPiece> &p: *this->pieces_) {
         if (p->getColor() == c) continue;
         Square kingPos = king->getPosition();
         vector<Square> attackSquares = p->getSquaresAttacked();
@@ -921,22 +921,22 @@ int KriegspielState::checkGameOverCheck(int c) const {
 }
 
 void KriegspielState::checkPlayerInCheck() {
-    int kingColor = this->playerOnTheMove;
-    this->playerInCheck = -1;
+    int kingColor = this->playerOnTheMove_;
+    this->playerInCheck_ = -1;
     shared_ptr<AbstractPiece> king = this->getPiecesOfColorAndKind(kingColor, chess::KING)[0];
-    for (const shared_ptr<AbstractPiece> &p: *this->pieces) {
+    for (const shared_ptr<AbstractPiece> &p: *this->pieces_) {
         if (p->getColor() == kingColor) continue;
         Square kingPos = king->getPosition();
         vector<Square> attackSquares = p->getSquaresAttacked();
         if (std::find(attackSquares.begin(), attackSquares.end(), kingPos) != attackSquares.end()) {
-            this->playerInCheck = kingColor;
-            this->checkingFigures.push_back(p);
+            this->playerInCheck_ = kingColor;
+            this->checkingFigures_.push_back(p);
         }
     }
 }
 
 bool KriegspielState::canCastle() const {
-    return this->canPlayerCastle;
+    return this->canPlayerCastle_;
 }
 
 void KriegspielState::castle(KriegspielAction *a) const {
@@ -972,11 +972,11 @@ bool KriegspielState::makeMove(KriegspielAction *a) {
         //move valid
         shared_ptr<AbstractPiece> checkCut = this->getPieceOnCoords(pos);
         if (checkCut != nullptr) {
-            lastCut =
-                30 + checkCut->getPosition().x + ((checkCut->getPosition().y - 1) * this->ySize);
-            for (auto It = this->pieces->begin(); It != this->pieces->end();) {
+            lastCut_ =
+                30 + checkCut->getPosition().x + ((checkCut->getPosition().y - 1) * this->ySize_);
+            for (auto It = this->pieces_->begin(); It != this->pieces_->end();) {
                 if (*(*It) == *checkCut) {
-                    this->pieces->erase(It);
+                    this->pieces_->erase(It);
                     break;
                 } else {
                     ++It;
@@ -984,15 +984,15 @@ bool KriegspielState::makeMove(KriegspielAction *a) {
             }
         }
 
-        if (pos.x == this->enPassantSquare.x && pos.y == this->enPassantSquare.y) {
+        if (pos.x == this->enPassantSquare_.x && pos.y == this->enPassantSquare_.y) {
             int pawnColor = chess::invertColor(p->getColor());
             int y = pawnColor == chess::WHITE ? pos.y + 1 : pos.y - 1;
             Square enPassPos(pos.x, y);
             shared_ptr<AbstractPiece> enPassPawn = this->getPieceOnCoords(enPassPos);
             if (enPassPawn != nullptr) {
-                for (auto It = this->pieces->begin(); It != this->pieces->end();) {
+                for (auto It = this->pieces_->begin(); It != this->pieces_->end();) {
                     if (*(*It) == *enPassPawn) {
-                        this->pieces->erase(It);
+                        this->pieces_->erase(It);
                         break;
                     } else {
                         ++It;
@@ -1038,28 +1038,28 @@ vector<double> KriegspielState::checkGameOver() const {
     rewards[chess::WHITE] = 0;
     rewards[chess::BLACK] = 0;
     bool hasMoves[] = {false, false};
-    int isCheck = this->checkGameOverCheck(this->playerOnTheMove);
+    int isCheck = this->checkGameOverCheck(this->playerOnTheMove_);
 
-    for (const shared_ptr<AbstractPiece> &p: *this->pieces) {
+    for (const shared_ptr<AbstractPiece> &p: *this->pieces_) {
         hasMoves[p->getColor()] = hasMoves[p->getColor()] ? true : !p->getAllValidMoves()->empty();
     }
 
-    if (isCheck == this->playerOnTheMove) {
-        if (!hasMoves[this->playerOnTheMove]) {
-            rewards[this->playerOnTheMove] = -1;
-            rewards[chess::invertColor(this->playerOnTheMove)] = 1;
-        } else if (this->moveHistory->size() == this->legalMaxDepth) {
+    if (isCheck == this->playerOnTheMove_) {
+        if (!hasMoves[this->playerOnTheMove_]) {
+            rewards[this->playerOnTheMove_] = -1;
+            rewards[chess::invertColor(this->playerOnTheMove_)] = 1;
+        } else if (this->moveHistory_->size() == this->legalMaxDepth_) {
             rewards[chess::WHITE] = 0;
             rewards[chess::BLACK] = 0;
-        } else if (this->moveHistory->size() + this->attemptedMoveHistory->size()
+        } else if (this->moveHistory_->size() + this->attemptedMoveHistory_->size()
             == domain_->getMaxStateDepth()) {
             rewards[chess::WHITE] = 0;
             rewards[chess::BLACK] = 0;
         }
-    } else if (!hasMoves[this->playerOnTheMove]) {
+    } else if (!hasMoves[this->playerOnTheMove_]) {
         rewards[chess::WHITE] = 0;
         rewards[chess::BLACK] = 0;
-    } else if (this->moveHistory->size() == this->legalMaxDepth) {
+    } else if (this->moveHistory_->size() == this->legalMaxDepth_) {
         rewards[chess::WHITE] = 0;
         rewards[chess::BLACK] = 0;
     }
@@ -1068,7 +1068,7 @@ vector<double> KriegspielState::checkGameOver() const {
 }
 
 Square KriegspielState::getEnPassantSquare() const {
-    return this->enPassantSquare;
+    return this->enPassantSquare_;
 }
 
 
@@ -1079,42 +1079,42 @@ OutcomeDistribution KriegspielState::performActions(
     vector<shared_ptr<Observation>> observations(2);
     vector<double> rewards(2);
     shared_ptr<KriegspielState> s;
-    int nextMove = this->playerOnTheMove;
+    int nextMove = this->playerOnTheMove_;
     Square enPassSquare(-1, -1);
     KriegspielAction *a = a1->getMove().first != nullptr ? a1 : a2;
     shared_ptr<vector<shared_ptr<AbstractPiece>>> pieces = this->copyPieces();
     shared_ptr<vector<shared_ptr<KriegspielAction>>> history = this->copyMoveHistory();
     shared_ptr<vector<shared_ptr<KriegspielAction>>> attemptedmoves = this->copyAttemptedMoves();
     s = make_shared<KriegspielState>(domain_,
-                                     this->legalMaxDepth,
-                                     this->xSize,
-                                     this->ySize,
+                                     this->legalMaxDepth_,
+                                     this->xSize_,
+                                     this->ySize_,
                                      pieces,
-                                     this->enPassantSquare,
+                                     this->enPassantSquare_,
                                      history,
                                      nextMove,
-                                     this->canPlayerCastle,
+                                     this->canPlayerCastle_,
                                      attemptedmoves);
-    s->updateState(this->playerOnTheMove);
+    s->updateState(this->playerOnTheMove_);
     shared_ptr<KriegspielAction> ac = a->clone();
     if (s->makeMove(a)) {
         s->addToHistory(ac);
         enPassSquare = this->checkEnPassant(a);
-        nextMove = chess::invertColor(this->playerOnTheMove);
+        nextMove = chess::invertColor(this->playerOnTheMove_);
         s->setPlayerOnMove(nextMove);
         s->setEnPassant(enPassSquare);
         s->updateState(nextMove);
         rewards = s->checkGameOver();
-        observations[this->playerOnTheMove] = make_shared<Observation>(1);
-        observations[chess::invertColor(this->playerOnTheMove)] =
+        observations[this->playerOnTheMove_] = make_shared<Observation>(1);
+        observations[chess::invertColor(this->playerOnTheMove_)] =
             make_shared<Observation>(
-                s->calculateObservation(chess::invertColor(this->playerOnTheMove)));
+                s->calculateObservation(chess::invertColor(this->playerOnTheMove_)));
         int x = 4;
     } else {
         s->addToAttemptedMoves(ac);
-        nextMove = this->playerOnTheMove;
-        observations[this->playerOnTheMove] = make_shared<Observation>(a->getId());
-        observations[chess::invertColor(this->playerOnTheMove)] =
+        nextMove = this->playerOnTheMove_;
+        observations[this->playerOnTheMove_] = make_shared<Observation>(a->getId());
+        observations[chess::invertColor(this->playerOnTheMove_)] =
             make_shared<Observation>(NO_OBSERVATION);
         s->updateState(nextMove);
         rewards = s->checkGameOver();
@@ -1150,11 +1150,11 @@ Square KriegspielState::checkEnPassant(KriegspielAction *a) const {
 
 bool KriegspielState::operator==(const GTLib2::State &rhs) const {
     const auto rhsState = dynamic_cast<const KriegspielState *>(&rhs);
-    if (this->xSize != rhsState->xSize || this->ySize != rhsState->ySize) {
+    if (this->xSize_ != rhsState->xSize_ || this->ySize_ != rhsState->ySize_) {
         return false;
     }
-    for (int i = 1; i <= this->xSize; i++) {
-        for (int j = 1; j <= this->ySize; j++) {
+    for (int i = 1; i <= this->xSize_; i++) {
+        for (int j = 1; j <= this->ySize_; j++) {
             shared_ptr<AbstractPiece> p1 = this->getPieceOnCoords(Square(i, j));
             shared_ptr<AbstractPiece> p2 = this->getPieceOnCoords(Square(i, j));
             if (p1 == nullptr && p2 == nullptr) continue;
@@ -1168,16 +1168,16 @@ bool KriegspielState::operator==(const GTLib2::State &rhs) const {
 string KriegspielState::toString() const {
     //DEPRECATED
     vector<vector<string>> board;
-    for (int j = 0; j < this->ySize; j++) {
+    for (int j = 0; j < this->ySize_; j++) {
         vector<string> row;
-        for (int i = 0; i < this->xSize; i++) {
+        for (int i = 0; i < this->xSize_; i++) {
             row.emplace_back("_");
             //row.emplace_back(((j*ySize+j+i+1) % 2) ? "□" : "■");
         }
         board.push_back(row);
     }
 
-    for (shared_ptr<AbstractPiece> p: *this->pieces) {
+    for (shared_ptr<AbstractPiece> p: *this->pieces_) {
         Square pos = p->getPosition();
         pos.y -= 1;
         pos.x -= 1;
@@ -1185,7 +1185,7 @@ string KriegspielState::toString() const {
     }
 
     string s;
-    for (int i = this->ySize - 1; i >= 0; i--) {
+    for (int i = this->ySize_ - 1; i >= 0; i--) {
         s += to_string(i+1) + " ";
         vector<string> row = board.at(i);
         for (const string &str: row) {
@@ -1195,7 +1195,7 @@ string KriegspielState::toString() const {
     }
 
     s += "  ";
-    for (int i = 0; i < this->xSize; i++) s += 'a'+i;
+    for (int i = 0; i < this->xSize_; i++) s += 'a'+i;
     s += "\n";
     return s;
 
@@ -1204,7 +1204,7 @@ string KriegspielState::toString() const {
 }
 
 shared_ptr<AbstractPiece> KriegspielState::getPieceOnCoords(Square pos) const {
-    for (const shared_ptr<AbstractPiece> &p: *this->pieces) {
+    for (const shared_ptr<AbstractPiece> &p: *this->pieces_) {
         if (p->getPosition() == pos) {
             return p;
         }
@@ -1213,17 +1213,17 @@ shared_ptr<AbstractPiece> KriegspielState::getPieceOnCoords(Square pos) const {
 }
 
 bool KriegspielState::coordOutOfBounds(Square pos) const {
-    return pos.x > this->xSize || pos.y > this->ySize || pos.x < 1 || pos.y < 1;
+    return pos.x > this->xSize_ || pos.y > this->ySize_ || pos.x < 1 || pos.y < 1;
 }
 
 void KriegspielState::updateAllPieces() const {
-    for (shared_ptr<AbstractPiece> &p: *this->pieces) {
+    for (shared_ptr<AbstractPiece> &p: *this->pieces_) {
         p->update();
     }
 }
 
 void KriegspielState::resetAllPieces() {
-    for (shared_ptr<AbstractPiece> &p: *this->pieces) {
+    for (shared_ptr<AbstractPiece> &p: *this->pieces_) {
         p->reset();
     }
 }
@@ -1238,7 +1238,7 @@ void KriegspielState::updatePiecesOfColor(int color) const {
 vector<shared_ptr<AbstractPiece>>
 KriegspielState::getPiecesOfColorAndKind(int c, chess::pieceName n) const {
     vector<shared_ptr<AbstractPiece>> v;
-    for (const shared_ptr<AbstractPiece> &p: *this->pieces) {
+    for (const shared_ptr<AbstractPiece> &p: *this->pieces_) {
         if (p->getColor() == c && p->getKind() == n) {
             v.push_back(p);
         }
@@ -1259,11 +1259,11 @@ bool KriegspielState::isSquareUnderAttack(int color, Square square) const {
 }
 
 void KriegspielState::clearBoard() {
-    this->pieces->clear();
+    this->pieces_->clear();
 }
 
 void KriegspielState::insertPiece(shared_ptr<AbstractPiece> p) {
-    this->pieces->push_back(p);
+    this->pieces_->push_back(p);
 }
 
 vector<Square>
@@ -1339,32 +1339,32 @@ bool KriegspielState::checkPinnedPiece(AbstractPiece *pinner, AbstractPiece *pin
 void KriegspielState::initBoard(chess::BOARD b) {
     chess::BoardFactory bf;
     chess::boardInfo binfo = bf.create(b, this);
-    this->pieces = binfo.pieces;
-    this->xSize = binfo.x;
-    this->ySize = binfo.y;
-    this->canPlayerCastle = binfo.castle;
+    this->pieces_ = binfo.pieces;
+    this->xSize_ = binfo.x;
+    this->ySize_ = binfo.y;
+    this->canPlayerCastle_ = binfo.castle;
 }
 
 int KriegspielState::getXSize() const {
-    return this->xSize;
+    return this->xSize_;
 }
 
 int KriegspielState::getYSize() const {
-    return this->ySize;
+    return this->ySize_;
 }
 
 void KriegspielState::setPlayerOnMove(int p) {
-    this->playerOnTheMove = p;
+    this->playerOnTheMove_ = p;
 }
 
 void KriegspielState::setGameHasEnded(bool gameHasEnded) {
-    this->gameHasEnded = gameHasEnded;
+    this->gameHasEnded_ = gameHasEnded;
 }
 
 shared_ptr<vector<shared_ptr<AbstractPiece>>> KriegspielState::copyPieces() const {
     shared_ptr<vector<shared_ptr<AbstractPiece>>>
         v = make_shared<vector<shared_ptr<AbstractPiece>>>();
-    for (const shared_ptr<AbstractPiece> &p: *this->pieces) {
+    for (const shared_ptr<AbstractPiece> &p: *this->pieces_) {
         auto asdf = p->clone();
         v->push_back(asdf);
     }
@@ -1374,7 +1374,7 @@ shared_ptr<vector<shared_ptr<AbstractPiece>>> KriegspielState::copyPieces() cons
 shared_ptr<vector<shared_ptr<KriegspielAction>>> KriegspielState::copyMoveHistory() const {
     shared_ptr<vector<shared_ptr<KriegspielAction>>>
         v = make_shared<vector<shared_ptr<KriegspielAction>>>();
-    for (const shared_ptr<KriegspielAction> &a: *this->moveHistory) {
+    for (const shared_ptr<KriegspielAction> &a: *this->moveHistory_) {
         auto asdf = a->clone();
         v->push_back(asdf);
     }
@@ -1382,26 +1382,26 @@ shared_ptr<vector<shared_ptr<KriegspielAction>>> KriegspielState::copyMoveHistor
 }
 
 void KriegspielState::addToHistory(shared_ptr<KriegspielAction> a) {
-    this->moveHistory->push_back(a);
-    this->attemptedMoveHistory->clear();
+    this->moveHistory_->push_back(a);
+    this->attemptedMoveHistory_->clear();
 }
 
 void KriegspielState::setEnPassant(chess::Square s) {
-    this->enPassantSquare = s;
+    this->enPassantSquare_ = s;
     //refresh moves on pawns after setting enpassant square
     vector<shared_ptr<AbstractPiece>>
-        pawns = this->getPiecesOfColorAndKind(this->playerOnTheMove, chess::PAWN);
+        pawns = this->getPiecesOfColorAndKind(this->playerOnTheMove_, chess::PAWN);
     for (shared_ptr<AbstractPiece> &p: pawns) {
         p->update();
     }
 }
 
 void KriegspielState::updateState(int p) {
-    this->playerOnTheMove = p;
+    this->playerOnTheMove_ = p;
     this->resetAllPieces();
-    this->updatePiecesOfColor(chess::invertColor(this->playerOnTheMove));
+    this->updatePiecesOfColor(chess::invertColor(this->playerOnTheMove_));
     this->checkPlayerInCheck();
-    this->updatePiecesOfColor(this->playerOnTheMove);
+    this->updatePiecesOfColor(this->playerOnTheMove_);
 
     //update kings again to remove moves that would cut protected pieces
     shared_ptr<AbstractPiece>
@@ -1417,10 +1417,10 @@ void KriegspielState::updateState(int p) {
 void KriegspielState::initBoard(string s) {
     chess::FenBoardFactory bf;
     chess::boardInfo binfo = bf.create(std::move(s), this);
-    this->pieces = binfo.pieces;
-    this->xSize = binfo.x;
-    this->ySize = binfo.y;
-    this->canPlayerCastle = binfo.castle;
+    this->pieces_ = binfo.pieces;
+    this->xSize_ = binfo.x;
+    this->ySize_ = binfo.y;
+    this->canPlayerCastle_ = binfo.castle;
     if (binfo.xEnpass) {
         Square sq(binfo.xEnpass, binfo.yEnpass);
         this->setEnPassant(sq);
@@ -1430,7 +1430,7 @@ void KriegspielState::initBoard(string s) {
 shared_ptr<vector<shared_ptr<KriegspielAction>>> KriegspielState::copyAttemptedMoves() const {
     shared_ptr<vector<shared_ptr<KriegspielAction>>>
         v = make_shared<vector<shared_ptr<KriegspielAction>>>();
-    for (const shared_ptr<KriegspielAction> &a: *this->attemptedMoveHistory) {
+    for (const shared_ptr<KriegspielAction> &a: *this->attemptedMoveHistory_) {
         auto asdf = a->clone();
         v->push_back(asdf);
     }
@@ -1438,12 +1438,12 @@ shared_ptr<vector<shared_ptr<KriegspielAction>>> KriegspielState::copyAttemptedM
 }
 
 void KriegspielState::addToAttemptedMoves(shared_ptr<KriegspielAction> a) {
-    this->attemptedMoveHistory->push_back(a);
+    this->attemptedMoveHistory_->push_back(a);
 }
 
 int KriegspielState::calculateObservation(Player player) const {
     auto pawns = getPiecesOfColorAndKind(player, chess::PAWN);
-    int toreturn = lastCut;
+    int toreturn = lastCut_;
     for (const shared_ptr<AbstractPiece> &p: pawns) {
         auto curr = dynamic_cast<chess::Pawn *>(p.get());
         for (auto move: *curr->getAllMoves()) {

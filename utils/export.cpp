@@ -171,7 +171,7 @@ void exportGraphViz(const Domain &domain, const string &fileToSave) {
     fs.close();
 }
 
-void exportGambit(const shared_ptr<EFGNode>& node, std::ostream &fs) {
+void exportGambit(const shared_ptr<EFGNode>& rootNode, std::ostream &fs) {
     // Print header
     fs << "EFG 2 R \"" << R"(" { "Pl0" "Pl1" })" << "\n";
 
@@ -246,7 +246,7 @@ void exportGambit(const shared_ptr<EFGNode>& node, std::ostream &fs) {
         }
     };
 
-    treeWalk<EFGNode>(node, walkPrint);
+    treeWalk<EFGNode>(rootNode, walkPrint);
 }
 
 void exportGambit(const Domain &domain, std::ostream &fs) {

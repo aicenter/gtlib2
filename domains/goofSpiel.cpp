@@ -231,17 +231,17 @@ GoofSpielState::performActions(const vector<shared_ptr<Action>> &actions) const 
 
     OutcomeDistribution newOutcomes;
 
-    auto addOutcome = [&](array<int, 3> chosenCards, double chanceProb) {
+    auto addOutcome = [&](array<int, 3> pickedCards, double chanceProb) {
         auto nextPlayerDecks = playerDecks_;
         auto nextPlayedCards = playedCards_;
-        const int nextNatureSelectedCard = chosenCards[2];
+        const int nextNatureSelectedCard = pickedCards[2];
 
         for (int j = 0; j < 3; ++j) {
             nextPlayerDecks[j].erase(
-                std::remove(nextPlayerDecks[j].begin(), nextPlayerDecks[j].end(), chosenCards[j]),
+                std::remove(nextPlayerDecks[j].begin(), nextPlayerDecks[j].end(), pickedCards[j]),
                 nextPlayerDecks[j].end());
 
-            nextPlayedCards[j].push_back(chosenCards[j]);
+            nextPlayedCards[j].push_back(pickedCards[j]);
         }
         const auto newState = make_shared<GoofSpielState>(
             goofdomain, nextPlayerDecks, nextNatureSelectedCard, nextPlayedCards,
@@ -254,19 +254,19 @@ GoofSpielState::performActions(const vector<shared_ptr<Action>> &actions) const 
         if (goofdomain->variant_ == IncompleteObservations) {
             publicObs = make_shared<GoofSpielObservation>(
                 goofdomain->numberOfCards_, array<int, 3>{
-                    NO_CARD_OBSERVATION, NO_CARD_OBSERVATION, chosenCards[2]
+                    NO_CARD_OBSERVATION, NO_CARD_OBSERVATION, pickedCards[2]
                 }, roundResult);
             obs0 = make_shared<GoofSpielObservation>(
                 goofdomain->numberOfCards_, array<int, 3>{
-                    chosenCards[0], NO_CARD_OBSERVATION, chosenCards[2]
+                    pickedCards[0], NO_CARD_OBSERVATION, pickedCards[2]
                 }, roundResult);
             obs1 = make_shared<GoofSpielObservation>(
                 goofdomain->numberOfCards_, array<int, 3>{
-                    NO_CARD_OBSERVATION, chosenCards[1], chosenCards[2]
+                    NO_CARD_OBSERVATION, pickedCards[1], pickedCards[2]
                 }, roundResult);
         } else {
             publicObs = make_shared<GoofSpielObservation>(
-                goofdomain->numberOfCards_, chosenCards, roundResult);
+                goofdomain->numberOfCards_, pickedCards, roundResult);
             obs0 = make_shared<GoofSpielObservation>(*publicObs);
             obs1 = make_shared<GoofSpielObservation>(*publicObs);
         }

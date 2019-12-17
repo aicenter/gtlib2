@@ -37,15 +37,15 @@ protected:
     bool is_reachable(double range_probability);
 
 public:
-    long input_nn_matrix_dim_x = 0, input_nn_matrix_dim_y = 0;
-    long output_nn_matrix_dim_x = 0, output_nn_matrix_dim_y = 0;
+    long input_nn_matrix_dim_x_ = 0, input_nn_matrix_dim_y_ = 0;
+    long output_nn_matrix_dim_x_ = 0, output_nn_matrix_dim_y_ = 0;
 
-    long number_of_rounds = 0;
+    long number_of_rounds_ = 0;
 
-    vector<unsigned int> ***information_set_mapping;
-    vector<unsigned int> ***augmented_information_set_mapping;
+    vector<unsigned int> ***information_set_mapping_;
+    vector<unsigned int> ***augmented_information_set_mapping_;
 
-    vector<vector<double>> features_public_state;
+    vector<vector<double>> features_public_state_;
 
     unsigned long num_possible_actions_sequences_p0_;
 
