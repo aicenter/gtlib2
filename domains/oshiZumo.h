@@ -65,11 +65,11 @@ class OshiZumoDomain : public Domain {
  public:
   explicit OshiZumoDomain(OshiZumoSettings settings);
   string getInfo() const override;
-  inline const int getStartingLocation() const { return startingLocation_; }
-  inline const int getMinBid() const { return minBid_; }
-  inline const bool isOptimalEndGame() const { return optimalEndGame_; }
-  inline const OshiZumoVariant getVariant() const { return variant_; }
-  inline const int getStartingCoins() const { return startingCoins_; }
+  inline int getStartingLocation() const { return startingLocation_; }
+  inline int getMinBid() const { return minBid_; }
+  inline bool isOptimalEndGame() const { return optimalEndGame_; }
+  inline OshiZumoVariant getVariant() const { return variant_; }
+  inline int getStartingCoins() const { return startingCoins_; }
 
   static unique_ptr<OshiZumoDomain> IIOZ(unsigned int n);
   static unique_ptr<OshiZumoDomain> OZ(unsigned int n);

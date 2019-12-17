@@ -51,19 +51,19 @@ class LiarsDiceDomain : public Domain {
     string getInfo() const override;
     vector<Player> getPlayers() const;
 
-    inline const int getPlayerDice(Player pl) const {
+    inline int getPlayerDice(Player pl) const {
         return playersDice_[pl];
     }
 
-    inline const int getSumDice() const {
+    inline int getSumDice() const {
         return playersDice_[0] + playersDice_[1];
     }
 
-    inline const int getFaces() const {
+    inline int getFaces() const {
         return faces_;
     }
 
-    inline const int getMaxBid() const {
+    inline int getMaxBid() const {
         return maxBid_;
     }
 

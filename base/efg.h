@@ -185,7 +185,7 @@ class EFGNode {
 
     virtual const vector<ActionId> &getHistory() const = 0;
 
-    inline const ActionId getLastActionId() const {
+    inline ActionId getLastActionId() const {
         const auto &h = getHistory();
         assert(!h.empty());
         return h.at(h.size()-1);

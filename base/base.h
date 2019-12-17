@@ -170,7 +170,7 @@ class Observation {
     }
 
     inline ObservationId getId() const { return id_; };
-    inline virtual const HashType getHash() const { return id_; };
+    inline virtual HashType getHash() const { return id_; };
     inline virtual bool operator==(const Observation &that) const { return id_ == that.id_; };
     inline friend std::ostream & operator<<(std::ostream &ss, const Observation &o) {
         ss << o.toString();
@@ -198,7 +198,7 @@ struct ActionObservationIds {
 
     bool operator==(const ActionObservationIds &rhs) const;
     bool operator!=(const ActionObservationIds &rhs) const;
-    const HashType getHash() const { return hashCombine(132456456, action, observation); }
+    HashType getHash() const { return hashCombine(132456456, action, observation); }
     inline friend std::ostream & operator<<(std::ostream &ss, const ActionObservationIds &ids) {
         ss << (ids.action == NO_ACTION ? "NoA" : to_string(ids.action)) << " ";
         ss << (ids.observation == NO_OBSERVATION ? "NoOb" : to_string(ids.observation));

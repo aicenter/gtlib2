@@ -32,7 +32,7 @@ class A {
  public:
     explicit A(int x) : x_(x) {};
     int x_;
-    const HashType getHash() const { return x_; }
+    HashType getHash() const { return x_; }
 };
 
 TEST(Hashing, CallHashCombine) {
