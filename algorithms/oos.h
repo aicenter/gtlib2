@@ -114,8 +114,6 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
 
 struct OOSSettings: AlgConfig {
     enum SamplingBlock { OutcomeSampling, ExternalSampling };
-    enum AccumulatorWeighting { UniformAccWeighting, LinearAccWeighting, XLogXAccWeighting };
-    enum RegretMatching { RegretMatchingNormal, RegretMatchingPlus };
     enum Targeting { NoTargeting, InfosetTargeting, PublicStateTargeting };
     enum PlayStrategy { PlayUsingAvgStrategy, PlayUsingRMStrategy };
     enum SamplingScheme { EpsilonOnPolicySampling, UniformSampling };
@@ -153,7 +151,6 @@ struct OOSSettings: AlgConfig {
         if(k == "samplingBlock"          && v == "ExternalSampling")                samplingBlock        = ExternalSampling;                  else
         if(k == "accumulatorWeighting"   && v == "UniformAccWeighting")             accumulatorWeighting = UniformAccWeighting;               else
         if(k == "accumulatorWeighting"   && v == "LinearAccWeighting")              accumulatorWeighting = LinearAccWeighting;                else
-        if(k == "accumulatorWeighting"   && v == "XLogXAccWeighting ")              accumulatorWeighting = XLogXAccWeighting ;                else
         if(k == "regretMatching"         && v == "RegretMatchingNormal")            regretMatching       = RegretMatchingNormal;              else
         if(k == "regretMatching"         && v == "RegretMatchingPlus")              regretMatching       = RegretMatchingPlus;                else
         if(k == "targeting"              && v == "NoTargeting")                     targeting            = NoTargeting;                       else
@@ -182,9 +179,9 @@ struct OOSSettings: AlgConfig {
         std::stringstream ss;
         ss << "; OOS" << endl;
         if(samplingBlock          == OutcomeSampling)                 ss << "samplingBlock          = OutcomeSampling"                 << endl;
-        if(samplingBlock          == ExternalSampling )               ss << "samplingBlock          = ExternalSampling"                << endl;        if(accumulatorWeighting   == UniformAccWeighting)             ss << "accumulatorWeighting   = UniformAccWeighting"              << endl;
+        if(samplingBlock          == ExternalSampling )               ss << "samplingBlock          = ExternalSampling"                << endl;
+        if(accumulatorWeighting   == UniformAccWeighting)             ss << "accumulatorWeighting   = UniformAccWeighting"              << endl;
         if(accumulatorWeighting   == LinearAccWeighting)              ss << "accumulatorWeighting   = LinearAccWeighting"              << endl;
-        if(accumulatorWeighting   == XLogXAccWeighting)               ss << "accumulatorWeighting   = XLogXAccWeighting "              << endl;
         if(regretMatching         == RegretMatchingNormal)            ss << "regretMatching         = RegretMatchingNormal"            << endl;
         if(regretMatching         == RegretMatchingPlus)              ss << "regretMatching         = RegretMatchingPlus"              << endl;
         if(targeting              == NoTargeting)                     ss << "targeting              = NoTargeting"                     << endl;

@@ -466,14 +466,11 @@ void OOSAlgorithm::updateInfosetAcc(const shared_ptr<EFGNode> &, CFRData::Infose
                                     double s) {
     double w = 1.0;
     switch (cfg_.accumulatorWeighting) {
-        case OOSSettings::UniformAccWeighting:
+        case AccumulatorWeighting::UniformAccWeighting:
             w = 1.0;
             break;
-        case OOSSettings::LinearAccWeighting:
+        case AccumulatorWeighting::LinearAccWeighting:
             w = stats_.terminalsVisits + 1;
-            break;
-        case OOSSettings::XLogXAccWeighting:
-            w = (stats_.terminalsVisits + 1) * log10(stats_.terminalsVisits + 1);
             break;
         default:
             unreachable("unrecognized option!");
@@ -502,7 +499,7 @@ void OOSAlgorithm::updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exp
     auto &reg = data.regrets;
 
     switch (cfg_.regretMatching) {
-        case OOSSettings::RegretMatchingPlus:
+        case RegretMatching::RegretMatchingPlus:
             for (unsigned int i = 0; i < reg.size(); i++) {
                 if (i == ai) reg[i] = fmax(0, reg[i] + (u_x - u_h) * w);
                 else {
@@ -510,7 +507,7 @@ void OOSAlgorithm::updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exp
                 }
             }
             break;
-        case OOSSettings::RegretMatchingNormal:
+        case RegretMatching::RegretMatchingNormal:
             for (unsigned int i = 0; i < reg.size(); i++) {
                 if (i == ai) reg[i] += (u_x - u_h) * w;
                 else {
