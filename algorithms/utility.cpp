@@ -134,7 +134,7 @@ UtilityMatrix constructUtilityMatrixFor(
         }
     }
 
-    return UtilityMatrix{.u = matrix, .rows = rows, .cols = cols};
+    return UtilityMatrix{/*.u=*/matrix, /*.rows=*/rows, /*.cols=*/cols};
 }
 
 }  // namespace GTLib2

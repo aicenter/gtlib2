@@ -208,22 +208,22 @@ TEST(Cache, BuildPublicStateCache) {
 TEST(Cache, BuildLargePublicStateCache) {
     GoofSpielDomain domains[] = {
         GoofSpielDomain({
-                            .variant=  IncompleteObservations,
-                            .numCards= 2,
-                            .fixChanceCards= true,
-                            .chanceCards= {}
+                            /*.variant=*/ IncompleteObservations,
+                            /*.numCards=*/2,
+                            /*.fixChanceCards=*/true,
+                            /*.chanceCards=*/{}
                         }),
         GoofSpielDomain({
-                            .variant=  IncompleteObservations,
-                            .numCards= 3,
-                            .fixChanceCards= true,
-                            .chanceCards= {}
+                            /*.variant=*/ IncompleteObservations,
+                            /*.numCards=*/3,
+                            /*.fixChanceCards=*/true,
+                            /*.chanceCards=*/{}
                         }),
         GoofSpielDomain({
-                            .variant=  IncompleteObservations,
-                            .numCards= 4,
-                            .fixChanceCards= true,
-                            .chanceCards= {}
+                            /*.variant=*/ IncompleteObservations,
+                            /*.numCards=*/4,
+                            /*.fixChanceCards=*/true,
+                            /*.chanceCards=*/{}
                         }),
     };
 
@@ -246,10 +246,10 @@ TEST(Cache, BuildLargePublicStateCache) {
 
 TEST(Cache, PublicStateCacheGetInfosets) {
     GoofSpielDomain domain({
-                               .variant=  IncompleteObservations,
-                               .numCards= 2,
-                               .fixChanceCards= true,
-                               .chanceCards= {}
+                               /*.variant=*/ IncompleteObservations,
+                               /*.numCards=*/2,
+                               /*.fixChanceCards=*/true,
+                               /*.chanceCards=*/{}
                            });
     PublicStateCache cache(domain);
     cache.buildTree();
@@ -285,10 +285,10 @@ TEST(Cache, PublicStateCacheGetInfosets) {
 
 TEST(Cache, PublicStateCacheGetInfosetsLarge) {
     GoofSpielDomain domain({
-                               .variant=  IncompleteObservations,
-                               .numCards= 4,
-                               .fixChanceCards= true,
-                               .chanceCards= {}
+                               /*.variant=*/ IncompleteObservations,
+                               /*.numCards=*/4,
+                               /*.fixChanceCards=*/true,
+                               /*.chanceCards=*/{}
                            });
     PublicStateCache cache(domain);
     cache.buildTree();

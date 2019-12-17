@@ -174,10 +174,10 @@ unique_ptr<GoofSpielDomain> GoofSpielDomain::IIGS(unsigned int n) {
     auto chanceCards = vector<int>(n);
     std::generate(chanceCards.begin(), chanceCards.end(), [&n] { return n--; });
     return make_unique<GoofSpielDomain>(GoofSpielSettings{
-        .variant =   IncompleteObservations,
-        .numCards =  static_cast<uint32>(chanceCards.size()),
-        .fixChanceCards =  true,
-        .chanceCards =  chanceCards
+        /*.variant=*/IncompleteObservations,
+        /*.numCards=*/static_cast<uint32>(chanceCards.size()),
+        /*.fixChanceCards=*/true,
+        /*.chanceCards=*/chanceCards
     });
 }
 
@@ -185,10 +185,10 @@ unique_ptr<GoofSpielDomain> GoofSpielDomain::GS(unsigned int n) {
     auto chanceCards = vector<int>(n);
     std::generate(chanceCards.begin(), chanceCards.end(), [&n] { return n--; });
     return make_unique<GoofSpielDomain>(GoofSpielSettings{
-        .variant =   CompleteObservations,
-        .numCards =  static_cast<uint32>(chanceCards.size()),
-        .fixChanceCards =  true,
-        .chanceCards =  chanceCards
+        /*.variant=*/CompleteObservations,
+        /*.numCards=*/static_cast<uint32>(chanceCards.size()),
+        /*.fixChanceCards=*/true,
+        /*.chanceCards=*/chanceCards
     });
 }
 
@@ -227,7 +227,7 @@ GoofSpielState::performActions(const vector<shared_ptr<Action>> &actions) const 
     if (isLastRound && goofdomain->binaryTerminalRewards_) {
         const double finalReward = cumulativeRewards == 0 ? 0 : cumulativeRewards > 0 ? 1 : -1;
         newRewards = {finalReward, -finalReward};
-    } else newRewards = { roundReward, -roundReward };
+    } else newRewards = {roundReward, -roundReward};
 
     OutcomeDistribution newOutcomes;
 

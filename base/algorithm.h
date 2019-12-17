@@ -41,6 +41,8 @@ enum PlayControl {
 };
 
 struct AlgConfig {
+    virtual ~AlgConfig() = default;
+
     inline virtual void update(const string &key, const string &value) {
         LOG_WARN("The key/value '" << key << "': '" << value << "' cannot be set!")
     };

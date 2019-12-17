@@ -74,9 +74,9 @@ int pickRandom(const EFGNode &node, std::mt19937 &generator) {
 
 RandomLeafOutcome pickRandomLeaf(const std::shared_ptr<EFGNode> &start, std::mt19937 &generator) {
     RandomLeafOutcome out = {
-        .utilities = vector<double>(),
-        .playerReachProbs = vector<double>{1., 1.},
-        .chanceReachProb = 1.
+        /*.utilities=*/vector<double>(),
+        /*.playerReachProbs=*/vector<double>{1., 1.},
+        /*.chanceReachProb=*/1.
     };
 
     std::shared_ptr<EFGNode> h = start;

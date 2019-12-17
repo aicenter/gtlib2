@@ -35,14 +35,14 @@ using algorithms::DomainStatistics;
 
 TEST(NormalFormGame, buildGameTreeAndCheckSizesMatrix) {
     DomainStatistics expectedStat = {
-        .max_EFGDepth   = 2,
-        .max_StateDepth = 2,
-        .num_nodes      = 7,
-        .num_terminals  = 4,
-        .num_states     = 5,
-        .num_histories  = {1, 2},
-        .num_infosets   = {1, 1},
-        .num_sequences  = {3, 3},
+        /*.max_EFGDepth   = */2,
+        /*.max_StateDepth = */2,
+        /*.num_nodes      = */7,
+        /*.num_terminals  = */4,
+        /*.num_states     = */5,
+        /*.num_histories  = */{1, 2},
+        /*.num_infosets   = */{1, 1},
+        /*.num_sequences  = */{3, 3},
     };
 
     auto nfgSettings1 = NFGSettings({{-1, -3},
@@ -55,14 +55,14 @@ TEST(NormalFormGame, buildGameTreeAndCheckSizesMatrix) {
 
 TEST(NormalFormGame, buildGameTreeAndCheckSizesVector) {
     DomainStatistics expectedStat = {
-        .max_EFGDepth   = 2,
-        .max_StateDepth = 2,
-        .num_nodes      = 13,
-        .num_terminals  = 9,
-        .num_states     = 10,
-        .num_histories  = {1, 3},
-        .num_infosets   = {1, 1},
-        .num_sequences  = {4, 4},
+        /*.max_EFGDepth   = */2,
+        /*.max_StateDepth = */2,
+        /*.num_nodes      = */13,
+        /*.num_terminals  = */9,
+        /*.num_states     = */10,
+        /*.num_histories  = */{1, 3},
+        /*.num_infosets   = */{1, 1},
+        /*.num_sequences  = */{4, 4},
     };
 
     auto rpsSettings = NFGSettings({{0, 0}, {-1, 1}, {1, -1},

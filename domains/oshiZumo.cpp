@@ -84,17 +84,17 @@ string OshiZumoDomain::getInfo() const {
 
 unique_ptr<OshiZumoDomain> OshiZumoDomain::IIOZ(unsigned int n) {
     return make_unique<OshiZumoDomain>(OshiZumoSettings{
-        .variant =   IncompleteObservation,
-        .startingCoins =  n,
-        .startingLocation =  n,
+        /*.variant=*/IncompleteObservation,
+        /*.startingCoins=*/n,
+        /*.startingLocation=*/n,
     });
 }
 
 unique_ptr<OshiZumoDomain> OshiZumoDomain::OZ(unsigned int n) {
     return make_unique<OshiZumoDomain>(OshiZumoSettings{
-        .variant =   CompleteObservation,
-        .startingCoins =  n,
-        .startingLocation =  n,
+        /*.variant=*/CompleteObservation,
+        /*.startingCoins=*/n,
+        /*.startingLocation=*/n,
     });
 }
 

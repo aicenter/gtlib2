@@ -210,8 +210,8 @@ static_assert(sizeof(ActionObservationIds) == 8, "Should fit within size_t (64 b
 static_assert(sizeof(ActionObservationIds) == sizeof(HashType), "Should have the same size");
 
 const ActionObservationIds NO_ACTION_OBSERVATION{
-    .action = NO_ACTION,
-    .observation = NO_OBSERVATION
+    /*.action=*/NO_ACTION,
+    /*.observation=*/NO_OBSERVATION
 };
 
 

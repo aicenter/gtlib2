@@ -41,14 +41,14 @@ using algorithms::playOnlyAction;
 
 TEST(MatchingPennies, buildGameTreeAndCheckSizesAlternating) {
     DomainStatistics expectedStat = {
-        .max_EFGDepth   = 2,
-        .max_StateDepth = 3,
-        .num_nodes      = 7,
-        .num_terminals  = 4,
-        .num_states     = 7,
-        .num_histories  = {1, 2},
-        .num_infosets   = {1, 1},
-        .num_sequences  = {3, 3},
+        /*.max_EFGDepth   = */2,
+        /*.max_StateDepth =*/3,
+        /*.num_nodes      =*/7,
+        /*.num_terminals  =*/4,
+        /*.num_states     =*/7,
+        /*.num_histories  =*/{1, 2},
+        /*.num_infosets   =*/{1, 1},
+        /*.num_sequences  =*/{3, 3},
     };
 
     MatchingPenniesDomain testDomain(AlternatingMoves);
@@ -60,14 +60,14 @@ TEST(MatchingPennies, buildGameTreeAndCheckSizesAlternating) {
 
 TEST(MatchingPennies, buildGameTreeAndCheckSizesSimultaneous) {
     DomainStatistics expectedStat = {
-        .max_EFGDepth   = 2,
-        .max_StateDepth = 2,
-        .num_nodes      = 7,
-        .num_terminals  = 4,
-        .num_states     = 5,
-        .num_histories  = {1, 2},
-        .num_infosets   = {1, 1},
-        .num_sequences  = {3, 3},
+        /*.max_EFGDepth   = */2,
+        /*.max_StateDepth =*/2,
+        /*.num_nodes      =*/7,
+        /*.num_terminals  =*/4,
+        /*.num_states     =*/5,
+        /*.num_histories  =*/{1, 2},
+        /*.num_infosets   =*/{1, 1},
+        /*.num_sequences  =*/{3, 3},
     };
 
     MatchingPenniesDomain testDomain(SimultaneousMoves);
