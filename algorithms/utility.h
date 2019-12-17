@@ -20,8 +20,6 @@
 */
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 #ifndef ALGORITHMS_UTILITY_H_
 #define ALGORITHMS_UTILITY_H_
 
@@ -53,4 +51,3 @@ vector <BehavioralStrategy> generateAllPureStrategies(
 
 #endif  // ALGORITHMS_UTILITY_H_
 
-#pragma clang diagnostic pop

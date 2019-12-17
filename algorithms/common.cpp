@@ -23,9 +23,6 @@
 #include "base/fogefg.h"
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
-
 
 namespace GTLib2::algorithms {
 
@@ -138,4 +135,3 @@ vector<shared_ptr<EFGNode>> getAllNodesInInfoset(const shared_ptr<AOH> &infoset,
 }
 }  // namespace GTLib2
 
-#pragma clang diagnostic pop

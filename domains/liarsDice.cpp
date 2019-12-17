@@ -24,8 +24,6 @@
 #include "liarsDice.h"
 #include "utils/combinatorics.h"
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
 namespace GTLib2::domains {
 

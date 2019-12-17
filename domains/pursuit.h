@@ -20,8 +20,6 @@
 */
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 #ifndef DOMAINS_PURSUIT_H_
 #define DOMAINS_PURSUIT_H_
 
@@ -244,6 +242,5 @@ class PursuitDomainChance: public PursuitDomain {
 
 #endif  // DOMAINS_PURSUIT_H_
 
-#pragma clang diagnostic pop
 
 

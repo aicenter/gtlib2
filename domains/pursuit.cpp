@@ -21,8 +21,6 @@
 
 #include "domains/pursuit.h"
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
 namespace GTLib2::domains {
 PursuitAction::PursuitAction(ActionId id, int move) : Action(id), move_(move) {}
@@ -545,4 +543,3 @@ PursuitDomainChance::PursuitDomainChance(unsigned int max, unsigned int numberOf
                         vector<double>{0.1, 0.9}) {}
 
 }  // namespace GTLib2
-#pragma clang diagnostic pop

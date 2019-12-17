@@ -20,8 +20,6 @@
 */
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 #ifndef GTLIB2_CHESSBOARDS_H
 #define GTLIB2_CHESSBOARDS_H
 
@@ -67,4 +65,3 @@ class FenBoardFactory {
 }
 
 #endif //GTLIB2_CHESSBOARDS_H
-#pragma clang diagnostic pop

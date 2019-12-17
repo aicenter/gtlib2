@@ -22,8 +22,6 @@
 
 #include "domains/stratego.h"
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
 namespace GTLib2::domains {
 unsigned int encodeMoveObservation(int startPos, int endPos, CellState startCell, CellState endCell) {

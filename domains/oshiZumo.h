@@ -18,8 +18,8 @@
 
     If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
+
+
 #ifndef GTLIB2_OSHIZUMO_H
 #define GTLIB2_OSHIZUMO_H
 

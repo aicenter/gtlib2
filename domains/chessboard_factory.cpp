@@ -21,8 +21,6 @@
 
 #include "chessboard_factory.h"
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
 namespace GTLib2::domains::chess {
 boardInfo BoardFactory::create(BOARD b, GTLib2::domains::KriegspielState *s) {
@@ -444,4 +442,3 @@ string FenBoardFactory::createFEN(const GTLib2::domains::KriegspielState *b) {
 }
 }
 
-#pragma clang diagnostic pop

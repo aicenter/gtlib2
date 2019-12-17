@@ -20,8 +20,6 @@
 */
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 #ifndef BASE_BASE_H_
 #define BASE_BASE_H_
 
@@ -500,4 +498,3 @@ MAKE_HASHABLE(GTLib2::ActionSequence)
 
 #endif  // BASE_BASE_H_
 
-#pragma clang diagnostic pop

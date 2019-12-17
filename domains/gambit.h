@@ -20,8 +20,6 @@
 */
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 #ifndef DOMAINS_GAMBIT_H_
 #define DOMAINS_GAMBIT_H_
 
@@ -100,4 +98,3 @@ class GambitState: public State {
 
 #endif  // DOMAINS_GOOFSPIEL_H_
 
-#pragma clang diagnostic pop

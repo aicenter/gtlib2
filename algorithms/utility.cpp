@@ -20,8 +20,6 @@
 */
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
 #include "algorithms/utility.h"
 
@@ -140,4 +138,3 @@ UtilityMatrix constructUtilityMatrixFor(
 }
 
 }  // namespace GTLib2
-#pragma clang diagnostic pop

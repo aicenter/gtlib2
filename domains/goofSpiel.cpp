@@ -23,8 +23,6 @@
 #include <base/random.h>
 #include "domains/goofSpiel.h"
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
 namespace GTLib2::domains {
 
@@ -326,4 +324,3 @@ bool GoofSpielState::isTerminal() const {
 }
 
 }  // namespace GTLib2
-#pragma clang diagnostic pop

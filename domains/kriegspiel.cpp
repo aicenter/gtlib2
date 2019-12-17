@@ -22,8 +22,6 @@
 
 #include "domains/kriegspiel.h"
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
 namespace GTLib2::domains::chess {
 
@@ -1460,4 +1458,3 @@ int KriegspielState::calculateObservation(Player player) const {
 }
 }
 
-#pragma clang diagnostic pop

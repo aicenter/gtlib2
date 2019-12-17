@@ -22,9 +22,6 @@
 
 #include "base/base.h"
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
-
 namespace GTLib2 {
 
 Outcome::Outcome(shared_ptr<State> _state,
@@ -159,4 +156,3 @@ bool ActionObservationIds::operator!=(const ActionObservationIds &rhs) const {
 }
 }  // namespace GTLib2
 
-#pragma clang diagnostic pop

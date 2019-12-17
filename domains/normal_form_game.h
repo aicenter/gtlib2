@@ -20,8 +20,6 @@
 */
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 #ifndef GTLIB2_DOMAINS_NORMAL_FORM_GAME_H_
 #define GTLIB2_DOMAINS_NORMAL_FORM_GAME_H_
 

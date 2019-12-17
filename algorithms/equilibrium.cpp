@@ -20,8 +20,6 @@
 */
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
 #include "algorithms/equilibrium.h"
 
@@ -45,4 +43,3 @@ StrategyValue findEquilibriumTwoPlayersZeroSum(const Domain &domain) {
 }
 
 }  // namespace GTLib2
-#pragma clang diagnostic pop

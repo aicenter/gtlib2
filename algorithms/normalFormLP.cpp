@@ -21,8 +21,6 @@
 
 #include "algorithms/normalFormLP.h"
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
 namespace GTLib2::algorithms {
 
@@ -202,4 +200,3 @@ void NormalFormLP::AddCols(const vector<vector<double>> &_utility_for_rows) {
 }
 }  // namespace GTLib2
 
-#pragma clang diagnostic pop

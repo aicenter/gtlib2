@@ -20,8 +20,6 @@
 */
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 #ifndef BASE_EFG_H_
 #define BASE_EFG_H_
 
@@ -285,4 +283,3 @@ MAKE_HASHABLE(GTLib2::PublicState)
 
 #endif  // BASE_EFG_H_
 
-#pragma clang diagnostic pop

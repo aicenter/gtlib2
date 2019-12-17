@@ -20,8 +20,6 @@
 */
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 #ifndef ALGORITHMS_NORMALFORMLP_H_
 #define ALGORITHMS_NORMALFORMLP_H_
 
@@ -78,4 +76,3 @@ class NormalFormLP {
 
 #endif  // ALGORITHMS_NORMALFORMLP_H_
 
-#pragma clang diagnostic pop

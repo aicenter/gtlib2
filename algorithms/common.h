@@ -20,8 +20,6 @@
 */
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 #ifndef ALGORITHMS_COMMON_H_
 #define ALGORITHMS_COMMON_H_
 
@@ -54,4 +52,3 @@ vector<shared_ptr<EFGNode>> getAllNodesInInfoset(const shared_ptr<AOH> &infoset,
 
 #endif  // ALGORITHMS_COMMON_H_
 
-#pragma clang diagnostic pop

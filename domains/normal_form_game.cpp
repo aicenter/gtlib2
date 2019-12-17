@@ -23,8 +23,6 @@
 #include "base/base.h"
 #include "domains/normal_form_game.h"
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
 namespace GTLib2::domains {
 
@@ -160,4 +158,3 @@ bool NFGState::operator==(const GTLib2::State &rhs) const {
 }
 
 }  // namespace GTLib2
-#pragma clang diagnostic pop

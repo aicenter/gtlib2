@@ -20,8 +20,6 @@
 */
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 #ifndef DOMAINS_GOOFSPIEL_H_
 #define DOMAINS_GOOFSPIEL_H_
 
@@ -149,4 +147,3 @@ class GoofSpielState: public State {
 
 #endif  // DOMAINS_GOOFSPIEL_H_
 
-#pragma clang diagnostic pop

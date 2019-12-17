@@ -20,8 +20,6 @@
 */
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 #ifndef DOMAINS_PHANTOMTTT_H_
 #define DOMAINS_PHANTOMTTT_H_
 
@@ -114,4 +112,3 @@ class PhantomTTTDomain: public Domain {
 }
 #endif  // DOMAINS_PHANTOMTTT_H_
 
-#pragma clang diagnostic pop

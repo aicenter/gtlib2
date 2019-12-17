@@ -20,8 +20,6 @@
 */
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 #ifndef DOMAINS_KRIEGSPIEL_H_
 #define DOMAINS_KRIEGSPIEL_H_
 
@@ -614,5 +612,3 @@ class KriegspielState: public State {
 }
 
 #endif  // DOMAINS_KRIEGSPIEL_H_
-
-#pragma clang diagnostic pop
