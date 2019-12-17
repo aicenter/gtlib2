@@ -147,10 +147,10 @@ StrategoDomain::StrategoDomain(StrategoSettings settings) :
     Domain(maxMovesWithoutAttack(settings.boardHeight, settings.boardWidth)
                * settings.figures.size() * 2, 2, true,
            make_shared<Action>(), make_shared<Observation>()),
-    emptyBoard_(settings.generateBoard()),
-    startFigures_(settings.figures),
     boardWidth_(settings.boardWidth),
-    boardHeight_(settings.boardHeight) {
+    boardHeight_(settings.boardHeight),
+    startFigures_(settings.figures),
+    emptyBoard_(settings.generateBoard()) {
     assert(boardHeight_ * boardWidth_ > 1);
     const auto newState = make_shared<StrategoState>(this, emptyBoard_, true, false, 0, 0);
     Outcome outcome(newState, {noObservation_, noObservation_}, noObservation_, {0.0, 0.0});

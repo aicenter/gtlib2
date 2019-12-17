@@ -84,8 +84,8 @@ class StrategoDomain: public Domain {
         return {0, 1};
     }
 
-    const int boardHeight_;
     const int boardWidth_;
+    const int boardHeight_;
     const vector<Rank> startFigures_;
     const vector<CellState> emptyBoard_;
 
@@ -164,12 +164,12 @@ class StrategoState: public State {
     inline string toString() const override;
     bool operator==(const State &rhs) const override;
 
+    const vector<CellState> boardState_;
+    const bool isSetupState_;
+    const bool isFinished_;
+    const Player currentPlayer_;
     // noAttackCounter prevent games from looping. After a fixed number of moves without attacks game is stopped with a draw.
     const int noAttackCounter_;
-    const Player currentPlayer_;
-    const bool isFinished_;
-    const bool isSetupState_;
-    const vector<CellState> boardState_;
 };
 }
 

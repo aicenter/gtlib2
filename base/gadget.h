@@ -174,10 +174,10 @@ class GadgetInnerNode: public EFGNode,
  public:
 
     const GadgetGame &game_;
-    const vector<ActionId> history_;
     const shared_ptr<GadgetRootNode const> &parent_;
     const shared_ptr<EFGNode> underlyingNode_;
     const vector<ActionObservationIds> viewingPlAOIds_;
+    const vector<ActionId> history_;
 
     explicit GadgetInnerNode(const GadgetGame &game,
                              const shared_ptr<GadgetRootNode const> &parent,

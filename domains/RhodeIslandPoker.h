@@ -36,7 +36,7 @@ namespace GTLib2::domains {
  */
 class RhodeIslandPokerAction: public Action {
  public:
-    inline RhodeIslandPokerAction() : Action(), value_(0), type_(0) {}
+    inline RhodeIslandPokerAction() : Action(), type_(0), value_(0) {}
     RhodeIslandPokerAction(ActionId id, int type, int value);
     inline string toString() const final;
     inline int GetValue() const { return value_; }
@@ -44,8 +44,8 @@ class RhodeIslandPokerAction: public Action {
     bool operator==(const Action &that) const override;
 
  private:
-    const int value_;
     const int type_;
+    const int value_;
 };
 
 /**
@@ -106,16 +106,16 @@ class RhodeIslandPokerState: public State {
     inline string toString() const override;
 
  protected:
-    const vector<Player> players_;
-    const shared_ptr<RhodeIslandPokerAction> lastAction_;
+    const pair<int, int> player1Card_;  // first number, second color (type)
+    const pair<int, int> player2Card_;
     const optional<pair<int, int>> natureCard1_;  // first number, second color (type)
     const optional<pair<int, int>> natureCard2_;
     const double pot_;
     const double firstPlayerReward_;
-    const pair<int, int> player1Card_;  // first number, second color (type)
-    const pair<int, int> player2Card_;
+    const vector<Player> players_;
     const int round_;
     const int continuousRaiseCount_;
+    const shared_ptr<RhodeIslandPokerAction> lastAction_;
 };
 
 /**

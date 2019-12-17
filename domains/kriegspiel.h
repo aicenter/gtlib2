@@ -300,8 +300,8 @@ class KriegspielAction: public Action {
     HashType getHash() const override;
     shared_ptr<KriegspielAction> clone() const;
  private:
-    const pair<shared_ptr<AbstractPiece>, chess::Square> move_;
     chess::Square moveFrom;
+    const pair<shared_ptr<AbstractPiece>, chess::Square> move_;
 };
 
 /**

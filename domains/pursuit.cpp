@@ -234,7 +234,7 @@ MMPursuitState::MMPursuitState(const Domain *domain,
                                vector<int> numberOfMoves,
                                int currentNOM,
                                int currentPlayer) :
-    PursuitState(domain, p), players_(players), numberOfMoves_(move(numberOfMoves)),
+    PursuitState(domain, p), numberOfMoves_(move(numberOfMoves)), players_(players),
     currentNOM_(currentNOM), currentPlayer_(currentPlayer) {}
 
 MMPursuitState::MMPursuitState(const Domain *domain, const vector<Pos> &p, double prob,

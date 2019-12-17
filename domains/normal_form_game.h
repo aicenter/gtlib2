@@ -55,8 +55,8 @@ struct NFGSettings {
      * by serializing it into a single array.
      */
     const vector <vector<double>> utilities;
-    const uint32 numPlayers;
     const vector <uint32> dimensions;
+    const uint32 numPlayers;
     const vector <vector<string>> actionNames;
 
     static vector <vector<double>> getUtilities(vector <vector<double>> twoPlayerZeroSumMatrix);

@@ -49,8 +49,8 @@ class GenericPokerAction: public Action {
     inline unsigned int getType() const { return type_; }
 
  private:
-    const unsigned int value_;
     const unsigned int type_;
+    const unsigned int value_;
     const HashType hash_;
 };
 
@@ -73,7 +73,7 @@ typedef ObservationId PokerObservationId;
  */
 class GenericPokerObservation: public Observation {
  public:
-    inline GenericPokerObservation() : Observation(), value_(0), type_(0) {}
+    inline GenericPokerObservation() : Observation(), type_(0), value_(0) {}
     inline GenericPokerObservation(PokerObservationId id, unsigned int type, unsigned int value) :
         Observation(id), type_(type), value_(value) {}
 
@@ -82,8 +82,8 @@ class GenericPokerObservation: public Observation {
     inline unsigned int getType() const { return type_; }
 
  private:
-    const unsigned int value_;
     const unsigned int type_;
+    const unsigned int value_;
 };
 
 /**
@@ -158,13 +158,14 @@ class GenericPokerState: public State {
                              int player1Card, int player2Card, optional<int> natureCard,
                              double firstPlayerReward, double pot,
                              Player actingPlayer, int round,
-                             shared_ptr<GenericPokerAction> lastAction,
+                             shared_ptr <GenericPokerAction> lastAction,
                              int continuousRaiseCount) :
         State(domain, hashCombine(23184231156465, actingPlayer, player1Card, player2Card,
                                   natureCard.value_or(-1), round, continuousRaiseCount, pot,
                                   firstPlayerReward)),
         player1Card_(player1Card), player2Card_(player2Card), natureCard_(move(natureCard)),
-        pot_(pot), cumulativeFirstPlayerReward_(firstPlayerReward), actingPlayer_(move(actingPlayer)),
+        pot_(pot), cumulativeFirstPlayerReward_(firstPlayerReward),
+        actingPlayer_(move(actingPlayer)),
         round_(round),
         continuousRaiseCount_(continuousRaiseCount), lastAction_(move(lastAction)) {}
 
@@ -176,34 +177,34 @@ class GenericPokerState: public State {
     ~GenericPokerState() override = default;
 
     unsigned long countAvailableActionsFor(Player player) const override;
-    vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
-    OutcomeDistribution performActions(const vector<shared_ptr<Action>> &actions) const override;
+    vector <shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
+    OutcomeDistribution performActions(const vector <shared_ptr<Action>> &actions) const override;
 
-    inline vector<Player> getPlayers() const final { return vector<Player>{actingPlayer_}; }
-    int hasPlayerOneWon(const shared_ptr<GenericPokerAction> &lastAction, int sign) const;
+    inline vector <Player> getPlayers() const final { return vector<Player>{actingPlayer_}; }
+    int hasPlayerOneWon(const shared_ptr <GenericPokerAction> &lastAction, int sign) const;
     inline bool isTerminal() const override { return round_ == POKER_TERMINAL_ROUND; };
 
     bool operator==(const State &rhs) const override;
     inline string toString() const override;
 
  protected:
-    const Player actingPlayer_;
-    const shared_ptr<GenericPokerAction> lastAction_;
+    const int player1Card_;
+    const int player2Card_;
     const optional<int> natureCard_;
     const double pot_;
     const double cumulativeFirstPlayerReward_;
-    const int player1Card_;
-    const int player2Card_;
+    const Player actingPlayer_;
     const int round_;
     const int continuousRaiseCount_;
+    const shared_ptr <GenericPokerAction> lastAction_;
  private:
     OutcomeDistribution revealChanceCard(double newFirstPlayerReward, double new_pot,
-                                         const shared_ptr<GenericPokerAction> &pokerAction) const;
+                                         const shared_ptr <GenericPokerAction> &pokerAction) const;
 
     OutcomeDistribution progressRound(double newFirstPlayerReward, double newContinuousRaiseCount,
                                       double newPot, Player currentPlayer,
                                       int newRound, PokerObservationId obsId,
-                                      const shared_ptr<GenericPokerAction> &pokerAction) const;
+                                      const shared_ptr <GenericPokerAction> &pokerAction) const;
 };
 
 }  // namespace GTLib2

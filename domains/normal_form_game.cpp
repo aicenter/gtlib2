@@ -85,8 +85,8 @@ NFGDomain::NFGDomain(NFGSettings settings) :
     dimensions_(settings.dimensions),
     numPlayers_(settings.numPlayers),
     utilities_(settings.utilities),
-    actionNames_(settings.getActionNames()),
-    indexingOffsets_(settings.getIndexingOffsets()) {
+    indexingOffsets_(settings.getIndexingOffsets()),
+    actionNames_(settings.getActionNames()) {
 
     auto newState = make_shared<NFGState>(this, vector<uint32>());
     vector<double> rewards(numPlayers_, 0.0);

@@ -38,9 +38,9 @@ GoofSpielObservation::GoofSpielObservation(int initialNumOfCards,
                                            const array<int, 3> &chosenCards,
                                            GoofspielRoundOutcome roundResult)
     : Observation(),
+      natureCard_(chosenCards[2]),
       player0LastCard_(chosenCards[0]),
       player1LastCard_(chosenCards[1]),
-      natureCard_(chosenCards[2]),
       roundResult_(roundResult) {
 
     assert(initialNumOfCards < 20);

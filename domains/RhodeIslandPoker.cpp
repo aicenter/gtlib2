@@ -53,7 +53,7 @@ string RhodeIslandPokerAction::toString() const {
 }
 
 RhodeIslandPokerObservation::RhodeIslandPokerObservation(int id, int type, int value, int color) :
-    Observation(id), type_(type), value_(value), color_(color) {}
+    Observation(id), value_(value), type_(type), color_(color) {}
 
 string RhodeIslandPokerObservation::toString() const {
     if (id_ == NO_OBSERVATION)
@@ -88,9 +88,9 @@ RhodeIslandPokerDomain::RhodeIslandPokerDomain(unsigned int maxCardTypes,
     maxCardTypes_(maxCardTypes),
     maxCardsOfEachType_(maxCardsOfTypes),
     maxRaisesInRow_(maxRaisesInRow),
-    ante_(ante),
     maxDifferentBets_(maxDifferentBets),
-    maxDifferentRaises_(maxDifferentRaises) {
+    maxDifferentRaises_(maxDifferentRaises),
+    ante_(ante) {
     for (int i = 0; i < maxDifferentBets; i++) {
         betsFirstRound_.push_back((i + 1) * 2);
     }

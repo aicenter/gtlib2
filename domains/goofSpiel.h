@@ -138,8 +138,8 @@ class GoofSpielState: public State {
     bool operator==(const State &rhs) const override;
 
     const array<vector<int>, 3> playerDecks_;
-    const array<vector<int>, 3> playedCards_;
     const int natureSelectedCard_;  // Not in the deck. For the last round it will be NO_NATURE_CARD
+    const array<vector<int>, 3> playedCards_;
     const int cumulativeRewards_;
 };
 

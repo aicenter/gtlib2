@@ -104,11 +104,11 @@ class RandomGameState: public State {
         return {0, 1};
     }
  private:
-    const vector<long>
-        playerActionSeeds_; // simple AOH history for each player, used as seed for move generating
     const long stateSeed_; // seed used for reward generating
     const double cumulativeReward_;
     const unsigned int depth_;
+    // simple AOH history for each player, used as seed for move generating
+    const vector<long> playerActionSeeds_;
 };
 
 class RandomGameObservation: public Observation {

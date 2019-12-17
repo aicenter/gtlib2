@@ -40,11 +40,10 @@ RandomGameDomain::RandomGameDomain(RandomGameSettings settings) :
     seed_(settings.seed),
     maxBranchingFactor_(settings.maxBranchingFactor),
     maxDifferentObservations_(settings.maxDifferentObservations),
+    maxRewardModification_(settings.maxRewardModification),
     binaryUtility_(settings.binaryUtility),
     fixedBranchingFactor_(settings.fixedBranchingFactor),
-    maxRewardModification_(settings.maxRewardModification),
     utilityCorrelation_(settings.utilityCorrelation) {
-
     assert(maxBranchingFactor_ > 1);
     assert(maxDifferentObservations_ > 0);
     assert(maxRewardModification_ > 0);
