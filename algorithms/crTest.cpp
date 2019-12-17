@@ -49,15 +49,14 @@ class ExampleCR: public ContinualResolving {
     ExampleCR(const Domain &domain, Player playingPlayer, OOSData &cache)
         : ContinualResolving(domain, playingPlayer), cache_(cache) {}
 
-    inline PlayControl preplayIteration(const shared_ptr<EFGNode> &rootNode) override {
+    inline PlayControl preplayIteration(const shared_ptr<EFGNode> &) override {
         cache_.buildTree();
         return StopImproving;
     }
     // resolve as: play only action at index of "possible actions % public state depth"
     inline PlayControl resolveIteration(const shared_ptr<GadgetRootNode> &rootNode,
-                                        const shared_ptr<AOH> &currentInfoset) override {
+                                        const shared_ptr<AOH> &) override {
         const auto &summary = rootNode->gadget_.summary_;
-        const auto &ps = summary.publicState;
         for (auto &h : summary.topmostHistories) {
             if (h->type_ != PlayerNode) continue;
 

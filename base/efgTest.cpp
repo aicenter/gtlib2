@@ -30,8 +30,6 @@
 #include "domains/goofSpiel.h"
 #include "domains/matching_pennies.h"
 
-#include "tests/domainsTest.h"
-
 #include "gtest/gtest.h"
 
 
@@ -42,10 +40,10 @@ using domains::GoofSpielVariant::IncompleteObservations;
 
 TEST(EFG, CheckActionObservationIds) {
     auto iigs2_seed = GoofSpielDomain({
-                                          variant:  IncompleteObservations,
-                                          numCards: 2,
-                                          fixChanceCards: true,
-                                          chanceCards: {}
+                                          /*.variant=*/ IncompleteObservations,
+                                          /*.numCards=*/2,
+                                          /*.fixChanceCards=*/true,
+                                          /*.chanceCards=*/{}
                                       });
     auto root = createRootEFGNode(iigs2_seed);
     auto child0 = root->performAction(root->availableActions()[0]);

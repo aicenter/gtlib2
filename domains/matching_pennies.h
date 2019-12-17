@@ -20,8 +20,6 @@
 */
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 #ifndef DOMAINS_MATCHING_PENNIES_H_
 #define DOMAINS_MATCHING_PENNIES_H_
 
@@ -98,4 +96,3 @@ class MatchingPenniesState: public State {
 }  // namespace GTLib2
 #endif  // DOMAINS_MATCHING_PENNIES_H_
 
-#pragma clang diagnostic pop

@@ -44,9 +44,9 @@ class AbstractLPSolver {
                             const vector<double> *utility_matrix,
                             bool OUTPUT) = 0;
 
-    virtual double const GetValue(int index) const = 0;
+    virtual double GetValue(int index) = 0;
 
-    virtual double const GetDual(int index) const = 0;
+    virtual double GetDual(int index) = 0;
 
     virtual void SaveLP(const char *file) = 0;
 

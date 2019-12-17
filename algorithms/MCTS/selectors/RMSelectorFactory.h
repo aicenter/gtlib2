@@ -43,7 +43,7 @@ class RMSelectorFactory: public SelectorFactory {
     std::mt19937 generator_;
 };
 
-struct RM_ISMCTSSettings : public ISMCTSSettings {
+struct RM_ISMCTSSettings: public ISMCTSSettings {
     // domain specific values
     const double minUtility_ = -1;
     const double maxUtility_ = 1;

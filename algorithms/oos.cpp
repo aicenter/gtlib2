@@ -135,7 +135,7 @@ PlayControl OOSAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &curr
     if (!targetor_.updateCurrentPosition(playInfoset_, playPublicState_))
         return GiveUp;
 
-    for (int t = 0; t < cfg_.batchSize; ++t) {
+    for (unsigned int t = 0; t < cfg_.batchSize; ++t) {
         for (int exploringPl = 0; exploringPl < 2; ++exploringPl) {
             isBiasedIteration_ = dist_(generator_) <= cfg_.targetBiasing;
             isBelowTargetIS_ = currentInfoset == nullopt
@@ -287,7 +287,6 @@ double OOSAlgorithm::handlePlayerNode(const shared_ptr<EFGNode> &h,
                              data, infoset, exploringPl)
         : incrementallyBuildTree(h, actions, s_h_all, exploringPl);
     // @formatter:on
-    double rm_zha_all = rm_zh_all_;
     rm_zh_all_ *= rm_ha_both;
 
     updateEFGNodeExpectedValue(exploringPl, h, u_h,
@@ -313,7 +312,7 @@ PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
                                                    double rm_h_pl, double rm_h_opp,
                                                    double bs_h_all, double us_h_all, double us_h_cn,
                                                    CFRData::InfosetData &data,
-                                                   const shared_ptr<AOH> &infoset,
+                                                   const shared_ptr<AOH> &,
                                                    Player exploringPl) {
     assert(h->type_ == PlayerNode);
     assert(!isnan(rm_h_pl)
@@ -324,6 +323,10 @@ PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
 
     const bool exploringMoveInNode = h->getPlayer() == exploringPl;
     calcRMProbs(data.regrets, &usProbs_, cfg_.approxRegretMatching);
+#ifndef NDEBUG
+    if (cfg_.approxRegretMatching > 0)
+        for (int i = 0; i < data.regrets.size(); ++i) assert(rmProbs_[i] > 0);
+#endif
 
     const auto&[biasApplicableActions, bsum] = calcBiasing(h, actions, bs_h_all);
     const auto ai = exploringMoveInNode
@@ -344,7 +347,7 @@ PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
     // precompute baseline components now, because after child iteration RM probs will change
     // This is 2nd case of eq. (10) in VR-MCCFR, resp. 2nd case of (9)
     double u_h = 0.;
-    for (int i = 0; i < actions.size(); ++i) {
+    for (unsigned int i = 0; i < actions.size(); ++i) {
         // skip this case, as the baseline changes during this child traversal
         // it will be added as the value of u_x after visiting the child
         if (i == ai) continue;
@@ -405,7 +408,7 @@ pair<int, double> OOSAlgorithm::calcBiasing(const shared_ptr<EFGNode> &h,
     double bsum = 0.0;
     int biasApplicableActions = 0;
 
-    for (int i = 0; i < actions.size(); ++i) {
+    for (unsigned int i = 0; i < actions.size(); ++i) {
         if (targetor_.isAllowedAction(h, actions[i])) {
             (*pBiasedProbs_)[i] = usProbs_[i];
             bsum += usProbs_[i];
@@ -514,18 +517,15 @@ pair<double, double> OOSAlgorithm::calcEFGNodeUpdate(double u_h, bool isExplorin
     return make_pair(a, b);
 }
 
-void OOSAlgorithm::updateInfosetAcc(const shared_ptr<EFGNode> &h, CFRData::InfosetData &data,
+void OOSAlgorithm::updateInfosetAcc(const shared_ptr<EFGNode> &, CFRData::InfosetData &data,
                                     double importanceSamplingRatio) {
     double w = 1.0;
     switch (cfg_.accumulatorWeighting) {
-        case OOSSettings::UniformAccWeighting:
+        case AccumulatorWeighting::UniformAccWeighting:
             w = 1.0;
             break;
-        case OOSSettings::LinearAccWeighting:
+        case AccumulatorWeighting::LinearAccWeighting:
             w = stats_.terminalsVisits + 1;
-            break;
-        case OOSSettings::XLogXAccWeighting:
-            w = (stats_.terminalsVisits + 1) * log10(stats_.terminalsVisits + 1);
             break;
         default:
             unreachable("unrecognized option!");
@@ -534,7 +534,7 @@ void OOSAlgorithm::updateInfosetAcc(const shared_ptr<EFGNode> &h, CFRData::Infos
     switch (cfg_.avgStrategyComputation) {
         case OOSSettings::StochasticallyWeightedAveraging:
             calcRMProbs(data.regrets, &usProbs_, cfg_.approxRegretMatching);
-            for (int i = 0; i < data.avgStratAccumulator.size(); i++) {
+            for (unsigned int i = 0; i < data.avgStratAccumulator.size(); i++) {
                 data.avgStratAccumulator[i] += w * importanceSamplingRatio * usProbs_[i];
                 assert(data.avgStratAccumulator[i] > 0.0);
             }
@@ -546,23 +546,23 @@ void OOSAlgorithm::updateInfosetAcc(const shared_ptr<EFGNode> &h, CFRData::Infos
     }
 }
 void OOSAlgorithm::updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exploringPl,
-                                        CFRData::InfosetData &data, int ai,
+                                        CFRData::InfosetData &data, unsigned int ai,
                                         double u_x, double u_h, double w) {
     assert(!isnan(u_x) && !isnan(u_h) && !isnan(w));
 
     auto &reg = data.regrets;
 
     switch (cfg_.regretMatching) {
-        case OOSSettings::RegretMatchingPlus:
-            for (int i = 0; i < reg.size(); i++) {
+        case RegretMatching::RegretMatchingPlus:
+            for (unsigned int i = 0; i < reg.size(); i++) {
                 if (i == ai)
                     reg[i] = fmax(0, reg[i] + (u_x - u_h) * w);
                 else
                     reg[i] = fmax(0, reg[i] + (baseline(h, i) - u_h) * w);
             }
             break;
-        case OOSSettings::RegretMatchingNormal:
-            for (int i = 0; i < reg.size(); i++) {
+        case RegretMatching::RegretMatchingNormal:
+            for (unsigned int i = 0; i < reg.size(); i++) {
                 if (i == ai)
                     reg[i] += (u_x - u_h) * w;
                 else

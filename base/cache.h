@@ -362,6 +362,7 @@ class PublicStateCache: public virtual EFGCache {
 class StrategyCache {
  public:
     virtual optional <ProbDistribution> strategyFor(const shared_ptr<AOH> &currentInfoset) const = 0;
+    virtual ~StrategyCache() = default;
 };
 
 /**
@@ -374,7 +375,7 @@ void treeWalk(EFGCache &cache, EFGNodeCallback function);
  * Call supplied function at each EFGNode of the EFG tree supplied by cache, including leaves.
  * The tree is walked as DFS up to maximum depth.
  */
-bool treeWalk(EFGCache &cache, EFGNodeCallback function, int maxEfgDepth);
+bool treeWalk(EFGCache &cache, EFGNodeCallback function, unsigned int maxEfgDepth);
 
 inline unsigned int cntPsChildren(const PublicStateCache &cache, const shared_ptr<PublicState> &parent) {
     // todo: inefficient but gets jobs done -- we have fully built caches

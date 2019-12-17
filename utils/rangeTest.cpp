@@ -27,7 +27,7 @@
 #include "gtest/gtest.h"
 
 #define EXPECT_VEC_DOUBLE_EQ(vec1, vec2)       \
-    for(int i = 0; i < vec1.size(); i++) {     \
+    for(unsigned int i = 0; i < vec1.size(); i++) {     \
         const auto v1 = vec1[i];               \
         const auto v2 = vec2[i];               \
         EXPECT_DOUBLE_EQ(v1, v2);              \

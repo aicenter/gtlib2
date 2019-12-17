@@ -40,11 +40,10 @@ RandomGameDomain::RandomGameDomain(RandomGameSettings settings) :
     seed_(settings.seed),
     maxBranchingFactor_(settings.maxBranchingFactor),
     maxDifferentObservations_(settings.maxDifferentObservations),
+    maxRewardModification_(settings.maxRewardModification),
     binaryUtility_(settings.binaryUtility),
     fixedBranchingFactor_(settings.fixedBranchingFactor),
-    maxRewardModification_(settings.maxRewardModification),
     utilityCorrelation_(settings.utilityCorrelation) {
-
     assert(maxBranchingFactor_ > 1);
     assert(maxDifferentObservations_ > 0);
     assert(maxRewardModification_ > 0);
@@ -83,7 +82,7 @@ string RandomGameDomain::getInfo() const {
 vector<shared_ptr<Action>> RandomGameState::getAvailableActionsFor(Player player) const {
     vector<shared_ptr<Action>> actions;
     auto possibleMoves = countAvailableActionsFor(player);
-    for (int i = 0; i < possibleMoves; ++i) {
+    for (unsigned int i = 0; i < possibleMoves; ++i) {
         actions.push_back(make_shared<RandomGameAction>(i));
     }
     return actions;
@@ -109,8 +108,6 @@ RandomGameState::performActions(const vector<shared_ptr<Action>> &actions) const
     auto pubObs = make_shared<RandomGameObservation>(NO_OBSERVATION);
     auto player0Obs = p1Action.getId() % RGdomain->getMaxDifferentObservations();
     auto player1Obs = p0Action.getId() % RGdomain->getMaxDifferentObservations();
-    assert(player0Obs >= 0);
-    assert(player1Obs >= 0);
     vector<shared_ptr<Observation>> observations{make_shared<RandomGameObservation>(player0Obs),
                                                  make_shared<RandomGameObservation>(player1Obs)};
     // simple hashed AOH history

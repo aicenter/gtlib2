@@ -20,8 +20,6 @@
 */
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 #ifndef GTLIB2_DOMAINS_NORMAL_FORM_GAME_H_
 #define GTLIB2_DOMAINS_NORMAL_FORM_GAME_H_
 
@@ -42,8 +40,8 @@ struct NFGSettings {
 #endif
     }
 
-    NFGSettings(vector <vector<double>> utilities, vector <uint32> dimensions) :
-        NFGSettings(move(utilities), move(dimensions), 2, {}) {}
+    NFGSettings(vector <vector<double>> _utilities, vector <uint32> _dimensions) :
+        NFGSettings(move(_utilities), move(_dimensions), 2, {}) {}
 
     explicit NFGSettings(vector <vector<double>> twoPlayerZeroSumMatrix) :
         NFGSettings(getUtilities(twoPlayerZeroSumMatrix), {
@@ -57,8 +55,8 @@ struct NFGSettings {
      * by serializing it into a single array.
      */
     const vector <vector<double>> utilities;
-    const uint32 numPlayers;
     const vector <uint32> dimensions;
+    const uint32 numPlayers;
     const vector <vector<string>> actionNames;
 
     static vector <vector<double>> getUtilities(vector <vector<double>> twoPlayerZeroSumMatrix);
@@ -117,6 +115,6 @@ class NFGState: public State {
     const vector <uint32> playedActions_;
 };
 
-}; // namespace GTLib2
+} // namespace GTLib2
 
 #endif //GTLIB2_DOMAINS_NORMAL_FORM_GAME_H_

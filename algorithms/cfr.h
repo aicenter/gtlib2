@@ -230,9 +230,9 @@ struct ExpectedUtility {
     double rmUtility;
     double avgUtility;
 
-    ExpectedUtility(double rmUtility, double avgUtility) {
-        this->rmUtility = rmUtility;
-        this->avgUtility = avgUtility;
+    ExpectedUtility(double _rmUtility, double _avgUtility) {
+        this->rmUtility = _rmUtility;
+        this->avgUtility = _avgUtility;
     }
 
     bool operator==(const ExpectedUtility &rhs) const {

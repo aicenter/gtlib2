@@ -21,8 +21,6 @@
 
 #include "algorithms/normalFormLP.h"
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
 namespace GTLib2::algorithms {
 
@@ -43,13 +41,13 @@ NormalFormLP::NormalFormLP(const unsigned int p1_actions, const unsigned int p2_
     rows_ = p2_actions;
     cols_ = p1_actions;
 
-    assert(rows_ == utilities.size() && rows_ >= 0);
-    assert(cols_ == utilities[0].size() && cols_ >= 0);
+    assert(rows_ == utilities.size());
+    assert(cols_ == utilities[0].size());
 
     vector<double> tmp(rows_ * cols_);
 
-    for (int i = 0; i < rows_; i++) {
-        for (int j = 0; j < cols_; j++) {
+    for (unsigned int i = 0; i < rows_; i++) {
+        for (unsigned int j = 0; j < cols_; j++) {
             tmp[i * cols_ + j] = utilities[i][j];
         }
     }
@@ -103,12 +101,12 @@ vector<double> NormalFormLP::GetStrategy(int player) {
 
     if (player == 0) {
         result.reserve(cols_);
-        for (int i = 0; i < cols_; ++i) {
+        for (unsigned int i = 0; i < cols_; ++i) {
             result.emplace_back(lp_solver_->GetValue(i));
         }
     } else {
         result.reserve(rows_);
-        for (int i = 0; i < rows_; ++i) {
+        for (unsigned int i = 0; i < rows_; ++i) {
             result.emplace_back(-lp_solver_->GetDual(i));
         }
     }
@@ -136,13 +134,13 @@ void NormalFormLP::UpdateUtilityMatrix(const vector<double> &utilities) {
 }
 
 void NormalFormLP::UpdateUtilityMatrix(const vector<vector<double>> &utilities) {
-    assert(rows_ == utilities.size() && rows_ >= 0);
-    assert(cols_ == utilities[0].size() && cols_ >= 0);
+    assert(rows_ == utilities.size());
+    assert(cols_ == utilities[0].size());
 
     vector<double> tmp(rows_ * cols_);
 
-    for (int i = 0; i < rows_; i++) {
-        for (int j = 0; j < cols_; j++) {
+    for (unsigned int i = 0; i < rows_; i++) {
+        for (unsigned int j = 0; j < cols_; j++) {
             tmp[i * cols_ + j] = utilities[i][j];
         }
     }
@@ -151,7 +149,7 @@ void NormalFormLP::UpdateUtilityMatrix(const vector<vector<double>> &utilities) 
     BuildModel(&tmp);
 }
 
-bool NormalFormLP::ValidateInput(const int p1_actions, const int p2_actions,
+bool NormalFormLP::ValidateInput(const unsigned int p1_actions, const unsigned int p2_actions,
                                  const vector<double> &utilities) {
     if (!(p1_actions >= 1 && p2_actions >= 1
         && utilities.size() == p1_actions * p2_actions)) {
@@ -160,11 +158,10 @@ bool NormalFormLP::ValidateInput(const int p1_actions, const int p2_actions,
     return true;
 }
 
-void NormalFormLP::ChangeOutcome(const int action_for_p1,
-                                 const int action_for_p2,
+void NormalFormLP::ChangeOutcome(const unsigned int action_for_p1,
+                                 const unsigned int action_for_p2,
                                  double new_utility) {
-    if (!(action_for_p1 >= 0 && action_for_p1 < cols_
-        && action_for_p2 >= 0 && action_for_p2 < rows_)) {
+    if (!(action_for_p1 < cols_ && action_for_p2 < rows_)) {
         throw ("Illegal Argument in NormalFormLP - Change Outcome");
     }
 
@@ -202,4 +199,3 @@ void NormalFormLP::AddCols(const vector<vector<double>> &_utility_for_rows) {
 }
 }  // namespace GTLib2
 
-#pragma clang diagnostic pop

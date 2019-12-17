@@ -45,7 +45,6 @@ namespace GTLib2::CLI {
         auto childNode = rootNode->performAction(rootNode->availableActions()[0]);
         auto childInfoset = childNode->getAOHInfSet();
         auto &rootData = data.infosetData.at(rootInfoset);
-        auto &childData = data.infosetData.at(childInfoset);
         assert(rootData.regrets.size() == args::get(regrets).size());
         rootData.regrets = args::get(regrets);
 

@@ -24,18 +24,32 @@
 namespace GTLib2::algorithms {
 
 PlayControl CPW_ISMCTS::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
-    if (currentInfoset == nullopt) {
+    if (currentInfoset == PLAY_FROM_ROOT) {
         iteration(rootNode_);
         return ContinueImproving;
     }
 
-    if (infosetSelectors_.find(*currentInfoset) == infosetSelectors_.end()) return GiveUp;
+    if (currentInfoset_ != *currentInfoset) setCurrentInfoset(*currentInfoset);
+
+    if (!currentISChecked_) {
+        hgNodeGenerator_(dynamic_cast<const ConstrainingDomain &>(domain_),
+                         currentInfoset_,
+                         config_.hgBudgetType,
+                         config_.hgBudget,
+                         [this](const shared_ptr<EFGNode> &node) -> double {
+                             return this->iteration(node);
+                         });
+        currentISChecked_ = true;
+    }
 
     const auto nodes = nodesMap_.find(*currentInfoset);
-    if (nodes == nodesMap_.end()) return GiveUp;
+    if (infosetSelectors_.find(*currentInfoset) == infosetSelectors_.end()
+        || nodes == nodesMap_.end()) {
+        if (config_.iterateRoot) iteration(rootNode_);
+        else return GiveUp;
+    }
 
-    if (currentInfoset_ != *currentInfoset) setCurrentInfoset(*currentInfoset);
-    const int nodeIndex = config_.useBelief
+    const int nodeIndex = useBelief_
                           ? pickRandom(belief_, generator_)
                           : pickRandomInt(0, nodes->second.size() - 1, generator_);
     iteration(nodes->second[nodeIndex]);
@@ -61,8 +75,15 @@ double CPW_ISMCTS::handlePlayerNode(const shared_ptr<EFGNode> &h) {
 }
 
 void CPW_ISMCTS::setCurrentInfoset(const shared_ptr<AOH> &newInfoset) {
-    if (config_.useBelief) {
+    if (useBelief_) {
         const auto newNodesIt = nodesMap_.find(newInfoset);
+        if (newNodesIt == nodesMap_.end()) {
+            belief_ = {};
+            currentInfoset_ = newInfoset;
+            currentISChecked_ = false;
+            useBelief_ = false;
+            return;
+        }
         vector<shared_ptr<EFGNode>> oldNodes;
         if (currentInfoset_ == nullptr) {
             oldNodes = {rootNode_};
@@ -73,16 +94,17 @@ void CPW_ISMCTS::setCurrentInfoset(const shared_ptr<AOH> &newInfoset) {
         const vector<shared_ptr<EFGNode>> newNodes = newNodesIt->second;
 
         belief_ = vector<double>(newNodes.size());
-        for (int i = 0; i < oldNodes.size(); i++) {
+        for (unsigned long i = 0; i < oldNodes.size(); i++) {
             fillBelief(oldNodes[i], newInfoset, oldBelief[i], newNodes);
         }
         //normalize belief
         double sum = 0;
         for (double d : belief_) sum += d;
         assert(sum > 0);
-        for (int i = 0; i < belief_.size(); i++) belief_[i] /= sum;
+        for (double &i : belief_) i /= sum;
     }
     currentInfoset_ = newInfoset;
+    currentISChecked_ = false;
 }
 
 void CPW_ISMCTS::fillBelief(const shared_ptr<EFGNode> &currentNode,
@@ -93,7 +115,7 @@ void CPW_ISMCTS::fillBelief(const shared_ptr<EFGNode> &currentNode,
     if (currentNode->type_ == PlayerNode) {
         const auto currentInfoset = currentNode->getAOHInfSet();
         if (*currentInfoset == *newInfoset) {
-            for (int i = 0; i < newNodes.size(); i++) {
+            for (unsigned int i = 0; i < newNodes.size(); i++) {
                 auto n = newNodes.at(i);
                 if (*n == *currentNode) {
                     belief_[i] = reachProbability;
@@ -110,8 +132,8 @@ void CPW_ISMCTS::fillBelief(const shared_ptr<EFGNode> &currentNode,
         if (it == infosetSelectors_.end())
             return;
         const auto distribution = it->second->getActionsProbDistribution();
-        for (int i = 0; i < currentNode->availableActions().size(); i++) {
-            const auto action = currentNode->availableActions()[i];
+        for (unsigned int i = 0; i < currentNode->countAvailableActions(); i++) {
+            const auto action = currentNode->getActionByID(i);
             fillBelief(currentNode->performAction(action),
                        newInfoset,
                        reachProbability * distribution[i],
@@ -120,8 +142,8 @@ void CPW_ISMCTS::fillBelief(const shared_ptr<EFGNode> &currentNode,
     }
 
     if (currentNode->type_ == ChanceNode) {
-        for (int i = 0; i < currentNode->availableActions().size(); i++) {
-            const auto action = currentNode->availableActions()[i];
+        for (unsigned int i = 0; i < currentNode->countAvailableActions(); i++) {
+            const auto action = currentNode->getActionByID(i);
             fillBelief(currentNode->performAction(action),
                        newInfoset,
                        reachProbability * currentNode->chanceProbForAction(action),

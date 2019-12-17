@@ -41,7 +41,7 @@ double UCTSelector::getBestRateIndex() {
     double bestVal = getUCBRate(values_[0], visits_[0], totalVisits, factory_->cfg_.c);
     int bestIdx = 0;
 
-    for (int i = 1; i < values_.size(); i++) {
+    for (unsigned int i = 1; i < values_.size(); i++) {
         double curVal = getUCBRate(values_[i], visits_[i], totalVisits, factory_->cfg_.c);
 
         if (curVal > bestVal) {
@@ -54,7 +54,7 @@ double UCTSelector::getBestRateIndex() {
 
 int UCTSelector::getBestRateCount(double eps, double bestVal) {
     int count = 0;
-    for (int i = 0; i < values_.size(); i++) {
+    for (unsigned int i = 0; i < values_.size(); i++) {
         double curVal = getUCBRate(values_[i], visits_[i], totalVisits, factory_->cfg_.c);
         if (curVal > bestVal - eps) count++;
     }
@@ -80,7 +80,7 @@ ActionId UCTSelector::select() {
     const int bestCount = getBestRateCount(epsilon, bestVal);
     int index = pickRandomInt(0, bestCount - 1, factory_->getRandom());
     // if there is a number of actions with the same value equal to the best, choose a random one
-    for (int i = 0; i < values_.size(); i++) {
+    for (unsigned int i = 0; i < values_.size(); i++) {
         const double curVal = getUCBRate(values_[i], visits_[i], totalVisits, factory_->cfg_.c);
 
         if (curVal >= bestVal - epsilon) {
@@ -94,7 +94,7 @@ ActionId UCTSelector::select() {
 
 ProbDistribution UCTSelector::getActionsProbDistribution() {
     ProbDistribution probs = vector<double>(visits_.size());
-    for (int i = 0; i < visits_.size(); i++) {
+    for (unsigned int i = 0; i < visits_.size(); i++) {
         probs[i] = visits_[i] * 1.0 / totalVisits;
     }
     return probs;

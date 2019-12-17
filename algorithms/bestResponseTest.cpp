@@ -30,7 +30,6 @@
 #include "domains/matching_pennies.h"
 
 #include "LPsolvers/LPSolver.h"
-#include "tests/domainsTest.h"
 #include "gtest/gtest.h"
 
 
@@ -71,8 +70,8 @@ TEST(BestResponse, TestSmallDomain) {
 }
 
 TEST(BestResponse, GoofspielFullDepthCard4) {
-    GoofSpielDomain domain
-        ({variant:  CompleteObservations, numCards: 4, fixChanceCards: false, chanceCards: {}});
+    GoofSpielDomain domain({/*.variant=*/CompleteObservations, /*.numCards=*/4,
+                               /*.fixChanceCards=*/false, /*.chanceCards=*/{}});
 
     auto player = Player(1);
     auto opponent = Player(0);
@@ -89,10 +88,10 @@ TEST(BestResponse, GoofspielFullDepthCard4) {
     actions.emplace(7, make_shared<GoofSpielAction>(0, 3));
     actions.emplace(9, make_shared<GoofSpielAction>(0, 4));
 
-    auto setAction = [&](shared_ptr <EFGNode> node) {
-        if(node->type_ != PlayerNode) return;
+    auto setAction = [&](shared_ptr<EFGNode> node) {
+        if (node->type_ != PlayerNode) return;
 
-        if(node->getPlayer() == opponent) {
+        if (node->getPlayer() == opponent) {
             auto infoset = node->getAOHInfSet();
             playOnlyAction(profile[opponent][infoset], actions[node->efgDepth()]);
         }
@@ -105,8 +104,8 @@ TEST(BestResponse, GoofspielFullDepthCard4) {
 }
 
 TEST(BestResponse, GoofspielDepth2Card4) {
-    GoofSpielDomain domain
-        ({variant:  CompleteObservations, numCards: 4, fixChanceCards: false, chanceCards: {}});
+    GoofSpielDomain domain({/*.variant=*/CompleteObservations, /*.numCards=*/4,
+                               /*.fixChanceCards=*/false, /*.chanceCards=*/{}});
 
     auto player = Player(1);
     auto opponent = Player(0);
@@ -117,8 +116,8 @@ TEST(BestResponse, GoofspielDepth2Card4) {
     auto lowestCardAction = make_shared<GoofSpielAction>(0, 1);
     auto secondLowestCardAction = make_shared<GoofSpielAction>(0, 2);
 
-    auto setAction = [&](shared_ptr <EFGNode> node) {
-        if(node->type_ != PlayerNode) return;
+    auto setAction = [&](shared_ptr<EFGNode> node) {
+        if (node->type_ != PlayerNode) return;
 
         auto infoset = node->getAOHInfSet();
         if (node->efgDepth() == 1) {

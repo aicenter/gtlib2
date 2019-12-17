@@ -20,8 +20,6 @@
 */
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 #ifndef DOMAINS_KRIEGSPIEL_H_
 #define DOMAINS_KRIEGSPIEL_H_
 
@@ -85,9 +83,7 @@ class AbstractPiece {
    * @param const GTLib2::domains::KriegspielState* the board the piece is on
    */
   AbstractPiece(pieceName, int, Square, const GTLib2::domains::KriegspielState *s);
-  inline ~AbstractPiece() {
-
-  };
+  virtual inline ~AbstractPiece() = default;
   /**
    * Returns all (valid and non-valid) moves of a figure
    */
@@ -313,8 +309,8 @@ class KriegspielAction : public Action {
   HashType getHash() const override;
   shared_ptr<KriegspielAction> clone() const;
  private:
-  const pair<shared_ptr<AbstractPiece>, chess::Square> move_;
-  chess::Square moveFrom;
+  chess::Square moveFrom;const pair<shared_ptr<AbstractPiece>, chess::Square> move_;
+
 };
 
 /**
@@ -403,21 +399,21 @@ class KriegspielState : public State {
   // Constructor
   /**
    * @param Domain the Kriegspiel domain
-   * @param int legalMaxDepth, the depth of game only when counting legal half-moves
+   * @param unsigned int legalMaxDepth, the depth of game only when counting legal half-moves
    * @param chess::BOARD the board type of the game
    */
-  KriegspielState(const Domain *domain, int, chess::BOARD);
+  KriegspielState(const Domain *domain, unsigned int, chess::BOARD);
 
   /**
    * @param Domain the Kriegspiel domain
-   * @param int legalMaxDepth, the depth of game only when counting legal half-moves
+   * @param unsigned int legalMaxDepth, the depth of game only when counting legal half-moves
    * @param stringthe string from which the board is constructed in FEN notation
    */
-  KriegspielState(const Domain *domain, int, string);
+  KriegspielState(const Domain *domain, unsigned int, string);
 
   /**
    * @param Domain the Kriegspiel domain
-   * @param int legalMaxDepth, the depth of game only when counting legal half-moves
+   * @param unsignedint legalMaxDepth, the depth of game only when counting legal half-moves
    * @param int x-size of the board
    * @param int y-size of the board
    * @param shared_ptr<vector<shared_ptr<AbstractPiece>>> a list containing all of the pieces on the board
@@ -428,7 +424,7 @@ class KriegspielState : public State {
    * @param shared_ptr<vector<shared_ptr<KriegspielAction>>> attemptedMoves, a history of attempted moves (non-legal moves)
    */
   KriegspielState(const Domain *domain,
-                  int,
+                  unsignedint,
                   int,
                   int,
                   shared_ptr<vector<shared_ptr<AbstractPiece>>
@@ -460,12 +456,12 @@ class KriegspielState : public State {
    */
   inline vector<Player> getPlayers() const final {
       vector<Player> v;
-      if (!this->gameHasEnded || this->moveHistory->size() == domain_->getMaxStateDepth())
-          v.emplace_back(playerOnTheMove);
+      if (!this->gameHasEnded_ || this->moveHistory_->size() == domain_->getMaxStateDepth())
+          v.emplace_back(playerOnTheMove_);
       return v;
   }
 
-  inline bool isTerminal() const override { return gameHasEnded; };
+  inline bool isTerminal() const override { return gameHasEnded_; };
 
   bool operator==(const State &rhs) const override;
 
@@ -646,29 +642,25 @@ class KriegspielState : public State {
   shared_ptr<vector<shared_ptr<KriegspielAction>>>
   copyAttemptedMoves() const;
  protected:
-  shared_ptr<vector<shared_ptr<AbstractPiece>>>
-      pieces;  // players' board
-  vector<shared_ptr<AbstractPiece>> checkingFigures;
-  const shared_ptr<vector<shared_ptr<KriegspielAction>>>
-      moveHistory;
-  const shared_ptr<vector<shared_ptr<KriegspielAction>>>
-      attemptedMoveHistory;
-  Player playerOnTheMove;
-  optional<shared_ptr<AbstractPiece>> capturedPiece = nullopt;
-  chess::Square enPassantSquare;
-  Player playerInCheck = NO_PLAYER;
-  const int legalMaxDepth;
-  bool gameHasEnded = false;
+    shared_ptr<vector<shared_ptr<AbstractPiece>>> pieces_;  // players' board
+    vector<shared_ptr<AbstractPiece>> checkingFigures_;
+    const shared_ptr<vector<shared_ptr<KriegspielAction>>> moveHistory_;
+    const shared_ptr<vector<shared_ptr<KriegspielAction>>> attemptedMoveHistory_;
+    Player playerOnTheMove_;
+    optional<shared_ptr<AbstractPiece>> capturedPiece = nullopt;
+    int lastCut_ = 0;
+    chess::Square enPassantSquare_;
+    Player playerInCheck_ = NO_PLAYER;
+    const unsigned int legalMaxDepth_;
+    bool gameHasEnded_ = false;
  private:
   void initBoard(chess::BOARD);
   void initBoard(string);
-  int xSize;
-  int ySize;
-  bool canPlayerCastle;
+  int xSize_;
+  int ySize_;
+  bool canPlayerCastle_;
 };
 
 }
 
 #endif  // DOMAINS_KRIEGSPIEL_H_
-
-#pragma clang diagnostic pop

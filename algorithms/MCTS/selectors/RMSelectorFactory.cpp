@@ -45,5 +45,4 @@ double RMSelectorFactory::normalizeValue(double value) const {
     return (value - cfg_.minUtility_) / (cfg_.maxUtility_ - cfg_.minUtility_);
 }
 
-
 }

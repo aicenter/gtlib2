@@ -32,7 +32,7 @@ void calculateDomainStatistics(const Domain &domain, DomainStatistics *stats) {
     auto collectIS = unordered_map<int, unordered_set<shared_ptr<AOH>>>();
     auto collectSequences = unordered_map<int, unordered_set<shared_ptr<ActionSequence>>>();
 
-    for (int i = 0; i < numPlayers; ++i) {
+    for (unsigned int i = 0; i < numPlayers; ++i) {
         collectIS[i] = unordered_set<shared_ptr<AOH>>();
         collectSequences[i] = unordered_set<shared_ptr<ActionSequence>>();
     }
@@ -51,7 +51,7 @@ void calculateDomainStatistics(const Domain &domain, DomainStatistics *stats) {
         stats->max_EFGDepth = max(stats->max_EFGDepth, node->efgDepth());
         stats->max_StateDepth = max(stats->max_StateDepth, node->stateDepth());
 
-        for (int i = 0; i < numPlayers; ++i) {
+        for (unsigned int i = 0; i < numPlayers; ++i) {
             const auto player = Player(i);
             const auto seq = node->getActionsSeqOfPlayer(player);
             collectSequences[player].emplace(seq);
@@ -75,7 +75,7 @@ void calculateDomainStatistics(const Domain &domain, DomainStatistics *stats) {
 
     treeWalk(domain, countingFn);
 
-    for (int i = 0; i < domain.getNumberOfPlayers(); ++i) {
+    for (unsigned int i = 0; i < domain.getNumberOfPlayers(); ++i) {
         stats->num_infosets[i] = collectIS[i].size();
         stats->num_sequences[i] = collectSequences[i].size();
     }

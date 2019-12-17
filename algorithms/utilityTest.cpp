@@ -30,7 +30,6 @@
 
 #include "algorithms/utility.h"
 #include "domains/goofSpiel.h"
-#include "tests/domainsTest.h"
 
 #include "gtest/gtest.h"
 
@@ -42,8 +41,8 @@ using domains::GoofSpielVariant::CompleteObservations;
 
 
 TEST(Utility, ComputeUtilityFullDepthCard4) {
-    GoofSpielDomain domain
-        ({variant: CompleteObservations, numCards: 4, fixChanceCards: false, chanceCards: {}});
+    GoofSpielDomain domain({/*.variant=*/CompleteObservations, /*.numCards=*/4,
+                               /*.fixChanceCards=*/false, /*.chanceCards=*/{}});
 
     auto player = Player(1);
     auto opponent = Player(0);
@@ -57,7 +56,7 @@ TEST(Utility, ComputeUtilityFullDepthCard4) {
     auto fourthLowestCardAction = make_shared<GoofSpielAction>(0, 4);
 
     auto setAction = [&](shared_ptr<EFGNode> node) {
-        if(node->type_ != PlayerNode) return;
+        if (node->type_ != PlayerNode) return;
 
         auto infoset = node->getAOHInfSet();
         if (node->efgDepth() == 0) {

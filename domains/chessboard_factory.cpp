@@ -21,8 +21,6 @@
 
 #include "chessboard_factory.h"
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
 namespace GTLib2::domains::chess {
 boardInfo BoardFactory::create(BOARD b, GTLib2::domains::KriegspielState *s) {
@@ -146,34 +144,34 @@ boardInfo BoardFactory::createMicrochess(
 
         y = j == WHITE ? 1 : 5;
         for (int i = 1; i < 5; i++) {
-            Square pos(i, y);
+            Square pos2(i, y);
             switch (i) {
                 case 1:
                     if (j == WHITE) {
-                        binfo.pieces->push_back(make_shared<Rook>(ROOK, j, pos, b));
+                        binfo.pieces->push_back(make_shared<Rook>(ROOK, j, pos2, b));
                     } else {
-                        binfo.pieces->push_back(make_shared<King>(KING, j, pos, b));
+                        binfo.pieces->push_back(make_shared<King>(KING, j, pos2, b));
                     }
                     break;
                 case 2:
                     if (j == WHITE) {
-                        binfo.pieces->push_back(make_shared<Bishop>(BISHOP, j, pos, b));
+                        binfo.pieces->push_back(make_shared<Bishop>(BISHOP, j, pos2, b));
                     } else {
-                        binfo.pieces->push_back(make_shared<Knight>(KNIGHT, j, pos, b));
+                        binfo.pieces->push_back(make_shared<Knight>(KNIGHT, j, pos2, b));
                     }
                     break;
                 case 3:
                     if (j == WHITE) {
-                        binfo.pieces->push_back(make_shared<Knight>(KNIGHT, j, pos, b));
+                        binfo.pieces->push_back(make_shared<Knight>(KNIGHT, j, pos2, b));
                     } else {
-                        binfo.pieces->push_back(make_shared<Bishop>(BISHOP, j, pos, b));
+                        binfo.pieces->push_back(make_shared<Bishop>(BISHOP, j, pos2, b));
                     }
                     break;
                 case 4:
                     if (j == WHITE) {
-                        binfo.pieces->push_back(make_shared<King>(KING, j, pos, b));
+                        binfo.pieces->push_back(make_shared<King>(KING, j, pos2, b));
                     } else {
-                        binfo.pieces->push_back(make_shared<Rook>(ROOK, j, pos, b));
+                        binfo.pieces->push_back(make_shared<Rook>(ROOK, j, pos2, b));
                     }
                     break;
             }
@@ -225,8 +223,8 @@ boardInfo BoardFactory::createDemichess(
 
 std::vector<std::string> split(std::string stringToBeSplitted, std::string delimeter) {
     std::vector<std::string> splittedString;
-    int startIndex = 0;
-    int  endIndex = 0;
+    unsigned int startIndex = 0;
+    unsigned int endIndex = 0;
     while( (endIndex = stringToBeSplitted.find(delimeter, startIndex)) < stringToBeSplitted.size() )
     {
         std::string val = stringToBeSplitted.substr(startIndex, endIndex - startIndex);
@@ -311,9 +309,9 @@ boardInfo FenBoardFactory::create(string s, GTLib2::domains::KriegspielState *b)
     }
 
     if (strs[3] != "-") {
-        Square s = chess::stringToCoord(strs[3]);
-        binfo.xEnpass = s.x;
-        binfo.yEnpass = s.y;
+        Square s2 = chess::stringToCoord(strs[3]);
+        binfo.xEnpass = s2.x;
+        binfo.yEnpass = s2.y;
     }
     return binfo;
 }
@@ -444,4 +442,3 @@ string FenBoardFactory::createFEN(const GTLib2::domains::KriegspielState *b) {
 }
 }
 
-#pragma clang diagnostic pop

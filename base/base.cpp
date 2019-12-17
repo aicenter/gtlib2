@@ -22,9 +22,6 @@
 
 #include "base/base.h"
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
-
 namespace GTLib2 {
 
 Outcome::Outcome(shared_ptr<State> _state,
@@ -46,7 +43,6 @@ bool Outcome::operator==(const Outcome &rhs) const {
         && rewards == rhs.rewards;
 }
 
-
 AOH::AOH(Player player, bool isPlayerActing, vector<ActionObservationIds> aoHistory)
     : player_(player), isPlayerActing_(isPlayerActing), aoh_(move(aoHistory)),
       hash_(hashCombine(5645138468, aoh_, player_)) {}
@@ -66,7 +62,7 @@ bool AOH::operator==(const InformationSet &rhs) const {
         || isPlayerActing_ != rhsAOH->isPlayerActing_) {
         return false;
     }
-    for (int i = 0; i < aoh_.size(); ++i) {
+    for (unsigned int i = 0; i < aoh_.size(); ++i) {
         if (aoh_[i] != rhsAOH->aoh_[i]) {
             return false;
         }
@@ -83,7 +79,7 @@ string AOH::toString() const {
 bool ActionSequence::operator==(const ActionSequence &rhs) const {
     if (hash_ != rhs.hash_) return false;
     if (sequence_.size() != rhs.sequence_.size()) return false;
-    for (int i = 0; i < sequence_.size(); ++i) {
+    for (unsigned int i = 0; i < sequence_.size(); ++i) {
         if (sequence_[i].getHash() != rhs.sequence_[i].getHash()
             || (sequence_[i] != rhs.sequence_[i])) {
             return false;
@@ -103,7 +99,7 @@ OutcomeDistribution State::performPartialActions(const vector<PlayerAction> &plA
     auto actions = vector<shared_ptr<Action>>();
     actions.reserve(domain_->getNumberOfPlayers());
 
-    for (int i = 0; i < domain_->getNumberOfPlayers(); ++i) {
+    for (unsigned int i = 0; i < domain_->getNumberOfPlayers(); ++i) {
         shared_ptr<Action> actionFound;
         for (const auto&[requestedPlayer, requestedAction] : plActions) {
             if (Player(i) == requestedPlayer) {
@@ -150,42 +146,18 @@ string State::toString() const {
     return std::string("not implemented");
 }
 
+shared_ptr<Action> State::getActionByID(Player player, ActionId action) const {
+    return getAvailableActionsFor(player).at(action);
+}
+
 bool ActionObservationIds::operator==(const ActionObservationIds &rhs) const {
     return action == rhs.action
         && observation == rhs.observation;
 }
+
 bool ActionObservationIds::operator!=(const ActionObservationIds &rhs) const {
     return !(rhs == *this);
 }
 
-bool isAOCompatible(const std::vector<GTLib2::ActionObservationIds> &aoTarget,
-                    const std::vector<GTLib2::ActionObservationIds> &aoCmp) {
-    auto sizeTarget = aoTarget.size();
-    auto sizeCmp = aoCmp.size();
-    if (std::min(sizeTarget, sizeCmp) == 0) return true;
-
-    static_assert(sizeof(GTLib2::ActionObservationIds) == 8);
-    static_assert(sizeof(GTLib2::ObservationId) == 4);
-    static_assert(GTLib2::NO_OBSERVATION > GTLib2::OBSERVATION_PLAYER_MOVE);
-
-    const GTLib2::ObservationId obsCmp = aoCmp[aoCmp.size() - 1].observation;
-    const GTLib2::ObservationId obsTgt = aoTarget[aoTarget.size() - 1].observation;
-
-    size_t cmpBytes;
-    if ((obsCmp >= GTLib2::OBSERVATION_PLAYER_MOVE && (obsCmp < GTLib2::NO_OBSERVATION))
-        || (obsTgt >= GTLib2::OBSERVATION_PLAYER_MOVE && (obsTgt < GTLib2::NO_OBSERVATION))) {
-        // make sure that player move observation has precedence over no observation,
-        // unless it's both no observation
-        cmpBytes = (std::min(sizeTarget, sizeCmp) - 1) * sizeof(GTLib2::ActionObservationIds);
-    } else if (obsCmp == GTLib2::NO_OBSERVATION || obsTgt == GTLib2::NO_OBSERVATION) {
-        cmpBytes = std::min(sizeTarget, sizeCmp) * sizeof(GTLib2::ActionObservationIds) - sizeof(GTLib2::ObservationId);
-    } else {
-        cmpBytes = std::min(sizeTarget, sizeCmp) * sizeof(GTLib2::ActionObservationIds);
-    }
-
-    return !memcmp(aoTarget.data(), aoCmp.data(), cmpBytes);
-}
-
 }  // namespace GTLib2
 
-#pragma clang diagnostic pop

@@ -23,9 +23,6 @@
 #include "base/fogefg.h"
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
-
 
 namespace GTLib2::algorithms {
 
@@ -47,7 +44,7 @@ BehavioralStrategy mixedToBehavioralStrategy(const Domain &domain,
 
     treeWalk(domain, updateBehavStrategy);
 
-    for (int i = 0; i < pureStrats.size(); ++i) {
+    for (unsigned int i = 0; i < pureStrats.size(); ++i) {
         for (const auto &pureStrat : pureStrats[i]) {
             const auto infoset = pureStrat.first;
             const auto actions = pureStrat.second;
@@ -110,4 +107,3 @@ vector<shared_ptr<EFGNode>> getAllNodesInInfoset(const shared_ptr<AOH> &infoset,
 }
 }  // namespace GTLib2
 
-#pragma clang diagnostic pop

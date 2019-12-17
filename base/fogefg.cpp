@@ -89,10 +89,9 @@ shared_ptr<FOG2EFGNode> FOG2EFGNode::performChanceAction(const shared_ptr<Action
     // 2) Chance comes after all of the round players have played.
     //
     // In both of them, we have already received the outcome distribution by which to play.
-
-    assert(action->getId() >= 0
-               && action->getId() < outcomeDist_.size()
-               && typeid(*action) == typeid(EFGChanceAction));
+    const auto &derivedAction = *action.get();
+    assert(action->getId() < outcomeDist_.size()
+               && typeid(derivedAction) == typeid(EFGChanceAction));
 
     return createNodeForSpecificOutcome(action, outcomeDist_[action->getId()]);
 }
@@ -200,7 +199,7 @@ vector<shared_ptr<Action>> FOG2EFGNode::availableActions() const {
 
 vector<shared_ptr<Action>> FOG2EFGNode::createChanceActions() const {
     vector<shared_ptr<Action>> actions;
-    for (int i = 0; i < outcomeDist_.size(); ++i) {
+    for (unsigned int i = 0; i < outcomeDist_.size(); ++i) {
         actions.emplace_back(make_shared<EFGChanceAction>(i, outcomeDist_[i].prob));
     }
     return actions;
@@ -212,7 +211,8 @@ double FOG2EFGNode::chanceProbForAction(const ActionId &action) const {
 
 double FOG2EFGNode::chanceProbForAction(const shared_ptr<Action> &action) const {
     assert(type_ == ChanceNode);
-    assert(typeid(*action) == typeid(EFGChanceAction));
+    const auto &derivedAction = *action.get();
+    assert(typeid(derivedAction) == typeid(EFGChanceAction));
     return outcomeDist_[action->getId()].prob;
 }
 
@@ -408,6 +408,18 @@ FOG2EFGNode::getProbabilityOfActionSeq(Player player, const BehavioralStrategy &
         return prob * actionProb;
     } else {
         return prob;
+    }
+}
+shared_ptr<Action> FOG2EFGNode::getActionByID(ActionId id) const {
+    switch (type_) {
+        case PlayerNode:
+            return lastOutcome_->state->getActionByID(currentPlayer_, id);
+        case ChanceNode:
+            return createChanceActions().at(id);
+        case TerminalNode:
+            unreachable("Not defined for terminal nodes!");
+        default:
+            unreachable("unrecognized option!");
     }
 }
 

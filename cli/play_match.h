@@ -64,16 +64,16 @@ void Command_PlayMatch(args::Subparser &parser) {
     const auto seedValue = seed ? args::get(seed) : 0;
 
     if (args::get(args::tag_header)) {
-        for (int i = 0; i < pb.size(); ++i) cout << "preplay" << i << ",";
-        for (int i = 0; i < mb.size(); ++i) cout << "move" << i << ",";
+        for (unsigned int i = 0; i < pb.size(); ++i) cout << "preplay" << i << ",";
+        for (unsigned int i = 0; i < mb.size(); ++i) cout << "move" << i << ",";
         cout << "budget" << ",";
         cout << "seed" << ",";
         cout << "outcome0,outcome1" << endl;
         throw args::Header();
     }
     if (args::get(args::tag)) {
-        for (int i = 0; i < pb.size(); ++i) cout << pb.at(i) << ",";
-        for (int i = 0; i < mb.size(); ++i) cout << mb.at(i) << ",";
+        for (unsigned int i = 0; i < pb.size(); ++i) cout << pb.at(i) << ",";
+        for (unsigned int i = 0; i < mb.size(); ++i) cout << mb.at(i) << ",";
         cout << (time ? "time" : "iterations") << ",";
         cout << seedValue << ",";
     }

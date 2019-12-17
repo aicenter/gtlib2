@@ -21,8 +21,6 @@
 
 #include "domains/phantomTTT.h"
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 #ifdef DString
 #  define D(x) x
 #else
@@ -222,4 +220,3 @@ string PhantomTTTDomain::getInfo() const {
         rootStatesDistribution_[0].outcome.state->toString() + "\n";
 }
 }  // namespace GTLib2
-#pragma clang diagnostic pop

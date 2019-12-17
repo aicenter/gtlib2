@@ -22,8 +22,6 @@
 */
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 #ifndef BASE_EFG_H_
 #define BASE_EFG_H_
 
@@ -126,6 +124,8 @@ class EFGNode {
         currentPlayer_(other.currentPlayer_),
         utilities_(other.utilities_) {}
 
+    virtual ~EFGNode() = default;
+
  public:
     virtual EFGNodeSpecialization getSpecialization() const = 0;
 
@@ -151,6 +151,8 @@ class EFGNode {
      */
     virtual vector<shared_ptr<Action>> availableActions() const = 0;
 
+    virtual shared_ptr<Action> getActionByID(ActionId id) const = 0;
+
     /**
      * Perform the given action and returns the next EFG node.
      */
@@ -174,7 +176,7 @@ class EFGNode {
      */
     inline virtual ProbDistribution chanceProbs() const {
         assert(type_ == ChanceNode);
-        const auto numActions = countAvailableActions();
+        const int numActions = countAvailableActions();
         auto dist = ProbDistribution();
         dist.reserve(numActions);
         for (int i = 0; i < numActions; ++i) dist.push_back(chanceProbForAction(i));
@@ -195,7 +197,7 @@ class EFGNode {
 
     virtual const vector<ActionId> &getHistory() const = 0;
 
-    inline const ActionId getLastActionId() const {
+    inline ActionId getLastActionId() const {
         const auto &h = getHistory();
         assert(!h.empty());
         return h.at(h.size()-1);
@@ -286,7 +288,7 @@ class EFGNode {
     const vector<double> utilities_;
 };
 
-};  // namespace GTLib2
+}  // namespace GTLib2
 
 MAKE_EQ(GTLib2::EFGNode)
 MAKE_HASHABLE(GTLib2::EFGNode)
@@ -295,4 +297,3 @@ MAKE_HASHABLE(GTLib2::PublicState)
 
 #endif  // BASE_EFG_H_
 
-#pragma clang diagnostic pop

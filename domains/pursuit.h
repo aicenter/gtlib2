@@ -20,8 +20,6 @@
 */
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 #ifndef DOMAINS_PURSUIT_H_
 #define DOMAINS_PURSUIT_H_
 
@@ -39,20 +37,13 @@ struct Pos {
     inline HashType getHash() const { return hashCombine(12315461278641, x, y); }
 };
 
-// Moore neighborhood for observations
-static array<Pos, 10> pursuitEightSurrounding = {{{-2, -2}, {-1, -1}, {0, -1}, {1, -1},
-                                                       {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1},
-                                                       {0, 0}}};
-
 // eight surrounding description
 static array<string, 10> eightdes_ = {"nowhere",
-                                           "top left", "top", "top right",
-                                           "left", "right",
-                                           "bottom left", "bottom", "bottom right",
-                                           "same"};
+                                      "top left", "top", "top right",
+                                      "left", "right",
+                                      "bottom left", "bottom", "bottom right",
+                                      "same"};
 
-// moves
-static array<Pos, 5> pursuitMoves = {{{0, 0}, {1, 0}, {0, 1}, {-1, 0}, {0, -1}}};
 
 // moves description
 static array<string, 5> movedes_ = {"stay", "right", "down", "left", "up"};
@@ -102,13 +93,13 @@ class PursuitObservation: public Observation {
  */
 class PursuitObservationLoc: public Observation {
  public:
-    PursuitObservationLoc(int id, vector <Pos> values);
+    PursuitObservationLoc(int id, vector<Pos> values);
     string toString() const final;
     // Returns vector of mini-observations to others (others' locations).
-    inline const vector <Pos> &GetValues() const { return values_; }
+    inline const vector<Pos> &GetValues() const { return values_; }
 
  private:
-    const vector <Pos> values_;
+    const vector<Pos> values_;
 };
 
 /**
@@ -118,23 +109,23 @@ class PursuitObservationLoc: public Observation {
  */
 class PursuitState: public State {
  public:
-    explicit PursuitState(const Domain *domain, const vector <Pos> &place);
-    PursuitState(const Domain *domain, const vector <Pos> &place, double prob);
+    explicit PursuitState(const Domain *domain, const vector<Pos> &place);
+    PursuitState(const Domain *domain, const vector<Pos> &place, double prob);
     ~PursuitState() override = default;
 
     unsigned long countAvailableActionsFor(Player player) const override;
-    vector <shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
-    OutcomeDistribution performActions(const vector <shared_ptr<Action>> &actions) const override;
-    inline vector <Player> getPlayers() const final { return players_; }
+    vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
+    OutcomeDistribution performActions(const vector<shared_ptr<Action>> &actions) const override;
+    inline vector<Player> getPlayers() const final { return players_; }
     inline bool isTerminal() const override { return players_.empty(); };
 
     inline string toString() const override;
     bool operator==(const State &rhs) const override;
 
  protected:
-    const vector <Pos> place_;  // locations of all players
+    const vector<Pos> place_;  // locations of all players
     // eight surrounding
-    vector <Player> players_;
+    vector<Player> players_;
     const double prob_ = 1;  // state probability
 };
 
@@ -144,26 +135,26 @@ class PursuitState: public State {
  */
 class MMPursuitState: public PursuitState {
  public:
-    MMPursuitState(const Domain *domain, const vector <Pos> &p, const vector <Player> &players,
+    MMPursuitState(const Domain *domain, const vector<Pos> &p, const vector<Player> &players,
                    vector<int> numberOfMoves);
 
-    MMPursuitState(const Domain *domain, const vector <Pos> &p, const vector <Player> &players,
+    MMPursuitState(const Domain *domain, const vector<Pos> &p, const vector<Player> &players,
                    vector<int> numberOfMoves, int currentNOM, int currentPlayer);
 
-    MMPursuitState(const Domain *domain, const vector <Pos> &p, double prob,
-                   const vector <Player> &players, vector<int> numberOfMoves);
+    MMPursuitState(const Domain *domain, const vector<Pos> &p, double prob,
+                   const vector<Player> &players, vector<int> numberOfMoves);
 
-    MMPursuitState(const Domain *domain, const vector <Pos> &p, double prob,
-                   const vector <Player> &players, vector<int> numberOfMoves,
+    MMPursuitState(const Domain *domain, const vector<Pos> &p, double prob,
+                   const vector<Player> &players, vector<int> numberOfMoves,
                    int currentNOM, int currentPlayer);
 
-    OutcomeDistribution performActions(const vector <shared_ptr<Action>> &actions) const override;
+    OutcomeDistribution performActions(const vector<shared_ptr<Action>> &actions) const override;
 
     bool operator==(const State &rhs) const override;
 
  private:
     const vector<int> numberOfMoves_;
-    const vector <Player> players_;
+    const vector<Player> players_;
     const int currentNOM_;
     const int currentPlayer_;
 };
@@ -176,9 +167,9 @@ class MMPursuitState: public PursuitState {
  */
 class ObsPursuitState: public PursuitState {
  public:
-    explicit ObsPursuitState(const Domain *domain, const vector <Pos> &p);
-    ObsPursuitState(const Domain *domain, const vector <Pos> &p, double prob);
-    OutcomeDistribution performActions(const vector <shared_ptr<Action>> &actions) const override;
+    explicit ObsPursuitState(const Domain *domain, const vector<Pos> &p);
+    ObsPursuitState(const Domain *domain, const vector<Pos> &p, double prob);
+    OutcomeDistribution performActions(const vector<shared_ptr<Action>> &actions) const override;
 };
 
 /**
@@ -188,22 +179,22 @@ class ObsPursuitState: public PursuitState {
 class PursuitDomain: public Domain {
  public:
     PursuitDomain(unsigned int max, unsigned int numberOfPlayers,
-                  const vector <Pos> &loc, int height, int width);
+                  const vector<Pos> &loc, int height, int width);
     PursuitDomain(unsigned int max, unsigned int numberOfPlayers,
-                  const vector <Pos> &loc, int height, int width, vector<double> probability);
+                  const vector<Pos> &loc, int height, int width, vector<double> probability);
     PursuitDomain(unsigned int max, unsigned int numberOfPlayers,
-                  const shared_ptr <MMPursuitState> &state, int height, int width);
+                  const shared_ptr<MMPursuitState> &state, int height, int width);
     PursuitDomain(unsigned int max,
                   unsigned int numberOfPlayers,
-                  const shared_ptr <MMPursuitState> &state,
+                  const shared_ptr<MMPursuitState> &state,
                   int height,
                   int width,
                   vector<double> probability);
     PursuitDomain(unsigned int max, unsigned int numberOfPlayers,
-                  const shared_ptr <ObsPursuitState> &state, int height, int width);
+                  const shared_ptr<ObsPursuitState> &state, int height, int width);
     PursuitDomain(unsigned int max,
                   unsigned int numberOfPlayers,
-                  const shared_ptr <ObsPursuitState> &state,
+                  const shared_ptr<ObsPursuitState> &state,
                   int height,
                   int width,
                   vector<double> probability);
@@ -223,27 +214,26 @@ class PursuitDomain: public Domain {
 class PursuitDomainChance: public PursuitDomain {
  public:
     PursuitDomainChance(unsigned int max, unsigned int numberOfPlayers,
-                        const vector <Pos> &firstPlayerLocation,
-                        const vector <Pos> &secondPlayerLocation,
+                        const vector<Pos> &firstPlayerLocation,
+                        const vector<Pos> &secondPlayerLocation,
                         int height, int width);
 
     PursuitDomainChance(unsigned int max, unsigned int numberOfPlayers,
-                        const vector <Pos> &firstPlayerLocation,
-                        const vector <Pos> &secondPlayerLocation,
+                        const vector<Pos> &firstPlayerLocation,
+                        const vector<Pos> &secondPlayerLocation,
                         int height, int width, vector<double> probability);
 
     PursuitDomainChance(unsigned int max, unsigned int numberOfPlayers,
-                        const shared_ptr <MMPursuitState> &state,
+                        const shared_ptr<MMPursuitState> &state,
                         int height, int width);
 
     PursuitDomainChance(unsigned int max, unsigned int numberOfPlayers,
-                        const shared_ptr <MMPursuitState> &state,
+                        const shared_ptr<MMPursuitState> &state,
                         int height, int width, vector<double> probability);
 };
 }  // namespace GTLib2
 
 #endif  // DOMAINS_PURSUIT_H_
 
-#pragma clang diagnostic pop
 
 

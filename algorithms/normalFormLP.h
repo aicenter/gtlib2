@@ -20,8 +20,6 @@
 */
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 #ifndef ALGORITHMS_NORMALFORMLP_H_
 #define ALGORITHMS_NORMALFORMLP_H_
 
@@ -51,7 +49,9 @@ class NormalFormLP {
 
     double SolveGame();
     void AddActions(const int player, const vector<vector<double>> &utility_for_opponent);
-    void ChangeOutcome(const int action_for_p1, const int action_for_p2, double new_utility);
+    void ChangeOutcome(const unsigned int action_for_p1,
+                       const unsigned int action_for_p2,
+                       double new_utility);
     vector<double> GetStrategy(int player);
 
     void UpdateUtilityMatrix(const vector<double> &utilities);
@@ -70,7 +70,9 @@ class NormalFormLP {
 
     void CleanModel();
     void BuildModel(const vector<double> *_utility_matrix);
-    bool ValidateInput(const int p1_actions, const int p2_actions, const vector<double> &utilities);
+    bool ValidateInput(const unsigned int p1_actions,
+                       const unsigned int p2_actions,
+                       const vector<double> &utilities);
     void AddRows(const vector<vector<double>> &_utility_for_cols);
     void AddCols(const vector<vector<double>> &_utility_for_rows);
 };
@@ -78,4 +80,3 @@ class NormalFormLP {
 
 #endif  // ALGORITHMS_NORMALFORMLP_H_
 
-#pragma clang diagnostic pop

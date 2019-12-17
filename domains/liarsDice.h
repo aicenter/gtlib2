@@ -19,8 +19,6 @@
     If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
 #ifndef GTLIB2_LIARSDICE_H
 #define GTLIB2_LIARSDICE_H
@@ -53,19 +51,19 @@ class LiarsDiceDomain : public Domain {
     string getInfo() const override;
     vector<Player> getPlayers() const;
 
-    inline const int getPlayerDice(Player pl) const {
+    inline int getPlayerDice(Player pl) const {
         return playersDice_[pl];
     }
 
-    inline const int getSumDice() const {
+    inline int getSumDice() const {
         return playersDice_[0] + playersDice_[1];
     }
 
-    inline const int getFaces() const {
+    inline int getFaces() const {
         return faces_;
     }
 
-    inline const int getMaxBid() const {
+    inline int getMaxBid() const {
         return maxBid_;
     }
 
@@ -145,7 +143,7 @@ class LiarsDiceObservation : public Observation {
         if (!rolls_.empty()) {
             unsigned int idTemp = 0;
             unsigned int jump = 1;
-            for (int i = 0; i < rolls_.size(); i++) {
+            for (unsigned int i = 0; i < rolls_.size(); i++) {
                 idTemp += rolls_[i] * jump;
                 jump *= faces;
             }

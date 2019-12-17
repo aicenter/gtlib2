@@ -25,37 +25,45 @@
 
 namespace GTLib2 {
 
-std::uniform_real_distribution<double> uniformDist = std::uniform_real_distribution<double>(0.0, 1.0);
+std::uniform_real_distribution<double>
+    uniformDist = std::uniform_real_distribution<double>(0.0, 1.0);
 
 int pickRandom(const ProbDistribution &probs, std::mt19937 &generator) {
-    if(probs[0] == 1.0) return 0; // do not use generator unnecessarily
+    if (probs[0] == 1.0) return 0; // do not use generator unnecessarily
 
     double p = uniformDist(generator);
-    int i = -1;
-    while (p > 0) p -= probs[++i];
+    unsigned int i = 0;
+    while (true) {
+        p -= probs[i];
+        if(p < 0) break;
+        else ++i;
+    }
     assert(i < probs.size());
     return i;
 }
 
 int pickRandom(const Distribution &probs, double probSum, std::mt19937 &generator) {
-    if(probs[0] == probSum) return 0; // do not use generator unnecessarily
+    if (probs[0] == probSum) return 0; // do not use generator unnecessarily
 
-    double p = uniformDist(generator)*probSum;
-    int i = -1;
-    while (p > 0) p -= probs[++i];
+    double p = uniformDist(generator) * probSum;
+    unsigned int i = 0;
+    while (true) {
+        p -= probs[i];
+        if(p < 0) break;
+        else ++i;
+    }
     assert(i < probs.size());
     return i;
 }
 
 int pickUniform(unsigned long numOutcomes, std::mt19937 &generator) {
     assert(numOutcomes >= 1);
-    if(numOutcomes == 1) return 0; // do not use generator unnecessarily
+    if (numOutcomes == 1) return 0; // do not use generator unnecessarily
 
     double p = uniformDist(generator);
-    int idxOutcome = floor(p * numOutcomes);
+    unsigned int idxOutcome = floor(p * numOutcomes);
     if (idxOutcome == numOutcomes) idxOutcome--; // if p == 1.0
     assert(idxOutcome < numOutcomes);
-    assert(idxOutcome >= 0);
     return idxOutcome;
 }
 
@@ -80,23 +88,22 @@ int pickRandom(const EFGNode &node, std::mt19937 &generator) {
 
 RandomLeafOutcome pickRandomLeaf(const std::shared_ptr<EFGNode> &start, std::mt19937 &generator) {
     RandomLeafOutcome out = {
-        .utilities = vector<double>(),
-        .playerReachProbs = vector<double>{1., 1.},
-        .chanceReachProb = 1.
+        /*.utilities=*/vector<double>(),
+        /*.playerReachProbs=*/vector<double>{1., 1.},
+        /*.chanceReachProb=*/1.
     };
 
     std::shared_ptr<EFGNode> h = start;
     while (h->type_ != TerminalNode) {
-        const auto &actions = h->availableActions();
         int ai = pickRandom(*h, generator);
         assert(ai >= 0 && ai < actions.size());
 
         switch (h->type_) {
             case ChanceNode:
-                out.chanceReachProb *= h->chanceProbForAction(actions[ai]);
+                out.chanceReachProb *= h->chanceProbForAction(h->getActionByID(ai));
                 break;
             case PlayerNode:
-                out.playerReachProbs[h->getPlayer()] *= 1.0 / actions.size();
+                out.playerReachProbs[h->getPlayer()] *= 1.0 / h->countAvailableActions();
                 break;
             case TerminalNode:
                 unreachable("terminal node!");
@@ -104,7 +111,7 @@ RandomLeafOutcome pickRandomLeaf(const std::shared_ptr<EFGNode> &start, std::mt1
                 unreachable("unrecognized option!");
         }
 
-        h = h->performAction(actions[ai]);
+        h = h->performAction(h->getActionByID(ai));
     }
 
     out.utilities = h->getUtilities();

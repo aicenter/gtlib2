@@ -188,7 +188,7 @@ void exportGraphViz(const Domain &domain, std::ostream &fs) {
 //    label = "The foo, the bar and the baz";
 //    labelloc = "t"; // place the label at the top (b seems to be default)
 
-    auto walkPrint = [&fs, &domain](shared_ptr<FOG2EFGNode> node) {
+    auto walkPrint = [&fs](shared_ptr<FOG2EFGNode> node) {
         const string color = getColor(node);
         const string shape = getShape(node);
         const auto tooltip = (node->type_ == ChanceNode && !node->parent_)
@@ -238,7 +238,7 @@ void exportGraphViz(const Domain &domain, const string &fileToSave) {
     fs.close();
 }
 
-void exportGambit(const shared_ptr<EFGNode> &node, std::ostream &fs) {
+void exportGambit(const shared_ptr<EFGNode> &rootNode, std::ostream &fs) {
     // Print header
     fs << "EFG 2 R \"" << R"(" { "Pl0" "Pl1" })" << "\n";
 
@@ -255,11 +255,11 @@ void exportGambit(const shared_ptr<EFGNode> &node, std::ostream &fs) {
 
 //        string nodeLabel = node->toString();
         string nodeLabel = "";
-        for (int j = 0; j < node->efgDepth(); ++j) fs << " ";
+        for (unsigned int j = 0; j < node->efgDepth(); ++j) fs << " ";
 
         switch (node->type_) {
             case ChanceNode: {
-                for (int j = 0; j < node->efgDepth(); ++j) fs << " ";
+                for (unsigned int j = 0; j < node->efgDepth(); ++j) fs << " ";
                 fs << "c \"" << nodeLabel << "\" " << chanceIdx++ << " \"\" { ";
                 int i = 0;
                 for (const auto &chanceProb : node->chanceProbs()) {
@@ -313,7 +313,7 @@ void exportGambit(const shared_ptr<EFGNode> &node, std::ostream &fs) {
         }
     };
 
-    treeWalk<EFGNode>(node, walkPrint);
+    treeWalk<EFGNode>(rootNode, walkPrint);
 }
 
 void exportGambit(const Domain &domain, std::ostream &fs) {

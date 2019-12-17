@@ -24,8 +24,6 @@
 #include "liarsDice.h"
 #include "utils/combinatorics.h"
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
 namespace GTLib2::domains {
 
@@ -262,10 +260,10 @@ bool LiarsDiceState::operator==(const GTLib2::State &rhs) const {
     const auto otherState = static_cast<const LiarsDiceState *>(&rhs);
 
     return getHash() == otherState->getHash()
-        & currentBid_ == otherState->currentBid_
-        & previousBid_ == otherState->previousBid_
-        & round_ == otherState->round_
-        & currentPlayer_ == otherState->currentPlayer_
-        & rolls_ == otherState->rolls_;
+        && currentBid_ == otherState->currentBid_
+        && previousBid_ == otherState->previousBid_
+        && round_ == otherState->round_
+        && currentPlayer_ == otherState->currentPlayer_
+        && rolls_ == otherState->rolls_;
 }
 }

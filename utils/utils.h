@@ -23,6 +23,8 @@
 #ifndef UTILS_UTILS_H_
 #define UTILS_UTILS_H_
 
+#include <cassert>
+#include <unordered_map>
 #include <iostream>
 #include <vector>
 #include <memory>
@@ -126,7 +128,7 @@ inline std::array<unsigned int, 2> elegantUnpair(unsigned int z) {
  * @return
  */
 inline double signum(double number) {
-    return (double) ((0 < number) - (0 > number));
+    return ((0. < number) - (0. > number));
 }
 
 /**
@@ -187,7 +189,7 @@ inline bool is_positive_zero(float val) { return ((val == 0.0f) && std::signbit(
 inline bool is_positive_zero(double val) { return ((val == 0.0) && std::signbit(val)); }
 
 struct Escaped {
-    string str;
+    std::string str;
 
     friend inline std::ostream& operator<<(std::ostream& os, const Escaped& e) {
         for(const char &c : e.str) {
@@ -215,7 +217,7 @@ struct Either {
     bool cond;
     const A& a;
     const B& b;
-    Either(bool cond, const A& a, const B&b) : cond(cond), a(a), b(b) {}
+    Either(bool _cond, const A& _a, const B&_b) : cond(_cond), a(_a), b(_b) {}
 
     friend inline std::ostream& operator<<(std::ostream& os, const Either& e) {
         if(e.cond) os << e.a;
@@ -225,7 +227,7 @@ struct Either {
 };
 
 struct Indented {
-    string str;
+    std::string str;
     int times;
 
     friend inline std::ostream& operator<<(std::ostream& os, const Indented& e) {
@@ -243,6 +245,9 @@ struct Indented {
 };
 
 }
+
+#define UNUSED_EXPR(expr) do { (void)(expr); } while (0)
+#define UNUSED_VARIADIC(expr) do { (void)(sizeof...(expr)); } while (0)
 
 #define MAKE_HASHABLE(type)                                           \
     namespace std {                                                   \
@@ -332,7 +337,7 @@ namespace std { // NOLINT(cert-dcl58-cpp)
 template<typename T>
 std::ostream &operator<<(std::ostream &ss, const vector<T> &arr) {
     ss << "[";
-    for (int i = 0; i < arr.size(); ++i) {
+    for (unsigned int i = 0; i < arr.size(); ++i) {
         if (i == 0) ss << arr.at(i);
         else ss << ", " << arr.at(i);
     }
@@ -341,7 +346,7 @@ std::ostream &operator<<(std::ostream &ss, const vector<T> &arr) {
 }
 
 template<typename K, typename V>
-std::ostream &operator<<(std::ostream &ss, const unordered_map<K, V> &map) {
+std::ostream &operator<<(std::ostream &ss, const std::unordered_map<K, V> &map) {
     bool addNewLine = map.size() > 4;
     ss << "{";
     if(addNewLine) ss << endl;
@@ -357,7 +362,7 @@ std::ostream &operator<<(std::ostream &ss, const unordered_map<K, V> &map) {
 }
 
 template<typename K, typename V>
-std::ostream &operator<<(std::ostream &ss, const unordered_map<shared_ptr<K>, V> &map) {
+std::ostream &operator<<(std::ostream &ss, const std::unordered_map<shared_ptr<K>, V> &map) {
     bool addNewLine = map.size() > 4;
     ss << "{";
     if(addNewLine) ss << endl;

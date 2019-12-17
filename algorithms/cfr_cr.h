@@ -47,6 +47,6 @@ class CFR_CR: public ContinualResolving, public CFRAlgorithm {
                                  const shared_ptr<AOH> &currentInfoset) override;
 };
 
-};
+}
 
 #endif //GTLIB2_CFR_CR_H

@@ -1,5 +1,3 @@
-#include <utility>
-
 /*
     Copyright 2019 Faculty of Electrical Engineering at CTU in Prague
 
@@ -70,7 +68,7 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
     }
 
     inline double
-    getBaselineFor(const shared_ptr<EFGNode> &h, ActionId action, Player exploringPl) {
+    getBaselineFor(const shared_ptr<EFGNode> &h, ActionId , Player exploringPl) {
         return baselineValues.at(h).value() * (exploringPl == Player(0) ? 1 : -1);
     }
 
@@ -145,8 +143,6 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
 
 struct OOSSettings: AlgConfig {
     enum SamplingBlock { OutcomeSampling, ExternalSampling };
-    enum AccumulatorWeighting { UniformAccWeighting, LinearAccWeighting, XLogXAccWeighting };
-    enum RegretMatching { RegretMatchingNormal, RegretMatchingPlus };
     enum Targeting { NoTargeting, InfosetTargeting, PublicStateTargeting };
     enum PlayStrategy { PlayUsingAvgStrategy, PlayUsingRMStrategy };
     enum SamplingScheme { EpsilonOnPolicySampling, UniformSampling };
@@ -190,7 +186,6 @@ struct OOSSettings: AlgConfig {
         if(k == "samplingBlock"          && v == "ExternalSampling")                samplingBlock        = ExternalSampling;                  else
         if(k == "accumulatorWeighting"   && v == "UniformAccWeighting")             accumulatorWeighting = UniformAccWeighting;               else
         if(k == "accumulatorWeighting"   && v == "LinearAccWeighting")              accumulatorWeighting = LinearAccWeighting;                else
-        if(k == "accumulatorWeighting"   && v == "XLogXAccWeighting ")              accumulatorWeighting = XLogXAccWeighting ;                else
         if(k == "regretMatching"         && v == "RegretMatchingNormal")            regretMatching       = RegretMatchingNormal;              else
         if(k == "regretMatching"         && v == "RegretMatchingPlus")              regretMatching       = RegretMatchingPlus;                else
         if(k == "targeting"              && v == "NoTargeting")                     targeting            = NoTargeting;                       else
@@ -222,7 +217,6 @@ struct OOSSettings: AlgConfig {
         if(samplingBlock          == ExternalSampling )               ss << "samplingBlock          = ExternalSampling"                << endl;
         if(accumulatorWeighting   == UniformAccWeighting)             ss << "accumulatorWeighting   = UniformAccWeighting"             << endl;
         if(accumulatorWeighting   == LinearAccWeighting)              ss << "accumulatorWeighting   = LinearAccWeighting"              << endl;
-        if(accumulatorWeighting   == XLogXAccWeighting)               ss << "accumulatorWeighting   = XLogXAccWeighting "              << endl;
         if(regretMatching         == RegretMatchingNormal)            ss << "regretMatching         = RegretMatchingNormal"            << endl;
         if(regretMatching         == RegretMatchingPlus)              ss << "regretMatching         = RegretMatchingPlus"              << endl;
         if(targeting              == NoTargeting)                     ss << "targeting              = NoTargeting"                     << endl;
@@ -253,11 +247,11 @@ struct OOSSettings: AlgConfig {
  * Runtime statistics for online algorithms
  */
 struct OnlineStats {
-    int rootVisits = 0;
-    int nodesVisits = 0;
-    int terminalsVisits = 0;
-    int infosetVisits = 0;
-    int pubStateVisits = 0;
+    unsigned int rootVisits = 0;
+    unsigned int nodesVisits = 0;
+    unsigned int terminalsVisits = 0;
+    unsigned int infosetVisits = 0;
+    unsigned int pubStateVisits = 0;
 
     void reset() {
         rootVisits = 0;
@@ -445,7 +439,7 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
                                            double rm_h_pl, double rm_h_opp, double us_h_cn,
                                            OOSSettings::NodeAvgValueCalculation setting);
     virtual void updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exploringPl,
-                                      CFRData::InfosetData &data, int ai,
+                                      CFRData::InfosetData &data, unsigned int ai,
                                       double u_x, double u_h, double w);
     void updateInfosetAcc(const shared_ptr<EFGNode> &h,
                           CFRData::InfosetData &data,

@@ -56,7 +56,7 @@ computeTerminateCFVValues(const PublicStateSummary &summary, Player resolvingPla
     const auto &reachProbs = summary.topmostHistoriesReachProbs;
     const Player viewingPlayer = opponent(resolvingPlayer);
 
-    for (int i = 0; i < numHistories; ++i) {
+    for (unsigned int i = 0; i < numHistories; ++i) {
         const auto &h = summary.topmostHistories.at(i);
         const auto &augAoh = augInfosets.emplace_back(h->getAOHAugInfSet(viewingPlayer));
         const auto addReach = reachProbs[i][resolvingPlayer] * reachProbs[i][2];
@@ -68,7 +68,7 @@ computeTerminateCFVValues(const PublicStateSummary &summary, Player resolvingPla
 
     auto cfvValues = vector<double>();
     cfvValues.reserve(numHistories);
-    for (int i = 0; i < numHistories; ++i) {
+    for (unsigned int i = 0; i < numHistories; ++i) {
         // the pubStateReach_ term must be added by the resolver when accessing terminal node!
         const auto &aoh = augInfosets.at(i);
         cfvValues.emplace_back(infosetUtils.at(aoh) / infosetReaches.at(aoh));

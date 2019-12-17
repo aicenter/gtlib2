@@ -34,8 +34,7 @@
 #include "utils/range.h"
 #include "utils/benchmark.h"
 
-#include "tests/domainsTest.h"
-#include "tests/oosTest.h"
+#include "oosTest.h"
 #include <iostream>
 #include <fstream>
 
@@ -46,11 +45,11 @@ namespace GTLib2::algorithms {
 
 pair<ActionId, RandomLeafOutcome>
 FixedSamplingOOS::selectLeaf(const shared_ptr<EFGNode> &start,
-                             const vector<shared_ptr<Action>> &actions) {
+                             const vector<shared_ptr<Action>> &) {
     RandomLeafOutcome out = {
-        .utilities = vector<double>(),
-        .playerReachProbs = vector<double>{1., 1.},
-        .chanceReachProb = 1.
+        /*.utilities=*/vector<double>(),
+        /*.playerReachProbs=*/vector<double>{1., 1.},
+        /*.chanceReachProb=*/1.
     };
 
     std::shared_ptr<EFGNode> h = start;

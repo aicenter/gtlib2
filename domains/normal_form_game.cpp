@@ -23,8 +23,6 @@
 #include "base/base.h"
 #include "domains/normal_form_game.h"
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
 namespace GTLib2::domains {
 
@@ -33,8 +31,8 @@ vector<vector<double>> NFGSettings::getUtilities(vector<vector<double>> twoPlaye
     uint32 d2 = twoPlayerZeroSumMatrix[0].size();
 
     vector<vector<double>> u;
-    for (int i1 = 0; i1 < d1; i1++) {
-        for (int i2 = 0; i2 < d2; i2++) {
+    for (unsigned int i1 = 0; i1 < d1; i1++) {
+        for (unsigned int i2 = 0; i2 < d2; i2++) {
             u.push_back({twoPlayerZeroSumMatrix.at(i1).at(i2),
                           -twoPlayerZeroSumMatrix.at(i1).at(i2)});
         }
@@ -63,10 +61,10 @@ vector<vector<string>> NFGSettings::getActionNames() const {
 
     vector<vector<string>> allNames;
     allNames.reserve(dimensions.size());
-    for (int d = 0; d < dimensions.size(); ++d) {
+    for (unsigned int d = 0; d < dimensions.size(); ++d) {
         vector<string> names;
         names.reserve(dimensions[d]);
-        for (int i = 0; i < dimensions[d]; ++i) {
+        for (unsigned int i = 0; i < dimensions[d]; ++i) {
             names.emplace_back(to_string(i));
         }
         allNames.emplace_back(names);
@@ -87,8 +85,8 @@ NFGDomain::NFGDomain(NFGSettings settings) :
     dimensions_(settings.dimensions),
     numPlayers_(settings.numPlayers),
     utilities_(settings.utilities),
-    actionNames_(settings.getActionNames()),
-    indexingOffsets_(settings.getIndexingOffsets()) {
+    indexingOffsets_(settings.getIndexingOffsets()),
+    actionNames_(settings.getActionNames()) {
 
     auto newState = make_shared<NFGState>(this, vector<uint32>());
     vector<double> rewards(numPlayers_, 0.0);
@@ -148,7 +146,7 @@ string NFGState::toString() const {
 
     string ret;
     ret.append("Terminal state\n");
-    for (int i = 0; i < playedActions_.size(); i++) {
+    for (unsigned int i = 0; i < playedActions_.size(); i++) {
         ret.append("Player ");
         ret.append(std::to_string(i + 1));
         ret.append(" played: ");
@@ -165,4 +163,3 @@ bool NFGState::operator==(const GTLib2::State &rhs) const {
 }
 
 }  // namespace GTLib2
-#pragma clang diagnostic pop

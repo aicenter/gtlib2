@@ -20,8 +20,6 @@
 */
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 
 #include "algorithms/utility.h"
 
@@ -98,7 +96,7 @@ vector<BehavioralStrategy> generateAllPureStrategies(
     const vector<pair<shared_ptr<AOH>, vector<shared_ptr<Action>>>> infosetsActionsPairs(
         infosetsActions.begin(), infosetsActions.end());
 
-    function<void(BehavioralStrategy, int)> generate = [&](BehavioralStrategy strat, int setIndex) {
+    function<void(BehavioralStrategy, int)> generate = [&](BehavioralStrategy strat, unsigned int setIndex) {
         if (setIndex >= infosetsActionsPairs.size()) {
             pureStrats.push_back(strat);
             return;
@@ -128,16 +126,15 @@ UtilityMatrix constructUtilityMatrixFor(
     const auto cols = playersPureStrats[1].size();
     vector<double> matrix(rows * cols, 0.0);
 
-    for (int row = 0; row < rows; ++row) {
-        for (int col = 0; col < cols; ++col) {
+    for (unsigned int row = 0; row < rows; ++row) {
+        for (unsigned int col = 0; col < cols; ++col) {
             auto utils = computeUtilitiesTwoPlayerGame(
                 domain, {playersPureStrats[0][row], playersPureStrats[1][col]});
             matrix[cols * row + col] = utils[player];
         }
     }
 
-    return UtilityMatrix{.u = matrix, .rows = rows, .cols = cols};
+    return UtilityMatrix{/*.u=*/matrix, /*.rows=*/rows, /*.cols=*/cols};
 }
 
 }  // namespace GTLib2
-#pragma clang diagnostic pop

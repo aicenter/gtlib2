@@ -35,7 +35,7 @@ PlayControl MCCRAlgorithm::preplayIteration(const shared_ptr<EFGNode> &rootNode)
     r->isBelowTargetIS_ = true; // everything is below "target IS"
     r->leafWeight_ = 1; // from root, no gadget is built
 
-    for (int t = 0; t < r->cfg_.batchSize; ++t) {
+    for (unsigned int t = 0; t < r->cfg_.batchSize; ++t) {
         for (int exploringPl = 0; exploringPl < 2; ++exploringPl) {
             // no compensation in preplay
             r->rootIteration(rootNode, 1.0, exploringPl);
@@ -67,7 +67,7 @@ PlayControl MCCRAlgorithm::resolveIteration(const shared_ptr<GadgetRootNode> &ga
 //    assert(successfulUpdate);
 
     double compensation = 1.; // 1. / r->targetor_.compensateTargeting();
-    for (int t = 0; t < r->cfg_.batchSize; ++t) {
+    for (unsigned int t = 0; t < r->cfg_.batchSize; ++t) {
         for (int exploringPl = 0; exploringPl < 2; ++exploringPl) {
             r->isBiasedIteration_ = r->dist_(r->generator_) <= r->cfg_.targetBiasing;
             r->isBelowTargetIS_ = false;
@@ -142,7 +142,7 @@ double MCCRResolver::calcPlayInfosetReachProb() {
     const auto &summary = gadget_->summary_;
     const auto numGadgetHistories = summary.topmostHistories.size();
     double playInfosetReachProb = 0.;
-    for (int i = 0; i < numGadgetHistories; ++i) {
+    for (unsigned int i = 0; i < numGadgetHistories; ++i) {
         const auto &h = summary.topmostHistories.at(i);
         if (gadget_->targetAOH_->getAOids() == h->getAOids(gadget_->resolvingPlayer_)) {
             playInfosetReachProb += gadget_->chanceProbForAction(i);
@@ -160,7 +160,7 @@ void MCCRResolver::updateGadgetBiasingProbs(double playInfosetReachProb) {
     const double p_unif = 1. / numGadgetHistories;
 
     gadgetBsum_ = 0.0;
-    for (int i = 0; i < numGadgetHistories; ++i) {
+    for (unsigned int i = 0; i < numGadgetHistories; ++i) {
         const auto h = summary.topmostHistories.at(i);
         const auto isTargetAOH = gadget_->targetAOH_->getAOids()
             == h->getAOids(gadget_->resolvingPlayer_);

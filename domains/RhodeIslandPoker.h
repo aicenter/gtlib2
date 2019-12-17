@@ -36,16 +36,16 @@ namespace GTLib2::domains {
  */
 class RhodeIslandPokerAction: public Action {
  public:
-    inline RhodeIslandPokerAction() : Action(), value_(0), type_(0) {}
-    RhodeIslandPokerAction(ActionId id, int type, int value);
+    inline RhodeIslandPokerAction() : Action(), type_(0), value_(0) {}
+    RhodeIslandPokerAction(ActionId id, unsigned int type, unsigned int value);
     inline string toString() const final;
-    inline int GetValue() const { return value_; }
-    inline int GetType() const { return type_; }
+    inline unsigned int GetValue() const { return value_; }
+    inline unsigned int GetType() const { return type_; }
     bool operator==(const Action &that) const override;
 
  private:
-    const int value_;
-    const int type_;
+    const unsigned int type_;
+    const unsigned int value_;
 };
 
 /**
@@ -55,7 +55,8 @@ class RhodeIslandPokerAction: public Action {
 class RhodeIslandPokerObservation: public Observation {
  public:
     inline RhodeIslandPokerObservation() : Observation(), value_(0), type_(0), color_(0) {};
-    explicit RhodeIslandPokerObservation(int id, int type, int value, int color);
+    explicit RhodeIslandPokerObservation(int id, unsigned int type,
+                                         unsigned int value, unsigned int color);
     /**
      * id: 0 - check; 1 - call; 2 - fold; from 3 to 3+maxCardTypes - first played cards;
      * then next maxCardTypes numbers - second played cards
@@ -68,13 +69,13 @@ class RhodeIslandPokerObservation: public Observation {
      */
 
     inline string toString() const final;
-    inline int GetValue() const { return value_; }
-    inline int GetType() const { return type_; }
+    inline unsigned int GetValue() const { return value_; }
+    inline unsigned int GetType() const { return type_; }
 
  private:
-    const int value_;
-    const int type_;
-    const int color_;
+    const unsigned int value_;
+    const unsigned int type_;
+    const unsigned int color_;
 };
 
 /**
@@ -83,22 +84,27 @@ class RhodeIslandPokerObservation: public Observation {
  */
 class RhodeIslandPokerState: public State {
  public:
-    RhodeIslandPokerState(const Domain *domain, pair<int, int> player1Card,
-                          pair<int, int> player2Card, optional<pair<int, int>> natureCard1,
-                          optional<pair<int, int>> natureCard2, double firstPlayerReward,
-                          double pot, vector<Player> players, int round,
-                          shared_ptr<RhodeIslandPokerAction> lastAction, int continuousRaiseCount);
     RhodeIslandPokerState(const Domain *domain,
-                          pair<int, int> player1card, pair<int, int> player2card,
-                          optional<pair<int, int>> natureCard1,
-                          optional<pair<int, int>> natureCard2,
+                          pair<unsigned int, unsigned int> player1Card,
+                          pair<unsigned int, unsigned int> player2Card,
+                          optional<pair<unsigned int, unsigned int>> natureCard1,
+                          optional<pair<unsigned int, unsigned int>> natureCard2,
+                          double firstPlayerReward,
+                          double pot, vector<Player> players, int round,
+                          shared_ptr<RhodeIslandPokerAction> lastAction,
+                          unsigned int continuousRaiseCount);
+    RhodeIslandPokerState(const Domain *domain,
+                          pair<unsigned int, unsigned int> player1card,
+                          pair<unsigned int, unsigned int> player2card,
+                          optional<pair<unsigned int, unsigned int>> natureCard1,
+                          optional<pair<unsigned int, unsigned int>> natureCard2,
                           unsigned int ante,
                           vector<Player> players);
     ~RhodeIslandPokerState() override = default;
 
     unsigned long countAvailableActionsFor(Player player) const override;
     vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
-    OutcomeDistribution performActions(const vector <shared_ptr<Action>> &actions) const override;
+    OutcomeDistribution performActions(const vector<shared_ptr<Action>> &actions) const override;
     inline vector<Player> getPlayers() const final { return players_; }
     inline bool isTerminal() const override { return players_.empty(); };
     int hasPlayerOneWon(const shared_ptr<RhodeIslandPokerAction> &lastAction, Player player) const;
@@ -106,16 +112,17 @@ class RhodeIslandPokerState: public State {
     inline string toString() const override;
 
  protected:
-    const vector<Player> players_;
-    const shared_ptr<RhodeIslandPokerAction> lastAction_;
-    const optional<pair<int, int>> natureCard1_;  // first number, second color (type)
-    const optional<pair<int, int>> natureCard2_;
+    const pair<unsigned int, unsigned int> player1Card_;  // first number, second color (type)
+    const pair<unsigned int, unsigned int> player2Card_;
+    const optional<pair<unsigned int, unsigned int>>
+        natureCard1_;  // first number, second color (type)
+    const optional<pair<unsigned int, unsigned int>> natureCard2_;
     const double pot_;
     const double firstPlayerReward_;
-    const pair<int, int> player1Card_;  // first number, second color (type)
-    const pair<int, int> player2Card_;
+    const vector<Player> players_;
     const int round_;
-    const int continuousRaiseCount_;
+    const unsigned int continuousRaiseCount_;
+    const shared_ptr<RhodeIslandPokerAction> lastAction_;
 };
 
 /**
@@ -137,12 +144,12 @@ class RhodeIslandPokerDomain: public Domain {
 
     string getInfo() const final;
 
-    vector<int> betsFirstRound_;
-    vector<int> raisesFirstRound_;
-    vector<int> betsSecondRound_;
-    vector<int> raisesSecondRound_;
-    vector<int> betsThirdRound_;
-    vector<int> raisesThirdRound_;
+    vector<unsigned int> betsFirstRound_;
+    vector<unsigned int> raisesFirstRound_;
+    vector<unsigned int> betsSecondRound_;
+    vector<unsigned int> raisesSecondRound_;
+    vector<unsigned int> betsThirdRound_;
+    vector<unsigned int> raisesThirdRound_;
     const unsigned int maxCardTypes_;  // cisla
     const unsigned int maxCardsOfEachType_;  // barvy
     const unsigned int maxRaisesInRow_;

@@ -41,6 +41,8 @@ enum PlayControl {
 };
 
 struct AlgConfig {
+    virtual ~AlgConfig() = default;
+
     inline virtual void update(const string &key, const string &value) {
         LOG_WARN("The key/value '" << key << "': '" << value << "' cannot be set!")
     };
@@ -131,9 +133,9 @@ class RandomPlayer: public GamePlayingAlgorithm {
  public:
     inline RandomPlayer(const Domain &domain, Player playingPlayer)
         : GamePlayingAlgorithm(domain, playingPlayer) {}
-    inline PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset)
+    inline PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &)
     override { return StopImproving; };
-    inline optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &currentInfoset)
+    inline optional<ProbDistribution> getPlayDistribution(const shared_ptr<AOH> &)
     override { return nullopt; };
 };
 

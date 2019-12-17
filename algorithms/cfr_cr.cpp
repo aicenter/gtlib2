@@ -25,16 +25,16 @@
 
 namespace GTLib2::algorithms {
 
-PlayControl CFR_CR::preplayIteration(const shared_ptr<EFGNode> &rootNode) {
+PlayControl CFR_CR::preplayIteration(const shared_ptr<EFGNode> &) {
     runIterations(1);
     return ContinueImproving;
 }
 
-PlayControl CFR_CR::resolveIteration(const shared_ptr<GadgetRootNode> &rootNode,
-                                     const shared_ptr<AOH> &currentInfoset) {
+PlayControl CFR_CR::resolveIteration(const shared_ptr<GadgetRootNode> &,
+                                     const shared_ptr<AOH> &) {
     runIterations(1);
     return ContinueImproving;
 }
 
-};
+}
 

@@ -43,10 +43,10 @@ inline double getActionProb(const ActionProbDistribution &dist, const shared_ptr
 inline ProbDistribution normalizeProbability(vector<double> probabilities) {
     ProbDistribution normProbs = vector<double>(probabilities.size());
     double sum = 0;
-    for (int i = 0; i < probabilities.size(); i++) {
+    for (unsigned int i = 0; i < probabilities.size(); i++) {
         sum += probabilities[i];
     }
-    for (int i = 0; i < probabilities.size(); i++) {
+    for (unsigned int i = 0; i < probabilities.size(); i++) {
         normProbs[i] = probabilities[i] / sum;
     }
     return normProbs;

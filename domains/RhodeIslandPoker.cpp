@@ -23,7 +23,7 @@
 
 
 namespace GTLib2::domains {
-RhodeIslandPokerAction::RhodeIslandPokerAction(ActionId id, int type, int value) :
+RhodeIslandPokerAction::RhodeIslandPokerAction(ActionId id, unsigned int type, unsigned int value) :
     Action(id), type_(type), value_(value) {}
 
 bool RhodeIslandPokerAction::operator==(const Action &that) const {
@@ -52,8 +52,9 @@ string RhodeIslandPokerAction::toString() const {
     }
 }
 
-RhodeIslandPokerObservation::RhodeIslandPokerObservation(int id, int type, int value, int color) :
-    Observation(id), type_(type), value_(value), color_(color) {}
+RhodeIslandPokerObservation::RhodeIslandPokerObservation(int id, unsigned int type,
+                                                         unsigned int value, unsigned int color) :
+    Observation(id), value_(value), type_(type), color_(color) {}
 
 string RhodeIslandPokerObservation::toString() const {
     if (id_ == NO_OBSERVATION)
@@ -88,10 +89,10 @@ RhodeIslandPokerDomain::RhodeIslandPokerDomain(unsigned int maxCardTypes,
     maxCardTypes_(maxCardTypes),
     maxCardsOfEachType_(maxCardsOfTypes),
     maxRaisesInRow_(maxRaisesInRow),
-    ante_(ante),
     maxDifferentBets_(maxDifferentBets),
-    maxDifferentRaises_(maxDifferentRaises) {
-    for (int i = 0; i < maxDifferentBets; i++) {
+    maxDifferentRaises_(maxDifferentRaises),
+    ante_(ante) {
+    for (unsigned int i = 0; i < maxDifferentBets; i++) {
         betsFirstRound_.push_back((i + 1) * 2);
     }
 
@@ -99,23 +100,23 @@ RhodeIslandPokerDomain::RhodeIslandPokerDomain(unsigned int maxCardTypes,
      * represents reward which will be added to previous aggressive action
      */
 
-    for (int i = 0; i < maxDifferentRaises; i++) {
+    for (unsigned int i = 0; i < maxDifferentRaises; i++) {
         raisesFirstRound_.push_back((i + 1) * 2);
     }
 
-    for (int i : betsFirstRound_) {
+    for (unsigned int i : betsFirstRound_) {
         betsSecondRound_.push_back(2 * i);
     }
 
-    for (int i : raisesFirstRound_) {
+    for (unsigned int i : raisesFirstRound_) {
         raisesSecondRound_.push_back(2 * i);
     }
 
-    for (int i : betsSecondRound_) {
+    for (unsigned int i : betsSecondRound_) {
         betsThirdRound_.push_back(2 * i);
     }
 
-    for (int i : raisesSecondRound_) {
+    for (unsigned int i : raisesSecondRound_) {
         raisesThirdRound_.push_back(2 * i);
     }
 
@@ -125,10 +126,10 @@ RhodeIslandPokerDomain::RhodeIslandPokerDomain(unsigned int maxCardTypes,
     vector<double> rewards(2);
     auto next_players = vector<Player>{0};
     double prob = 1.0 / (maxCardsOfTypes * maxCardTypes * (maxCardTypes * maxCardsOfTypes - 1));
-    for (int color = 0; color < maxCardsOfEachType_; ++color) {
-        for (int color2 = 0; color2 < maxCardsOfEachType_; ++color2) {
-            for (int p1card = 0; p1card < maxCardTypes; ++p1card) {
-                for (int p2card = 0; p2card < maxCardTypes; ++p2card) {
+    for (unsigned int color = 0; color < maxCardsOfEachType_; ++color) {
+        for (unsigned int color2 = 0; color2 < maxCardsOfEachType_; ++color2) {
+            for (unsigned int p1card = 0; p1card < maxCardTypes; ++p1card) {
+                for (unsigned int p2card = 0; p2card < maxCardTypes; ++p2card) {
                     if (p1card == p2card && color == color2) {
                         continue;
                     }
@@ -215,7 +216,7 @@ unsigned long RhodeIslandPokerState::countAvailableActionsFor(Player player) con
     return getAvailableActionsFor(player).size();
 }
 
-vector<shared_ptr<Action>> RhodeIslandPokerState::getAvailableActionsFor(Player player) const {
+vector<shared_ptr<Action>> RhodeIslandPokerState::getAvailableActionsFor(Player) const {
     auto list = vector<shared_ptr<Action>>();
     int count = 0;
     const auto pokerDomain = static_cast<const RhodeIslandPokerDomain *>(domain_);
@@ -267,7 +268,7 @@ vector<shared_ptr<Action>> RhodeIslandPokerState::getAvailableActionsFor(Player 
 }
 
 OutcomeDistribution
-RhodeIslandPokerState::performActions(const vector <shared_ptr<Action>> &actions) const {
+RhodeIslandPokerState::performActions(const vector<shared_ptr<Action>> &actions) const {
     const auto pokerDomain = static_cast<const RhodeIslandPokerDomain *>(domain_);
     auto a1 = dynamic_pointer_cast<RhodeIslandPokerAction>(actions[0]);
     auto a2 = dynamic_pointer_cast<RhodeIslandPokerAction>(actions[1]);
@@ -378,8 +379,8 @@ RhodeIslandPokerState::performActions(const vector <shared_ptr<Action>> &actions
         }
         if (new_round == 2 && natureCard1_ == nullopt && a1->GetType() == Call) {
             double prob = 1.0 / (pokerDomain->maxCardsOfEachType_ * pokerDomain->maxCardTypes_ - 2);
-            for (int j = 0; j < pokerDomain->maxCardsOfEachType_; ++j) {
-                for (int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
+            for (unsigned int j = 0; j < pokerDomain->maxCardsOfEachType_; ++j) {
+                for (unsigned int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
                     if ((player1Card_.first == i && player1Card_.second == j)
                         || (player2Card_.first == i && player2Card_.second == j)) {
                         continue;
@@ -410,8 +411,8 @@ RhodeIslandPokerState::performActions(const vector <shared_ptr<Action>> &actions
             return newOutcomes;
         } else if (new_round == 4 && natureCard2_ == nullopt && a1->GetType() == Call) {
             double prob = 1.0 / (pokerDomain->maxCardsOfEachType_ * pokerDomain->maxCardTypes_ - 3);
-            for (int j = 0; j < pokerDomain->maxCardsOfEachType_; ++j) {
-                for (int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
+            for (unsigned int j = 0; j < pokerDomain->maxCardsOfEachType_; ++j) {
+                for (unsigned int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
                     if ((player1Card_.first == i && player1Card_.second == j)
                         || (player2Card_.first == i && player2Card_.second == j)
                         || (natureCard1_.value().first == i && natureCard1_.value().second == j)) {
@@ -560,8 +561,8 @@ RhodeIslandPokerState::performActions(const vector <shared_ptr<Action>> &actions
         if (new_round == 2 && natureCard1_ == nullopt
             && (a2->GetType() == Call || a2->GetType() == Check)) {
             double prob = 1.0 / (pokerDomain->maxCardsOfEachType_ * pokerDomain->maxCardTypes_ - 2);
-            for (int j = 0; j < pokerDomain->maxCardsOfEachType_; ++j) {
-                for (int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
+            for (unsigned int j = 0; j < pokerDomain->maxCardsOfEachType_; ++j) {
+                for (unsigned int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
                     if ((player1Card_.first == i && player1Card_.second == j)
                         || (player2Card_.first == i && player2Card_.second == j)) {
                         continue;
@@ -594,8 +595,8 @@ RhodeIslandPokerState::performActions(const vector <shared_ptr<Action>> &actions
         } else if (new_round == 4 && natureCard2_ == nullopt
             && (a2->GetType() == Call || a2->GetType() == Check)) {
             double prob = 1.0 / (pokerDomain->maxCardsOfEachType_ * pokerDomain->maxCardTypes_ - 3);
-            for (int j = 0; j < pokerDomain->maxCardsOfEachType_; ++j) {
-                for (int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
+            for (unsigned int j = 0; j < pokerDomain->maxCardsOfEachType_; ++j) {
+                for (unsigned int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
                     if ((player1Card_.first == i && player1Card_.second == j)
                         || (player2Card_.first == i && player2Card_.second == j)
                         || (natureCard1_.value().first == i && natureCard1_.value().second == j)) {
@@ -655,14 +656,14 @@ RhodeIslandPokerState::performActions(const vector <shared_ptr<Action>> &actions
 }
 
 RhodeIslandPokerState::RhodeIslandPokerState(const Domain *domain,
-                                             pair<int, int> player1Card,
-                                             pair<int, int> player2Card,
-                                             optional<pair<int, int>> natureCard1,
-                                             optional<pair<int, int>> natureCard2,
+                                             pair<unsigned int, unsigned int> player1Card,
+                                             pair<unsigned int, unsigned int> player2Card,
+                                             optional<pair<unsigned int, unsigned int>> natureCard1,
+                                             optional<pair<unsigned int, unsigned int>> natureCard2,
                                              double firstPlayerReward, double pot,
                                              vector<Player> players, int round,
                                              shared_ptr<RhodeIslandPokerAction> lastAction,
-                                             int continuousRaiseCount) :
+                                             unsigned int continuousRaiseCount) :
     State(domain, hashCombine(498413684454, players, player1Card, player2Card,
                               natureCard1.value_or(make_pair(-1, -1)),
                               natureCard2.value_or(make_pair(-1, -1)),
@@ -680,10 +681,10 @@ RhodeIslandPokerState::RhodeIslandPokerState(const Domain *domain,
     lastAction_(move(lastAction)) {}
 
 RhodeIslandPokerState::RhodeIslandPokerState(const Domain *domain,
-                                             pair<int, int> player1card,
-                                             pair<int, int> player2card,
-                                             optional<pair<int, int>> natureCard1,
-                                             optional<pair<int, int>> natureCard2,
+                                             pair<unsigned int, unsigned int> player1card,
+                                             pair<unsigned int, unsigned int> player2card,
+                                             optional<pair<unsigned int, unsigned int>> natureCard1,
+                                             optional<pair<unsigned int, unsigned int>> natureCard2,
                                              unsigned int ante,
                                              vector<Player> players) :
     RhodeIslandPokerState(domain, move(player1card), move(player2card), move(natureCard1),

@@ -68,7 +68,7 @@ void CFRAlgorithm::updateInfosetRegrets(Player updatingPl) {
         }
 
         if (!data.fixRMStrategy) {
-            for (int i = 0; i < data.regrets.size(); ++i) {
+            for (unsigned int i = 0; i < data.regrets.size(); ++i) {
                 (settings_.regretMatching == RegretMatchingNormal)
                 ? data.regrets[i] += data.regretUpdates[i] :
                     data.regrets[i] += max(data.regretUpdates[i], 0.0);
@@ -110,7 +110,7 @@ double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
         double ExpectedValue = 0.0;
         auto chanceProbs = node->chanceProbs();
 
-        for (int i = 0; i != children.size(); i++) {
+        for (unsigned int i = 0; i != children.size(); i++) {
             array<double, 3> newReachProbs = {reachProbs[0],
                                               reachProbs[1],
                                               reachProbs[CHANCE_PLAYER] * chanceProbs[i]};
@@ -133,7 +133,7 @@ double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
     auto ChildrenActionValues = vector<double>(numActions, 0.0);
     double ExpectedValue = 0.0;
 
-    for (int i = 0; i != children.size(); i++) {
+    for (unsigned int i = 0; i != children.size(); i++) {
         array<double, 3> newReachProbs = {reachProbs[0],
                                           reachProbs[1],
                                           reachProbs[CHANCE_PLAYER]};
@@ -144,7 +144,7 @@ double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
     }
 
     if (actingPl == updatingPl) {
-        for (int i = 0; i < numActions; i++) {
+        for (unsigned int i = 0; i < numActions; i++) {
             if (!infosetData.fixRMStrategy) {
                 double cfActionRegret = (ChildrenActionValues[i] - ExpectedValue)
                     * reachProbs[oppExploringPl] * reachProbs[CHANCE_PLAYER];
@@ -175,7 +175,7 @@ void calcRMProbs(const vector<double> &regrets, ProbDistribution *pProbs, double
     }
 
     if (posRegretSum > 0) {
-        for (int i = 0; i < n; i++) {
+        for (unsigned int i = 0; i < n; i++) {
             (*pProbs)[i] = (1 - epsilonUniform) * max(0.0, regrets[i] / posRegretSum)
                 + epsilonUniform / n;
         }
@@ -195,7 +195,7 @@ void calcAvgProbs(const vector<double> &acc, ProbDistribution *pProbs) {
     double sum = 0.0;
     for (double d : acc) sum += d;
 
-    for (int i = 0; i < acc.size(); ++i) {
+    for (unsigned int i = 0; i < acc.size(); ++i) {
         (*pProbs)[i] = sum == 0.0
                        ? 1.0 / acc.size()
                        : acc[i] / sum;
@@ -208,7 +208,7 @@ ExpectedUtility calcExpectedUtility(CFRData &cache, const shared_ptr<EFGNode> &n
             const auto &children = cache.getChildrenFor(node);
             double rmUtility = 0., avgUtility = 0.;
             const auto chanceProbs = node->chanceProbs();
-            for (int i = 0; i < children.size(); ++i) {
+            for (unsigned int i = 0; i < children.size(); ++i) {
                 auto childUtils = calcExpectedUtility(cache, children[i], pl);
                 rmUtility += chanceProbs[i] * childUtils.rmUtility;
                 avgUtility += chanceProbs[i] * childUtils.avgUtility;
@@ -224,7 +224,7 @@ ExpectedUtility calcExpectedUtility(CFRData &cache, const shared_ptr<EFGNode> &n
             auto rmProbs = calcRMProbs(infosetData.regrets);
             auto avgProbs = calcAvgProbs(infosetData.avgStratAccumulator);
 
-            for (int i = 0; i < children.size(); ++i) {
+            for (unsigned int i = 0; i < children.size(); ++i) {
                 auto childUtils = calcExpectedUtility(cache, children[i], pl);
                 rmUtility += rmProbs[i] * childUtils.rmUtility;
                 avgUtility += avgProbs[i] * childUtils.avgUtility;

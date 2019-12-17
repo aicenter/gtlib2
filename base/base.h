@@ -20,8 +20,6 @@
 */
 
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
 #ifndef BASE_BASE_H_
 #define BASE_BASE_H_
 
@@ -35,7 +33,7 @@ namespace GTLib2 {
 
 class Action;
 class Observation;
-class Outcome;
+struct Outcome;
 class State;
 class Domain;
 class InformationSet;
@@ -145,7 +143,7 @@ constexpr ObservationId NO_OBSERVATION = 0xFFFFFFFF;
 
 /**
  * Special value of observation id, indicating that player made a move.
- * 0x0xFFFFFF00 means player 0, 0xFFFFFF01 player 1, etc.
+ * 0xFFFFFF00 means player 0, 0xFFFFFF01 player 1, etc.
  *
  * Use function observationPlayerMove for calculating the values.
  */
@@ -172,7 +170,7 @@ class Observation {
     }
 
     inline ObservationId getId() const { return id_; };
-    inline virtual const HashType getHash() const { return id_; };
+    inline virtual HashType getHash() const { return id_; };
     inline virtual bool operator==(const Observation &that) const { return id_ == that.id_; };
     inline friend std::ostream & operator<<(std::ostream &ss, const Observation &o) {
         ss << o.toString();
@@ -200,7 +198,7 @@ struct ActionObservationIds {
 
     bool operator==(const ActionObservationIds &rhs) const;
     bool operator!=(const ActionObservationIds &rhs) const;
-    const HashType getHash() const { return hashCombine(132456456, action, observation); }
+    HashType getHash() const { return hashCombine(132456456, action, observation); }
     inline friend std::ostream & operator<<(std::ostream &ss, const ActionObservationIds &ids) {
         ss << (ids.action == NO_ACTION ? "NoA" : to_string(ids.action)) << " ";
         ss << (ids.observation == NO_OBSERVATION ? "NoOb" : to_string(ids.observation));
@@ -212,8 +210,8 @@ static_assert(sizeof(ActionObservationIds) == 8, "Should fit within size_t (64 b
 static_assert(sizeof(ActionObservationIds) == sizeof(HashType), "Should have the same size");
 
 const ActionObservationIds NO_ACTION_OBSERVATION{
-    .action = NO_ACTION,
-    .observation = NO_OBSERVATION
+    /*.action=*/NO_ACTION,
+    /*.observation=*/NO_OBSERVATION
 };
 
 
@@ -270,6 +268,7 @@ typedef vector<OutcomeEntry> OutcomeDistribution;
 class InformationSet {
  public:
     InformationSet() = default;
+    virtual ~InformationSet() = default;
     virtual bool operator==(const InformationSet &rhs) const = 0;
     inline bool operator!=(const InformationSet &rhs) const { return !(rhs == *this); };
     virtual HashType getHash() const = 0;
@@ -318,8 +317,8 @@ class AOH: public InformationSet {
 struct InfosetAction {
     const shared_ptr<InformationSet> infoset;
     const shared_ptr<Action> action;
-    InfosetAction(shared_ptr<InformationSet> infoset, shared_ptr<Action> action)
-        : infoset(move(infoset)), action(move(action)) {}
+    InfosetAction(shared_ptr<InformationSet> _infoset, shared_ptr<Action> _action)
+        : infoset(move(_infoset)), action(move(_action)) {}
     inline HashType getHash() const { return infoset->getHash() + action->getHash(); }
     inline bool operator==(const InfosetAction &rhs) const {
         return getHash() == rhs.getHash() && *infoset == *rhs.infoset && *action == *rhs.action;
@@ -359,7 +358,6 @@ typedef unordered_map<shared_ptr<ActionSequence>, double> RealizationPlan;
 class State {
  public:
     explicit State(const Domain *domain, HashType hash);
-
     virtual ~State() = default;
 
     /**
@@ -371,6 +369,9 @@ class State {
      * Returns possible actions for a player in the state.
      */
     virtual vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const = 0;
+
+
+    virtual shared_ptr<Action> getActionByID(Player player, ActionId action) const;
 
     /**
      * Performs actions given by vector of  <player, action>. If actions for some players
@@ -399,7 +400,6 @@ class State {
      */
     virtual bool isTerminal() const = 0;
 
-
     /**
      * Returns state description
      */
@@ -427,6 +427,7 @@ class State {
  * Additionally, chance is encoded by *stochastic* transitions, i.e. the outcome
  * of player's actions (in general) is not deterministic.
  */
+
 class Domain {
  public:
     Domain(unsigned int maxStateDepth, unsigned int numberOfPlayers, bool isZeroSum_,
@@ -479,22 +480,6 @@ class Domain {
     const shared_ptr<Action> noAction_;
     const shared_ptr<Observation> noObservation_;
 };
-
-
-bool isAOCompatible(const std::vector<ActionObservationIds> &aoTarget,
-                    const std::vector<ActionObservationIds> &aoCmp);
-
-
-template<typename T>
-bool isCompatible(const std::vector<T> &target, const std::vector<T> &cmp) {
-    auto sizeTarget = target.size();
-    auto sizeCmp = cmp.size();
-    if (std::min(sizeTarget, sizeCmp) == 0) return true;
-
-    size_t cmpBytes = std::min(sizeTarget, sizeCmp) * sizeof(T);
-    return !memcmp(target.data(), cmp.data(), cmpBytes);
-}
-
 }  // namespace GTLib2
 
 MAKE_EQ(GTLib2::InformationSet)
@@ -516,4 +501,3 @@ MAKE_HASHABLE(GTLib2::ActionSequence)
 
 #endif  // BASE_BASE_H_
 
-#pragma clang diagnostic pop

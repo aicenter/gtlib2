@@ -85,7 +85,7 @@ FixedActionPlayer::FixedActionPlayer(const Domain &domain, Player playingPlayer,
       cache_(InfosetCache(domain_)),
       actionIdx_(actionIdx) {}
 
-PlayControl FixedActionPlayer::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
+PlayControl FixedActionPlayer::runPlayIteration(const optional<shared_ptr<AOH>> &) {
     if (cache_.isCompletelyBuilt()) return StopImproving;
     cache_.buildTree();
     return StopImproving;
@@ -100,6 +100,7 @@ FixedActionPlayer::getPlayDistribution(const shared_ptr<AOH> &currentInfoset) {
     dist[(numActions + (actionIdx_ % numActions)) % numActions] = 1.;
     return dist;
 }
+
 
 vector<double> playMatch(const Domain &domain,
                          vector<PreparedAlgorithm> algorithmInitializers,
@@ -118,11 +119,11 @@ vector<double> playMatch(const Domain &domain,
     auto continuePlay = vector<bool>(numAlgs, true);
     auto givenUpMove = vector<int>(numAlgs, -1);
 
-    for (int i = 0; i < numAlgs; ++i) {
+    for (unsigned int i = 0; i < numAlgs; ++i) {
         LOG_PLAYER(i, "Initializing player " << i)
         algs[i] = algorithmInitializers[i](domain, Player(i));
     }
-    for (int i = 0; i < numAlgs; ++i) {
+    for (unsigned int i = 0; i < numAlgs; ++i) {
         LOG_PLAYER(i, "Player " << i << " is thinking in preplay for " << preplayBudget[i]
                                 << (simulationType == BudgetTime ? " ms" : " iterations"))
         continuePlay[i] = playForBudget(*algs[i], PLAY_FROM_ROOT, preplayBudget[i], simulationType);
@@ -143,7 +144,7 @@ vector<double> playMatch(const Domain &domain,
     auto reachProbPlayers = vector<double>(numAlgs, 1.0);
     while (node->type_ != TerminalNode) {
         int playerAction;
-        auto actions = node->availableActions();
+        auto numActions = node->countAvailableActions();
 
         switch (node->type_) {
             case ChanceNode: {
@@ -153,7 +154,7 @@ vector<double> playMatch(const Domain &domain,
                                                  << " from p="
                                                  << (Either{probs.size() < 10, probs,
                                                             "(too many to show - "+to_string(probs.size())+" actions)"}))
-                LOG_INFO("Selected action is: " << *actions[playerAction])
+                LOG_INFO("Selected action is: " << node->getActionByID(playerAction))
                 break;
             }
 
@@ -161,6 +162,8 @@ vector<double> playMatch(const Domain &domain,
                 auto infoset = node->getAOHInfSet();
                 Player pl = node->getPlayer();
                 playerMoveCnt[pl]++;
+
+                LOG_INFO("Current AOids are: " << infoset->getAOids());
 
                 if (continuePlay[pl]) {
                     LOG_PLAYER(pl, "Player " << int(pl) << " is thinking in move #"
@@ -181,10 +184,10 @@ vector<double> playMatch(const Domain &domain,
                     if (givenUpMove[pl] == -1) givenUpMove[pl] = playerMoveCnt[pl];
                     LOG_PLAYER(pl, "Player " << int(pl) << " has given up, so plays "
                                              << "randomly in move #" << playerMoveCnt[pl])
-                    probs = ProbDistribution(actions.size(), 1. / actions.size());
+                    probs = ProbDistribution(numActions, 1. / numActions);
                 }
 
-                assert(probs.size() == actions.size());
+                assert(probs.size() == numActions);
                 double sumProbs = 0.0;
                 for (double prob : probs) sumProbs += prob;
                 assert(fabs(1.0 - sumProbs) < 1e-9);
@@ -195,8 +198,9 @@ vector<double> playMatch(const Domain &domain,
                 LOG_PLAYER(pl, "Player " << int(pl) << " picked p[" << playerAction
                                          << "]=" << probs[playerAction] << " from p="
                                          << (Either{probs.size() < 10, probs,
-                                                    "(too many to show - "+to_string(probs.size())+" actions)"}))
-                LOG_INFO("Selected action is: " << *actions[playerAction])
+                                                    "(too many to show - " + to_string(probs.size())
+                                                        + " actions)"}))
+                LOG_INFO("Selected action is: " << node->getActionByID(playerAction))
                 break;
             }
 
@@ -206,7 +210,7 @@ vector<double> playMatch(const Domain &domain,
                 unreachable("unrecognized option!");
         }
 
-        node = node->performAction(actions[playerAction]);
+        node = node->performAction(node->getActionByID(playerAction));
         const auto fogNode = dynamic_pointer_cast<FOG2EFGNode>(node);
         const auto newState = fogNode->getState();
         LOG_INFO("--------------------------------------")

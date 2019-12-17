@@ -49,6 +49,7 @@ class FOG2EFGNode: public Node<FOG2EFGNode>,
 
     inline FOG2EFGNode(const FOG2EFGNode &other) :
         Node<FOG2EFGNode>(other), EFGNode(other),
+        std::enable_shared_from_this<FOG2EFGNode const>(other),
         stateDepth_(other.stateDepth_), incomingAction_(other.incomingAction_),
         lastOutcome_(other.lastOutcome_), outcomeDist_(other.outcomeDist_),
         remainingRoundPlayers_(other.remainingRoundPlayers_), roundActions_(other.roundActions_),
@@ -60,6 +61,7 @@ class FOG2EFGNode: public Node<FOG2EFGNode>,
     unsigned int efgDepth() const override { return history_.size(); };
     unsigned long countAvailableActions() const override;
     vector<shared_ptr<Action>> availableActions() const override;
+    shared_ptr<Action> getActionByID(ActionId id) const override;
     shared_ptr<EFGNode> performAction(const shared_ptr<Action> &action) const override;
     double chanceProbForAction(const ActionId &action) const override;
     double chanceProbForAction(const shared_ptr<Action> &action) const override;
@@ -132,7 +134,7 @@ inline unsigned int nodeChildCnt<EFGNode>(const shared_ptr<EFGNode> &node) {
 template<>
 inline shared_ptr<EFGNode>
 nodeChildExpander<EFGNode>(const shared_ptr<EFGNode> &node, EdgeId index) {
-    return node->performAction(node->availableActions().at(index));
+    return node->performAction(node->getActionByID(index));
 }
 template<>
 inline unsigned int nodeChildCnt<FOG2EFGNode>(const shared_ptr<FOG2EFGNode> &node) {

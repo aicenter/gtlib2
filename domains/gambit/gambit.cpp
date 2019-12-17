@@ -110,7 +110,7 @@ std::unique_ptr<Node> parseNodeLine(const std::string &line, const int &line_num
     unsigned long pubstate_idx = 0;
     int infoset_len = 0;
     int pubstate_len = 0;
-    int num_actions = 0;
+    unsigned int num_actions = 0;
     std::vector<double> utils;
     std::vector<double> probs;
 
@@ -251,7 +251,7 @@ OutcomeDistribution GambitDomain::createOutcomes(Node *next) const {
     if (next->node_type == 'c') { // assumes no repeated chance nodes
         // I dont have time for special cases
         auto outcomes = OutcomeDistribution();
-        for (int i = 0; i < next->probs.size(); ++i) {
+        for (unsigned int i = 0; i < next->probs.size(); ++i) {
             outcomes.emplace_back(OutcomeEntry(Outcome(
                 make_shared<GambitState>(this, next->children[i].get()),
                 createPrivateObs(next->children[i].get()),

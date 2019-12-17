@@ -39,8 +39,8 @@ TEST(PlayMatch, PlaySmallGame) {
     PreparedAlgorithm firstAction = createInitializer<FixedActionPlayer>(a);
     PreparedAlgorithm lastAction = createInitializer<FixedActionPlayer>(b);
 
-    GoofSpielSettings settings
-        ({variant:  IncompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
+    GoofSpielSettings settings({/*.variant=*/IncompleteObservations, /*.numCards=*/3,
+                                   /*.fixChanceCards=*/true, /*.chanceCards=*/{}});
     settings.shuffleChanceCards(0);
     GoofSpielDomain domain(settings);
     vector<double> expectedUtilities = vector<double>{1., -1.};
