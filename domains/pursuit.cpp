@@ -258,7 +258,7 @@ OutcomeDistribution MMPursuitState::performActions(const vector <shared_ptr<Acti
     // number of all combinations
     OutcomeDistribution prob;
     prob.reserve(players_.size());
-    for (auto &k : players_) {
+    for (int j = 0; j < players_.size(); ++j) {
         vector<shared_ptr<Observation>> observations(place_.size());
         vector<double> rewards(place_.size());
         double probability = prob_;

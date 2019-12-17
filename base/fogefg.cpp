@@ -90,9 +90,10 @@ shared_ptr<FOG2EFGNode> FOG2EFGNode::performChanceAction(const shared_ptr<Action
     //
     // In both of them, we have already received the outcome distribution by which to play.
 
+    const auto actionPtr = action.get();
     assert(action->getId() >= 0
                && action->getId() < outcomeDist_.size()
-               && typeid(*action) == typeid(EFGChanceAction));
+               && typeid(actionPtr) == typeid(EFGChanceAction));
 
     return createNodeForSpecificOutcome(action, outcomeDist_[action->getId()]);
 }
@@ -212,7 +213,8 @@ double FOG2EFGNode::chanceProbForAction(const ActionId &action) const {
 
 double FOG2EFGNode::chanceProbForAction(const shared_ptr<Action> &action) const {
     assert(type_ == ChanceNode);
-    assert(typeid(*action) == typeid(EFGChanceAction));
+    const auto actionPtr = action.get();
+    assert(typeid(actionPtr) == typeid(EFGChanceAction));
     return outcomeDist_[action->getId()].prob;
 }
 

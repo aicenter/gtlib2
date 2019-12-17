@@ -62,7 +62,7 @@ StrategyProfile OOS_AverageStrategy(const Domain &domain, const AlgParams &cfg,
     targetData.buildTree();
 
     LOG_DEBUG("Exploitability after preplay")
-    auto expl = calcExploitability(domain, getAverageStrategy(targetData));
+    calcExploitability(domain, getAverageStrategy(targetData));
 
     function<void(shared_ptr<EFGNode>)> traverse = [&](const shared_ptr<EFGNode> &node) -> void {
         if (node->type_ == PlayerNode) {
