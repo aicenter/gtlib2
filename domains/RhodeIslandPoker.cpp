@@ -23,7 +23,7 @@
 
 
 namespace GTLib2::domains {
-RhodeIslandPokerAction::RhodeIslandPokerAction(ActionId id, int type, int value) :
+RhodeIslandPokerAction::RhodeIslandPokerAction(ActionId id, unsigned int type, unsigned int value) :
     Action(id), type_(type), value_(value) {}
 
 bool RhodeIslandPokerAction::operator==(const Action &that) const {
@@ -52,7 +52,8 @@ string RhodeIslandPokerAction::toString() const {
     }
 }
 
-RhodeIslandPokerObservation::RhodeIslandPokerObservation(int id, int type, int value, int color) :
+RhodeIslandPokerObservation::RhodeIslandPokerObservation(int id, unsigned int type,
+                                                         unsigned int value, unsigned int color) :
     Observation(id), value_(value), type_(type), color_(color) {}
 
 string RhodeIslandPokerObservation::toString() const {
@@ -103,19 +104,19 @@ RhodeIslandPokerDomain::RhodeIslandPokerDomain(unsigned int maxCardTypes,
         raisesFirstRound_.push_back((i + 1) * 2);
     }
 
-    for (int i : betsFirstRound_) {
+    for (unsigned int i : betsFirstRound_) {
         betsSecondRound_.push_back(2 * i);
     }
 
-    for (int i : raisesFirstRound_) {
+    for (unsigned int i : raisesFirstRound_) {
         raisesSecondRound_.push_back(2 * i);
     }
 
-    for (int i : betsSecondRound_) {
+    for (unsigned int i : betsSecondRound_) {
         betsThirdRound_.push_back(2 * i);
     }
 
-    for (int i : raisesSecondRound_) {
+    for (unsigned int i : raisesSecondRound_) {
         raisesThirdRound_.push_back(2 * i);
     }
 
@@ -215,7 +216,7 @@ unsigned long RhodeIslandPokerState::countAvailableActionsFor(Player player) con
     return getAvailableActionsFor(player).size();
 }
 
-vector<shared_ptr<Action>> RhodeIslandPokerState::getAvailableActionsFor(Player ) const {
+vector<shared_ptr<Action>> RhodeIslandPokerState::getAvailableActionsFor(Player) const {
     auto list = vector<shared_ptr<Action>>();
     int count = 0;
     const auto pokerDomain = static_cast<const RhodeIslandPokerDomain *>(domain_);
@@ -267,7 +268,7 @@ vector<shared_ptr<Action>> RhodeIslandPokerState::getAvailableActionsFor(Player 
 }
 
 OutcomeDistribution
-RhodeIslandPokerState::performActions(const vector <shared_ptr<Action>> &actions) const {
+RhodeIslandPokerState::performActions(const vector<shared_ptr<Action>> &actions) const {
     const auto pokerDomain = static_cast<const RhodeIslandPokerDomain *>(domain_);
     auto a1 = dynamic_pointer_cast<RhodeIslandPokerAction>(actions[0]);
     auto a2 = dynamic_pointer_cast<RhodeIslandPokerAction>(actions[1]);
@@ -655,14 +656,14 @@ RhodeIslandPokerState::performActions(const vector <shared_ptr<Action>> &actions
 }
 
 RhodeIslandPokerState::RhodeIslandPokerState(const Domain *domain,
-                                             pair<int, int> player1Card,
-                                             pair<int, int> player2Card,
-                                             optional<pair<int, int>> natureCard1,
-                                             optional<pair<int, int>> natureCard2,
+                                             pair<unsigned int, unsigned int> player1Card,
+                                             pair<unsigned int, unsigned int> player2Card,
+                                             optional<pair<unsigned int, unsigned int>> natureCard1,
+                                             optional<pair<unsigned int, unsigned int>> natureCard2,
                                              double firstPlayerReward, double pot,
                                              vector<Player> players, int round,
                                              shared_ptr<RhodeIslandPokerAction> lastAction,
-                                             int continuousRaiseCount) :
+                                             unsigned int continuousRaiseCount) :
     State(domain, hashCombine(498413684454, players, player1Card, player2Card,
                               natureCard1.value_or(make_pair(-1, -1)),
                               natureCard2.value_or(make_pair(-1, -1)),
@@ -680,10 +681,10 @@ RhodeIslandPokerState::RhodeIslandPokerState(const Domain *domain,
     lastAction_(move(lastAction)) {}
 
 RhodeIslandPokerState::RhodeIslandPokerState(const Domain *domain,
-                                             pair<int, int> player1card,
-                                             pair<int, int> player2card,
-                                             optional<pair<int, int>> natureCard1,
-                                             optional<pair<int, int>> natureCard2,
+                                             pair<unsigned int, unsigned int> player1card,
+                                             pair<unsigned int, unsigned int> player2card,
+                                             optional<pair<unsigned int, unsigned int>> natureCard1,
+                                             optional<pair<unsigned int, unsigned int>> natureCard2,
                                              unsigned int ante,
                                              vector<Player> players) :
     RhodeIslandPokerState(domain, move(player1card), move(player2card), move(natureCard1),

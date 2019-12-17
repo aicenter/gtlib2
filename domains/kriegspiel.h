@@ -355,21 +355,21 @@ class KriegspielState: public State {
     // Constructor
     /**
      * @param Domain the Kriegspiel domain
-     * @param int legalMaxDepth, the depth of game only when counting legal half-moves
+     * @param unsigned int legalMaxDepth, the depth of game only when counting legal half-moves
      * @param chess::BOARD the board type of the game
      */
-    KriegspielState(const Domain *domain, int, chess::BOARD);
+    KriegspielState(const Domain *domain, unsigned int, chess::BOARD);
 
     /**
      * @param Domain the Kriegspiel domain
-     * @param int legalMaxDepth, the depth of game only when counting legal half-moves
+     * @param unsigned int legalMaxDepth, the depth of game only when counting legal half-moves
      * @param stringthe string from which the board is constructed in FEN notation
      */
-    KriegspielState(const Domain *domain, int, string);
+    KriegspielState(const Domain *domain, unsigned int, string);
 
     /**
      * @param Domain the Kriegspiel domain
-     * @param int legalMaxDepth, the depth of game only when counting legal half-moves
+     * @param unsigned int legalMaxDepth, the depth of game only when counting legal half-moves
      * @param int x-size of the board
      * @param int y-size of the board
      * @param shared_ptr<vector<shared_ptr<AbstractPiece>>> a list containing all of the pieces on the board
@@ -380,7 +380,7 @@ class KriegspielState: public State {
      * @param shared_ptr<vector<shared_ptr<KriegspielAction>>> attemptedMoves, a history of attempted moves (non-legal moves)
      */
     KriegspielState(const Domain *domain,
-                    int,
+                    unsigned int,
                     int,
                     int,
                     shared_ptr<vector<shared_ptr<AbstractPiece>>>  pieces,
@@ -597,7 +597,7 @@ class KriegspielState: public State {
     int lastCut_ = 0;
     chess::Square enPassantSquare_;
     Player playerInCheck_ = -1;
-    const int legalMaxDepth_;
+    const unsigned int legalMaxDepth_;
     bool gameHasEnded_ = false;
  private:
     void initBoard(chess::BOARD);

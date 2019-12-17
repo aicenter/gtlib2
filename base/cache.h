@@ -352,7 +352,7 @@ void treeWalk(EFGCache &cache, EFGNodeCallback function);
  * Call supplied function at each EFGNode of the EFG tree supplied by cache, including leaves.
  * The tree is walked as DFS up to maximum depth.
  */
-bool treeWalk(EFGCache &cache, EFGNodeCallback function, int maxEfgDepth);
+bool treeWalk(EFGCache &cache, EFGNodeCallback function, unsigned int maxEfgDepth);
 
 } // namespace GTLib2
 

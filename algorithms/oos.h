@@ -215,11 +215,11 @@ struct OOSSettings: AlgConfig {
  * Runtime statistics for online algorithms
  */
 struct OnlineStats {
-    int rootVisits = 0;
-    int nodesVisits = 0;
-    int terminalsVisits = 0;
-    int infosetVisits = 0;
-    int pubStateVisits = 0;
+    unsigned int rootVisits = 0;
+    unsigned int nodesVisits = 0;
+    unsigned int terminalsVisits = 0;
+    unsigned int infosetVisits = 0;
+    unsigned int pubStateVisits = 0;
 
     void reset() {
         rootVisits = 0;
@@ -401,7 +401,7 @@ class OOSAlgorithm: public GamePlayingAlgorithm {
                                     double us_h_cn,
                                     double s_h_all);
     virtual void updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exploringPl,
-                                      CFRData::InfosetData &data, int ai,
+                                      CFRData::InfosetData &data, unsigned int ai,
                                       double u_x, double u_h, double w);
     void updateInfosetAcc(const shared_ptr<EFGNode> &h, CFRData::InfosetData &data, double s);
 

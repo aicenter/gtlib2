@@ -36,7 +36,7 @@ class FixedSamplingOOS: public OOSAlgorithm {
 
  protected:
     const vector <vector<ActionId>> samples_;
-    int moveIdx_ = 0;
+    unsigned int moveIdx_ = 0;
 
     inline int nextAction() {
         assert(samples_.at(stats_.rootVisits).size() > moveIdx_);

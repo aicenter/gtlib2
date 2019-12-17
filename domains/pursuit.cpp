@@ -123,7 +123,7 @@ OutcomeDistribution PursuitState::performActions(const vector <shared_ptr<Action
         if (i->getId() == NO_ACTION)
             powsize--;
     }
-    int count = (1 << powsize);
+    unsigned int count = (1 << powsize);
     OutcomeDistribution prob;
     prob.reserve(static_cast<unsigned long>(count));
 //  count = 1;
@@ -217,7 +217,7 @@ bool PursuitState::operator==(const State &rhs) const {
 
 string PursuitState::toString() const {
     string s;
-    for (auto player = 0; player < place_.size(); ++player) {
+    for (Player player = 0; player < place_.size(); ++player) {
         s += "player: " + to_string(player) + ", location: " +
             to_string(place_[player].x) + " " + to_string(place_[player].y) + "\n";
     }
@@ -258,7 +258,7 @@ OutcomeDistribution MMPursuitState::performActions(const vector <shared_ptr<Acti
     // number of all combinations
     OutcomeDistribution prob;
     prob.reserve(players_.size());
-    for (int j = 0; j < players_.size(); ++j) {
+    for (unsigned int j = 0; j < players_.size(); ++j) {
         vector<shared_ptr<Observation>> observations(place_.size());
         vector<double> rewards(place_.size());
         double probability = prob_;

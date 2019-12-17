@@ -96,8 +96,8 @@ GenericPokerDomain::GenericPokerDomain(unsigned int maxCardTypes, unsigned int m
 
     for (unsigned int i = 1; i <= maxDifferentBets; i++) betsFirstRound_.push_back(i * 2);
     for (unsigned int i = 1; i <= maxDifferentRaises; i++) raisesFirstRound_.push_back(i * 2);
-    for (int i : betsFirstRound_) betsSecondRound_.push_back(i * 2);
-    for (int i : raisesFirstRound_) raisesSecondRound_.push_back(i * 2);
+    for (unsigned int i : betsFirstRound_) betsSecondRound_.push_back(i * 2);
+    for (unsigned int i : raisesFirstRound_) raisesSecondRound_.push_back(i * 2);
 
     maxUtility_ = ante_
         + betsFirstRound_.back()

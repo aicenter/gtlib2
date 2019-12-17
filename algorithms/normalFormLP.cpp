@@ -149,7 +149,7 @@ void NormalFormLP::UpdateUtilityMatrix(const vector<vector<double>> &utilities) 
     BuildModel(&tmp);
 }
 
-bool NormalFormLP::ValidateInput(const int p1_actions, const int p2_actions,
+bool NormalFormLP::ValidateInput(const unsigned int p1_actions, const unsigned int p2_actions,
                                  const vector<double> &utilities) {
     if (!(p1_actions >= 1 && p2_actions >= 1
         && utilities.size() == p1_actions * p2_actions)) {
@@ -158,8 +158,8 @@ bool NormalFormLP::ValidateInput(const int p1_actions, const int p2_actions,
     return true;
 }
 
-void NormalFormLP::ChangeOutcome(const int action_for_p1,
-                                 const int action_for_p2,
+void NormalFormLP::ChangeOutcome(const unsigned int action_for_p1,
+                                 const unsigned int action_for_p2,
                                  double new_utility) {
     if (!(action_for_p1 >= 0 && action_for_p1 < cols_
         && action_for_p2 >= 0 && action_for_p2 < rows_)) {

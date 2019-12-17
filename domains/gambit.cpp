@@ -80,7 +80,7 @@ GambitDomain::ParseNodeLine(std::ifstream &in, const std::string &line, int &lin
     int player = 2;
     int infoset_idx = 0;
     int pubstate_idx = 0;
-    int num_actions = 0;
+    unsigned int num_actions = 0;
     std::vector<double> utils;
     std::vector<double> probs;
 
@@ -196,7 +196,7 @@ GambitDomain::ParseNodeLine(std::ifstream &in, const std::string &line, int &lin
     node->description = ""; // todo:
 
     // create the node
-    for (int i = 0; i < num_actions; ++i) {
+    for (unsigned int i = 0; i < num_actions; ++i) {
         std::string next_line;
         std::getline(in, next_line);
         if (in.fail()) {

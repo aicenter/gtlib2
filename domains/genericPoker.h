@@ -136,10 +136,10 @@ class GenericPokerDomain: public Domain {
     GenericPokerDomain();
     ~GenericPokerDomain() override = default;
     string getInfo() const final;
-    vector<int> betsFirstRound_;
-    vector<int> raisesFirstRound_;
-    vector<int> betsSecondRound_;
-    vector<int> raisesSecondRound_;
+    vector<unsigned int> betsFirstRound_;
+    vector<unsigned int> raisesFirstRound_;
+    vector<unsigned int> betsSecondRound_;
+    vector<unsigned int> raisesSecondRound_;
     const unsigned int maxCardTypes_;        // numbers
     const unsigned int maxCardsOfEachType_;  // colors
     const unsigned int maxRaisesInRow_;
@@ -188,14 +188,14 @@ class GenericPokerState: public State {
     inline string toString() const override;
 
  protected:
-    const int player1Card_;
-    const int player2Card_;
+    const unsigned int player1Card_;
+    const unsigned int player2Card_;
     const optional<int> natureCard_;
     const double pot_;
     const double cumulativeFirstPlayerReward_;
     const Player actingPlayer_;
     const int round_;
-    const int continuousRaiseCount_;
+    const unsigned int continuousRaiseCount_;
     const shared_ptr <GenericPokerAction> lastAction_;
  private:
     OutcomeDistribution revealChanceCard(double newFirstPlayerReward, double new_pot,

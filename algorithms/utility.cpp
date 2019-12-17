@@ -96,7 +96,7 @@ vector<BehavioralStrategy> generateAllPureStrategies(
     const vector<pair<shared_ptr<AOH>, vector<shared_ptr<Action>>>> infosetsActionsPairs(
         infosetsActions.begin(), infosetsActions.end());
 
-    function<void(BehavioralStrategy, int)> generate = [&](BehavioralStrategy strat, int setIndex) {
+    function<void(BehavioralStrategy, int)> generate = [&](BehavioralStrategy strat, unsigned int setIndex) {
         if (setIndex >= infosetsActionsPairs.size()) {
             pureStrats.push_back(strat);
             return;

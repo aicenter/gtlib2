@@ -495,7 +495,7 @@ void OOSAlgorithm::updateInfosetAcc(const shared_ptr<EFGNode> &, CFRData::Infose
 }
 
 void OOSAlgorithm::updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exploringPl,
-                                        CFRData::InfosetData &data, int ai,
+                                        CFRData::InfosetData &data, unsigned int ai,
                                         double u_x, double u_h, double w) {
     assert(!isnan(u_x) && !isnan(u_h) && !isnan(w));
 

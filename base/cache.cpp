@@ -203,7 +203,7 @@ void treeWalk(EFGCache &cache, EFGNodeCallback function) {
     traverse(cache.getRootNode(), traverse);
 }
 
-bool treeWalk(EFGCache &cache, EFGNodeCallback function, int maxEfgDepth) {
+bool treeWalk(EFGCache &cache, EFGNodeCallback function, unsigned int maxEfgDepth) {
     auto traverse = [&](const shared_ptr<EFGNode> &node, const auto &traverseChild) {
 
         // Call the provided function on the current node.

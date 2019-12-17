@@ -24,7 +24,8 @@
 
 
 namespace GTLib2::domains {
-unsigned int encodeMoveObservation(int startPos, int endPos, CellState startCell, CellState endCell) {
+unsigned int
+encodeMoveObservation(int startPos, int endPos, CellState startCell, CellState endCell) {
     // 30 bits total
     // max sizes of stratego boards are 10x10 = 100, so pos < 7 bits = 128
     return (startPos << 22)
@@ -39,8 +40,8 @@ unsigned int encodeSetupObservation(int setupid, int playerID) {
     // 32 bits total
     //setupid up to 28 bits
     return (3 << 30)
-            | (playerID << 28)
-            | setupid; // 28 bits
+        | (playerID << 28)
+        | setupid; // 28 bits
 }
 
 int maxMovesWithoutAttack(int h, int w) {
@@ -126,14 +127,14 @@ vector<CellState> StrategoSettings::generateBoard() {
 }
 
 
-    StrategoSetupObservation::StrategoSetupObservation(const int setupID, const int playerID)
-        : Observation(),
-          setupID_(setupID), playerID_(playerID) {
+StrategoSetupObservation::StrategoSetupObservation(const int setupID, const int playerID)
+    : Observation(),
+      setupID_(setupID), playerID_(playerID) {
     id_ = encodeSetupObservation(setupID_, playerID_);
 }
 
 StrategoMoveObservation::StrategoMoveObservation(const int startPos, const int endPos,
-                                         const Rank startCell, const Rank endCell)
+                                                 const Rank startCell, const Rank endCell)
     : Observation(),
       startPos_(startPos), endPos_(endPos),
       startCell_(startCell), endCell_(endCell) {
@@ -168,28 +169,30 @@ int fact(int n) {
     return n * fact(n - 1);
 }
 
-bool canMoveUp(int i, const vector<CellState> &board, int height, int width) {
+bool canMoveUp(unsigned int i, const vector<CellState> &board,
+               unsigned int height, unsigned int width) {
     return (height > 1)
         && ((i + 1) > width)
         && !isSamePlayer(board[i], board[i - width])
         && (board[i - width] != LAKE);
 }
 
-bool canMoveDown(int i, const vector<CellState> &board, int height, int width) {
+bool canMoveDown(unsigned int i, const vector<CellState> &board,
+                 unsigned int height, unsigned int width) {
     return ((height > 1)
         && (board.size() - (i + 1) >= width)
         && !isSamePlayer(board[i], board[i + width])
         && (board[i + width] != LAKE));
 }
 
-bool canMoveLeft(int i, const vector<CellState> &board, int width) {
+bool canMoveLeft(unsigned int i, const vector<CellState> &board, unsigned int width) {
     return ((width > 1)
         && ((i + 1) % width != 1)
         && !isSamePlayer(board[i], board[i - 1])
         && (board[i - 1] != LAKE));
 }
 
-bool canMoveRight(int i, const vector<CellState> &board, int width) {
+bool canMoveRight(unsigned int i, const vector<CellState> &board, unsigned int width) {
     return ((width > 1)
         && ((i + 1) % width != 0)
         && !isSamePlayer(board[i], board[i + 1])
@@ -222,7 +225,7 @@ unsigned long StrategoState::countAvailableActionsFor(Player player) const {
 shared_ptr<Action> StrategoState::getActionByID(const Player player, ActionId action) const {
     const auto stratDomain = dynamic_cast<const StrategoDomain *>(domain_);
 
-    int id = 0;
+    unsigned int id = 0;
     int height = stratDomain->boardHeight_;
     int width = stratDomain->boardWidth_;
     if (isSetupState_) {
@@ -339,8 +342,8 @@ StrategoState::performSetupAction(const vector<shared_ptr<Action>> &actions) con
 
     const auto newState = make_shared<StrategoState>(stratDomain, board, false, false, 0, 0);
     const auto &noObs = stratDomain->getNoObservation();
-    const auto pl0obs =  make_shared<StrategoSetupObservation>(actionpl0.getId(),0);
-    const auto pl1obs =  make_shared<StrategoSetupObservation>(actionpl1.getId(),0);
+    const auto pl0obs = make_shared<StrategoSetupObservation>(actionpl0.getId(), 0);
+    const auto pl1obs = make_shared<StrategoSetupObservation>(actionpl1.getId(), 0);
     const auto newOutcome = Outcome(newState, {pl0obs, pl1obs}, noObs, {0, 0});
 
     return OutcomeDistribution{OutcomeEntry(newOutcome)};

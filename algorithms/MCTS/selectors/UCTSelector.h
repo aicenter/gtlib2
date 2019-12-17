@@ -46,7 +46,7 @@ class UCTSelector: public Selector {
     const UCTSelectorFactory *factory_;
     vector<double> values_;
     vector<int> visits_;
-    int totalVisits = 0;
+    unsigned int totalVisits = 0;
 
     double getBestRateIndex();
 
