@@ -405,6 +405,18 @@ FOG2EFGNode::getProbabilityOfActionSeq(Player player, const BehavioralStrategy &
         return prob;
     }
 }
+shared_ptr<Action> FOG2EFGNode::getActionByID(ActionId id) const {
+    switch (type_) {
+        case PlayerNode:
+            return lastOutcome_->state->getActionByID(currentPlayer_, id);
+        case ChanceNode:
+            return createChanceActions().at(id);
+        case TerminalNode:
+            unreachable("Not defined for terminal nodes!");
+        default:
+            unreachable("unrecognized option!");
+    }
+}
 
 shared_ptr<EFGNode> createRootEFGNode(const OutcomeDistribution &rootOutcomes) {
     if (rootOutcomes.size() > 1) {

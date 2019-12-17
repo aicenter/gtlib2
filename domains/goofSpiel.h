@@ -23,7 +23,11 @@
 #ifndef DOMAINS_GOOFSPIEL_H_
 #define DOMAINS_GOOFSPIEL_H_
 
+#include <utility>
+#include <base/algorithm.h>
+
 #include "base/base.h"
+#include "base/constrainingDomain.h"
 
 namespace GTLib2::domains {
 
@@ -57,6 +61,11 @@ class GoofSpielAction: public Action {
     const int cardNumber_;
 };
 
+struct GoofSpielConstraint: Constraint {
+    GoofSpielConstraint(vector<int> cards) : cardOptions(std::move(cards)) {};
+    vector<int> cardOptions;
+};
+
 /**
  * In Goofspiel (GS), each player is given a private hand of bid cards with values 1 to N.
  *
@@ -73,11 +82,11 @@ class GoofSpielAction: public Action {
  * who won or lost a bid, but not the bid cards played. This way all actions are private
  * and information sets have various sizes.
  */
-class GoofSpielDomain: public Domain {
+class GoofSpielDomain: public Domain, public ConstrainingDomain {
  public:
     explicit GoofSpielDomain(GoofSpielSettings settings);
     string getInfo() const override;
-    vector <Player> getPlayers() const { return {0, 1}; }
+    vector<Player> getPlayers() const { return {0, 1}; }
     const int numberOfCards_;
     const bool fixChanceCards_;
     const bool binaryTerminalRewards_;
@@ -87,10 +96,26 @@ class GoofSpielDomain: public Domain {
     // Factories for common instances of IIGS
     static unique_ptr<GoofSpielDomain> IIGS(unsigned int n);
     static unique_ptr<GoofSpielDomain> GS(unsigned int n);
+    bool updateConstraints(const shared_ptr<AOH> &currentInfoset, long &startIndex,
+                           ConstraintsMap &revealedInfo) const override;
+    void generateNodes(const shared_ptr<AOH> &currentInfoset,
+                       const ConstraintsMap &revealedInfo,
+                       BudgetType budgetType,
+                       int budget,const EFGNodeCallback &newNodeCallback) const override;
+    void initializeEnumerativeConstraints(ConstraintsMap &revealedInfo) const override;
 
  private:
     void initRandomCards(const vector<int> &natureCards);
     void initFixedCards(const vector<int> &natureCards);
+    void recursiveNodeGeneration(const shared_ptr<AOH> &currentInfoset,
+                                 const shared_ptr<EFGNode> &node, int depth, int maxDepth,
+                                 const ConstraintsMap &revealedInfo,
+                                 const vector<int> &remaining, BudgetType budgetType, int &counter,
+                                 const EFGNodeCallback &newNodeCallback) const;
+    int nodeGenerationTerminalPhase(const vector<ActionObservationIds> &currentAOids,
+                                    Player currentPlayer, const shared_ptr<EFGNode> &node,
+                                    int maxDepth, const ConstraintsMap &revealedInfo,
+                                    const vector<int> &remaining, const EFGNodeCallback &newNodeCallback) const;
 };
 
 constexpr int NO_NATURE_CARD = 0;
@@ -130,9 +155,9 @@ class GoofSpielState: public State {
         cumulativeRewards_(cumulativeRewards) {}
 
     unsigned long countAvailableActionsFor(Player player) const override;
-    vector <shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
-    OutcomeDistribution performActions(const vector <shared_ptr<Action>> &actions) const override;
-    vector <Player> getPlayers() const override;
+    vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override;
+    OutcomeDistribution performActions(const vector<shared_ptr<Action>> &actions) const override;
+    vector<Player> getPlayers() const override;
     bool isTerminal() const override;
     string toString() const override;
     bool operator==(const State &rhs) const override;

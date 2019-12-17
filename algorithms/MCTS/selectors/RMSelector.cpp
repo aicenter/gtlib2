@@ -31,7 +31,8 @@ ActionId RMSelector::select() {
     const auto numActions = actionProbability.size();
     double rand = pickRandomDouble(factory_->getRandom());
     for (unsigned int i = 0; i < numActions; i++) {
-        const double pa = (1 - factory_->cfg_.gamma) * actionProbability[i] + factory_->cfg_.gamma / numActions;
+        const double pa = (1 - factory_->cfg_.gamma) * actionProbability[i]
+            + factory_->cfg_.gamma / numActions;
 
         if (rand > pa) {
             rand -= pa;

@@ -141,6 +141,8 @@ class EFGNode {
      */
     virtual vector<shared_ptr<Action>> availableActions() const = 0;
 
+    virtual shared_ptr<Action> getActionByID(ActionId id) const = 0;
+
     /**
      * Perform the given action and returns the next EFG node.
      */

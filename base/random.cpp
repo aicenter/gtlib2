@@ -25,10 +25,11 @@
 
 namespace GTLib2 {
 
-std::uniform_real_distribution<double> uniformDist = std::uniform_real_distribution<double>(0.0, 1.0);
+std::uniform_real_distribution<double>
+    uniformDist = std::uniform_real_distribution<double>(0.0, 1.0);
 
 int pickRandom(const ProbDistribution &probs, std::mt19937 &generator) {
-    if(probs[0] == 1.0) return 0; // do not use generator unnecessarily
+    if (probs[0] == 1.0) return 0; // do not use generator unnecessarily
 
     double p = uniformDist(generator);
     unsigned int i = 0;
@@ -42,9 +43,9 @@ int pickRandom(const ProbDistribution &probs, std::mt19937 &generator) {
 }
 
 int pickRandom(const Distribution &probs, double probSum, std::mt19937 &generator) {
-    if(probs[0] == probSum) return 0; // do not use generator unnecessarily
+    if (probs[0] == probSum) return 0; // do not use generator unnecessarily
 
-    double p = uniformDist(generator)*probSum;
+    double p = uniformDist(generator) * probSum;
     unsigned int i = 0;
     while (true) {
         p -= probs[i];
@@ -56,7 +57,7 @@ int pickRandom(const Distribution &probs, double probSum, std::mt19937 &generato
 }
 
 int pickUniform(unsigned long numOutcomes, std::mt19937 &generator) {
-    if(numOutcomes == 1) return 0; // do not use generator unnecessarily
+    if (numOutcomes == 1) return 0; // do not use generator unnecessarily
 
     double p = uniformDist(generator);
     unsigned int idxOutcome = floor(p * numOutcomes);
@@ -88,15 +89,14 @@ RandomLeafOutcome pickRandomLeaf(const std::shared_ptr<EFGNode> &start, std::mt1
 
     std::shared_ptr<EFGNode> h = start;
     while (h->type_ != TerminalNode) {
-        const auto &actions = h->availableActions();
         int ai = pickRandom(*h, generator);
 
         switch (h->type_) {
             case ChanceNode:
-                out.chanceReachProb *= h->chanceProbForAction(actions[ai]);
+                out.chanceReachProb *= h->chanceProbForAction(h->getActionByID(ai));
                 break;
             case PlayerNode:
-                out.playerReachProbs[h->getPlayer()] *= 1.0 / actions.size();
+                out.playerReachProbs[h->getPlayer()] *= 1.0 / h->countAvailableActions();
                 break;
             case TerminalNode:
                 unreachable("terminal node!");
@@ -104,7 +104,7 @@ RandomLeafOutcome pickRandomLeaf(const std::shared_ptr<EFGNode> &start, std::mt1
                 unreachable("unrecognized option!");
         }
 
-        h = h->performAction(actions[ai]);
+        h = h->performAction(h->getActionByID(ai));
     }
 
     out.utilities = h->getUtilities();

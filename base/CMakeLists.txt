@@ -5,6 +5,7 @@ add_library(base OBJECT
         base.cpp
         cache.h
         cache.cpp
+        constrainingDomain.h
         efg.h
         fogefg.h
         fogefg.cpp
@@ -22,6 +23,7 @@ target_include_directories(base PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 set(TEST_FILES ${TEST_FILES}
         base/algorithmTest.cpp
         base/cacheTest.cpp
+        base/constrainingDomainTest.cpp
         base/efgTest.cpp
         base/gadgetTest.cpp
         base/hashingTest.cpp

@@ -37,24 +37,30 @@ namespace GTLib2::algorithms {
 class CPW_ISMCTS: public ISMCTS {
  public:
     explicit CPW_ISMCTS(const Domain &domain, Player playingPlayer, const ISMCTSSettings &config) :
-        ISMCTS(domain, playingPlayer, config), belief_({1.0}) {};
+        ISMCTS(domain, playingPlayer, config), belief_({1.0}),
+        hgNodeGenerator_(config.hgNodeGenerator) {}
 
     PlayControl runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) override;
 
  private:
-    unordered_map<shared_ptr<AOH>, vector<shared_ptr<EFGNode>>> nodesMap_;
-    shared_ptr<AOH> currentInfoset_;
-    ProbDistribution belief_;
-
+    virtual void setCurrentInfoset(const shared_ptr<AOH> &newInfoset);
 
     double handlePlayerNode(const shared_ptr<EFGNode> &h) override;
-
-    void setCurrentInfoset(const shared_ptr<AOH> &newInfoset);
 
     void fillBelief(const shared_ptr<EFGNode> &currentNode,
                     const shared_ptr<AOH> &newInfoset,
                     double reachProbability,
                     const vector<shared_ptr<EFGNode>> &newNodes);
+ protected:
+    unordered_map<shared_ptr<AOH>, vector<shared_ptr<EFGNode>>> nodesMap_;
+    ProbDistribution belief_;
+    shared_ptr<AOH> currentInfoset_;
+    bool currentISChecked_ = false;
+
+    /** Pointer to the node generation function, which we will call in case enableHistoryGeneration == true;
+     * can point to different functions for the same domain - domain-specific, csp solver, etc
+     */
+    const EFGNodeGenerator &hgNodeGenerator_;
 };
 
 }
