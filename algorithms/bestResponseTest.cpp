@@ -71,7 +71,7 @@ TEST(BestResponse, TestSmallDomain) {
 
 TEST(BestResponse, GoofspielFullDepthCard4) {
     GoofSpielDomain domain
-        ({variant:  CompleteObservations, numCards: 4, fixChanceCards: false, chanceCards: {}});
+        ({.variant=  CompleteObservations, .numCards= 4, .fixChanceCards= false, .chanceCards= {}});
 
     auto player = Player(1);
     auto opponent = Player(0);
@@ -105,7 +105,7 @@ TEST(BestResponse, GoofspielFullDepthCard4) {
 
 TEST(BestResponse, GoofspielDepth2Card4) {
     GoofSpielDomain domain
-        ({variant:  CompleteObservations, numCards: 4, fixChanceCards: false, chanceCards: {}});
+        ({.variant=  CompleteObservations, .numCards= 4, .fixChanceCards= false, .chanceCards= {}});
 
     auto player = Player(1);
     auto opponent = Player(0);

@@ -42,7 +42,7 @@ using domains::GoofSpielVariant::CompleteObservations;
 
 TEST(Utility, ComputeUtilityFullDepthCard4) {
     GoofSpielDomain domain
-        ({variant: CompleteObservations, numCards: 4, fixChanceCards: false, chanceCards: {}});
+        ({.variant= CompleteObservations, .numCards= 4, .fixChanceCards= false, .chanceCards= {}});
 
     auto player = Player(1);
     auto opponent = Player(0);

@@ -40,7 +40,7 @@ TEST(PlayMatch, PlaySmallGame) {
     PreparedAlgorithm lastAction = createInitializer<FixedActionPlayer>(b);
 
     GoofSpielSettings settings
-        ({variant:  IncompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
+        ({.variant= IncompleteObservations, .numCards= 3, .fixChanceCards= true, .chanceCards= {}});
     settings.shuffleChanceCards(0);
     GoofSpielDomain domain(settings);
     vector<double> expectedUtilities = vector<double>{1., -1.};

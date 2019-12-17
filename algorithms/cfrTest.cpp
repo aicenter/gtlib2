@@ -359,10 +359,10 @@ namespace GTLib2::algorithms {
 
     TEST(CFR, CheckConvergenceInSmallDomain) {
         GoofSpielDomain domain({
-                                       variant: IncompleteObservations,
-                                       numCards: 3,
-                                       fixChanceCards: false,
-                                       chanceCards: {}
+                                       .variant= IncompleteObservations,
+                                       .numCards= 3,
+                                       .fixChanceCards= false,
+                                       .chanceCards= {}
                                });
         auto settings = CFRSettings();
         auto data = CFRData(domain, settings.cfrUpdating);
@@ -393,10 +393,10 @@ namespace GTLib2::algorithms {
 
     TEST(CFR, CheckConvergenceSmallStepsInSmallDomain) {
         GoofSpielDomain domain({
-                                       variant: IncompleteObservations,
-                                       numCards: 3,
-                                       fixChanceCards: false,
-                                       chanceCards: {}
+                                       .variant= IncompleteObservations,
+                                       .numCards= 3,
+                                       .fixChanceCards= false,
+                                       .chanceCards= {}
                                });
         auto settings = CFRSettings();
         auto data = CFRData(domain, settings.cfrUpdating);
@@ -426,10 +426,10 @@ namespace GTLib2::algorithms {
 
     TEST(CFR, CheckConvergenceSmallStepsInSmallDomain2) {
         GoofSpielDomain domain({
-                                       variant: IncompleteObservations,
-                                       numCards: 2,
-                                       fixChanceCards: true,
-                                       chanceCards: {}
+                                       .variant= IncompleteObservations,
+                                       .numCards= 2,
+                                       .fixChanceCards= true,
+                                       .chanceCards= {}
                                });
         auto settings = CFRSettings();
         auto data = CFRData(domain, settings.cfrUpdating);

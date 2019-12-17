@@ -183,18 +183,18 @@ bool isActionGenerationAndAOHConsistent(const Domain &domain) {
 
 
 // @formatter:off
-GoofSpielDomain gs1({variant:  CompleteObservations, numCards: 1, fixChanceCards: false, chanceCards: {}});
-GoofSpielDomain gs2({variant:  CompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}});
-GoofSpielDomain gs3({variant:  CompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
-GoofSpielDomain gs1_fix({variant:  CompleteObservations, numCards: 1, fixChanceCards: true, chanceCards: {}});
-GoofSpielDomain gs2_fix({variant:  CompleteObservations, numCards: 2, fixChanceCards: true, chanceCards: {}});
-GoofSpielDomain gs3_fix({variant:  CompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
-GoofSpielDomain iigs1({variant:  IncompleteObservations, numCards: 1, fixChanceCards: false, chanceCards: {}});
-GoofSpielDomain iigs2({variant:  IncompleteObservations, numCards: 2, fixChanceCards: false, chanceCards: {}});
-GoofSpielDomain iigs3({variant:  IncompleteObservations, numCards: 3, fixChanceCards: false, chanceCards: {}});
-GoofSpielDomain iigs1_fix({variant:  IncompleteObservations, numCards: 1, fixChanceCards: true, chanceCards: {}});
-GoofSpielDomain iigs2_fix({variant:  IncompleteObservations, numCards: 2, fixChanceCards: true, chanceCards: {}});
-GoofSpielDomain iigs3_fix({variant:  IncompleteObservations, numCards: 3, fixChanceCards: true, chanceCards: {}});
+GoofSpielDomain gs1({.variant=  CompleteObservations, .numCards= 1, .fixChanceCards= false, .chanceCards= {}});
+GoofSpielDomain gs2({.variant=  CompleteObservations, .numCards= 2, .fixChanceCards= false, .chanceCards= {}});
+GoofSpielDomain gs3({.variant=  CompleteObservations, .numCards= 3, .fixChanceCards= false, .chanceCards= {}});
+GoofSpielDomain gs1_fix({.variant=  CompleteObservations, .numCards= 1, .fixChanceCards= true, .chanceCards= {}});
+GoofSpielDomain gs2_fix({.variant=  CompleteObservations, .numCards= 2, .fixChanceCards= true, .chanceCards= {}});
+GoofSpielDomain gs3_fix({.variant=  CompleteObservations, .numCards= 3, .fixChanceCards= true, .chanceCards= {}});
+GoofSpielDomain iigs1({.variant=  IncompleteObservations, .numCards= 1, .fixChanceCards= false, .chanceCards= {}});
+GoofSpielDomain iigs2({.variant=  IncompleteObservations, .numCards= 2, .fixChanceCards= false, .chanceCards= {}});
+GoofSpielDomain iigs3({.variant=  IncompleteObservations, .numCards= 3, .fixChanceCards= false, .chanceCards= {}});
+GoofSpielDomain iigs1_fix({.variant=  IncompleteObservations, .numCards= 1, .fixChanceCards= true, .chanceCards= {}});
+GoofSpielDomain iigs2_fix({.variant=  IncompleteObservations, .numCards= 2, .fixChanceCards= true, .chanceCards= {}});
+GoofSpielDomain iigs3_fix({.variant=  IncompleteObservations, .numCards= 3, .fixChanceCards= true, .chanceCards= {}});
 
 OshiZumoDomain oz1({.variant =  CompleteObservation, .startingCoins = 3, .startingLocation = 3, .minBid = 1, .optimalEndGame = true});
 OshiZumoDomain oz2({.variant =  CompleteObservation, .startingCoins = 3, .startingLocation = 0, .minBid = 1, .optimalEndGame = true});

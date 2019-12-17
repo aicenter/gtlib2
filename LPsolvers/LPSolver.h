@@ -48,8 +48,7 @@ namespace GTLib2::algorithms {
                           const unsigned int cols,
                           const vector<double> &utility_matrix,
                           vector<double> &solution) {
-        assert(("No LP solver included to project", false));
-        return NAN;
+        unreachable("No LP solver included to project");
     }
 }  // namespace GTLib2
 
