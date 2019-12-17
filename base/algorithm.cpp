@@ -85,7 +85,7 @@ FixedActionPlayer::FixedActionPlayer(const Domain &domain, Player playingPlayer,
       cache_(InfosetCache(domain_)),
       actionIdx_(actionIdx) {}
 
-PlayControl FixedActionPlayer::runPlayIteration(const optional<shared_ptr<AOH>> &currentInfoset) {
+PlayControl FixedActionPlayer::runPlayIteration(const optional<shared_ptr<AOH>> &) {
     if (cache_.isCompletelyBuilt()) return StopImproving;
     cache_.buildTree();
     return StopImproving;

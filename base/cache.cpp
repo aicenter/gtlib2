@@ -130,12 +130,12 @@ void EFGCache::createNode(const shared_ptr<EFGNode> &node) {
 }
 
 void EFGCache::buildTree(int maxEfgDepth) {
-    builtForest_ = treeWalk(*this, [](shared_ptr<EFGNode> _) {}, maxEfgDepth);
+    builtForest_ = treeWalk(*this, [](shared_ptr<EFGNode>) {}, maxEfgDepth);
 }
 
 void EFGCache::buildTree() {
     LOG_DEBUG("Building tree")
-    treeWalk(*this, [](shared_ptr<EFGNode> _) {});
+    treeWalk(*this, [](shared_ptr<EFGNode>) {});
     builtForest_ = true;
 }
 

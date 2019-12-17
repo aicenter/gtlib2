@@ -134,18 +134,18 @@ class GadgetRootNode: public EFGNode,
     inline shared_ptr<const EFGNode> getParent() const override { return nullptr; }
     inline unsigned int efgDepth() const override { return 0; }
 
-    inline vector<ActionObservationIds> getAOids(Player player) const override {
+    inline vector<ActionObservationIds> getAOids(Player ) const override {
         unreachable("do not try to build ao out of gadget root");
     }
     inline vector<ObservationId> getPubObsIds() const override {
         unreachable("do not try to build public state out of gadget");
     }
     inline const vector<ActionId> &getHistory() const override { return history_; }
-    inline double getProbabilityOfActionSeq(Player player, const BehavioralStrategy &strat)
+    inline double getProbabilityOfActionSeq(Player , const BehavioralStrategy &)
     const override { // todo
         return 0;
     }
-    inline shared_ptr<ActionSequence> getActionsSeqOfPlayer(Player player) const override {
+    inline shared_ptr<ActionSequence> getActionsSeqOfPlayer(Player ) const override {
         return shared_ptr<ActionSequence>(); // todo:
     }
     inline HashType getHash() const override { return 0; }
@@ -201,11 +201,11 @@ class GadgetInnerNode: public EFGNode,
         };
     }
 
-    inline double chanceProbForAction(const ActionId &action) const override {
+    inline double chanceProbForAction(const ActionId &) const override {
         unreachable("not a chance node!");
     }
 
-    inline double chanceProbForAction(const shared_ptr<Action> &action) const override {
+    inline double chanceProbForAction(const shared_ptr<Action> &) const override {
         unreachable("not a chance node!");
     }
     inline ProbDistribution chanceProbs() const override {
@@ -213,18 +213,18 @@ class GadgetInnerNode: public EFGNode,
     }
     inline shared_ptr<const EFGNode> getParent() const override { return parent_; }
     inline unsigned int efgDepth() const override { return 1; }
-    inline vector<ActionObservationIds> getAOids(Player player) const override {
+    inline vector<ActionObservationIds> getAOids(Player ) const override {
         return viewingPlAOIds_;
     }
     inline vector<ObservationId> getPubObsIds() const override {
         unreachable("do not try to build public state out of gadget");
     }
     inline const vector<ActionId> &getHistory() const override { return history_; }
-    inline double getProbabilityOfActionSeq(Player player, const BehavioralStrategy &strat)
+    inline double getProbabilityOfActionSeq(Player , const BehavioralStrategy &)
     const override { // todo
         return 0;
     }
-    inline shared_ptr<ActionSequence> getActionsSeqOfPlayer(Player player) const override {
+    inline shared_ptr<ActionSequence> getActionsSeqOfPlayer(Player ) const override {
         return shared_ptr<ActionSequence>(); // todo:
     }
     inline HashType getHash() const override { return history_[0]; }
@@ -253,15 +253,15 @@ class GadgetTerminalNode: public EFGNode {
         unreachable("terminal node!");
     }
 
-    inline shared_ptr<EFGNode> performAction(const shared_ptr<Action> &action) const override {
+    inline shared_ptr<EFGNode> performAction(const shared_ptr<Action> &) const override {
         unreachable("terminal node!");
     }
 
-    inline double chanceProbForAction(const ActionId &action) const override {
+    inline double chanceProbForAction(const ActionId &) const override {
         unreachable("terminal node!");
     }
 
-    inline double chanceProbForAction(const shared_ptr<Action> &action) const override {
+    inline double chanceProbForAction(const shared_ptr<Action> &) const override {
         unreachable("terminal node!");
     }
 
@@ -271,18 +271,18 @@ class GadgetTerminalNode: public EFGNode {
     inline shared_ptr<const EFGNode> getParent() const override { return parent_; }
     inline unsigned int efgDepth() const override { return 2; }
 
-    inline vector<ActionObservationIds> getAOids(Player player) const override {
+    inline vector<ActionObservationIds> getAOids(Player ) const override {
         unreachable("terminal node!");
     }
     inline vector<ObservationId> getPubObsIds() const override {
         unreachable("do not try to build public state out of gadget");
     }
     inline const vector<ActionId> &getHistory() const override { return history_; }
-    inline double getProbabilityOfActionSeq(Player player, const BehavioralStrategy &strat)
+    inline double getProbabilityOfActionSeq(Player , const BehavioralStrategy &)
     const override { // todo
         return 0;
     }
-    inline shared_ptr<ActionSequence> getActionsSeqOfPlayer(Player player) const override {
+    inline shared_ptr<ActionSequence> getActionsSeqOfPlayer(Player ) const override {
         return shared_ptr<ActionSequence>(); // todo:
     }
     inline HashType getHash() const override { return history_[0]; }

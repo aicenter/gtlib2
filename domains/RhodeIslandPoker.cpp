@@ -215,7 +215,7 @@ unsigned long RhodeIslandPokerState::countAvailableActionsFor(Player player) con
     return getAvailableActionsFor(player).size();
 }
 
-vector<shared_ptr<Action>> RhodeIslandPokerState::getAvailableActionsFor(Player player) const {
+vector<shared_ptr<Action>> RhodeIslandPokerState::getAvailableActionsFor(Player ) const {
     auto list = vector<shared_ptr<Action>>();
     int count = 0;
     const auto pokerDomain = static_cast<const RhodeIslandPokerDomain *>(domain_);

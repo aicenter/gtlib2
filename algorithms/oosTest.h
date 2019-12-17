@@ -31,7 +31,7 @@ namespace GTLib2::algorithms {
 class FixedSamplingOOS: public OOSAlgorithm {
  public:
     FixedSamplingOOS(const Domain &domain, Player playingPlayer, OOSData &cache,
-                     const OOSSettings cfg, vector<vector<ActionId>> samples)
+                     const OOSSettings cfg, vector <vector<ActionId>> samples)
         : OOSAlgorithm(domain, playingPlayer, cache, cfg), samples_(move(samples)) {};
 
  protected:
@@ -51,18 +51,14 @@ class FixedSamplingOOS: public OOSAlgorithm {
 
     pair <ActionId, RandomLeafOutcome> selectLeaf(const shared_ptr <EFGNode> &start,
                                                   const vector <shared_ptr<Action>> &actions) override;
-    inline ActionId selectChanceAction(const shared_ptr <EFGNode> &h,
-                                       double bsum) override {
+    inline ActionId selectChanceAction(const shared_ptr <EFGNode> &, double) override {
         return nextAction();
     };
-    inline ActionId selectExploringPlayerAction(const shared_ptr <EFGNode> &h,
-                                                int biasApplicableActions,
-                                                double bsum) override {
+    inline ActionId
+    selectExploringPlayerAction(const shared_ptr <EFGNode> &, int, double) override {
         return nextAction();
     };
-    inline ActionId selectNonExploringPlayerAction(const shared_ptr <EFGNode> &h,
-                                                   double bsum) override {
-
+    inline ActionId selectNonExploringPlayerAction(const shared_ptr <EFGNode> &, double) override {
         return nextAction();
     };
 

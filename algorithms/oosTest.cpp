@@ -44,7 +44,7 @@ namespace GTLib2::algorithms {
 
 pair<ActionId, RandomLeafOutcome>
 FixedSamplingOOS::selectLeaf(const shared_ptr<EFGNode> &start,
-                             const vector<shared_ptr<Action>> &actions) {
+                             const vector<shared_ptr<Action>> &) {
     RandomLeafOutcome out = {
         .utilities = vector<double>(),
         .playerReachProbs = vector<double>{1., 1.},

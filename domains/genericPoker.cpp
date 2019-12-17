@@ -153,7 +153,7 @@ string GenericPokerDomain::getInfo() const {
     return ss.str();
 }
 
-unsigned long GenericPokerState::countAvailableActionsFor(Player player) const {
+unsigned long GenericPokerState::countAvailableActionsFor(Player ) const {
     if (round_ == POKER_TERMINAL_ROUND) return 0;
 
     const auto pokerDomain = static_cast<const GenericPokerDomain *>(domain_);
@@ -176,7 +176,7 @@ unsigned long GenericPokerState::countAvailableActionsFor(Player player) const {
     return 0;
 }
 
-vector<shared_ptr<Action>> GenericPokerState::getAvailableActionsFor(Player player) const {
+vector<shared_ptr<Action>> GenericPokerState::getAvailableActionsFor(Player ) const {
     auto list = vector<shared_ptr<Action>>();
     if (round_ == POKER_TERMINAL_ROUND) return list;
 

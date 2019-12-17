@@ -282,7 +282,7 @@ PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
                                                    double rm_h_pl, double rm_h_opp,
                                                    double bs_h_all, double us_h_all, double us_h_cn,
                                                    CFRData::InfosetData &data,
-                                                   const shared_ptr<AOH> &infoset,
+                                                   const shared_ptr<AOH> &,
                                                    Player exploringPl) {
     assert(h->type_ == PlayerNode);
     assert(!isnan(rm_h_pl) && !isnan(rm_h_opp) && !isnan(bs_h_all) && !isnan(us_h_all)
@@ -462,7 +462,7 @@ void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_p
     baseline.denominator += b;
 }
 
-void OOSAlgorithm::updateInfosetAcc(const shared_ptr<EFGNode> &h, CFRData::InfosetData &data,
+void OOSAlgorithm::updateInfosetAcc(const shared_ptr<EFGNode> &, CFRData::InfosetData &data,
                                     double s) {
     double w = 1.0;
     switch (cfg_.accumulatorWeighting) {

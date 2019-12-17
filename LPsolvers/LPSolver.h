@@ -44,10 +44,10 @@
     #define LP_SOLVER NO_LP_SOLVER
 
 namespace GTLib2::algorithms {
-    inline double solveLP(const unsigned int rows,
-                          const unsigned int cols,
-                          const vector<double> &utility_matrix,
-                          vector<double> &solution) {
+    inline double solveLP(const unsigned int ,
+                          const unsigned int ,
+                          const vector<double> &,
+                          vector<double> &) {
         unreachable("No LP solver included to project");
     }
 }  // namespace GTLib2

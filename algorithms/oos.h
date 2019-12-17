@@ -51,7 +51,7 @@ class OOSData: public virtual CFRData, public virtual PublicStateCache {
         baselineValues = other.baselineValues;
     }
 
-    inline double getBaselineFor(const shared_ptr<EFGNode> h, ActionId action, Player exploringPl) {
+    inline double getBaselineFor(const shared_ptr<EFGNode> h, ActionId , Player exploringPl) {
         return baselineValues.at(h).value() * (exploringPl == Player(0) ? 1 : -1);
     }
 

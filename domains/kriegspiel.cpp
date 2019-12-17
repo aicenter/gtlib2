@@ -642,7 +642,7 @@ void King::updateMoves() {
     }
 }
 
-void King::updateValidMovesPinsProtects(bool onlyPinsAndProtects) {
+void King::updateValidMovesPinsProtects(bool ) {
     for (int *i: queenKingMoves) {
         Square newPos(this->position.x + i[0], this->position.y + i[1]);
         if (this->board->coordOutOfBounds(newPos)
