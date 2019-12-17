@@ -34,12 +34,16 @@ set(COMPILE_FLAGS_WARNINGS "-Wall -Wextra -Wshadow \
 #                            -Wstrict-overflow=5 -Wswitch-default \
 #                            -Wno-unused -Wno-variadic-macros -Wno-parentheses \
 #                            -fdiagnostics-show-option")
+
+# Note: -ffast-math can cause different outcomes of tests
+#       for sampling algorithms if we use GCC or CLANG,
+#       observed in test OOS::CheckExploitabilityInSmallDomain
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} \
                             -std=c++2a -m64 -O3 \
-                            -ffast-math -DNDEBUG")
+                            -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} \
                             -std=c++2a -m64 -O0 \
-                            -ffast-math -g -fsanitize=address \
+                            -g -fsanitize=address \
                             ${COMPILE_FLAGS_WARNINGS}")
 
 
