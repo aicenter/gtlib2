@@ -128,7 +128,7 @@ inline std::array<unsigned int, 2> elegantUnpair(unsigned int z) {
  * @return
  */
 inline double signum(double number) {
-    return (double) ((0 < number) - (0 > number));
+    return ((0. < number) - (0. > number));
 }
 
 /**

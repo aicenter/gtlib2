@@ -358,7 +358,6 @@ typedef unordered_map<shared_ptr<ActionSequence>, double> RealizationPlan;
 class State {
  public:
     explicit State(const Domain *domain, HashType hash);
-
     virtual ~State() = default;
 
     /**

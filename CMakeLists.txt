@@ -21,14 +21,26 @@ include(${BUILD_CONFIG_FILE})
 
 # Some explanation of flags is in COMPILATION_NOTES.md
 
-#set(CMAKE_CXX_STANDARD 20)
-#set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-std=c++2a -Wgnu-designator")
-#set(CMAKE_CXX_FLAGS_RELEASE "-std=c++2a -m64 -msse2 -O3 -ffast-math -DNDEBUG")
-
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -std=c++2a -m64 -O3 -ffast-math -DNDEBUG")
-#set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -std=c++17 -m64 -O0 -ffast-math -fsanitize=address -Wall -Wextra -Wshadow -Weffc++ -Wstrict-aliasing -pedantic -Werror")
-set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -std=c++2a -Wall -Wextra")
+set(COMPILE_FLAGS_WARNINGS "-Wall -Wextra -Wshadow \
+                            -Wstrict-aliasing -pedantic -Werror")
+# todo: make sure the code passes also other diagnostics
+#                            -fmax-errors=5 -Wunreachable-code -Wcast-align \
+#                            -Wcast-qual -Wctor-dtor-privacy \
+#                            -Wdisabled-optimization -Wformat=2 \
+#                            -Winit-self -Wlogical-op -Wmissing-include-dirs \
+#                            -Wnoexcept -Wold-style-cast -Woverloaded-virtual \
+#                            -Wredundant-decls -Wsign-promo -Wstrict-null-sentinel \
+#                            -Wstrict-overflow=5 -Wswitch-default \
+#                            -Wno-unused -Wno-variadic-macros -Wno-parentheses \
+#                            -fdiagnostics-show-option")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} \
+                            -std=c++2a -m64 -O3 \
+                            -ffast-math -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} \
+                            -std=c++2a -m64 -O0 \
+                            -ffast-math -g -fsanitize=address \
+                            ${COMPILE_FLAGS_WARNINGS}")
 
 
 # Make sure it's possible to use includes like "base/efg.h"
