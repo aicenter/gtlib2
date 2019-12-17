@@ -9,15 +9,17 @@ set(BUILD_CONFIG_FILE "${CMAKE_CURRENT_SOURCE_DIR}/BuildConfiguration.txt")
 
 if (NOT EXISTS ${BUILD_CONFIG_FILE})
     message(FATAL_ERROR
-            "Local build configuration was not found in '${BUILD_CONFIG_FILE}'. "
-            "Please follow build instructions in README.md")
+            "Local build configuration was not found in '${BUILD_CONFIG_FILE}'."
+            " Please follow build instructions in README.md")
 else ()
-    message("Using configuration ${BUILD_CONFIG_FILE}")
+    message(STATUS "Using configuration ${BUILD_CONFIG_FILE}")
 endif ()
 
 include(${BUILD_CONFIG_FILE})
 
 # ------------------------- Compilation flags ----------------------------------
+
+# Some explanation of flags is in COMPILATION_NOTES.md
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-Wgnu-designator -fsanitize=address")
@@ -29,11 +31,27 @@ include_directories(${CMAKE_SOURCE_DIR})
 # ------------------------- Build type (i.e Debug/Release) ---------------------
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
-    set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE STRING "Choose the type of build." FORCE)
+    message(STATUS "Setting build type to '${default_build_type}' "
+            " as none was previously specified.")
+    set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE STRING
+            "Choose the type of build." FORCE)
     # Set the possible values of build type for cmake-gui
-    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
+else()
+    message(STATUS "Using build type '${CMAKE_BUILD_TYPE}'.")
 endif ()
+
+ADD_CUSTOM_TARGET(Debug
+        COMMAND ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=Debug ${CMAKE_SOURCE_DIR}
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all
+        COMMENT "Switch CMAKE_BUILD_TYPE to Debug"
+        )
+
+ADD_CUSTOM_TARGET(Release
+        COMMAND ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=Release ${CMAKE_SOURCE_DIR}
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all
+        COMMENT "Switch CMAKE_BUILD_TYPE to Release"
+        )
 
 # ------------------------------- Documentation --------------------------------
 
@@ -41,8 +59,9 @@ find_package(Doxygen)
 if (NOT DOXYGEN_FOUND)
     message(WARNING "doxygen not found - target 'doc' is not available.")
 else ()
-    message("-- Doxygen was found - target 'doc' is available.")
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+    message(STATUS "Doxygen was found - target 'doc' is available.")
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile
+            ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
     add_custom_target(doc
             ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}

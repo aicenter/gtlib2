@@ -23,7 +23,7 @@ if (USE_CPLEX)
 
     # if found link libraries and add all .h and .cpp files
     if (CPLEX_FOUND)
-        message("CPLEX was found ${CPLEX_INCLUDE_DIR} and ${CPLEX_LIBRARY}")
+        message(STATUS "CPLEX was found ${CPLEX_INCLUDE_DIR} and ${CPLEX_LIBRARY}")
         add_definitions(-DCPLEXFOUND=1)
         include_directories(${CPLEX_INCLUDE_DIR})
         link_libraries(${CPLEX_LIBRARY})
@@ -57,7 +57,7 @@ if (USE_GLPK)
     endif()
 
     if (GLPK_INCLUDE_DIR AND GLPK_LIBRARY)
-        message("GLPK was found ${GLPK_INCLUDE_DIR} and ${GLPK_LIBRARY}")
+        message(STATUS "GLPK was found ${GLPK_INCLUDE_DIR} and ${GLPK_LIBRARY}")
         add_definitions(-DGLPKFOUND=1)
         include_directories(${GLPK_INCLUDE_DIR})
         link_libraries(${GLPK_LIBRARY})
@@ -91,7 +91,7 @@ if (USE_GUROBI)
 
 
     if (GUROBI_INCLUDE_DIR AND GUROBI_LIBRARY)
-        message("GUROBI was found ${GUROBI_INCLUDE_DIR} and ${GUROBI_LIBRARY}")
+        message(STATUS "GUROBI was found ${GUROBI_INCLUDE_DIR} and ${GUROBI_LIBRARY}")
         add_definitions(-DGUROBIFOUND=1)
         include_directories(${GUROBI_INCLUDE_DIR})
         link_libraries(${GUROBI_LIBRARY})
@@ -106,5 +106,5 @@ if (USE_GUROBI)
 endif ()
 
 if(NOT USE_CPLEX AND NOT USE_GUROBI AND NOT USE_GLPK)
-    message("-- No LP solver was found, automatically disabling all code related to LPs")
+    message(STATUS "No LP solver was found, automatically disabling all code related to LPs")
 endif()
