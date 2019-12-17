@@ -89,10 +89,9 @@ shared_ptr<FOG2EFGNode> FOG2EFGNode::performChanceAction(const shared_ptr<Action
     // 2) Chance comes after all of the round players have played.
     //
     // In both of them, we have already received the outcome distribution by which to play.
-
-    const auto actionPtr = action.get();
+    const auto &derivedAction = *action.get();
     assert(action->getId() < outcomeDist_.size()
-               && typeid(actionPtr) == typeid(EFGChanceAction));
+               && typeid(derivedAction) == typeid(EFGChanceAction));
 
     return createNodeForSpecificOutcome(action, outcomeDist_[action->getId()]);
 }
@@ -212,8 +211,8 @@ double FOG2EFGNode::chanceProbForAction(const ActionId &action) const {
 
 double FOG2EFGNode::chanceProbForAction(const shared_ptr<Action> &action) const {
     assert(type_ == ChanceNode);
-    const auto actionPtr = action.get();
-    assert(typeid(actionPtr) == typeid(EFGChanceAction));
+    const auto &derivedAction = *action.get();
+    assert(typeid(derivedAction) == typeid(EFGChanceAction));
     return outcomeDist_[action->getId()].prob;
 }
 

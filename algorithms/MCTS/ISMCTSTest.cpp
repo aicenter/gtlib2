@@ -52,7 +52,7 @@ TEST(ISMCTS, UCTTest) {
         auto actualOutcome = playMatch(domain, algs, {500, 500}, {50, 50}, BudgetIterations, seed);
         rewards[seed] = actualOutcome[0];
     }
-    const double expsumm = 49; // useBelief is better
+    const double expsumm = 44; // useBelief is better
     double summ = 0;
     cout << rewards << endl;
     for (auto r : rewards)summ += r;

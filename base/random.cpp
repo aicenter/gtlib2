@@ -32,7 +32,11 @@ int pickRandom(const ProbDistribution &probs, std::mt19937 &generator) {
 
     double p = uniformDist(generator);
     unsigned int i = 0;
-    while (p > 0) p -= probs[i++];
+    while (true) {
+        p -= probs[i];
+        if(p < 0) break;
+        else ++i;
+    }
     assert(i < probs.size());
     return i;
 }
@@ -42,7 +46,11 @@ int pickRandom(const Distribution &probs, double probSum, std::mt19937 &generato
 
     double p = uniformDist(generator)*probSum;
     unsigned int i = 0;
-    while (p > 0) p -= probs[i++];
+    while (true) {
+        p -= probs[i];
+        if(p < 0) break;
+        else ++i;
+    }
     assert(i < probs.size());
     return i;
 }
