@@ -55,7 +55,6 @@ class ExampleCR: public ContinualResolving {
     inline PlayControl resolveIteration(const shared_ptr<GadgetRootNode> &rootNode,
                                         const shared_ptr<AOH> &currentInfoset) override {
         const auto &summary = rootNode->gadget_.summary_;
-        const auto &ps = summary.publicState;
         for (auto &h : summary.topmostHistories) {
             if (h->type_ != PlayerNode) continue;
 

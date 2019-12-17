@@ -33,7 +33,7 @@ namespace GTLib2 {
 
 class Action;
 class Observation;
-class Outcome;
+struct Outcome;
 class State;
 class Domain;
 class InformationSet;
@@ -268,6 +268,7 @@ typedef vector<OutcomeEntry> OutcomeDistribution;
 class InformationSet {
  public:
     InformationSet() = default;
+    virtual ~InformationSet() = default;
     virtual bool operator==(const InformationSet &rhs) const = 0;
     inline bool operator!=(const InformationSet &rhs) const { return !(rhs == *this); };
     virtual HashType getHash() const = 0;

@@ -244,7 +244,7 @@ MMPursuitState::MMPursuitState(const Domain *domain, const vector<Pos> &p, doubl
 MMPursuitState::MMPursuitState(const Domain *domain, const vector<Pos> &p, double prob,
                                const vector<Player> &players, vector<int> numberOfMoves,
                                int currentNOM, int currentPlayer) :
-    PursuitState(domain, p, prob), players_(players), numberOfMoves_(move(numberOfMoves)),
+    PursuitState(domain, p, prob), numberOfMoves_(move(numberOfMoves)), players_(players),
     currentNOM_(currentNOM), currentPlayer_(currentPlayer) {}
 
 OutcomeDistribution MMPursuitState::performActions(const vector <shared_ptr<Action>> &actions) const {
@@ -445,7 +445,7 @@ PursuitDomain::PursuitDomain(unsigned int max,
                              int width,
                              vector<double> probability) :
     Domain(max, numberOfPlayers, true, make_shared<PursuitAction>(), make_shared<PursuitObservation>()),
-    height_(height), width_(width), probability_(move(probability)) {
+    probability_(move(probability)), height_(height), width_(width) {
     auto state = make_shared<PursuitState>(this, loc);
     vector<double> rewards(numberOfPlayers);
     vector<shared_ptr<Observation>> Obs;
@@ -471,7 +471,7 @@ PursuitDomain::PursuitDomain(unsigned int max, unsigned int numberOfPlayers,
                              const shared_ptr<MMPursuitState> &state,
                              int height, int width, vector<double> probability) :
     Domain(max, numberOfPlayers, true, make_shared<PursuitAction>(), make_shared<PursuitObservation>()),
-    height_(height), width_(width), probability_(move(probability)) {
+    probability_(move(probability)), height_(height), width_(width) {
     vector<double> rewards(numberOfPlayers);
     vector<shared_ptr<Observation>> Obs;
     for (int j = 0; j < numberOfPlayers; ++j) {
@@ -486,7 +486,7 @@ PursuitDomain::PursuitDomain(unsigned int max, unsigned int numberOfPlayers,
                              const shared_ptr<ObsPursuitState> &state,
                              int height, int width, vector<double> probability) :
     Domain(max, numberOfPlayers, true, make_shared<PursuitAction>(), make_shared<PursuitObservation>()),
-    height_(height), width_(width), probability_(move(probability)) {
+    probability_(move(probability)), height_(height), width_(width) {
     vector<double> rewards(numberOfPlayers);
     vector<shared_ptr<Observation>> Obs;
     for (int j = 0; j < numberOfPlayers; ++j) {

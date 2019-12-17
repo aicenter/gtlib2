@@ -114,6 +114,8 @@ class EFGNode {
         currentPlayer_(other.currentPlayer_),
         utilities_(other.utilities_) {}
 
+    virtual ~EFGNode() = default;
+
  public:
     virtual EFGNodeSpecialization getSpecialization() const = 0;
 

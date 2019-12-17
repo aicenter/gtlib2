@@ -55,7 +55,7 @@ TEST(ISMCTS, UCTTest) {
     double summ = 0;
     cout << rewards << endl;
     for (auto r : rewards)summ += r;
-    // EXPECT_EQ(summ, expsumm);
+     EXPECT_EQ(summ, expsumm);
     // todo: This might fail for release (sum=44), we're not sure why.
     //       Maybe it has something to do with randomization compiled differently.
 }

@@ -46,7 +46,7 @@ StrategyProfile getAverageStrategy(CFRData &data) {
 
 StrategyProfile getUniformStrategy(InfosetCache &data) {
     auto profile = StrategyProfile(2);
-    auto getStrategy = [&profile, &data](shared_ptr<EFGNode> node) {
+    auto getStrategy = [&profile](shared_ptr<EFGNode> node) {
         if (node->type_ != PlayerNode) return;
 
         auto infoSet = node->getAOHInfSet();

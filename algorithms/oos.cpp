@@ -263,7 +263,6 @@ double OOSAlgorithm::handlePlayerNode(const shared_ptr<EFGNode> &h,
                              data, infoset, exploringPl)
         : incrementallyBuildTree(h, actions, bias(bs_h_all, us_h_all), exploringPl);
     // @formatter:on
-    double rm_zha_all = rm_zh_all_;
     rm_zh_all_ *= rm_ha_all;
 
     updateEFGNodeExpectedValue(exploringPl, h, u_h, rm_h_pl, rm_h_opp, us_h_cn, s_h_all);

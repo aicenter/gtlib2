@@ -124,7 +124,7 @@ void exportGraphViz(const Domain &domain, std::ostream &fs) {
 //    label = "The foo, the bar and the baz";
 //    labelloc = "t"; // place the label at the top (b seems to be default)
 
-    auto walkPrint = [&fs, &domain](shared_ptr<FOG2EFGNode> node) {
+    auto walkPrint = [&fs](shared_ptr<FOG2EFGNode> node) {
         string color = getColor(node);
         string shape = getShape(node);
 

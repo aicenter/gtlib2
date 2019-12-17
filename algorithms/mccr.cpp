@@ -166,7 +166,6 @@ double MCCRResolver::handlePlayerNode(const shared_ptr<EFGNode> &h, double rm_h_
 
     const auto &actions = h->availableActions();
     const auto &infoset = h->getAOHInfSet();
-    const double s_h_all = bias(bs_h_all, us_h_all);
     CFRData::InfosetData &data = gadgetInfosetData_.at(infoset);
 
     isBelowTargetIS_ = **playInfoset_ == *infoset;

@@ -60,7 +60,7 @@ class ISMCTS: public GamePlayingAlgorithm {
     explicit inline ISMCTS(const Domain &domain, Player playingPlayer, const ISMCTSSettings &config) :
         GamePlayingAlgorithm(domain, playingPlayer),
         config_(config),
-        factory_(move(config_.createFactory())),
+        factory_(config_.createFactory()),
         rootNode_(createRootEFGNode(domain)) {
         generator_ = std::mt19937(config.seed);
     };

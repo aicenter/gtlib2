@@ -1120,7 +1120,6 @@ OutcomeDistribution KriegspielState::performActions(
         observations[chess::invertColor(this->playerOnTheMove_)] =
             make_shared<Observation>(
                 s->calculateObservation(chess::invertColor(this->playerOnTheMove_)));
-        int x = 4;
     } else {
         s->addToAttemptedMoves(ac);
         nextMove = this->playerOnTheMove_;

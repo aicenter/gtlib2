@@ -48,7 +48,7 @@ GambitDomain::GambitDomain(string file) : Domain(1000, 2, true,
     std::string line;
     std::getline(in, line);
     int line_num = 1;
-    root_ = move(ParseNodeLine(in, line, line_num));
+    root_ = ParseNodeLine(in, line, line_num);
 
     in.close();
 
@@ -209,7 +209,7 @@ GambitDomain::ParseNodeLine(std::ifstream &in, const std::string &line, int &lin
                 + file_) << endl;
             exit(1);
         }
-        node->children.emplace_back(move(ParseNodeLine(in, next_line, line_num)));
+        node->children.emplace_back(ParseNodeLine(in, next_line, line_num));
     }
 
     return node;

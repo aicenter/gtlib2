@@ -30,20 +30,20 @@ namespace GTLib2 {
 
 extern std::uniform_real_distribution<double> uniformDist;
 
-static int pickRandomInt(int min, int max, std::mt19937 rand)
+static inline int pickRandomInt(int min, int max, std::mt19937 rand)
 {
     int res = rand() % (max + 1 - min) + min;
     return res;
 }
 
-static double pickRandomDouble(std::mt19937 rand)
+static inline double pickRandomDouble(std::mt19937 rand)
 {
     double d =  uniformDist(rand);
     return d;
 }
 
 template <class T>
-static void shuffleVector(vector<T> & v, std::mt19937 rand)
+static inline void shuffleVector(vector<T> & v, std::mt19937 rand)
 {
     for (int i = v.size() - 1; i > -1; i--)
     {

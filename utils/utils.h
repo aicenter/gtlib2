@@ -337,7 +337,7 @@ namespace std { // NOLINT(cert-dcl58-cpp)
 template<typename T>
 std::ostream &operator<<(std::ostream &ss, const vector<T> &arr) {
     ss << "[";
-    for (int i = 0; i < arr.size(); ++i) {
+    for (unsigned int i = 0; i < arr.size(); ++i) {
         if (i == 0) ss << arr.at(i);
         else ss << ", " << arr.at(i);
     }

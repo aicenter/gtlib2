@@ -21,9 +21,15 @@ include(${BUILD_CONFIG_FILE})
 
 # Some explanation of flags is in COMPILATION_NOTES.md
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-Wgnu-designator -fsanitize=address")
-set(CMAKE_CXX_FLAGS_RELEASE "-m64 -msse2 -O3 -ffast-math -DNDEBUG")
+#set(CMAKE_CXX_STANDARD 20)
+#set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-std=c++2a -Wgnu-designator")
+#set(CMAKE_CXX_FLAGS_RELEASE "-std=c++2a -m64 -msse2 -O3 -ffast-math -DNDEBUG")
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -std=c++2a -m64 -O3 -ffast-math -DNDEBUG")
+#set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -std=c++17 -m64 -O0 -ffast-math -fsanitize=address -Wall -Wextra -Wshadow -Weffc++ -Wstrict-aliasing -pedantic -Werror")
+set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -std=c++2a -Wall")
+
 
 # Make sure it's possible to use includes like "base/efg.h"
 include_directories(${CMAKE_SOURCE_DIR})

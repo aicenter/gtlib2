@@ -80,9 +80,7 @@ class AbstractPiece {
      * @param const GTLib2::domains::KriegspielState* the board the piece is on
      */
     AbstractPiece(pieceName, int, Square, const GTLib2::domains::KriegspielState *s);
-    inline ~AbstractPiece() {
-
-    };
+    virtual inline ~AbstractPiece() = default;
     /**
      * Returns all (valid and non-valid) moves of a figure
      */
