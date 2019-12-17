@@ -115,6 +115,6 @@ class NFGState: public State {
     const vector <uint32> playedActions_;
 };
 
-}; // namespace GTLib2
+} // namespace GTLib2
 
 #endif //GTLIB2_DOMAINS_NORMAL_FORM_GAME_H_

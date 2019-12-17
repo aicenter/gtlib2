@@ -54,7 +54,6 @@ int pickUniform(unsigned long numOutcomes, std::mt19937 &generator) {
     unsigned int idxOutcome = floor(p * numOutcomes);
     if (idxOutcome == numOutcomes) idxOutcome--; // if p == 1.0
     assert(idxOutcome < numOutcomes);
-    assert(idxOutcome >= 0);
     return idxOutcome;
 }
 

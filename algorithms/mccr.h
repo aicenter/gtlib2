@@ -107,6 +107,6 @@ class MCCRAlgorithm: public ContinualResolving {
 
 };
 
-};
+}
 
 #endif //GTLIB2_MCCR_H

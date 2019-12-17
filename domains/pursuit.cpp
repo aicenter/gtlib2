@@ -23,6 +23,15 @@
 
 
 namespace GTLib2::domains {
+
+// Moore neighborhood for observations
+static array<Pos, 10> pursuitEightSurrounding = {{{-2, -2}, {-1, -1}, {0, -1}, {1, -1},
+                                                  {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1},
+                                                  {0, 0}}};
+// moves
+static array<Pos, 5> pursuitMoves = {{{0, 0}, {1, 0}, {0, 1}, {-1, 0}, {0, -1}}};
+
+
 PursuitAction::PursuitAction(ActionId id, int move) : Action(id), move_(move) {}
 
 bool PursuitAction::operator==(const Action &that) const {

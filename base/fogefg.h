@@ -49,6 +49,7 @@ class FOG2EFGNode: public Node<FOG2EFGNode>,
 
     inline FOG2EFGNode(const FOG2EFGNode &other) :
         Node<FOG2EFGNode>(other), EFGNode(other),
+        std::enable_shared_from_this<FOG2EFGNode const>(other),
         stateDepth_(other.stateDepth_), incomingAction_(other.incomingAction_),
         lastOutcome_(other.lastOutcome_), outcomeDist_(other.outcomeDist_),
         remainingRoundPlayers_(other.remainingRoundPlayers_), roundActions_(other.roundActions_),

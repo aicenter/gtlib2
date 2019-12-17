@@ -36,5 +36,5 @@ PlayControl CFR_CR::resolveIteration(const shared_ptr<GadgetRootNode> &,
     return ContinueImproving;
 }
 
-};
+}
 

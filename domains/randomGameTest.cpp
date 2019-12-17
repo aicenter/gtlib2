@@ -37,7 +37,7 @@ bool gameConsistency(const RandomGameDomain &domain1, const RandomGameDomain &do
     unsigned int violations = 0;
     auto traverse = [&](const shared_ptr<EFGNode> &node1,
                         const shared_ptr<EFGNode> &node2,
-                        const auto &traverse) {
+                        const auto &traverseChild) {
         if (!(*node1 == *node2)) {
             violations++;
             return;
@@ -50,9 +50,9 @@ bool gameConsistency(const RandomGameDomain &domain1, const RandomGameDomain &do
             return;
         }
         for (unsigned int i = 0; i < actions1.size(); ++i) {
-            traverse(node1->performAction(actions1[i]),
+            traverseChild(node1->performAction(actions1[i]),
                      node2->performAction(actions2[i]),
-                     traverse);
+                     traverseChild);
         }
     };
     traverse(createRootEFGNode(domain1), createRootEFGNode(domain2), traverse);

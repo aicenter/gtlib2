@@ -108,8 +108,6 @@ RandomGameState::performActions(const vector<shared_ptr<Action>> &actions) const
     auto pubObs = make_shared<RandomGameObservation>(NO_OBSERVATION);
     auto player0Obs = p1Action.getId() % RGdomain->getMaxDifferentObservations();
     auto player1Obs = p0Action.getId() % RGdomain->getMaxDifferentObservations();
-    assert(player0Obs >= 0);
-    assert(player1Obs >= 0);
     vector<shared_ptr<Observation>> observations{make_shared<RandomGameObservation>(player0Obs),
                                                  make_shared<RandomGameObservation>(player1Obs)};
     // simple hashed AOH history

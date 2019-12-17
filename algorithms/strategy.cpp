@@ -66,7 +66,7 @@ StrategyProfile getUniformStrategy(InfosetCache &data) {
 }
 
 void playOnlyAction(ProbDistribution &dist, unsigned long actionIdx) {
-    assert(actionIdx < dist.size() && actionIdx >= 0);
+    assert(actionIdx < dist.size());
     for (unsigned int i = 0; i < dist.size(); ++i) {
         dist[i] = i == actionIdx ? 1.0 : 0.0;
     }

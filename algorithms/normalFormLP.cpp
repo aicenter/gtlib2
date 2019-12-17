@@ -41,8 +41,8 @@ NormalFormLP::NormalFormLP(const unsigned int p1_actions, const unsigned int p2_
     rows_ = p2_actions;
     cols_ = p1_actions;
 
-    assert(rows_ == utilities.size() && rows_ >= 0);
-    assert(cols_ == utilities[0].size() && cols_ >= 0);
+    assert(rows_ == utilities.size());
+    assert(cols_ == utilities[0].size());
 
     vector<double> tmp(rows_ * cols_);
 
@@ -134,8 +134,8 @@ void NormalFormLP::UpdateUtilityMatrix(const vector<double> &utilities) {
 }
 
 void NormalFormLP::UpdateUtilityMatrix(const vector<vector<double>> &utilities) {
-    assert(rows_ == utilities.size() && rows_ >= 0);
-    assert(cols_ == utilities[0].size() && cols_ >= 0);
+    assert(rows_ == utilities.size());
+    assert(cols_ == utilities[0].size());
 
     vector<double> tmp(rows_ * cols_);
 
@@ -161,8 +161,7 @@ bool NormalFormLP::ValidateInput(const unsigned int p1_actions, const unsigned i
 void NormalFormLP::ChangeOutcome(const unsigned int action_for_p1,
                                  const unsigned int action_for_p2,
                                  double new_utility) {
-    if (!(action_for_p1 >= 0 && action_for_p1 < cols_
-        && action_for_p2 >= 0 && action_for_p2 < rows_)) {
+    if (!(action_for_p1 < cols_ && action_for_p2 < rows_)) {
         throw ("Illegal Argument in NormalFormLP - Change Outcome");
     }
 
