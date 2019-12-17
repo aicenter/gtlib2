@@ -1,8 +1,10 @@
 add_library(domains OBJECT
         chessboard_factory.h
         chessboard_factory.cpp
-        gambit.h
-        gambit.cpp
+        gambit/gambit.h
+        gambit/gambit.cpp
+        gambit/gambit_games.h
+        gambit/gambit_games.cpp
         genericPoker.h
         genericPoker.cpp
         goofSpiel.h
@@ -25,6 +27,8 @@ add_library(domains OBJECT
         oshiZumo.cpp
         randomGame.h
         randomGame.cpp
+        simplePoker.h
+        simplePoker.cpp
         stratego.h
         stratego.cpp
         )
@@ -33,7 +37,7 @@ target_include_directories (domains PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 set(TEST_FILES ${TEST_FILES}
         domains/domainsTest.h
         domains/domainsTest.cpp
-        domains/gambitTest.cpp
+        domains/gambit/gambitTest.cpp
         domains/genericPokerTest.cpp
         domains/goofSpielTest.cpp
         domains/kriegSpielTest.cpp

@@ -54,6 +54,7 @@ set(TEST_FILES ${TEST_FILES}
         algorithms/commonTest.cpp
         algorithms/crTest.cpp
         algorithms/MCTS/ISMCTSTest.cpp
+        algorithms/mccrTest.h
         algorithms/mccrTest.cpp
         algorithms/oosTest.h
         algorithms/oosTest.cpp

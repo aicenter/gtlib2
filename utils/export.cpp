@@ -142,7 +142,7 @@ void exportGraphViz(const PublicStateCache &cache, std::ostream &fs) {
            << ",label=\"" << label << "\""
            << ",shape=\"" << shape << "\"]\n";
 
-        for (int i = 0; i < cntPsChildren(cache, node); ++i) {
+        for (unsigned int i = 0; i < cntPsChildren(cache, node); ++i) {
             auto child = expandPs(cache, node, i);
 
             // Print edges

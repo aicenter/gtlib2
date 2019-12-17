@@ -102,5 +102,3 @@ class SimplePokerState: public State {
 }  // namespace GTLib2
 
 #endif  // DOMAINS_SIMPLE_POKER_H_
-
-#pragma clang diagnostic pop

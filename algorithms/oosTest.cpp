@@ -249,13 +249,13 @@ TEST(OOS, MatchingPenniesGadget) {
 
             playForIterations(oos, nullopt, iters);
 
-            for (const auto&[aoh, data] : data.infosetData) {
+            for (const auto&[aoh, infosetData] : data.infosetData) {
                 if (*targetAoh == *aoh) {
-                    auto probs = calcAvgProbs(data.avgStratAccumulator);
+                    auto probs = calcAvgProbs(infosetData.avgStratAccumulator);
                     cout << "seed " << seed << "\n";
                     cout << "iters " << iters << "\n";
-                    cout << "reg: " << data.regrets << "\n";
-                    cout << "avg: " << data.avgStratAccumulator << "\n";
+                    cout << "reg: " << infosetData.regrets << "\n";
+                    cout << "avg: " << infosetData.avgStratAccumulator << "\n";
                     cout << "probs: " << probs << "\n";
                     cout << "----\n";
                     EXPECT_LT(abs(probs[0] - 0.5), expectedUBonDiffs[i]);

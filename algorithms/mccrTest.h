@@ -50,7 +50,7 @@ class FixedSamplingMCCRResolver: public MCCRResolver {
 
  protected:
     const vector<vector<ActionId>> &samples_;
-    int moveIdx_ = 0;
+    unsigned int moveIdx_ = 0;
 
     inline int nextAction() {
         assert(samples_.size() > stats_.rootVisits);
@@ -67,17 +67,13 @@ class FixedSamplingMCCRResolver: public MCCRResolver {
 
     pair<ActionId, RandomLeafOutcome> selectLeaf(const shared_ptr<EFGNode> &start,
                                                  const vector<shared_ptr<Action>> &actions) override;
-    inline ActionId selectChanceAction(const shared_ptr<EFGNode> &h,
-                                       double bsum) override {
+    inline ActionId selectChanceAction(const shared_ptr<EFGNode> &, double) override {
         return nextAction();
     };
-    inline ActionId selectExploringPlayerAction(const shared_ptr<EFGNode> &h,
-                                                int biasApplicableActions,
-                                                double bsum) override {
+    inline ActionId selectExploringPlayerAction(const shared_ptr<EFGNode> &, int, double) override {
         return nextAction();
     };
-    inline ActionId selectNonExploringPlayerAction(const shared_ptr<EFGNode> &h,
-                                                   double bsum) override {
+    inline ActionId selectNonExploringPlayerAction(const shared_ptr<EFGNode> &, double) override {
 
         return nextAction();
     };

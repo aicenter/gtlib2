@@ -144,7 +144,7 @@ TEST(Gadget, ComputeTerminateValues) {
         auto actualValues = computeTerminateCFVValues(summary1, Player(0));
 
         EXPECT_EQ(expectedValues.size(), actualValues.size());
-        for (int i = 0; i < expectedValues.size(); ++i) {
+        for (unsigned int i = 0; i < expectedValues.size(); ++i) {
             EXPECT_DOUBLE_EQ(expectedValues[i], actualValues[i]);
         }
     }
@@ -165,14 +165,14 @@ TEST(Gadget, ComputeTerminateValues) {
         auto expectedValues11 = vector<double>{4/3., 5/3., 4/3., 5/3.};
         auto actualValues11 = computeTerminateCFVValues(summary1, Player(0));
         EXPECT_EQ(expectedValues11.size(), actualValues11.size());
-        for (int i = 0; i < expectedValues11.size(); ++i) {
+        for (unsigned int i = 0; i < expectedValues11.size(); ++i) {
             EXPECT_DOUBLE_EQ(expectedValues11[i], actualValues11[i]);
         }
         // second player
         auto expectedValues12 = vector<double>{2/3., 2/3., 7./3., 7./3.};
         auto actualValues12 = computeTerminateCFVValues(summary1, Player(1));
         EXPECT_EQ(expectedValues12.size(), actualValues12.size());
-        for (int i = 0; i < expectedValues12.size(); ++i) {
+        for (unsigned int i = 0; i < expectedValues12.size(); ++i) {
             EXPECT_DOUBLE_EQ(expectedValues12[i], actualValues12[i]);
         }
 
@@ -188,14 +188,14 @@ TEST(Gadget, ComputeTerminateValues) {
         auto expectedValues21 = vector<double>{5./3., 4./3., 5./3., 4/3.};
         auto actualValues21 = computeTerminateCFVValues(summary2, Player(0));
         EXPECT_EQ(expectedValues21.size(), actualValues21.size());
-        for (int i = 0; i < expectedValues21.size(); ++i) {
+        for (unsigned int i = 0; i < expectedValues21.size(); ++i) {
             EXPECT_DOUBLE_EQ(expectedValues21[i], actualValues21[i]);
-        }        
+        }
         // second player
         auto expectedValues22 = vector<double>{7./3., 7./3., 2/3., 2/3.};
         auto actualValues22 = computeTerminateCFVValues(summary2, Player(1));
         EXPECT_EQ(expectedValues22.size(), actualValues22.size());
-        for (int i = 0; i < expectedValues22.size(); ++i) {
+        for (unsigned int i = 0; i < expectedValues22.size(); ++i) {
             EXPECT_DOUBLE_EQ(expectedValues22[i], actualValues22[i]);
         }
     }

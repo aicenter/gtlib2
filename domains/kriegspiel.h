@@ -361,9 +361,9 @@ class KriegspielObservation : public Observation {
         moveValidity_(chess::VALID) {};
 
  private:
-  chess::moveValidity moveValidity_ = chess::INVALID;
-  vector<chess::checkType> checks_ = {};
-  string capturedPiece_ = "";
+    vector<chess::checkType> checks_ = {};
+    string capturedPiece_ = "";
+    chess::moveValidity moveValidity_ = chess::INVALID;
 
   inline string toString() const final {
       if (moveValidity_ == chess::INVALID) {
@@ -413,7 +413,7 @@ class KriegspielState : public State {
 
   /**
    * @param Domain the Kriegspiel domain
-   * @param unsignedint legalMaxDepth, the depth of game only when counting legal half-moves
+   * @param unsigned int legalMaxDepth, the depth of game only when counting legal half-moves
    * @param int x-size of the board
    * @param int y-size of the board
    * @param shared_ptr<vector<shared_ptr<AbstractPiece>>> a list containing all of the pieces on the board
@@ -424,11 +424,10 @@ class KriegspielState : public State {
    * @param shared_ptr<vector<shared_ptr<KriegspielAction>>> attemptedMoves, a history of attempted moves (non-legal moves)
    */
   KriegspielState(const Domain *domain,
-                  unsignedint,
+                  unsigned int,
                   int,
                   int,
-                  shared_ptr<vector<shared_ptr<AbstractPiece>>
-                  > pieces,
+                  shared_ptr<vector<shared_ptr<AbstractPiece>>> pieces,
                   chess::Square enPassantSquare,
                   const shared_ptr<vector<shared_ptr<KriegspielAction>>> &,
                   int,
@@ -633,7 +632,7 @@ class KriegspielState : public State {
   void setEnPassant(chess::Square);
   inline shared_ptr<vector<shared_ptr<KriegspielAction>>>
   getAttemptedMoveHistory() const {
-      return attemptedMoveHistory;
+      return attemptedMoveHistory_;
   }
   shared_ptr<vector<shared_ptr<AbstractPiece>>>
   copyPieces() const;

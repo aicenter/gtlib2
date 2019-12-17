@@ -119,8 +119,8 @@ class MCCRResolver: public OOSAlgorithm {
     unordered_map<shared_ptr<AOH>, CFRData::InfosetData> gadgetInfosetData_;
     ProbDistribution gadgetChanceProbs_ = ProbDistribution(OOS_MAX_ACTIONS);
     double gadgetBsum_;
-    MCCRData &keep_;
     MCCRSettings mccr_cfg_;
+    MCCRData &keep_;
     double leafWeight_;
     double updateMagnitude_ = 0.0;
 };

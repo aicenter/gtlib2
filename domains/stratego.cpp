@@ -27,7 +27,7 @@
 namespace GTLib2::domains {
 unsigned int
 encodeMoveObservation(const int startPos, const int endPos,
-                                   const CellState startCell, const CellState endCell) {
+                      const CellState startCell, const CellState endCell) {
     // 30 bits total
     // max sizes of stratego boards are 10x10 = 100, so pos < 7 bits = 128
     unsigned int res = startPos << 23; // 7 bits
@@ -51,12 +51,19 @@ enum ObservationType {
 };
 
 struct decodedObservation {
-    decodedObservation(unsigned int startPos, unsigned int endPos,
-                       unsigned int startCell, unsigned int endCell) :
-        endCell(endCell), startCell(startCell), endPos(endPos), startPos(startPos),
-        type(MoveObs) {};
-    decodedObservation(unsigned int setupRank, unsigned int setupPos, unsigned int setupPlayerID) :
-        setupPos(setupPos), setupRank(setupRank), setupPlayerID(setupPlayerID), type(SetupObs) {};
+    decodedObservation(unsigned int _startPos, unsigned int _endPos,
+                       unsigned int _startCell, unsigned int _endCell) :
+        type(MoveObs),
+        endCell(_endCell),
+        startCell(_startCell),
+        endPos(_endPos),
+        startPos(_startPos) {};
+    decodedObservation(unsigned int _setupRank, unsigned int _setupPos, unsigned int _setupPlayerID)
+        :
+        type(SetupObs),
+        setupPos(_setupPos),
+        setupRank(_setupRank),
+        setupPlayerID(_setupPlayerID) {};
     decodedObservation() : type(EmptyObs) {};
 
     const ObservationType type;
@@ -94,7 +101,7 @@ encodeSetupObservation(const Rank rank, const unsigned int pos, const unsigned i
     // 32 bits total
     //setupId up to 28 bits
     unsigned int res = playerID << 28;
-        res = res | (1 << 30);
+    res = res | (1 << 30);
     res = res | (rank << 14); // 14 bits
     res = res | pos; // 14 bits
     return res;
@@ -423,7 +430,8 @@ StrategoState::performSetupAction(const vector<shared_ptr<Action>> &actions) con
     }
 
     const auto noObs = domain_->getNoObservation();
-    const auto obs0 = make_shared<StrategoSetupObservation>(action.figureRank_, action.boardID_, currentPlayer_);
+    const auto obs0 =
+        make_shared<StrategoSetupObservation>(action.figureRank_, action.boardID_, currentPlayer_);
     const auto obs1 = make_shared<StrategoSetupObservation>(
         0, action.boardID_, currentPlayer_);
 
@@ -461,7 +469,7 @@ pair<bool, bool> checkOnlyOneMovablePieceRemains(const vector<CellState> &newBoa
                                                  int height, int width) {
     CellState pl0fig = EMPTY, pl1fig = EMPTY;
     int pl0MovableCounter = 0, pl1MovableCounter = 0, immovableCounter = 0;
-    for (int i = 0; i < newBoard.size(); i++) {
+    for (unsigned int i = 0; i < newBoard.size(); i++) {
         auto f = newBoard[i];
         if (f == EMPTY || f == LAKE) continue;
         if (getRank(f) == BOMB || getRank(f) == FLAG) {
@@ -644,10 +652,12 @@ void StrategoDomain::nodeGenerationTerminalPhase(const vector<ActionObservationI
 }
 
 void StrategoDomain::recursiveNodeGeneration(const shared_ptr<AOH> &currentInfoset,
-                                             const shared_ptr<EFGNode> &node, const int depth,
+                                             const shared_ptr<EFGNode> &node,
+                                             const unsigned int depth,
                                              const vector<shared_ptr<StrategoConstraint>> &mask,
                                              const vector<Rank> &remaining,
-                                             const BudgetType budgetType, int &counter,
+                                             const BudgetType budgetType,
+                                             int &counter,
                                              const EFGNodeCallback &newNodeCallback) const {
     if ((budgetType == BudgetIterations && counter <= 0)
         || (budgetType == BudgetTime && counter - int(clock()) / 1000 <= 0))

@@ -49,7 +49,7 @@ SimplePokerDomain::SimplePokerDomain() :
     }
 }
 
-unsigned long SimplePokerState::countAvailableActionsFor(Player player) const {
+unsigned long SimplePokerState::countAvailableActionsFor(Player) const {
     return isTerminal_ ? 0 : 2;
 }
 
@@ -117,4 +117,3 @@ bool SimplePokerState::operator==(const State &rhs) const {
 }
 
 }  // namespace GTLib2
-#pragma clang diagnostic pop

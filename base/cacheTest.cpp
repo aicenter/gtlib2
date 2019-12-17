@@ -295,13 +295,13 @@ TEST(Cache, PublicStateTree) {
             if (node->getDepth() % 2 == 0) EXPECT_EQ(cntPsChildren(cache, node), 1);
             else EXPECT_EQ(cntPsChildren(cache, node), 3);
         } else { // children must be leaves
-            for (int i = 0; i < cntPsChildren(cache, node); ++i) {
+            for (unsigned int i = 0; i < cntPsChildren(cache, node); ++i) {
                 auto child = expandPs(cache, node, i);
                 EXPECT_TRUE(psIsTerminal(cache, child));
             }
         }
 
-        for (int i = 0; i < cntPsChildren(cache, node); ++i) {
+        for (unsigned int i = 0; i < cntPsChildren(cache, node); ++i) {
             auto child = expandPs(cache, node, i);
             EXPECT_TRUE(isCompatible(node->getHistory(), child->getHistory()));
             walkCheck(child);

@@ -251,8 +251,6 @@ double MCCRResolver::handlePlayerNode(const shared_ptr<EFGNode> &h, double rm_h_
 
     const double s_ha_all = bias(bs_ha_all, us_ha_all);
     const double u_h = u_ha * rm_ha_all / s_ha_all;
-
-    const double rm_zha_all = rm_zh_all_;
     rm_zh_all_ *= rm_ha_all;
 
     if (exploringMoveInNode)
@@ -290,7 +288,7 @@ void MCCRResolver::updateGadgetInfosetRegrets(const shared_ptr <EFGNode> &h,
 
 void MCCRResolver::updateEFGNodeExpectedValue(Player exploringPl, const shared_ptr<EFGNode> &h,
                                               double u_h, double rm_h_pl, double rm_h_opp,
-                                              double us_h_cn, double s_h_all) {
+                                              double us_h_cn, double) {
     // let's make sure that the utility is always for player 0
     // updateVal we get is for the exploring player
     u_h *= exploringPl == Player(0) ? 1 : -1;

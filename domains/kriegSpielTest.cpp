@@ -1018,7 +1018,7 @@ TEST(Kriegspiel, diagonalChecksObservations) {
     vector<ObservationId> expectedObservations{536870912, 268435456, 268435456, 536870912};
     vector<Square> bishopPos{Square(3, 1), Square(3, 7)};
 
-    for (int i = 0; i < movePosition.size(); ++i) {
+    for (unsigned int i = 0; i < movePosition.size(); ++i) {
         int bishop = i < 2 ? 0 : 1;
         actions.clear();
         auto bishopMove = make_shared<KriegspielAction>(0,
@@ -1057,7 +1057,7 @@ TEST(Kriegspiel, diagonalCheckObservationSmallerBoard) {
     vector<ObservationId> expectedObservations{268435456, 536870912, 268435456};
     vector<Square> bishopPos{Square(3, 1), Square(1, 3)};
 
-    for (int i = 0; i < movePosition.size(); ++i) {
+    for (unsigned int i = 0; i < movePosition.size(); ++i) {
         int bishop = i < 2 ? 0 : 1;
         actions.clear();
         auto bishopMove = make_shared<KriegspielAction>(0,

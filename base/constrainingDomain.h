@@ -97,7 +97,7 @@ class ConstrainingDomain {
     // This will update all constraints after specified turn number.
     //
     // Returns whether any constraint has been updated.
-    virtual bool updateConstraints(const shared_ptr<AOH> &targetInfoset,
+    virtual bool updateConstraints(const shared_ptr <AOH> &targetInfoset,
                                    long &startAtTurnNumber,
                                    ConstraintsMap &constraints) const = 0;
 
@@ -111,7 +111,7 @@ class ConstrainingDomain {
     // In the online scenario (described above) we'd like to generate as many histories as possible
     // given some time budget. It can be done by calling this function with parameter BudgetType = BudgetTime, and
     // budget equal to time in ms. Otherwise budget is the number of nodes to be generated.
-    virtual void generateNodes(const shared_ptr<AOH> &targetInfoset,
+    virtual void generateNodes(const shared_ptr <AOH> &targetInfoset,
                                const ConstraintsMap &constraints,
                                BudgetType budgetType,
                                int budget,
@@ -120,22 +120,22 @@ class ConstrainingDomain {
 
 
 typedef function<void(const ConstrainingDomain &domain,
-                      const shared_ptr<AOH> &targetInfoset,
+                      const shared_ptr <AOH> &targetInfoset,
                       const BudgetType budgetType,
                       const int budget,
                       const EFGNodeCallback &maybeNewNodeCallback)> EFGNodeGenerator;
 
 
-inline void emptyNodeGenerator(const ConstrainingDomain &domain,
-                               const shared_ptr<AOH> &targetInfoset,
-                               const BudgetType budgetType,
-                               const int budget,
-                               const EFGNodeCallback &maybeNewNodeCallback) {
+inline void emptyNodeGenerator(const ConstrainingDomain &,
+                               const shared_ptr <AOH> &,
+                               const BudgetType,
+                               const int,
+                               const EFGNodeCallback &) {
 
 }
 
 inline void domainSpecificNodeGenerator(const ConstrainingDomain &domain,
-                                        const shared_ptr<AOH> &targetInfoset,
+                                        const shared_ptr <AOH> &targetInfoset,
                                         const BudgetType budgetType,
                                         const int budget,
                                         const EFGNodeCallback &maybeNewNodeCallback) {
@@ -151,11 +151,11 @@ inline void domainSpecificNodeGenerator(const ConstrainingDomain &domain,
                              budgetType, budget, maybeNewNodeCallback);
 }
 
-inline void cspNodeGenerator(const ConstrainingDomain &domain,
-                             const shared_ptr<AOH> &targetInfoset,
-                             BudgetType budgetType,
-                             int budget,
-                             const EFGNodeCallback &maybeNewNodeCallback) {
+inline void cspNodeGenerator(const ConstrainingDomain &,
+                             const shared_ptr <AOH> &,
+                             BudgetType,
+                             int,
+                             const EFGNodeCallback &) {
     unreachable("cspNodeGenerator is not implemented yet");
 }
 

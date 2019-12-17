@@ -120,7 +120,7 @@ TEST(CFR, CheckRegretsAndAccInSmallDomainForInfosetUpdatingCFR) {
 
     // ------ iteration player 0 ------
     double cfvInfoset = cfr.runIteration(rootNode, array<double, 3>{1., 1., 1.}, Player(0));
-    cfr.UpdateInfosetRegrets(Player(0));
+    cfr.updateInfosetRegrets(Player(0));
     profile = getAverageStrategy(data);
     bestResp0 = bestResponseTo(profile[0], Player(1), domain).value;
     bestResp1 = bestResponseTo(profile[1], Player(0), domain).value;
@@ -143,7 +143,7 @@ TEST(CFR, CheckRegretsAndAccInSmallDomainForInfosetUpdatingCFR) {
 
     // ------ iteration player 1 ------
     cfvInfoset = cfr.runIteration(rootNode, array<double, 3>{1., 1., 1.}, Player(1));
-    cfr.UpdateInfosetRegrets(Player(1));
+    cfr.updateInfosetRegrets(Player(1));
     profile = getAverageStrategy(data);
     bestResp0 = bestResponseTo(profile[0], Player(1), domain).value;
     bestResp1 = bestResponseTo(profile[1], Player(0), domain).value;
@@ -220,7 +220,7 @@ TEST(CFR, CheckRegretsAndAccInSmallDomainFixStrategy) {
 
     // ------ iteration player 0 ------
     double cfvInfoset = cfr.runIteration(rootNode, array<double, 3>{1., 1., 1.}, Player(0));
-    cfr.UpdateInfosetRegrets(Player(0));
+    cfr.updateInfosetRegrets(Player(0));
     EXPECT_EQ(cfvInfoset, 0.0);
     EXPECT_EQ(rootData.regrets[0], 0.75);
     EXPECT_EQ(rootData.regrets[1], 0.25);
@@ -237,7 +237,7 @@ TEST(CFR, CheckRegretsAndAccInSmallDomainFixStrategy) {
 
     // ------ iteration player 1 ------
     cfvInfoset = cfr.runIteration(rootNode, array<double, 3>{1., 1., 1.}, Player(1));
-    cfr.UpdateInfosetRegrets(Player(1));
+    cfr.updateInfosetRegrets(Player(1));
     EXPECT_EQ(rootData.regrets[0], 0.75);
     EXPECT_EQ(rootData.regrets[1], 0.25);
     EXPECT_EQ(rootData.regretUpdates[0], 0.0);

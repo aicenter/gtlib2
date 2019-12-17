@@ -20,7 +20,7 @@
 */
 
 
-#include "tests/mccrTest.h"
+#include "mccrTest.h"
 
 #include "base/base.h"
 #include "base/fogefg.h"
@@ -56,24 +56,24 @@ pair<ActionId, RandomLeafOutcome>
 FixedSamplingMCCRResolver::selectLeaf(const shared_ptr<EFGNode> &start,
                                       const vector<shared_ptr<Action>> &actions) {
     RandomLeafOutcome out = {
-        .utilities = vector<double>(),
-        .playerReachProbs = vector<double>{1., 1.},
-        .chanceReachProb = 1.
+        /*.utilities=*/vector<double>(),
+        /*.playerReachProbs=*/vector<double>{1., 1.},
+        /*.chanceReachProb=*/1.
     };
 
     std::shared_ptr<EFGNode> h = start;
     int firstAction = -1;
     while (h->type_ != TerminalNode) {
-        const auto actions = h->availableActions();
+        const auto nextActions = h->availableActions();
         const int ai = nextAction();
         if (firstAction == -1) firstAction = ai;
 
         switch (h->type_) {
             case ChanceNode:
-                out.chanceReachProb *= h->chanceProbForAction(actions[ai]);
+                out.chanceReachProb *= h->chanceProbForAction(nextActions[ai]);
                 break;
             case PlayerNode:
-                out.playerReachProbs[h->getPlayer()] *= 1.0 / actions.size();
+                out.playerReachProbs[h->getPlayer()] *= 1.0 / nextActions.size();
                 break;
             case TerminalNode:
                 unreachable("terminal node!");
@@ -81,7 +81,7 @@ FixedSamplingMCCRResolver::selectLeaf(const shared_ptr<EFGNode> &start,
                 unreachable("unrecognized option!");
         }
 
-        h = h->performAction(actions[ai]);
+        h = h->performAction(nextActions[ai]);
     }
 
     out.utilities = h->getUtilities();
@@ -128,12 +128,12 @@ TEST(MCCR, IncrementallyBuildTree) {
         -2 / 3.,
     };
 
-    for (int test_case = 0; test_case < testsSamples.size(); ++test_case) {
+    for (unsigned int test_case = 0; test_case < testsSamples.size(); ++test_case) {
         testResolver->clear();
         samples = testsSamples[test_case];
 
         // Run
-        for (int i = 0; i < samples.size() / 2; ++i) mccr.runPlayIteration(nullopt);
+        for (unsigned int i = 0; i < samples.size() / 2; ++i) mccr.runPlayIteration(nullopt);
 
         // Test
         const auto rootPs = mccr.getCache().getRootPublicState();
@@ -181,12 +181,12 @@ TEST(MCCR, PreBuildTree) {
 //        -0.50769363071401552,
     };
 
-    for (int test_case = 0; test_case < testsSamples.size(); ++test_case) {
+    for (unsigned int test_case = 0; test_case < testsSamples.size(); ++test_case) {
         testResolver->reset();
         samples = testsSamples[test_case];
 
         // Run
-        for (int i = 0; i < samples.size() / 2; ++i) mccr.runPlayIteration(nullopt);
+        for (unsigned int i = 0; i < samples.size() / 2; ++i) mccr.runPlayIteration(nullopt);
 
         // Test
         const auto rootPs = mccr.getCache().getRootPublicState();

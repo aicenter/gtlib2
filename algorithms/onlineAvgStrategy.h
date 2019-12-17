@@ -64,7 +64,7 @@ StrategyProfile OOS_AverageStrategy(const Domain &domain, const CLI::AlgParams &
     targetData.buildTree();
 
     LOG_DEBUG("Exploitability after preplay")
-    auto expl = calcExploitability(domain, getAverageStrategy(targetData));
+    calcExploitability(domain, getAverageStrategy(targetData));
 
     function<void(shared_ptr<EFGNode>)> traverse = [&](const shared_ptr<EFGNode> &node) -> void {
         if (node->type_ == PlayerNode) {
@@ -78,8 +78,8 @@ StrategyProfile OOS_AverageStrategy(const Domain &domain, const CLI::AlgParams &
                 playerData.begin() + (d + 1),
                 new OOSData(*playerData.at(d)));
 
-            auto alg = OOSAlgorithm(domain, pl, *playerData.at(d + 1), settings);
-            playForBudget(alg, node->getAOHInfSet(), moveBudget, budgetType);
+            auto oosAlg = OOSAlgorithm(domain, pl, *playerData.at(d + 1), settings);
+            playForBudget(oosAlg, node->getAOHInfSet(), moveBudget, budgetType);
 
             // copy to evaluated strategy
             if (playerData.at(d + 1)->infosetData.find(infoset)
@@ -118,7 +118,7 @@ StrategyProfile OOS_AverageStrategy(const Domain &domain, const CLI::AlgParams &
 BehavioralStrategy MCCR_AverageStrategyForPlayer(Player traversingPlayer,
                                                  MCCRAlgorithm *mccr,
                                                  const Domain &domain,
-                                                 const CLI::AlgParams &cfg,
+                                                 const CLI::AlgParams &,
                                                  unsigned int moveBudget,
                                                  BudgetType budgetType) {
 

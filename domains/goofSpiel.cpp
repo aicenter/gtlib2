@@ -342,12 +342,12 @@ shared_ptr<GoofSpielObservation> decodeGoofSpielObservation(ObservationId obs) {
 
 void removeRest(ConstraintsMap &revealedInfo) {
     bool found = false;
-    for (int i = 0; i < revealedInfo.size(); i++) {
+    for (unsigned int i = 0; i < revealedInfo.size(); i++) {
         const auto constraint1 = dynamic_cast<GoofSpielConstraint *>(revealedInfo[i].get());
         if (constraint1->cardOptions.size() != 1)
             continue;
 
-        for (int j = 0; j < revealedInfo.size(); j++) {
+        for (unsigned int j = 0; j < revealedInfo.size(); j++) {
             if (j == i) continue;
 
             const auto constraint2 = dynamic_cast<GoofSpielConstraint *>(revealedInfo[j].get());
@@ -400,7 +400,7 @@ bool GoofSpielDomain::updateConstraints(const shared_ptr<AOH> &currentInfoset, l
         currentConstraint->cardOptions.erase(
             std::remove_if(currentConstraint->cardOptions.begin(),
                            currentConstraint->cardOptions.end(),
-                           [card](int i) { return i <= card; }),
+                           [card](int option) { return option <= card; }),
             currentConstraint->cardOptions.end());
         removeRest(revealedInfo);
     }

@@ -165,7 +165,7 @@ TEST(ConstrainingDomain, CheckExactInfosets) {
     testCases.push_back({*domain2, targetInfoset23, 1});
 
     for (const auto &generator : testGenerators) {
-        for (int i = 0; i < testCases.size(); ++i) {
+        for (unsigned int i = 0; i < testCases.size(); ++i) {
             const auto testCase = testCases[i];
             cout << "Test case " << i << "\n";
 
@@ -184,7 +184,7 @@ TEST(ConstrainingDomain, CheckExactInfosets) {
 
 TEST(ConstrainingDomain, CheckInfosetConsistency) {
     // pair<domain, skipDepth>
-    vector<pair<shared_ptr<ConstrainingDomain>, int>> domains = {
+    vector<pair<shared_ptr<ConstrainingDomain>, unsigned int>> domains = {
         make_pair(StrategoDomain::STRAT2x2(), 3), // no need to check nodes in setup state
         make_pair(GoofSpielDomain::IIGS(5), 0)
     };

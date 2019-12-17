@@ -261,7 +261,7 @@ class GadgetTerminalNode: public EFGNode {
         unreachable("terminal node!");
     }
 
-    inline shared_ptr<Action> getActionByID(ActionId id) const override {
+    inline shared_ptr<Action> getActionByID(ActionId) const override {
         unreachable("terminal node!");
     }
 

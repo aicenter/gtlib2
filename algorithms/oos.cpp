@@ -233,7 +233,7 @@ double OOSAlgorithm::handleChanceNode(const shared_ptr<EFGNode> &h,
     assert(probs.size() == actions.size());
 
     // do not use assignment usProbs = probs, since we want usProbs to have size of OOS_MAX_ACTIONS
-    for (int i = 0; i < probs.size(); ++i) usProbs_[i] = probs[i];
+    for (unsigned int i = 0; i < probs.size(); ++i) usProbs_[i] = probs[i];
 
     const auto[_, bsum] = calcBiasing(h, actions, bs_h_all);
     const auto ai = selectChanceAction(h, bsum);
@@ -325,7 +325,7 @@ PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
     calcRMProbs(data.regrets, &usProbs_, cfg_.approxRegretMatching);
 #ifndef NDEBUG
     if (cfg_.approxRegretMatching > 0)
-        for (int i = 0; i < data.regrets.size(); ++i) assert(rmProbs_[i] > 0);
+        for (unsigned int i = 0; i < data.regrets.size(); ++i) assert(usProbs_[i] > 0);
 #endif
 
     const auto&[biasApplicableActions, bsum] = calcBiasing(h, actions, bs_h_all);
@@ -469,7 +469,7 @@ ActionId OOSAlgorithm::selectNonExploringPlayerAction(const shared_ptr<EFGNode> 
 
 void OOSAlgorithm::updateEFGNodeExpectedValue(Player exploringPl, const shared_ptr<EFGNode> &h,
                                               double u_h, double rm_h_pl, double rm_h_opp,
-                                              double us_h_cn, double s_h_all) {
+                                              double us_h_cn, double) {
     // let's make sure that the utility is always for player 0
     // updateVal we get is for the exploring player
     u_h *= exploringPl == Player(0) ? 1 : -1;

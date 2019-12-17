@@ -480,6 +480,21 @@ class Domain {
     const shared_ptr<Action> noAction_;
     const shared_ptr<Observation> noObservation_;
 };
+
+bool isAOCompatible(const std::vector<ActionObservationIds> &aoTarget,
+                    const std::vector<ActionObservationIds> &aoCmp);
+
+
+template<typename T>
+bool isCompatible(const std::vector<T> &target, const std::vector<T> &cmp) {
+    auto sizeTarget = target.size();
+    auto sizeCmp = cmp.size();
+    if (std::min(sizeTarget, sizeCmp) == 0) return true;
+
+    size_t cmpBytes = std::min(sizeTarget, sizeCmp) * sizeof(T);
+    return !memcmp(target.data(), cmp.data(), cmpBytes);
+}
+
 }  // namespace GTLib2
 
 MAKE_EQ(GTLib2::InformationSet)
