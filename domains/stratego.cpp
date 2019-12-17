@@ -205,7 +205,7 @@ unsigned long StrategoState::countAvailableActionsFor(Player player) const {
     }
     //todo: add scouts (move to more than one field)
     int count = 0;
-    for (int i = 0; i < boardState_.size(); i++) {
+    for (unsigned int i = 0; i < boardState_.size(); i++) {
         if (!isPlayers(boardState_[i], player)
             || getRank(boardState_[i]) == BOMB
             || getRank(boardState_[i]) == FLAG)
@@ -234,7 +234,7 @@ shared_ptr<Action> StrategoState::getActionByID(const Player player, ActionId ac
         return make_shared<Action>();
     }
     //todo: add scouts (move to more than one field)
-    for (int i = 0; i < boardState_.size(); i++) {
+    for (unsigned int i = 0; i < boardState_.size(); i++) {
         if (!isPlayers(boardState_[i], player)
             || getRank(boardState_[i]) == BOMB
             || getRank(boardState_[i]) == FLAG)
@@ -276,7 +276,7 @@ vector<shared_ptr<Action>> StrategoState::getAvailableActionsFor(const Player pl
         return actions;
     }
     //todo: add scouts (move to more than one field)
-    for (int i = 0; i < boardState_.size(); i++) {
+    for (unsigned int i = 0; i < boardState_.size(); i++) {
         if (!isPlayers(boardState_[i], player)
             || getRank(boardState_[i]) == BOMB
             || getRank(boardState_[i]) == FLAG)
@@ -332,7 +332,7 @@ StrategoState::performSetupAction(const vector<shared_ptr<Action>> &actions) con
     StrategoSetupAction
         actionpl1 = dynamic_cast<StrategoSetupAction &>(*actions[1]); // player 1 setup
     vector<CellState> board = stratDomain->emptyBoard_;
-    for (int i = 0; i < actionpl0.figuresSetup.size(); i++) {
+    for (unsigned int i = 0; i < actionpl0.figuresSetup.size(); i++) {
         board[i] = createCell(actionpl0.figuresSetup[i], 0);
         board[board.size() - 1 - i] = createCell(actionpl1.figuresSetup[i], 1);
     }

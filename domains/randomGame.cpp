@@ -82,7 +82,7 @@ string RandomGameDomain::getInfo() const {
 vector<shared_ptr<Action>> RandomGameState::getAvailableActionsFor(Player player) const {
     vector<shared_ptr<Action>> actions;
     auto possibleMoves = countAvailableActionsFor(player);
-    for (int i = 0; i < possibleMoves; ++i) {
+    for (unsigned int i = 0; i < possibleMoves; ++i) {
         actions.push_back(make_shared<RandomGameAction>(i));
     }
     return actions;

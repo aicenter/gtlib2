@@ -188,11 +188,11 @@ void exportGambit(const shared_ptr<EFGNode>& rootNode, std::ostream &fs) {
 
 //        string nodeLabel = node->toString();
         string nodeLabel = "";
-        for (int j = 0; j < node->efgDepth(); ++j) fs << " ";
+        for (unsigned int j = 0; j < node->efgDepth(); ++j) fs << " ";
 
         switch (node->type_) {
             case ChanceNode: {
-                for (int j = 0; j < node->efgDepth(); ++j) fs << " ";
+                for (unsigned int j = 0; j < node->efgDepth(); ++j) fs << " ";
                 fs << "c \"" << nodeLabel << "\" " << chanceIdx++ << " \"\" { ";
                 int i = 0;
                 for (const auto &chanceProb : node->chanceProbs()) {

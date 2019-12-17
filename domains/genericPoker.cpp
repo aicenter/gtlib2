@@ -94,8 +94,8 @@ GenericPokerDomain::GenericPokerDomain(unsigned int maxCardTypes, unsigned int m
     assert(maxDifferentBets_ >= 1);
     assert(maxDifferentRaises_ >= 1);
 
-    for (int i = 1; i <= maxDifferentBets; i++) betsFirstRound_.push_back(i * 2);
-    for (int i = 1; i <= maxDifferentRaises; i++) raisesFirstRound_.push_back(i * 2);
+    for (unsigned int i = 1; i <= maxDifferentBets; i++) betsFirstRound_.push_back(i * 2);
+    for (unsigned int i = 1; i <= maxDifferentRaises; i++) raisesFirstRound_.push_back(i * 2);
     for (int i : betsFirstRound_) betsSecondRound_.push_back(i * 2);
     for (int i : raisesFirstRound_) raisesSecondRound_.push_back(i * 2);
 
@@ -105,8 +105,8 @@ GenericPokerDomain::GenericPokerDomain(unsigned int maxCardTypes, unsigned int m
         + (maxCardTypes_ > 1 ? betsSecondRound_.back() : 0) // todo: not entirely sure this is correct
         + maxRaisesInRow_ * raisesSecondRound_.back();
 
-    for (int p1card = 0; p1card < maxCardTypes_; ++p1card) {
-        for (int p2card = 0; p2card < maxCardTypes_; ++p2card) {
+    for (unsigned int p1card = 0; p1card < maxCardTypes_; ++p1card) {
+        for (unsigned int p2card = 0; p2card < maxCardTypes_; ++p2card) {
             // impossible situation that both players get the same card,
             // but there is only one such card the pile
             if (p1card == p2card && maxCardsOfEachType_ == 1) continue;
@@ -339,7 +339,7 @@ OutcomeDistribution GenericPokerState::revealChanceCard(double newFirstPlayerRew
 
     OutcomeDistribution newOutcomes;
     // Nature card is going to be one of the possible types
-    for (int natureCard = 0; natureCard < pokerDomain->maxCardTypes_; ++natureCard) {
+    for (unsigned int natureCard = 0; natureCard < pokerDomain->maxCardTypes_; ++natureCard) {
 
         // Do not have a chance card in impossible situations
         const bool bothPlayersPlayed = player1Card_ == natureCard

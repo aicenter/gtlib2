@@ -116,7 +116,7 @@ TEST(LiarsDice, BuildGameTreeAndCheckSizes) {
         }
     };
 
-    for (int i = 0; i < expectedStats.size(); ++i) {
+    for (unsigned int i = 0; i < expectedStats.size(); ++i) {
         cout << ">> checking domain [" << i << "] " << testDomainsLiarsDice[i].getInfo() << endl;
         DomainStatistics actualStats;
         calculateDomainStatistics(testDomainsLiarsDice[i], &actualStats);

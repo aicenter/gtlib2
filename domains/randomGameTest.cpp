@@ -49,7 +49,7 @@ bool gameConsistency(const RandomGameDomain &domain1, const RandomGameDomain &do
             violations++;
             return;
         }
-        for (int i = 0; i < actions1.size(); ++i) {
+        for (unsigned int i = 0; i < actions1.size(); ++i) {
             traverse(node1->performAction(actions1[i]),
                      node2->performAction(actions2[i]),
                      traverse);
@@ -151,7 +151,7 @@ TEST(RandomGame, checkDomainStats) {
         },
     };
 
-    for (int i = 0; i < expectedStats.size(); ++i) {
+    for (unsigned int i = 0; i < expectedStats.size(); ++i) {
         RandomGameDomain domain(p_game_settings[i]);
         cout << ">> checking domain [" << i << "] " << domain.getInfo() << endl;
         DomainStatistics actualStats;

@@ -121,13 +121,13 @@ const StrategyValue &_bestResponse(const BehavioralStrategy &opoStrat,
     auto actionVals = vector<vector<double>>();
     actionVals.reserve(numActions);
 
-    for (int i = 0; i < numActions; ++i) {
+    for (unsigned int i = 0; i < numActions; ++i) {
         assert(actions[i]->getId() == i);
         double actionValue = 0.0;
 
         vector<double> siblingsValue;
         siblingsValue.reserve(numNodes);
-        for (int j = 0; j < numNodes; ++j) {
+        for (unsigned int j = 0; j < numNodes; ++j) {
             const auto &siblingNode = nodesInInfoset[j];
             if (siblingNode->getProbabilityOfActionSeq(opponent(responder), opoStrat) == 0.0) {
                 siblingsValue.push_back(0.0);
@@ -150,7 +150,7 @@ const StrategyValue &_bestResponse(const BehavioralStrategy &opoStrat,
     }
     brs[infoset] = {{actions[bestAction], 1.0}};
 
-    for (int j = 0; j < numNodes; ++j) {
+    for (unsigned int j = 0; j < numNodes; ++j) {
         const auto &siblingNode = nodesInInfoset[j];
         auto bestActionVal = actionVals[bestAction][j];
 

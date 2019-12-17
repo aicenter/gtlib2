@@ -30,7 +30,7 @@ ActionId RMSelector::select() {
     updateProb();
     const auto numActions = actionProbability.size();
     double rand = pickRandomDouble(factory_->getRandom());
-    for (int i = 0; i < numActions; i++) {
+    for (unsigned int i = 0; i < numActions; i++) {
         const double pa = (1 - factory_->cfg_.gamma) * actionProbability[i] + factory_->cfg_.gamma / numActions;
 
         if (rand > pa) {
@@ -47,7 +47,7 @@ void RMSelector::update(ActionId ai, double value) {
     const double pa = (1 - factory_->cfg_.gamma) * actionProbability[ai]
         + factory_->cfg_.gamma / actionProbability.size();
     regretEstimate[ai] += v / pa;
-    for (int i = 0; i < regretEstimate.size(); i++) {
+    for (unsigned int i = 0; i < regretEstimate.size(); i++) {
         regretEstimate[i] -= v;
     }
 }
@@ -64,11 +64,11 @@ void RMSelector::updateProb() {
     if (R <= 0) {
         std::fill(actionProbability.begin(), actionProbability.end(), 1.0 / K);
     } else {
-        for (int i = 0; i < actionProbability.size(); i++)
+        for (unsigned int i = 0; i < actionProbability.size(); i++)
             actionProbability[i] = (regretEstimate[i] > 0 ? regretEstimate[i] / R : 0);
     }
 
-    for (int i = 0; i < actionProbability.size(); i++)
+    for (unsigned int i = 0; i < actionProbability.size(); i++)
         actionMeanProbability[i] += actionProbability[i];
 }
 }

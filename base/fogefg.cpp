@@ -200,7 +200,7 @@ vector<shared_ptr<Action>> FOG2EFGNode::availableActions() const {
 
 vector<shared_ptr<Action>> FOG2EFGNode::createChanceActions() const {
     vector<shared_ptr<Action>> actions;
-    for (int i = 0; i < outcomeDist_.size(); ++i) {
+    for (unsigned int i = 0; i < outcomeDist_.size(); ++i) {
         actions.emplace_back(make_shared<EFGChanceAction>(i, outcomeDist_[i].prob));
     }
     return actions;

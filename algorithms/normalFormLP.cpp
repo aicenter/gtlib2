@@ -46,8 +46,8 @@ NormalFormLP::NormalFormLP(const unsigned int p1_actions, const unsigned int p2_
 
     vector<double> tmp(rows_ * cols_);
 
-    for (int i = 0; i < rows_; i++) {
-        for (int j = 0; j < cols_; j++) {
+    for (unsigned int i = 0; i < rows_; i++) {
+        for (unsigned int j = 0; j < cols_; j++) {
             tmp[i * cols_ + j] = utilities[i][j];
         }
     }
@@ -101,12 +101,12 @@ vector<double> NormalFormLP::GetStrategy(int player) {
 
     if (player == 0) {
         result.reserve(cols_);
-        for (int i = 0; i < cols_; ++i) {
+        for (unsigned int i = 0; i < cols_; ++i) {
             result.emplace_back(lp_solver_->GetValue(i));
         }
     } else {
         result.reserve(rows_);
-        for (int i = 0; i < rows_; ++i) {
+        for (unsigned int i = 0; i < rows_; ++i) {
             result.emplace_back(-lp_solver_->GetDual(i));
         }
     }
@@ -139,8 +139,8 @@ void NormalFormLP::UpdateUtilityMatrix(const vector<vector<double>> &utilities) 
 
     vector<double> tmp(rows_ * cols_);
 
-    for (int i = 0; i < rows_; i++) {
-        for (int j = 0; j < cols_; j++) {
+    for (unsigned int i = 0; i < rows_; i++) {
+        for (unsigned int j = 0; j < cols_; j++) {
             tmp[i * cols_ + j] = utilities[i][j];
         }
     }

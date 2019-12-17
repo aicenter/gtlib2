@@ -126,8 +126,8 @@ UtilityMatrix constructUtilityMatrixFor(
     const auto cols = playersPureStrats[1].size();
     vector<double> matrix(rows * cols, 0.0);
 
-    for (int row = 0; row < rows; ++row) {
-        for (int col = 0; col < cols; ++col) {
+    for (unsigned int row = 0; row < rows; ++row) {
+        for (unsigned int col = 0; col < cols; ++col) {
             auto utils = computeUtilitiesTwoPlayerGame(
                 domain, {playersPureStrats[0][row], playersPureStrats[1][col]});
             matrix[cols * row + col] = utils[player];

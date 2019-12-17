@@ -85,7 +85,7 @@ bool areAvailableActionsSorted(const Domain &domain) {
     auto countViolations = [&num_violations](shared_ptr<EFGNode> node) {
       if (node->type_ == TerminalNode) return;
       auto actions = node->availableActions();
-      for (int j = 0; j < actions.size(); ++j) {
+      for (unsigned int j = 0; j < actions.size(); ++j) {
           if (actions[j]->getId() != j) num_violations++;
       }
     };
@@ -133,7 +133,7 @@ bool isActionGenerationAndAOHConsistent(const Domain &domain) {
               auto actionsMappedAOH = mappedAOH->second;
 
               if (actionsNode.size() == actionsMappedAOH.size()) {
-                  for (int j = 0; j < actionsNode.size(); ++j) {
+                  for (unsigned int j = 0; j < actionsNode.size(); ++j) {
                       if (!(*actionsNode[j] == *actionsMappedAOH[j])) {
                           num_violation++;
                       }

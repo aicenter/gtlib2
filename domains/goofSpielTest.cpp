@@ -172,7 +172,7 @@ TEST(Goofspiel, BuildGameTreeAndCheckSizes) {
         }
     };
 
-    for (int i = 0; i < expectedStats.size(); ++i) {
+    for (unsigned int i = 0; i < expectedStats.size(); ++i) {
         cout << ">> checking domain [" << i << "] " << testDomainsGoofSpiel[i].getInfo() << endl;
         DomainStatistics actualStats;
         calculateDomainStatistics(testDomainsGoofSpiel[i], &actualStats);

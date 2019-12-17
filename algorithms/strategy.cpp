@@ -67,7 +67,7 @@ StrategyProfile getUniformStrategy(InfosetCache &data) {
 
 void playOnlyAction(ProbDistribution &dist, unsigned long actionIdx) {
     assert(actionIdx < dist.size() && actionIdx >= 0);
-    for (int i = 0; i < dist.size(); ++i) {
+    for (unsigned int i = 0; i < dist.size(); ++i) {
         dist[i] = i == actionIdx ? 1.0 : 0.0;
     }
 }
@@ -85,7 +85,7 @@ ActionProbDistribution mapDistribution(const ProbDistribution &dist,
                                        const vector<shared_ptr<Action>> &actions) {
     assert(dist.size() == actions.size());
     ActionProbDistribution actionDist;
-    for (int i = 0; i < dist.size(); ++i) {
+    for (unsigned int i = 0; i < dist.size(); ++i) {
         actionDist[actions[i]] = dist[i];
     }
     return actionDist;

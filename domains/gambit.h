@@ -73,7 +73,7 @@ class GambitState: public State {
     inline vector<shared_ptr<Action>> getAvailableActionsFor(Player player) const override {
         auto actions = vector<shared_ptr<Action>>();
         actions.reserve(countAvailableActionsFor(player));
-        for (int i = 0; i < countAvailableActionsFor(player); ++i) {
+        for (unsigned int i = 0; i < countAvailableActionsFor(player); ++i) {
             actions.push_back(make_shared<Action>(i));
         }
         return actions;

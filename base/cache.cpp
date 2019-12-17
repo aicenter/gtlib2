@@ -95,7 +95,7 @@ const EFGChildNodes &EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node) {
     if (builtForest_) return nodes;
 
     int missingIdx = -1;
-    for (int i = 0; i < nodes.size(); i++) {
+    for (unsigned int i = 0; i < nodes.size(); i++) {
         if (!nodes[i]) {
             missingIdx = i;
             break;
@@ -105,7 +105,7 @@ const EFGChildNodes &EFGCache::getChildrenFor(const shared_ptr<EFGNode> &node) {
 
     // Add missing actions
     auto actions = node->availableActions();
-    for (int i = missingIdx; i < actions.size(); ++i) {
+    for (unsigned int i = missingIdx; i < actions.size(); ++i) {
         if (nodes[i]) continue;
 
         auto childNode = node->performAction(actions[i]);

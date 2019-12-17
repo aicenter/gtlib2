@@ -76,11 +76,11 @@ vector<vector<double>> TransformCFRDataToNN::to_nn_input(const vector<double> &r
     }
     // fill the returning matrix - acting player
     for (int y = 0; y < this->input_nn_matrix_dim_y_; y++) {
-        for (int x = 0; x < this->num_possible_actions_sequences_p0_; x++) {
+        for (unsigned int x = 0; x < this->num_possible_actions_sequences_p0_; x++) {
             if (information_set_mapping_[y][x]) {
                 unsigned long z_dimension = information_set_mapping_[y][x]->size();
 
-                for (int z = 0; z < z_dimension; z++) {
+                for (unsigned int z = 0; z < z_dimension; z++) {
                     int index = information_set_mapping_[y][x]->at(z);
 
                     if (this->is_reachable(range_acting_player[index])) {
@@ -93,11 +93,11 @@ vector<vector<double>> TransformCFRDataToNN::to_nn_input(const vector<double> &r
     }
 
     for (int y = 0; y < this->input_nn_matrix_dim_y_; y++) {
-        for (int x = 0; x < this->num_possible_actions_sequences_p1_; x++) {
+        for (unsigned int x = 0; x < this->num_possible_actions_sequences_p1_; x++) {
             if (augmented_information_set_mapping_[y][x]) {
                 unsigned long z_dimension = augmented_information_set_mapping_[y][x]->size();
 
-                for (int z = 0; z < z_dimension; z++) {
+                for (unsigned int z = 0; z < z_dimension; z++) {
                     int index = augmented_information_set_mapping_[y][x]->at(z);
 
                     if (this->is_reachable(range_opponent_player[index])) {
@@ -121,11 +121,11 @@ vector<double> TransformCFRDataToNN::from_nn_output(const vector<double> &range_
 
     if (updatingPlayer == Player(0)) {
         for (int y = 0; y < this->output_nn_matrix_dim_y_; y++) {
-            for (int x = 0; x < this->num_possible_actions_sequences_p0_; x++) {
+            for (unsigned int x = 0; x < this->num_possible_actions_sequences_p0_; x++) {
                 if (this->information_set_mapping_[y][x]) {
                     unsigned long z_dimension = information_set_mapping_[y][x]->size();
 
-                    for (int z = 0; z < z_dimension; z++) {
+                    for (unsigned int z = 0; z < z_dimension; z++) {
                         int index = information_set_mapping_[y][x]->at(z);
 
                         if (this->is_reachable(range_opponent_player[index])) {
@@ -139,11 +139,11 @@ vector<double> TransformCFRDataToNN::from_nn_output(const vector<double> &range_
         }
     } else if (updatingPlayer == Player(1)) {
         for (int y = 0; y < this->output_nn_matrix_dim_y_; y++) {
-            for (int x = 0; x < this->num_possible_actions_sequences_p1_; x++) {
+            for (unsigned int x = 0; x < this->num_possible_actions_sequences_p1_; x++) {
                 if (this->augmented_information_set_mapping_[y][x]) {
                     unsigned long z_dimension = augmented_information_set_mapping_[y][x]->size();
 
-                    for (int z = 0; z < z_dimension; z++) {
+                    for (unsigned int z = 0; z < z_dimension; z++) {
                         int index = augmented_information_set_mapping_[y][x]->at(z);
 
                         if (this->is_reachable(range_acting_player[index])) {

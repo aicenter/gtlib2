@@ -73,14 +73,14 @@ void CPW_ISMCTS::setCurrentInfoset(const shared_ptr<AOH> &newInfoset) {
         const vector<shared_ptr<EFGNode>> newNodes = newNodesIt->second;
 
         belief_ = vector<double>(newNodes.size());
-        for (int i = 0; i < oldNodes.size(); i++) {
+        for (unsigned int i = 0; i < oldNodes.size(); i++) {
             fillBelief(oldNodes[i], newInfoset, oldBelief[i], newNodes);
         }
         //normalize belief
         double sum = 0;
         for (double d : belief_) sum += d;
         assert(sum > 0);
-        for (int i = 0; i < belief_.size(); i++) belief_[i] /= sum;
+        for (unsigned int i = 0; i < belief_.size(); i++) belief_[i] /= sum;
     }
     currentInfoset_ = newInfoset;
 }
@@ -93,7 +93,7 @@ void CPW_ISMCTS::fillBelief(const shared_ptr<EFGNode> &currentNode,
     if (currentNode->type_ == PlayerNode) {
         const auto currentInfoset = currentNode->getAOHInfSet();
         if (*currentInfoset == *newInfoset) {
-            for (int i = 0; i < newNodes.size(); i++) {
+            for (unsigned int i = 0; i < newNodes.size(); i++) {
                 auto n = newNodes.at(i);
                 if (*n == *currentNode) {
                     belief_[i] = reachProbability;
@@ -110,7 +110,7 @@ void CPW_ISMCTS::fillBelief(const shared_ptr<EFGNode> &currentNode,
         if (it == infosetSelectors_.end())
             return;
         const auto distribution = it->second->getActionsProbDistribution();
-        for (int i = 0; i < currentNode->availableActions().size(); i++) {
+        for (unsigned int i = 0; i < currentNode->availableActions().size(); i++) {
             const auto action = currentNode->availableActions()[i];
             fillBelief(currentNode->performAction(action),
                        newInfoset,
@@ -120,7 +120,7 @@ void CPW_ISMCTS::fillBelief(const shared_ptr<EFGNode> &currentNode,
     }
 
     if (currentNode->type_ == ChanceNode) {
-        for (int i = 0; i < currentNode->availableActions().size(); i++) {
+        for (unsigned int i = 0; i < currentNode->availableActions().size(); i++) {
             const auto action = currentNode->availableActions()[i];
             fillBelief(currentNode->performAction(action),
                        newInfoset,

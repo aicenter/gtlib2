@@ -52,7 +52,7 @@ vector<double> GadgetGame::computeTerminateCFVValues() {
     auto infosetReaches = unordered_map<shared_ptr<AOH>, double>{};
     const auto &reachProbs = summary_.topmostHistoriesReachProbs;
 
-    for (int i = 0; i < numHistories; ++i) {
+    for (unsigned int i = 0; i < numHistories; ++i) {
         const auto &h = summary_.topmostHistories.at(i);
         const shared_ptr<AOH> aoh = augInfosetse.emplace_back(h->getAOHAugInfSet(viewingPlayer_));
         const auto addReach = reachProbs[i][resolvingPlayer_] * reachProbs[i][2];
@@ -64,7 +64,7 @@ vector<double> GadgetGame::computeTerminateCFVValues() {
 
     auto cfvValues = vector<double>();
     cfvValues.reserve(numHistories);
-    for (int i = 0; i < numHistories; ++i) {
+    for (unsigned int i = 0; i < numHistories; ++i) {
         // the pubStateReach_ term must be added by the resolver when accessing terminal node!
         cfvValues.emplace_back(
             infosetValues.at(augInfosetse.at(i)) / infosetReaches.at(augInfosetse.at(i)));

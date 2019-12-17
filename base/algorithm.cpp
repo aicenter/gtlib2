@@ -118,11 +118,11 @@ vector<double> playMatch(const Domain &domain,
     auto continuePlay = vector<bool>(numAlgs, true);
     auto givenUpMove = vector<int>(numAlgs, -1);
 
-    for (int i = 0; i < numAlgs; ++i) {
+    for (unsigned int i = 0; i < numAlgs; ++i) {
         LOG_PLAYER(i, "Initializing player " << i)
         algs[i] = algorithmInitializers[i](domain, Player(i));
     }
-    for (int i = 0; i < numAlgs; ++i) {
+    for (unsigned int i = 0; i < numAlgs; ++i) {
         LOG_PLAYER(i, "Player " << i << " is thinking in preplay for " << preplayBudget[i]
                                 << (simulationType == BudgetTime ? " ms" : " iterations"))
         continuePlay[i] = playForBudget(*algs[i], PLAY_FROM_ROOT, preplayBudget[i], simulationType);

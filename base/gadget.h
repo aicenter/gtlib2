@@ -119,7 +119,7 @@ class GadgetRootNode: public EFGNode,
     }
     inline vector<shared_ptr<Action>> availableActions() const override {
         vector<shared_ptr<Action>> actions;
-        for (int i = 0; i < countAvailableActions(); ++i) {
+        for (unsigned int i = 0; i < countAvailableActions(); ++i) {
             actions.emplace_back(make_shared<EFGChanceAction>(i, chanceProbForAction(i)));
         }
         return actions;

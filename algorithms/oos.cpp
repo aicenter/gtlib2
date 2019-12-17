@@ -135,7 +135,7 @@ PlayControl OOSAlgorithm::runPlayIteration(const optional<shared_ptr<AOH>> &curr
     if (!targetor_.updateCurrentPosition(playInfoset_, playPublicState_))
         return GiveUp;
 
-    for (int t = 0; t < cfg_.batchSize; ++t) {
+    for (unsigned int t = 0; t < cfg_.batchSize; ++t) {
         for (int exploringPl = 0; exploringPl < 2; ++exploringPl) {
             isBiasedIteration_ = dist_(generator_) <= cfg_.targetBiasing;
             isBelowTargetIS_ = currentInfoset == nullopt
@@ -292,7 +292,7 @@ PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
     calcRMProbs(data.regrets, &rmProbs_, cfg_.approxRegretMatching);
 #ifndef NDEBUG
     if (cfg_.approxRegretMatching > 0)
-        for (int i = 0; i < data.regrets.size(); ++i) assert(rmProbs_[i] > 0);
+        for (unsigned int i = 0; i < data.regrets.size(); ++i) assert(rmProbs_[i] > 0);
 #endif
 
     const auto&[biasApplicableActions, bsum] = calcBiasing(h, actions, bs_h_all);
@@ -312,7 +312,7 @@ PlayerNodeOutcome OOSAlgorithm::sampleExistingTree(const shared_ptr<EFGNode> &h,
 
     // precompute baseline components now, because after child iteration RM probs will change
     double u_h = 0.;
-    for (int i = 0; i < actions.size(); ++i) {
+    for (unsigned int i = 0; i < actions.size(); ++i) {
         if (i == ai) continue;
         u_h += rmProbs_[i] * baseline(h, i);
     }
@@ -362,7 +362,7 @@ pair<int, double> OOSAlgorithm::calcBiasing(const shared_ptr<EFGNode> &h,
     int biasApplicableActions = 0;
 
     const auto probs = h->type_ == PlayerNode ? rmProbs_ : h->chanceProbs();
-    for (int i = 0; i < actions.size(); ++i) {
+    for (unsigned int i = 0; i < actions.size(); ++i) {
         if (targetor_.isAllowedAction(h, actions[i])) {
             (*pBiasedProbs_)[i] = rmProbs_[i];
             bsum += rmProbs_[i];
@@ -482,7 +482,7 @@ void OOSAlgorithm::updateInfosetAcc(const shared_ptr<EFGNode> &h, CFRData::Infos
     switch (cfg_.avgStrategyComputation) {
         case OOSSettings::StochasticallyWeightedAveraging:
             calcRMProbs(data.regrets, &rmProbs_, cfg_.approxRegretMatching);
-            for (int i = 0; i < data.avgStratAccumulator.size(); i++) {
+            for (unsigned int i = 0; i < data.avgStratAccumulator.size(); i++) {
                 data.avgStratAccumulator[i] += w * s * rmProbs_[i];
                 assert(data.avgStratAccumulator[i] > 0.0);
             }
@@ -503,7 +503,7 @@ void OOSAlgorithm::updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exp
 
     switch (cfg_.regretMatching) {
         case OOSSettings::RegretMatchingPlus:
-            for (int i = 0; i < reg.size(); i++) {
+            for (unsigned int i = 0; i < reg.size(); i++) {
                 if (i == ai) reg[i] = fmax(0, reg[i] + (u_x - u_h) * w);
                 else {
                     reg[i] = fmax(0, reg[i] + (baseline(h, i) - u_h) * w);
@@ -511,7 +511,7 @@ void OOSAlgorithm::updateInfosetRegrets(const shared_ptr<EFGNode> &h, Player exp
             }
             break;
         case OOSSettings::RegretMatchingNormal:
-            for (int i = 0; i < reg.size(); i++) {
+            for (unsigned int i = 0; i < reg.size(); i++) {
                 if (i == ai) reg[i] += (u_x - u_h) * w;
                 else {
                     reg[i] += (baseline(h, i) - u_h) * w;

@@ -72,7 +72,7 @@ namespace GTLib2::algorithms {
 
                     if (!data.fixRMStrategy) {
 
-                        for (int i = 0; i < data.regrets.size(); ++i) {
+                        for (unsigned int i = 0; i < data.regrets.size(); ++i) {
 
                             (settings_.regretMatching == RegretMatchingNormal)
                             ? data.regrets[i] += data.regretUpdates[i] :
@@ -117,7 +117,7 @@ namespace GTLib2::algorithms {
             double ExpectedValue = 0.0;
             auto chanceProbs = node->chanceProbs();
 
-            for (int i = 0; i != children.size(); i++) {
+            for (unsigned int i = 0; i != children.size(); i++) {
                 array<double, 3> newReachProbs = {reachProbs[0],
                                                   reachProbs[1],
                                                   reachProbs[CHANCE_PLAYER] * chanceProbs[i]};
@@ -140,7 +140,7 @@ namespace GTLib2::algorithms {
         auto ChildrenActionValues = vector<double>(numActions, 0.0);
         double ExpectedValue = 0.0;
 
-        for (int i = 0; i != children.size(); i++) {
+        for (unsigned int i = 0; i != children.size(); i++) {
             array<double, 3> newReachProbs = {reachProbs[0],
                                               reachProbs[1],
                                               reachProbs[CHANCE_PLAYER]};
@@ -151,7 +151,7 @@ namespace GTLib2::algorithms {
         }
 
         if (actingPl == updatingPl) {
-            for (int i = 0; i < numActions; i++) {
+            for (unsigned int i = 0; i < numActions; i++) {
                 if (!infosetData.fixRMStrategy) {
                     double cfActionRegret = (ChildrenActionValues[i] - ExpectedValue)
                                             * reachProbs[oppExploringPl] * reachProbs[CHANCE_PLAYER];
@@ -180,7 +180,7 @@ namespace GTLib2::algorithms {
         }
 
         if (posRegretSum > 0) {
-            for (int i = 0; i < regrets.size(); i++) {
+            for (unsigned int i = 0; i < regrets.size(); i++) {
                 (*pProbs)[i] = (1 - epsilonUniform) * max(0.0, regrets[i] / posRegretSum)
                                + epsilonUniform / regrets.size();
             }
@@ -201,7 +201,7 @@ namespace GTLib2::algorithms {
         double sum = 0.0;
         for (double d : acc) sum += d;
 
-        for (int i = 0; i < acc.size(); ++i) {
+        for (unsigned int i = 0; i < acc.size(); ++i) {
             (*pProbs)[i] = sum == 0.0
                            ? 1.0 / acc.size()
                            : acc[i] / sum;
@@ -214,7 +214,7 @@ namespace GTLib2::algorithms {
                 const auto &children = cache.getChildrenFor(node);
                 double rmUtility = 0., avgUtility = 0.;
                 const auto chanceProbs = node->chanceProbs();
-                for (int i = 0; i < children.size(); ++i) {
+                for (unsigned int i = 0; i < children.size(); ++i) {
                     auto childUtils = calcExpectedUtility(cache, children[i], pl);
                     rmUtility += chanceProbs[i] * childUtils.rmUtility;
                     avgUtility += chanceProbs[i] * childUtils.avgUtility;
@@ -230,7 +230,7 @@ namespace GTLib2::algorithms {
                 auto rmProbs = calcRMProbs(infosetData.regrets);
                 auto avgProbs = calcAvgProbs(infosetData.avgStratAccumulator);
 
-                for (int i = 0; i < children.size(); ++i) {
+                for (unsigned int i = 0; i < children.size(); ++i) {
                     auto childUtils = calcExpectedUtility(cache, children[i], pl);
                     rmUtility += rmProbs[i] * childUtils.rmUtility;
                     avgUtility += avgProbs[i] * childUtils.avgUtility;

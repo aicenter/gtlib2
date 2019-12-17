@@ -69,7 +69,7 @@ void Command_ExportRing(args::Subparser &parser) {
     double umax = *std::max_element(utils.begin(), utils.end());
     double umin = *std::min_element(utils.begin(), utils.end());
 
-    for (int i = 0; i < utils.size(); ++i) {
+    for (unsigned int i = 0; i < utils.size(); ++i) {
         const unsigned long
             coloridx = floor((utils[i] - umin) / (umax - umin) * (cmap_parula.size() - 1));
         const auto color = cmap_parula[coloridx];

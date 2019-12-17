@@ -42,7 +42,7 @@ void Exp3Selector::updateProb() {
 ActionId Exp3Selector::select() {
     updateProb();
     double rand = pickRandomDouble(factory_->getRandom());
-    for (int i = 0; i < actionProbability_.size(); i++) {
+    for (unsigned int i = 0; i < actionProbability_.size(); i++) {
         if (rand > actionProbability_[i]) {
             rand -= actionProbability_[i];
         } else {

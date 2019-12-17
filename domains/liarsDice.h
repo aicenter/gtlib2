@@ -143,7 +143,7 @@ class LiarsDiceObservation : public Observation {
         if (!rolls_.empty()) {
             unsigned int idTemp = 0;
             unsigned int jump = 1;
-            for (int i = 0; i < rolls_.size(); i++) {
+            for (unsigned int i = 0; i < rolls_.size(); i++) {
                 idTemp += rolls_[i] * jump;
                 jump *= faces;
             }

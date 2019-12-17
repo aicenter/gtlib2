@@ -123,8 +123,8 @@ void initializeParser(args::Subparser &parser) {
 
     if (args::get(args::tag_header)) {
         cout << "domain" << ",";
-        for (int i = 0; i < args::get(args::alg).size(); ++i) cout << "alg" << i << ",";
-        for (int i = 0; i < args::get(args::algcfg).size(); ++i) cout << "algcfg" << i << ",";
+        for (unsigned int i = 0; i < args::get(args::alg).size(); ++i) cout << "alg" << i << ",";
+        for (unsigned int i = 0; i < args::get(args::algcfg).size(); ++i) cout << "algcfg" << i << ",";
     } else if (args::get(args::tag)) {
         cout << args::get(args::domain) << ",";
         for (auto &alg : args::get(args::alg)) cout << alg << ",";
@@ -141,7 +141,7 @@ void initializeParser(args::Subparser &parser) {
 
     if (args::algcfg) {
         const auto algcfgs = args::get(args::algcfg);
-        for (int i = 0; i < algcfgs.size(); ++i) {
+        for (unsigned int i = 0; i < algcfgs.size(); ++i) {
             CLI::algParams.at(i) = readIni(algcfgs.at(i));
         }
     }

@@ -91,7 +91,7 @@ RhodeIslandPokerDomain::RhodeIslandPokerDomain(unsigned int maxCardTypes,
     maxDifferentBets_(maxDifferentBets),
     maxDifferentRaises_(maxDifferentRaises),
     ante_(ante) {
-    for (int i = 0; i < maxDifferentBets; i++) {
+    for (unsigned int i = 0; i < maxDifferentBets; i++) {
         betsFirstRound_.push_back((i + 1) * 2);
     }
 
@@ -99,7 +99,7 @@ RhodeIslandPokerDomain::RhodeIslandPokerDomain(unsigned int maxCardTypes,
      * represents reward which will be added to previous aggressive action
      */
 
-    for (int i = 0; i < maxDifferentRaises; i++) {
+    for (unsigned int i = 0; i < maxDifferentRaises; i++) {
         raisesFirstRound_.push_back((i + 1) * 2);
     }
 
@@ -125,10 +125,10 @@ RhodeIslandPokerDomain::RhodeIslandPokerDomain(unsigned int maxCardTypes,
     vector<double> rewards(2);
     auto next_players = vector<Player>{0};
     double prob = 1.0 / (maxCardsOfTypes * maxCardTypes * (maxCardTypes * maxCardsOfTypes - 1));
-    for (int color = 0; color < maxCardsOfEachType_; ++color) {
-        for (int color2 = 0; color2 < maxCardsOfEachType_; ++color2) {
-            for (int p1card = 0; p1card < maxCardTypes; ++p1card) {
-                for (int p2card = 0; p2card < maxCardTypes; ++p2card) {
+    for (unsigned int color = 0; color < maxCardsOfEachType_; ++color) {
+        for (unsigned int color2 = 0; color2 < maxCardsOfEachType_; ++color2) {
+            for (unsigned int p1card = 0; p1card < maxCardTypes; ++p1card) {
+                for (unsigned int p2card = 0; p2card < maxCardTypes; ++p2card) {
                     if (p1card == p2card && color == color2) {
                         continue;
                     }
@@ -378,8 +378,8 @@ RhodeIslandPokerState::performActions(const vector <shared_ptr<Action>> &actions
         }
         if (new_round == 2 && natureCard1_ == nullopt && a1->GetType() == Call) {
             double prob = 1.0 / (pokerDomain->maxCardsOfEachType_ * pokerDomain->maxCardTypes_ - 2);
-            for (int j = 0; j < pokerDomain->maxCardsOfEachType_; ++j) {
-                for (int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
+            for (unsigned int j = 0; j < pokerDomain->maxCardsOfEachType_; ++j) {
+                for (unsigned int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
                     if ((player1Card_.first == i && player1Card_.second == j)
                         || (player2Card_.first == i && player2Card_.second == j)) {
                         continue;
@@ -410,8 +410,8 @@ RhodeIslandPokerState::performActions(const vector <shared_ptr<Action>> &actions
             return newOutcomes;
         } else if (new_round == 4 && natureCard2_ == nullopt && a1->GetType() == Call) {
             double prob = 1.0 / (pokerDomain->maxCardsOfEachType_ * pokerDomain->maxCardTypes_ - 3);
-            for (int j = 0; j < pokerDomain->maxCardsOfEachType_; ++j) {
-                for (int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
+            for (unsigned int j = 0; j < pokerDomain->maxCardsOfEachType_; ++j) {
+                for (unsigned int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
                     if ((player1Card_.first == i && player1Card_.second == j)
                         || (player2Card_.first == i && player2Card_.second == j)
                         || (natureCard1_.value().first == i && natureCard1_.value().second == j)) {
@@ -560,8 +560,8 @@ RhodeIslandPokerState::performActions(const vector <shared_ptr<Action>> &actions
         if (new_round == 2 && natureCard1_ == nullopt
             && (a2->GetType() == Call || a2->GetType() == Check)) {
             double prob = 1.0 / (pokerDomain->maxCardsOfEachType_ * pokerDomain->maxCardTypes_ - 2);
-            for (int j = 0; j < pokerDomain->maxCardsOfEachType_; ++j) {
-                for (int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
+            for (unsigned int j = 0; j < pokerDomain->maxCardsOfEachType_; ++j) {
+                for (unsigned int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
                     if ((player1Card_.first == i && player1Card_.second == j)
                         || (player2Card_.first == i && player2Card_.second == j)) {
                         continue;
@@ -594,8 +594,8 @@ RhodeIslandPokerState::performActions(const vector <shared_ptr<Action>> &actions
         } else if (new_round == 4 && natureCard2_ == nullopt
             && (a2->GetType() == Call || a2->GetType() == Check)) {
             double prob = 1.0 / (pokerDomain->maxCardsOfEachType_ * pokerDomain->maxCardTypes_ - 3);
-            for (int j = 0; j < pokerDomain->maxCardsOfEachType_; ++j) {
-                for (int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
+            for (unsigned int j = 0; j < pokerDomain->maxCardsOfEachType_; ++j) {
+                for (unsigned int i = 0; i < pokerDomain->maxCardTypes_; ++i) {
                     if ((player1Card_.first == i && player1Card_.second == j)
                         || (player2Card_.first == i && player2Card_.second == j)
                         || (natureCard1_.value().first == i && natureCard1_.value().second == j)) {

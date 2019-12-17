@@ -63,7 +63,7 @@ bool AOH::operator==(const InformationSet &rhs) const {
         || isPlayerActing_ != rhsAOH->isPlayerActing_) {
         return false;
     }
-    for (int i = 0; i < aoh_.size(); ++i) {
+    for (unsigned int i = 0; i < aoh_.size(); ++i) {
         if (aoh_[i] != rhsAOH->aoh_[i]) {
             return false;
         }
@@ -80,7 +80,7 @@ string AOH::toString() const {
 bool ActionSequence::operator==(const ActionSequence &rhs) const {
     if (hash_ != rhs.hash_) return false;
     if (sequence_.size() != rhs.sequence_.size()) return false;
-    for (int i = 0; i < sequence_.size(); ++i) {
+    for (unsigned int i = 0; i < sequence_.size(); ++i) {
         if (sequence_[i].getHash() != rhs.sequence_[i].getHash()
             || (sequence_[i] != rhs.sequence_[i])) {
             return false;
@@ -100,7 +100,7 @@ OutcomeDistribution State::performPartialActions(const vector<PlayerAction> &plA
     auto actions = vector<shared_ptr<Action>>();
     actions.reserve(domain_->getNumberOfPlayers());
 
-    for (int i = 0; i < domain_->getNumberOfPlayers(); ++i) {
+    for (unsigned int i = 0; i < domain_->getNumberOfPlayers(); ++i) {
         shared_ptr<Action> actionFound;
         for (const auto&[requestedPlayer, requestedAction] : plActions) {
             if (Player(i) == requestedPlayer) {

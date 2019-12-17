@@ -30,7 +30,7 @@ PlayControl MCCRAlgorithm::preplayIteration(const shared_ptr<EFGNode> &rootNode)
     r->isBiasedIteration_ = false; // nothing to bias towards in preplay
     r->isBelowTargetIS_ = true; // everything is below "target IS"
 
-    for (int t = 0; t < r->cfg_.batchSize; ++t) {
+    for (unsigned int t = 0; t < r->cfg_.batchSize; ++t) {
         for (int exploringPl = 0; exploringPl < 2; ++exploringPl) {
             // no compensation in preplay
             r->iteration(rootNode, 1.0, 1.0, 1.0, 1.0, 1.0, exploringPl);
@@ -58,7 +58,7 @@ PlayControl MCCRAlgorithm::resolveIteration(const shared_ptr<GadgetRootNode> &ga
 //    assert(successfulUpdate);
 
     double compensation = 1.; // 1. / r->targetor_.compensateTargeting();
-    for (int t = 0; t < r->cfg_.batchSize; ++t) {
+    for (unsigned int t = 0; t < r->cfg_.batchSize; ++t) {
         for (int exploringPl = 0; exploringPl < 2; ++exploringPl) {
             r->isBiasedIteration_ = r->dist_(r->generator_) <= r->cfg_.targetBiasing;
             r->isBelowTargetIS_ = false;
@@ -94,7 +94,7 @@ double MCCRResolver::updateGadgetInfosetData() {
     const auto &summary = gadget_->summary_;
     const auto numGadgetHistories = summary.topmostHistories.size();
     double playInfosetReachProb = 0.;
-    for (int i = 0; i < numGadgetHistories; ++i) {
+    for (unsigned int i = 0; i < numGadgetHistories; ++i) {
         const auto &h = summary.topmostHistories.at(i);
         const auto infoset = h->getAOHAugInfSet(gadget_->viewingPlayer_);
         gadgetInfosetData_.emplace(infoset, CFRData::InfosetData(2, HistoriesUpdating));
@@ -115,7 +115,7 @@ void MCCRResolver::updateGadgetBiasingProbs(double playInfosetReachProb) {
     const double p_unif = 1. / numGadgetHistories;
 
     gadgetBsum_ = 0.0;
-    for (int i = 0; i < numGadgetHistories; ++i) {
+    for (unsigned int i = 0; i < numGadgetHistories; ++i) {
         const auto h = summary.topmostHistories.at(i);
         // todo: take another look at this
         // @formatter:off

@@ -161,7 +161,7 @@ TEST(Oshizumo, BuildAndCheckGameTree) {
         }
     };
 
-    for (int i = 0; i < expectedStats.size(); ++i) {
+    for (unsigned int i = 0; i < expectedStats.size(); ++i) {
         cout << ">> checking domain [" << i << "] " << testDomainsOshiZumo[i].getInfo() << endl;
         DomainStatistics actualStats;
         calculateDomainStatistics(testDomainsOshiZumo[i], &actualStats);
