@@ -153,7 +153,14 @@ double CFRAlgorithm::runIteration(const shared_ptr<EFGNode> &node,
             }
 
             if (!infosetData.fixAvgStrategy) {
-                acc[i] += reachProbs[updatingPl] * rmProbs[i];
+                if (settings_.accumulatorWeighting == UniformAccWeighting) {
+                    acc[i] += reachProbs[updatingPl] * rmProbs[i];
+
+                } else if (settings_.accumulatorWeighting == LinearAccWeighting) {
+                    acc[i] += infosetData.numUpdates * reachProbs[updatingPl] * rmProbs[i];
+
+                }
+
             }
         }
     }
