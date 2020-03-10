@@ -21,9 +21,9 @@ include(${BUILD_CONFIG_FILE})
 
 # Some explanation of flags is in COMPILATION_NOTES.md
 
-set(CMAKE_CXX_STANDARD 20)
-set(COMPILE_FLAGS_WARNINGS "-Wall -Wextra -Wshadow \
-                            -Wstrict-aliasing -pedantic -Werror")
+set(CMAKE_CXX_STANDARD 17)
+#set(COMPILE_FLAGS_WARNINGS "-Wall -Wextra -Wshadow \
+#                            -Wstrict-aliasing -pedantic -Werror")
 # todo: make sure the code passes also other diagnostics
 #                            -fmax-errors=5 -Wunreachable-code -Wcast-align \
 #                            -Wcast-qual -Wctor-dtor-privacy \
@@ -39,10 +39,10 @@ set(COMPILE_FLAGS_WARNINGS "-Wall -Wextra -Wshadow \
 #       for sampling algorithms if we use GCC or CLANG,
 #       observed in test OOS::CheckExploitabilityInSmallDomain
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} \
-                            -std=c++2a -m64 -O3 \
+                            -std=c++03 -m64 -O3 \
                             -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} \
-                            -std=c++2a -m64 -O0 \
+                            -std=c++03 -m64 -O0 \
                             -g -fsanitize=address \
                             ${COMPILE_FLAGS_WARNINGS}")
 
